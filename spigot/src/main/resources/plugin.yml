@@ -1,5 +1,5 @@
 name: ConnectionGuard
-version: 0.1.0
+version: '${version}'
 author: gerolndnr
 website: https://github.com/gerolndnr
 main: com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin
