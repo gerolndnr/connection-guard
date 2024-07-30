@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface CacheProvider {
+    CompletableFuture<Boolean> setup();
+    CompletableFuture<Boolean> disband();
     CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress);
     CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress);
     CompletableFuture<Void> addVpnResult(VpnResult vpnResult);
