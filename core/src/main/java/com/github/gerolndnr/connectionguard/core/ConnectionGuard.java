@@ -51,7 +51,16 @@ public class ConnectionGuard {
     }
 
     public static CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            Optional<GeoResult> geoResultOptional = cacheProvider.getGeoResult(ipAddress).join();
+
+            if (geoResultOptional.isPresent())
+                return geoResultOptional;
+
+            geoResultOptional = geoProvider.getGeoResult(ipAddress).join();
+
+            return geoResultOptional;
+        });
     }
 
     public static void setRequiredPositiveFlags(int requiredPositiveFlags) {
