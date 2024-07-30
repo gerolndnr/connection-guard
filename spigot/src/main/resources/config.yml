@@ -1,0 +1,76 @@
+# Thanks for using Connection Guard, the free connection security plugin with premium quality.
+# There is a lot to configure, if you want to. If not, you don't have to!
+# If you leave it as default, Connection Guard will use ProxyCheck (https://proxycheck.io/)
+# to check for vpn or proxy usage and block connections from those.
+
+# You can use multiple services at the same time (just enable multiple at once) to minimize
+# the possibility of a false-flag. This number determines, how many of the enabled services have
+# to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
+# The higher the value, the less likely it is that a player is getting blocked (no matter if he uses
+# a vpn or not).
+# Default value: 1
+required-positive-flags: 1
+
+# There are a lot of different services which help the plugin identify which
+# IP is a vpn and which is not. Some work better than others and some have daily/monthly limits.
+
+provider:
+  vpn:
+    # ProxyCheck is the most reliable service when it comes to detecting vpns and proxies.
+    # Without an api key, it is limited to 100 requests daily (should work fine for 30-40 unique players
+    # per day). With a free api key, which can be received after registration on https://proxycheck.io/,
+    # 1.000 requests per day are free (should work fine for 300 unique players per day). Upgrades
+    # are not very expensive, especially if you have a server with more than 300 unique players per day.
+    proxycheck:
+      enabled: true
+      api-key: ''
+    # Quality of vpn checks from IP-API isn't known to me. See for yourself.
+    ip-api:
+      enabled: false
+    iphub:
+      enabled: false
+      api-key: ''
+  geo:
+    # Available services:
+    # - IP-API (Free, no api key required, 45 requests per minute)
+    # - ProxyCheck (Free, api key is free and optional and can be configured above in the vpn section,
+    #               100 requests per day without api key or 1.000 requests per day with api key)
+    service: 'IP-API'
+  cache:
+    # The cache is very important to effectively use the requests you have and avoid running into the request limit.
+    # Once a request to a service is made, its data is stored for the specified time (see below) and used instead of
+    # making a new request. This data does not change very frequently and you can cache the results for days, if you want to.
+    # If you want to clear the cache, you can do that by typing in the command /connectionguard clearcache, which is especially
+    # necessary when you add or remove countries to the geo-block-list.
+    # Available types:
+    # - SQLite (no further configuration is necessary, stored in a file in the plugins directory)
+    # - Redis (configure connection details below, useful when deploying Connection Guard on multiple servers)
+    type: 'SQLite'
+
+    redis:
+      hostname: 'localhost'
+      port: 6379
+      username: ''
+      password: ''
+
+behavior:
+  # The way how Connection Guard handles connections which are proxy/vpns according to your specified service.
+  # Available options:
+  # - KICK_NOTIFY (prevent player from joining on your server and notify players with connectionguard.notify.vpn permission)
+  # - KICK (prevent player from joining on your server)
+  # - NOTIFY (allow player to join your server, but notify players with connectionguard.notify.vpn permission)
+  # - IGNORE (allow player to join your server and don't notify anyone)
+  vpn-flag: 'KICK_NOTIFY'
+  geo:
+    # Define how restrictive you want to be with geo-blocking.
+    # Available options:
+    # - BLACKLIST (action specified by 'flag' below will be executed, if the country is on the list)
+    # - WHITELIST (action specified by 'flag' below will be executed, if the country is not on the list)
+    type: 'BLACKLIST'
+    # Same options as for vpn-flag, see above.
+    flag: 'NOTIFY'
+    # Countries are specified by their Alpha 2 code.
+    # A full list can be found here: https://www.iban.com/country-codes
+    list:
+      - CN
+      - RU
