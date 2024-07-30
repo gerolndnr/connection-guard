@@ -9,7 +9,6 @@ import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class ConnectionGuard {
     private static int requiredPositiveFlags = 1;
@@ -42,11 +41,7 @@ public class ConnectionGuard {
 
             VpnResult computedVpnResult = new VpnResult(ipAddress, false);
 
-            if (vpnPositives >= requiredPositiveFlags) {
-                computedVpnResult.setVpn(true);
-            } else {
-                computedVpnResult.setVpn(false);
-            }
+            computedVpnResult.setVpn(vpnPositives >= requiredPositiveFlags);
 
             cacheProvider.addVpnResult(computedVpnResult).join();
             return computedVpnResult;

@@ -1,7 +1,7 @@
 package com.github.gerolndnr.connectionguard.core.vpn;
 
 public class VpnResult {
-    private String ipAddress;
+    private final String ipAddress;
     private boolean isVpn;
 
     public VpnResult(String ipAddress, boolean isVpn) {
