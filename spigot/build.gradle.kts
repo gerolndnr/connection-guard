@@ -17,11 +17,13 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
     maven("https://oss.sonatype.org/content/repositories/central")
+    maven("https://repo.alessiodp.com/releases/")
 }
 
 dependencies {
     shadow(project(":core"))
     shadow("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+    implementation("net.byteflux:libby-bukkit:1.3.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
