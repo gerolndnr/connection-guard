@@ -16,4 +16,8 @@ public class VpnResult {
     public boolean isVpn() {
         return isVpn;
     }
+
+    public void setVpn(boolean vpn) {
+        isVpn = vpn;
+    }
 }
