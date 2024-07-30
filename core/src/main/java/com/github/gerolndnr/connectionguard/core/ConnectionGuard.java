@@ -2,7 +2,6 @@ package com.github.gerolndnr.connectionguard.core;
 
 import com.github.gerolndnr.connectionguard.core.cache.CacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.GeoProvider;
-import com.github.gerolndnr.connectionguard.core.information.InformationProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 
 import java.util.ArrayList;
