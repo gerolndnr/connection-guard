@@ -8,15 +8,20 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://oss.sonatype.org/content/repositories/central")
 }
 
 dependencies {
-
+    shadow(project(":core"))
+    shadow("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

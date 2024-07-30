@@ -8,6 +8,7 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
 repositories {
@@ -16,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.code.gson:gson:2.11.0")
+    shadow("com.squareup.okhttp3:okhttp:4.12.0")
+    shadow("com.google.code.gson:gson:2.11.0")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
