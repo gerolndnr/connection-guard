@@ -9,12 +9,14 @@ import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Logger;
 
 public class ConnectionGuard {
     private static int requiredPositiveFlags = 1;
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
     private static CacheProvider cacheProvider;
+    private static Logger logger;
 
     public static CompletableFuture<VpnResult> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
@@ -68,6 +70,10 @@ public class ConnectionGuard {
         ConnectionGuard.cacheProvider = cacheProvider;
     }
 
+    public static void setLogger(Logger logger) {
+        ConnectionGuard.logger = logger;
+    }
+
     public static int getRequiredPositiveFlags() {
         return requiredPositiveFlags;
     }
@@ -82,5 +88,9 @@ public class ConnectionGuard {
 
     public static CacheProvider getCacheProvider() {
         return cacheProvider;
+    }
+
+    public static Logger getLogger() {
+        return logger;
     }
 }
