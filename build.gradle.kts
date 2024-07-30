@@ -6,7 +6,7 @@ plugins {
 }
 
 repositories {
-    maven("https://repo.alessiodp.com/releases/")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 dependencies {
@@ -17,5 +17,5 @@ dependencies {
 }
 
 tasks.named<ShadowJar>("shadowJar") {
-    relocate("net.byteflux.libby", "com.github.gerolndnr.connectionguard.libs.net.byteflux.libby")
+    relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
 }
