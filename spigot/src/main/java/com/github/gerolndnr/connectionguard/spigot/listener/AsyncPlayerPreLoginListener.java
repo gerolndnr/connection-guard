@@ -22,13 +22,21 @@ public class AsyncPlayerPreLoginListener implements Listener {
         CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture;
 
         // Check if ip address is in exemption lists
-        if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(ipAddress)) {
+        if (
+                ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(ipAddress)
+                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(preLoginEvent.getUniqueId().toString())
+                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(preLoginEvent.getName())
+        ) {
             vpnResultFuture = CompletableFuture.completedFuture(new VpnResult(ipAddress, false));
         } else {
             vpnResultFuture = ConnectionGuard.getVpnResult(ipAddress);
         }
 
-        if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(ipAddress)) {
+        if (
+                ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(ipAddress)
+                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(preLoginEvent.getUniqueId().toString())
+                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(preLoginEvent.getName())
+        ) {
             geoResultOptionalFuture = CompletableFuture.completedFuture(Optional.empty());
         } else {
             geoResultOptionalFuture = ConnectionGuard.getGeoResult(ipAddress);
