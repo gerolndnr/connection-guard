@@ -8,6 +8,7 @@ import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
+import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -90,6 +91,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
         // 6. Register bukkit listener
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
+
+        // 7. Register commands
+        getCommand("connectionguard").setExecutor(new ConnectionGuardCommand());
+        getCommand("connectionguard").setTabCompleter(new ConnectionGuardCommand());
     }
 
     @Override

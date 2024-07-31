@@ -4,3 +4,7 @@ author: gerolndnr
 website: https://github.com/gerolndnr
 main: com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin
 api-version: 1.13
+commands:
+  connectionguard:
+    name: connectionguard
+    description: Retrieve information about connections ingame.
