@@ -167,21 +167,63 @@ public class SQLiteCacheProvider implements CacheProvider {
 
     @Override
     public CompletableFuture<Boolean> removeVpnResult(String ipAddress) {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "DELETE FROM connectionguard_vpn_cache WHERE address=?"
+                );
+                preparedStatement.setString(1, ipAddress);
+                preparedStatement.execute();
+                return true;
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return false;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Boolean> removeGeoResult(String ipAddress) {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "DELETE FROM connectionguard_geo_cache WHERE address=?"
+                );
+                preparedStatement.setString(1, ipAddress);
+                preparedStatement.execute();
+                return true;
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return false;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Boolean> removeAllVpnResults() {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Statement statement = connection.createStatement();
+                statement.execute("DELETE FROM connectionguard_vpn_cache");
+                return true;
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return false;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Boolean> removeAllGeoResults() {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Statement statement = connection.createStatement();
+                statement.execute("DELETE FROM connectionguard_geo_cache");
+                return true;
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return false;
+            }
+        });
     }
 }
