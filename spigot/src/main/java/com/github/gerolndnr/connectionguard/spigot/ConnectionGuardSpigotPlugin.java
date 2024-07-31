@@ -70,8 +70,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 
-        // 5. Set required positive vpn flags
+        // 5. Set required positive vpn flags and cache expiration
         ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
+        ConnectionGuard.setVpnCacheExpirationTime(getConfig().getInt("provider.cache.expiration.vpn"));
+        ConnectionGuard.setGeoCacheExpirationTime(getConfig().getInt("provider.cache.expiration.geo"));
 
         // 6. Register bukkit listener
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
