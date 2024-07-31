@@ -37,7 +37,7 @@ provider:
     service: 'IP-API'
   cache:
     # The cache is very important to effectively use the requests you have and avoid running into the request limit.
-    # Once a request to a service is made, its data is stored for the specified time (see below) and used instead of
+    # Once a request to a service is made, its data is stored for the specified duration (see below) and used instead of
     # making a new request. This data does not change very frequently and you can cache the results for days, if you want to.
     # If you want to clear the cache, you can do that by typing in the command /connectionguard clearcache, which is especially
     # necessary when you add or remove countries to the geo-block-list.
@@ -46,6 +46,12 @@ provider:
     # - Redis (configure connection details below, useful when deploying Connection Guard on multiple servers)
     # - Disabled (disable any caching, make absolutely sure that you don't run into request limits!)
     type: 'SQLite'
+
+    # Time after which a new request is made to the services and the existing data is refreshed (when the player connects).
+    # Unit: minutes
+    expiration:
+      vpn: 1440
+      geo: 4320
 
     redis:
       hostname: 'localhost'

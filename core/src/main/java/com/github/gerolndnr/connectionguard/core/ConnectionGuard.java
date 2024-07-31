@@ -17,6 +17,8 @@ public class ConnectionGuard {
     private static GeoProvider geoProvider;
     private static CacheProvider cacheProvider;
     private static Logger logger;
+    private static int vpnCacheExpirationTime = 1440;
+    private static int geoCacheExpirationTime = 1440;
 
     public static CompletableFuture<VpnResult> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
@@ -83,6 +85,14 @@ public class ConnectionGuard {
         ConnectionGuard.logger = logger;
     }
 
+    public static void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
+        ConnectionGuard.vpnCacheExpirationTime = vpnCacheExpirationTime;
+    }
+
+    public static void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
+        ConnectionGuard.geoCacheExpirationTime = geoCacheExpirationTime;
+    }
+
     public static int getRequiredPositiveFlags() {
         return requiredPositiveFlags;
     }
@@ -101,5 +111,13 @@ public class ConnectionGuard {
 
     public static Logger getLogger() {
         return logger;
+    }
+
+    public static int getVpnCacheExpirationTime() {
+        return vpnCacheExpirationTime;
+    }
+
+    public static int getGeoCacheExpirationTime() {
+        return geoCacheExpirationTime;
     }
 }
