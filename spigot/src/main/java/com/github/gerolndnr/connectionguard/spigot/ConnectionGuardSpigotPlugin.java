@@ -5,6 +5,7 @@ import com.alessiodp.libby.Library;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
+import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
@@ -14,8 +15,12 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class ConnectionGuardSpigotPlugin extends JavaPlugin {
+    private static ConnectionGuardSpigotPlugin connectionGuardSpigotPlugin;
+
     @Override
     public void onEnable() {
+        connectionGuardSpigotPlugin = this;
+
         // 1. Save Default Config & set logger
         saveDefaultConfig();
         ConnectionGuard.setLogger(getLogger());
@@ -55,20 +60,28 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 ConnectionGuard.setCacheProvider(new NoCacheProvider());
                 break;
             default:
-                getLogger().info("The specified cache provider is invalid. Please use SQLite or Redis.");
+                getLogger().info("The specified cache provider is invalid. Please use SQLite,Redis or disable the cache.");
                 setEnabled(false);
                 return;
         }
 
         ConnectionGuard.getCacheProvider().setup();
 
-        // 4. Add every enabled vpn provider
+        // 4. Add every enabled vpn provider and geo provider
         ArrayList<VpnProvider> vpnProviders = new ArrayList<>();
 
         if (getConfig().getBoolean("provider.vpn.proxycheck.enabled"))
             vpnProviders.add(new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
 
         ConnectionGuard.setVpnProviders(vpnProviders);
+
+        switch (getConfig().getString("provider.geo.service").toLowerCase()) {
+            case "ip-api":
+                ConnectionGuard.setGeoProvider(new IpApiGeoProvider());
+                break;
+            default:
+                getLogger().info("The specified geo provider is invalid. Please use IP-API.");
+        }
 
         // 5. Set required positive vpn flags and cache expiration
         ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
@@ -82,5 +95,9 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         ConnectionGuard.getCacheProvider().disband();
+    }
+
+    public static ConnectionGuardSpigotPlugin getInstance() {
+        return connectionGuardSpigotPlugin;
     }
 }

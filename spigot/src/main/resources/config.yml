@@ -60,13 +60,19 @@ provider:
       password: ''
 
 behavior:
-  # The way how Connection Guard handles connections which are proxy/vpns according to your specified service.
-  # Available options:
-  # - KICK_NOTIFY (prevent player from joining on your server and notify players with connectionguard.notify.vpn permission)
-  # - KICK (prevent player from joining on your server)
-  # - NOTIFY (allow player to join your server, but notify players with connectionguard.notify.vpn permission)
-  # - IGNORE (allow player to join your server and don't notify anyone)
-  vpn-flag: 'KICK_NOTIFY'
+  vpn:
+    # The way how Connection Guard handles connections which are proxy/vpns according to your specified service.
+    # Available options:
+    # - KICK_NOTIFY (prevent player from joining on your server and notify players with connectionguard.notify.vpn permission)
+    # - KICK (prevent player from joining on your server)
+    # - NOTIFY (allow player to join your server, but notify players with connectionguard.notify.vpn permission)
+    # - IGNORE (allow player to join your server and don't notify anyone)
+    flag: 'KICK_NOTIFY'
+    # If you want some players or ip addresses to be exempted from the vpn check,
+    # you can add them here.
+    exemptions:
+      - '069a79f4-44e9-4726-a5be-fca90e38aaf5'
+      - '127.0.0.1'
   geo:
     # Define how restrictive you want to be with geo-blocking.
     # Available options:
@@ -80,3 +86,33 @@ behavior:
     list:
       - CN
       - RU
+    # If you want some players or ip addresses to be exempted from the geo check,
+    # you can add them here.
+    exemptions:
+      - '069a79f4-44e9-4726-a5be-fca90e38aaf5'
+      - '127.0.0.1'
+
+# Configure how the command messages should look.
+# Available commands:
+# - /connectionguard (information about the plugin and sub-commands) - connectionguard.command.help
+# - /connectionguard info <Player/UUID/IP> (vpn & geo-data for the player or ip address) - connectionguard.command.info
+# - /connectionguard clear (<Player/UUID/IP>) (clear the cache completely or just for the specified player/ip) - connectionguard.command.clear
+# - /connectionguard reload (reload the plugin with this config) - connectionguard.command.reload
+command:
+  no-permission: "&cYou don't have the permissions to execute this command!"
+
+messages:
+  # The message players see when they are vpn flagged and behaviour is set to KICK or KICK_NOTIFY
+  # Available placeholders: %NAME%, %IP%
+  vpn-block: '&7It looks like you are using a &eVPN&7. Please &edisable&7 it!'
+  # The message players with the permission connectionguard.notify.vpn will see, if behaviour is set to
+  # KICK_NOTIFY or NOTIFY.
+  vpn-notify: '&eConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7.'
+  vpn-notify-kick: '&eConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7 and kicked.'
+  # The message players see when they are geo flagged and behavior is set to KICK or KICK_NOTIFY
+  # Available placeholders: %NAME%, %IP%, %COUNTRY%, %CITY% and %ISP%
+  geo-block: '&7It looks like you are connecting from &e%COUNTRY%&7, which is &enot allowed&7 on this server.'
+  # The message players with the permission connectionguard.notify.geo will see, if behaviour is set to
+  # KICK_NOTIFY or NOTIFY.
+  geo-notify: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
+  geo-notify-block: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%) and kicked'
