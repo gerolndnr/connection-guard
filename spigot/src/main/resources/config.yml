@@ -116,3 +116,20 @@ messages:
   # KICK_NOTIFY or NOTIFY.
   geo-notify: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
   geo-notify-block: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%) and kicked'
+
+  help:
+    - '&7Overview of &bConnection Guard &7commands'
+    - ' &7- /cg &fhelp &7(this overview)'
+    - ' &7- /cg &freload &7(reload config)'
+    - ' &7- /cg &fclear &7(<&fPlayer&7/&fUUID&7/&fIP&7>) (clear cache)'
+    - ' &7- /cg &finfo &7<&fPlayer&7/&fUUID&7/&fIP&7> (vpn and geo data)'
+
+  info:
+    text:
+      - '&7Query result for &b%INPUT%'
+      - '&7IP: &f%IP%&7 (VPN: &f%IS_VPN%&7)'
+      - '&7Location: &f%CITY%&7, &f%COUNTRY%'
+      - '&7ISP: &f%ISP%'
+    is-vpn: "&bYes"
+    not-vpn: "&7No"
+  player-not-online: '&7This player is not online. Try using his &bip address&7 instead.'

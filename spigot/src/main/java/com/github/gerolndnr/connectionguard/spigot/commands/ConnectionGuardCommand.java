@@ -88,15 +88,21 @@ public class ConnectionGuardCommand implements TabExecutor {
     private boolean sendInformationMessage(CommandSender commandSender, String entry) {
         CompletableFuture.runAsync(() -> {
             String ipAddress;
+            String queriedInput;
 
             if (Bukkit.getPlayer(entry) != null) {
-                ipAddress = Bukkit.getPlayer(entry).getAddress().getHostName();
+                Player player = Bukkit.getPlayer(entry);
+                ipAddress = player.getAddress().getHostName();
+                queriedInput = player.getName();
             } else {
                 try {
+                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
                     ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getHostName();
+                    queriedInput = player.getName();
                 } catch (Exception e) {
                     try {
                         ipAddress = InetAddress.getByName(entry).getHostAddress();
+                        queriedInput = ipAddress;
                     } catch (UnknownHostException ex) {
                         commandSender.sendMessage("§7» §bConnection Guard §7| Please enter the name or the uuid of an online player or use the ip address instead.");
                         return;
@@ -107,22 +113,38 @@ public class ConnectionGuardCommand implements TabExecutor {
             VpnResult vpnResult = ConnectionGuard.getVpnResult(ipAddress).join();
             Optional<GeoResult> geoResultOptional = ConnectionGuard.getGeoResult(ipAddress).join();
 
-            commandSender.sendMessage("§7————————————————————————————");
-            commandSender.sendMessage("§7» Result for §b" + entry);
-            if (vpnResult.isVpn()) {
-                commandSender.sendMessage("§7IP: §f" + ipAddress + " §7(VPN: §fYes§7)");
-            } else {
-                commandSender.sendMessage("§7IP: §f" + ipAddress + " §7(VPN: No)");
-            }
+            GeoResult geoResult;
+
             if (geoResultOptional.isPresent()) {
-                GeoResult geoResult = geoResultOptional.get();
-                commandSender.sendMessage("§7Country: §f" + geoResult.getCountryName());
-                commandSender.sendMessage("§7City: §f" + geoResult.getCityName());
-                commandSender.sendMessage("§7ISP: §f" + geoResult.getIspName());
+                geoResult = geoResultOptional.get();
             } else {
-                commandSender.sendMessage("§7No geo data found");
+                geoResult = new GeoResult(ipAddress, "-", "-", "-");
             }
-            commandSender.sendMessage("§7————————————————————————————");
+
+            String isVpn = ChatColor.translateAlternateColorCodes(
+                    '&',
+                    ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.info.not-vpn")
+            );
+            if (vpnResult.isVpn()) {
+                isVpn = ChatColor.translateAlternateColorCodes(
+                        '&',
+                        ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.info.is-vpn")
+                );
+            }
+
+            for (String line : ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("messages.info.text")) {
+                commandSender.sendMessage(
+                        ChatColor.translateAlternateColorCodes(
+                                '&',
+                                line.replaceAll("%INPUT%", queriedInput)
+                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
+                                        .replaceAll("%CITY%", geoResult.getCityName())
+                                        .replaceAll("%ISP%", geoResult.getIspName())
+                                        .replaceAll("%IS_VPN%", isVpn)
+                                        .replaceAll("%IP%", ipAddress)
+                        )
+                );
+            }
         });
 
         return true;
@@ -173,18 +195,11 @@ public class ConnectionGuardCommand implements TabExecutor {
     }
 
     private boolean sendHelpMessage(CommandSender commandSender) {
-        commandSender.sendMessage("§8╔════════ » §bConnection Guard §7v" + ConnectionGuardSpigotPlugin.getInstance().getDescription().getVersion() + " « §8════════╗");
-        commandSender.sendMessage("§7 - /connectionguard §fhelp §7(this information)");
-        if (commandSender.hasPermission("connectionguard.command.info"))
-            commandSender.sendMessage("§7 - /connectionguard §finfo <Player/UUID/IP> §7(information about player or ip)");
-
-        if (commandSender.hasPermission("connectionguard.command.clear"))
-            commandSender.sendMessage("§7 - /connectionguard §fclear (<Player/UUID/IP>) §7(clear cache)");
-
-        if (commandSender.hasPermission("connectionguard.command.reload"))
-            commandSender.sendMessage("§7 - /connectionguard §freload §7(reload config)");
-
-        commandSender.sendMessage("§8╚═════════════════════════════════╝");
+        for (String line : ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("messages.help")) {
+            commandSender.sendMessage(
+                    ChatColor.translateAlternateColorCodes('&', line)
+            );
+        }
 
         return true;
     }
