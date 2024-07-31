@@ -8,3 +8,5 @@ commands:
   connectionguard:
     name: connectionguard
     description: Retrieve information about connections ingame.
+    aliases:
+      - cg
