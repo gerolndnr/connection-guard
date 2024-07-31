@@ -51,12 +51,78 @@ public class SQLiteCacheProvider implements CacheProvider {
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "SELECT vpn, cached_on FROM connectionguard_vpn_cache WHERE address=?"
+                );
+                preparedStatement.setString(1, ipAddress);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    boolean isVpn = resultSet.getBoolean("vpn");
+                    long cachedOn = resultSet.getLong("cached_on");
+
+                    // Check if cache data is expired
+                    if ((cachedOn + ConnectionGuard.getVpnCacheExpirationTime() * 60 * 1000) > new Date().getTime()) {
+                        // Data is not expired.
+                        return Optional.of(new VpnResult(ipAddress, isVpn));
+                    } else {
+                        // Data is expired and needs to be removed.
+                        PreparedStatement deleteEntryStatement = connection.prepareStatement(
+                                "DELETE FROM connectionguard_vpn_cache WHERE address=?"
+                        );
+                        deleteEntryStatement.setString(1, ipAddress);
+                        deleteEntryStatement.execute();
+                        return Optional.empty();
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return Optional.empty();
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
-        return null;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                PreparedStatement preparedStatement = connection.prepareStatement(
+                        "SELECT country_name, city_name, isp_name, cached_on FROM connectionguard_geo_cache WHERE address=?"
+                );
+                preparedStatement.setString(1, ipAddress);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    String countryName = resultSet.getString("country_name");
+                    String cityName = resultSet.getString("city_name");
+                    String ispName = resultSet.getString("isp_name");
+                    long cachedOn = resultSet.getLong("cached_on");
+
+                    // Check if cache data is expired
+                    if ((cachedOn + ConnectionGuard.getGeoCacheExpirationTime() * 60 * 1000) > new Date().getTime()) {
+                        // Data is not expired.
+                        return Optional.of(new GeoResult(ipAddress, countryName, cityName, ispName));
+                    } else {
+                        // Data is expired and needs to be removed.
+                        PreparedStatement removeEntryStatement = connection.prepareStatement(
+                                "DELETE FROM connectionguard_geo_cache WHERE address=?"
+                        );
+                        removeEntryStatement.setString(1, ipAddress);
+                        removeEntryStatement.execute();
+                        return Optional.empty();
+                    }
+                } else {
+                    return Optional.empty();
+                }
+            } catch (SQLException e) {
+                ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                return Optional.empty();
+            }
+        });
     }
 
     @Override
