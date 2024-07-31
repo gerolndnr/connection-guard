@@ -1,13 +1,12 @@
 # Thanks for using Connection Guard, the free connection security plugin with premium quality.
 # There is a lot to configure, if you want to. If not, you don't have to!
 # If you leave it as default, Connection Guard will use ProxyCheck (https://proxycheck.io/)
-# to check for vpn or proxy usage and block connections from those.
+# to check for vpn or proxy usage and block connections from those. For geo data, Connection Guard
+# will use the IP-API (https://ip-api.com/) service.
 
 # You can use multiple services at the same time (just enable multiple at once) to minimize
 # the possibility of a false-flag. This number determines, how many of the enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
-# The higher the value, the less likely it is that a player is getting blocked (no matter if he uses
-# a vpn or not).
 # Default value: 1
 required-positive-flags: 1
 
