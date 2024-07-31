@@ -45,6 +45,7 @@ provider:
     # Available types:
     # - SQLite (no further configuration is necessary, stored in a file in the plugins directory)
     # - Redis (configure connection details below, useful when deploying Connection Guard on multiple servers)
+    # - Disabled (disable any caching, make absolutely sure that you don't run into request limits!)
     type: 'SQLite'
 
     redis:
