@@ -24,7 +24,7 @@ public class ConnectionGuardCommand implements TabExecutor {
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("command.no-permission")
+                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.no-permission")
         );
 
         if (strings.length == 0) {
@@ -92,19 +92,24 @@ public class ConnectionGuardCommand implements TabExecutor {
 
             if (Bukkit.getPlayer(entry) != null) {
                 Player player = Bukkit.getPlayer(entry);
-                ipAddress = player.getAddress().getHostName();
+                ipAddress = player.getAddress().getAddress().getHostAddress();
                 queriedInput = player.getName();
             } else {
                 try {
                     Player player = Bukkit.getPlayer(UUID.fromString(entry));
-                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getHostName();
+                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getAddress().getHostAddress();
                     queriedInput = player.getName();
                 } catch (Exception e) {
                     try {
                         ipAddress = InetAddress.getByName(entry).getHostAddress();
                         queriedInput = ipAddress;
                     } catch (UnknownHostException ex) {
-                        commandSender.sendMessage("§7» §bConnection Guard §7| Please enter the name or the uuid of an online player or use the ip address instead.");
+                        commandSender.sendMessage(
+                                ChatColor.translateAlternateColorCodes(
+                                        '&',
+                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                )
+                        );
                         return;
                     }
                 }
@@ -123,16 +128,16 @@ public class ConnectionGuardCommand implements TabExecutor {
 
             String isVpn = ChatColor.translateAlternateColorCodes(
                     '&',
-                    ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.info.not-vpn")
+                    ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
             );
             if (vpnResult.isVpn()) {
                 isVpn = ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.info.is-vpn")
+                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
                 );
             }
 
-            for (String line : ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("messages.info.text")) {
+            for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
@@ -154,28 +159,30 @@ public class ConnectionGuardCommand implements TabExecutor {
         // Async, because InetAddress.getByName could affect the main thread (used to determine, if it is a valid hostname/ip address)
         CompletableFuture.runAsync(() -> {
             String ipAddress;
+            String queriedInput;
 
-            Player player = Bukkit.getPlayer(entry);
-            if (player != null) {
+            if (Bukkit.getPlayer(entry) != null) {
+                Player player = Bukkit.getPlayer(entry);
                 ipAddress = player.getAddress().getHostName();
+                queriedInput = player.getName();
             } else {
                 try {
-                    UUID uuid = UUID.fromString(entry);
-                    player = Bukkit.getPlayer(uuid);
-
-                    if (player == null) {
-                        commandSender.sendMessage("§7» §eConnection Guard §7| The uuid is from a player not currently online on the server. Use the ip address instead.");
-                        return;
-                    }
-                    ipAddress = player.getAddress().getHostName();
-                } catch (IllegalArgumentException e) {
+                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
+                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getHostName();
+                    queriedInput = player.getName();
+                } catch (Exception e) {
                     try {
                         ipAddress = InetAddress.getByName(entry).getHostAddress();
+                        queriedInput = ipAddress;
                     } catch (UnknownHostException ex) {
-                        commandSender.sendMessage("§7» §eConnection Guard §7| Please enter the name or the uuid of an online player or use the ip address instead.");
+                        commandSender.sendMessage(
+                                ChatColor.translateAlternateColorCodes(
+                                        '&',
+                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                )
+                        );
                         return;
                     }
-                    ipAddress = entry;
                 }
             }
 
@@ -195,7 +202,7 @@ public class ConnectionGuardCommand implements TabExecutor {
     }
 
     private boolean sendHelpMessage(CommandSender commandSender) {
-        for (String line : ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("messages.help")) {
+        for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.help")) {
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes('&', line)
             );

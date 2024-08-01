@@ -49,7 +49,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
         if (vpnResult.isVpn()) {
             String kickMessage = ChatColor.translateAlternateColorCodes(
                     '&',
-                    ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.vpn-block")
+                    ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
                             .replaceAll("%IP%", vpnResult.getIpAddress())
                             .replaceAll("%NAME%", preLoginEvent.getName())
             );
@@ -59,7 +59,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 case "KICK_NOTIFY":
                     notifyMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.vpn-notify-kick")
+                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify-kick")
                                     .replaceAll("%IP%", vpnResult.getIpAddress())
                                     .replaceAll("%NAME%", preLoginEvent.getName())
                     );
@@ -72,7 +72,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 case "NOTIFY":
                     notifyMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.vpn-notify")
+                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
                                     .replaceAll("%IP%", vpnResult.getIpAddress())
                                     .replaceAll("%NAME%", preLoginEvent.getName())
                     );
@@ -108,7 +108,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             if (isGeoFlagged) {
                 String kickMessage = ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.geo-block")
+                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
                                 .replaceAll("%IP%", geoResult.getIpAddress())
                                 .replaceAll("%COUNTRY%", geoResult.getCountryName())
                                 .replaceAll("%CITY%", geoResult.getCityName())
@@ -121,7 +121,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     case "KICK_NOTIFY":
                         notifyMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.geo-notify-block")
+                                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-notify-block")
                                         .replaceAll("%IP%", geoResult.getIpAddress())
                                         .replaceAll("%COUNTRY%", geoResult.getCountryName())
                                         .replaceAll("%CITY%", geoResult.getCityName())
@@ -137,7 +137,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     case "NOTIFY":
                         notifyMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("messages.geo-notify")
+                                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-notify")
                                         .replaceAll("%IP%", geoResult.getIpAddress())
                                         .replaceAll("%COUNTRY%", geoResult.getCountryName())
                                         .replaceAll("%CITY%", geoResult.getCityName())

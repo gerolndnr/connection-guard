@@ -10,6 +10,7 @@ import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 
 public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     private static ConnectionGuardSpigotPlugin connectionGuardSpigotPlugin;
+    private YamlConfiguration languageConfig;
 
     @Override
     public void onEnable() {
@@ -24,6 +26,15 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
         // 1. Save Default Config & set logger
         saveDefaultConfig();
+
+        String selectedLanguageFileName = getConfig().getString("message-language") + ".yml";
+        if (!new File(getDataFolder(), "translation").exists()) {
+            saveResource("translation" + File.separator + "en.yml", false);
+        }
+        languageConfig = YamlConfiguration.loadConfiguration(
+                new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName)
+        );
+
         ConnectionGuard.setLogger(getLogger());
 
         // 2. Download libraries used for vpn and geo checks
@@ -100,6 +111,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         ConnectionGuard.getCacheProvider().disband();
+    }
+
+    public YamlConfiguration getLanguageConfig() {
+        return languageConfig;
     }
 
     public static ConnectionGuardSpigotPlugin getInstance() {
