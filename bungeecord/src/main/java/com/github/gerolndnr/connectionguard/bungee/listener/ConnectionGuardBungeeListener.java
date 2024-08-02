@@ -17,11 +17,7 @@ public class ConnectionGuardBungeeListener implements Listener {
     public void onPreLogin(PreLoginEvent preLoginEvent) {
         preLoginEvent.registerIntent(ConnectionGuardBungeePlugin.getInstance());
 
-        ConnectionGuard.getLogger().info("socket address: " + preLoginEvent.getConnection().getSocketAddress().toString());
-
         String ipAddress = preLoginEvent.getConnection().getAddress().getAddress().getHostAddress();
-
-        ConnectionGuard.getLogger().info("ip: " + ipAddress);
 
         CompletableFuture<VpnResult> vpnResultFuture = ConnectionGuard.getVpnResult(ipAddress);
         CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = ConnectionGuard.getGeoResult(ipAddress);
@@ -29,16 +25,13 @@ public class ConnectionGuardBungeeListener implements Listener {
         ConnectionGuardBungeePlugin.getInstance().getProxy().getScheduler().runAsync(ConnectionGuardBungeePlugin.getInstance(), new Runnable() {
             @Override
             public void run() {
-                ConnectionGuard.getLogger().info("in completable future");
                 VpnResult vpnResult = vpnResultFuture.join();
                 Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
 
                 if (vpnResult.isVpn()) {
-                    ConnectionGuard.getLogger().info("is vpn");
                     preLoginEvent.setCancelled(true);
                     preLoginEvent.setCancelReason(TextComponent.fromLegacyText("You are using a vpn."));
                 }
-                ConnectionGuard.getLogger().info("reached end");
                 preLoginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance());
             }
         });
