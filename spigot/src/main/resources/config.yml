@@ -96,12 +96,3 @@ behavior:
     exemptions:
       - '069a79f4-44e9-4726-a5be-fca90e38aaf5'
       - '127.0.0.1'
-
-# Configure how the command messages should look.
-# Available commands:
-# - /connectionguard (information about the plugin and sub-commands) - connectionguard.command.help
-# - /connectionguard info <Player/UUID/IP> (vpn & geo-data for the player or ip address) - connectionguard.command.info
-# - /connectionguard clear (<Player/UUID/IP>) (clear the cache completely or just for the specified player/ip) - connectionguard.command.clear
-# - /connectionguard reload (reload the plugin with this config) - connectionguard.command.reload
-command:
-  no-permission: "&cYou don't have the permissions to execute this command!"
