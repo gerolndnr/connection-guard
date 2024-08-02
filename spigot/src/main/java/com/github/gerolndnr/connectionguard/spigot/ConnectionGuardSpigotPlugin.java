@@ -64,6 +64,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .groupId("org.xerial")
                         .artifactId("sqlite-jdbc")
                         .version("3.46.0.0")
+                        .resolveTransitiveDependencies(true)
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
                 ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath()));
