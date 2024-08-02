@@ -80,7 +80,12 @@ public class ConnectionGuardCommand implements TabExecutor {
     }
 
     private boolean sendUnknownSubcommandMessage(CommandSender commandSender) {
-        commandSender.sendMessage("§7» §bConnection Guard §7| Unknown sub-command. Enter §e/connectionguard §7to see all available commands!");
+        commandSender.sendMessage(
+                ChatColor.translateAlternateColorCodes(
+                        '&',
+                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.unknown-subcommand")
+                )
+        );
 
         return true;
     }
@@ -188,7 +193,13 @@ public class ConnectionGuardCommand implements TabExecutor {
 
             ConnectionGuard.getCacheProvider().removeGeoResult(ipAddress);
             ConnectionGuard.getCacheProvider().removeVpnResult(ipAddress);
-            commandSender.sendMessage("§7» §eConnection Guard §7| Removing the cache entry for §e" + entry + "§7.");
+            commandSender.sendMessage(
+                    ChatColor.translateAlternateColorCodes(
+                            '&',
+                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.clear.clear-specific")
+                                    .replaceAll("%ENTRY%", queriedInput)
+                    )
+            );
         });
 
         return true;
@@ -197,7 +208,10 @@ public class ConnectionGuardCommand implements TabExecutor {
     private boolean clearCache(CommandSender commandSender) {
         ConnectionGuard.getCacheProvider().removeAllVpnResults();
         ConnectionGuard.getCacheProvider().removeAllGeoResults();
-        commandSender.sendMessage("§7» §eConnection Guard §7| Clearing all caches.");
+        commandSender.sendMessage(ChatColor.translateAlternateColorCodes(
+                '&',
+                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.clear.clear-all")
+        ));
         return true;
     }
 
@@ -213,7 +227,12 @@ public class ConnectionGuardCommand implements TabExecutor {
 
     private boolean reloadPlugin(CommandSender commandSender) {
         ConnectionGuardSpigotPlugin.getInstance().reloadConfig();
-        commandSender.sendMessage("§7» §eConnection Guard §7| Config has been reloaded.");
+        commandSender.sendMessage(
+                ChatColor.translateAlternateColorCodes(
+                        '&',
+                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.config-reload")
+                )
+        );
         return true;
     }
 

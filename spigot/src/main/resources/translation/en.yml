@@ -6,6 +6,8 @@
 # - /connectionguard reload (reload the plugin with this config) - connectionguard.command.reload
 command:
   no-permission: "&cYou don't have the permissions to execute this command!"
+  unknown-subcommand: "&7Unknown subcommand. Enter /cg help to view all available commands."
+  config-reload: "&7Config has been reloaded!"
 
   # Customize the output of the /connectionguard help command!
   help:
