@@ -8,15 +8,20 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 dependencies {
-
+    shadow(project(":core"))
+    shadow("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+    implementation("com.alessiodp.libby:libby-bungee:2.0.0-SNAPSHOT")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

@@ -21,6 +21,11 @@ public class SQLiteCacheProvider implements CacheProvider {
     public CompletableFuture<Boolean> setup() {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                try {
+                    Class.forName("org.sqlite.JDBC");
+                } catch (ClassNotFoundException e) {
+                    ConnectionGuard.getLogger().info("SQLite | " + e.getMessage());
+                }
                 connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFileLocation);
 
                 Statement statement = connection.createStatement();

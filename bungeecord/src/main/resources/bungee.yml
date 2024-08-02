@@ -1,0 +1,5 @@
+name: ConnectionGuard
+version: '${version}'
+author: gerolndnr
+website: https://github.com/gerolndnr
+main: com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin
