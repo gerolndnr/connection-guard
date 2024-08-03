@@ -88,17 +88,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 .version("2.11.0")
                 .resolveTransitiveDependencies(true)
                 .build();
-        // Library sqliteLibrary = Library.builder()
-        //         .groupId("org.xerial")
-        //         .artifactId("sqlite-jdbc")
-        //         .version("3.46.0.0")
-        //         .resolveTransitiveDependencies(true)
-        //         .build();
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
-        // libraryManager.loadLibrary(sqliteLibrary);
 
         // 4. Register specified cache provider
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
