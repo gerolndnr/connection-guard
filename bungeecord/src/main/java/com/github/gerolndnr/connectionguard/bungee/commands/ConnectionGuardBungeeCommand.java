@@ -1,93 +1,101 @@
-package com.github.gerolndnr.connectionguard.spigot.commands;
+package com.github.gerolndnr.connectionguard.bungee.commands;
 
+import com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
-import com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.entity.Player;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Command;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class ConnectionGuardCommand implements TabExecutor {
+public class ConnectionGuardBungeeCommand extends Command {
+    public ConnectionGuardBungeeCommand() {
+        super("connectionguard", "connectionguard.command", "cg");
+    }
+
     @Override
-    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+    public void execute(CommandSender commandSender, String[] args) {
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.no-permission")
+                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.no-permission")
         );
 
-        if (strings.length == 0) {
+        if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
             }
-            return sendHelpMessage(commandSender);
+            sendHelpMessage(commandSender);
+            return;
         }
-        if (strings.length == 1) {
-            switch (strings[0].toLowerCase()) {
+        if (args.length == 1) {
+            switch (args[0].toLowerCase()) {
                 case "help":
                     if (!commandSender.hasPermission("connectionguard.command.help")) {
                         commandSender.sendMessage(noPermissionMessage);
-                        return true;
+                        return;
                     }
-                    return sendHelpMessage(commandSender);
+                    sendHelpMessage(commandSender);
+                    return;
                 case "reload":
                     if (!commandSender.hasPermission("connectionguard.command.reload")) {
                         commandSender.sendMessage(noPermissionMessage);
-                        return true;
+                        return;
                     }
-                    return reloadPlugin(commandSender);
+                    reloadPlugin(commandSender);
+                    return;
                 case "clear":
                     if (!commandSender.hasPermission("connectionguard.command.clear")) {
                         commandSender.sendMessage(noPermissionMessage);
-                        return true;
+                        return;
                     }
-                    return clearCache(commandSender);
+                    clearCache(commandSender);
+                    return;
                 default:
-                    return sendUnknownSubcommandMessage(commandSender);
+                    sendUnknownSubcommandMessage(commandSender);
+                    return;
             }
         }
 
-        if (strings.length == 2) {
-            switch (strings[0].toLowerCase()) {
+        if (args.length == 2) {
+            switch (args[0].toLowerCase()) {
                 case "clear":
                     if (!commandSender.hasPermission("connectionguard.command.clear")) {
                         commandSender.sendMessage(noPermissionMessage);
-                        return true;
+                        return;
                     }
-                    return clearCache(commandSender, strings[1]);
+                    clearCache(commandSender, args[1]);
+                    return;
                 case "info":
                     if (!commandSender.hasPermission("connectionguard.command.info")) {
                         commandSender.sendMessage(noPermissionMessage);
-                        return true;
+                        return;
                     }
-                    return sendInformationMessage(commandSender, strings[1]);
+                    sendInformationMessage(commandSender, args[1]);
+                    return;
                 default:
-                    return sendUnknownSubcommandMessage(commandSender);
+                    sendUnknownSubcommandMessage(commandSender);
+                    return;
             }
         }
-        return sendUnknownSubcommandMessage(commandSender);
+        sendUnknownSubcommandMessage(commandSender);
     }
 
-    private boolean sendUnknownSubcommandMessage(CommandSender commandSender) {
+    private void sendUnknownSubcommandMessage(CommandSender commandSender) {
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.unknown-subcommand")
+                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.unknown-subcommand")
                 )
         );
 
-        return true;
+        return;
     }
 
     private boolean sendInformationMessage(CommandSender commandSender, String entry) {
@@ -95,14 +103,14 @@ public class ConnectionGuardCommand implements TabExecutor {
             String ipAddress;
             String queriedInput;
 
-            if (Bukkit.getPlayer(entry) != null) {
-                Player player = Bukkit.getPlayer(entry);
+            if (ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(entry) != null) {
+                ProxiedPlayer player = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(entry);
                 ipAddress = player.getAddress().getAddress().getHostAddress();
                 queriedInput = player.getName();
             } else {
                 try {
-                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
-                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getAddress().getHostAddress();
+                    ProxiedPlayer player = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry));
+                    ipAddress = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry)).getAddress().getAddress().getHostAddress();
                     queriedInput = player.getName();
                 } catch (Exception e) {
                     try {
@@ -112,7 +120,7 @@ public class ConnectionGuardCommand implements TabExecutor {
                         commandSender.sendMessage(
                                 ChatColor.translateAlternateColorCodes(
                                         '&',
-                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -133,16 +141,16 @@ public class ConnectionGuardCommand implements TabExecutor {
 
             String isVpn = ChatColor.translateAlternateColorCodes(
                     '&',
-                    ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
+                    ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
             );
             if (vpnResult.isVpn()) {
                 isVpn = ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
+                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
                 );
             }
 
-            for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
+            for (String line : ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
@@ -166,14 +174,14 @@ public class ConnectionGuardCommand implements TabExecutor {
             String ipAddress;
             String queriedInput;
 
-            if (Bukkit.getPlayer(entry) != null) {
-                Player player = Bukkit.getPlayer(entry);
+            if (ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(entry) != null) {
+                ProxiedPlayer player = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(entry);
                 ipAddress = player.getAddress().getHostName();
                 queriedInput = player.getName();
             } else {
                 try {
-                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
-                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getHostName();
+                    ProxiedPlayer player = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry));
+                    ipAddress = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry)).getAddress().getHostName();
                     queriedInput = player.getName();
                 } catch (Exception e) {
                     try {
@@ -183,7 +191,7 @@ public class ConnectionGuardCommand implements TabExecutor {
                         commandSender.sendMessage(
                                 ChatColor.translateAlternateColorCodes(
                                         '&',
-                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -196,7 +204,7 @@ public class ConnectionGuardCommand implements TabExecutor {
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.clear.clear-specific")
+                            ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific")
                                     .replaceAll("%ENTRY%", queriedInput)
                     )
             );
@@ -210,13 +218,13 @@ public class ConnectionGuardCommand implements TabExecutor {
         ConnectionGuard.getCacheProvider().removeAllGeoResults();
         commandSender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.clear.clear-all")
+                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.clear.clear-all")
         ));
         return true;
     }
 
     private boolean sendHelpMessage(CommandSender commandSender) {
-        for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.help")) {
+        for (String line : ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getStringList("messages.help")) {
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes('&', line)
             );
@@ -226,29 +234,13 @@ public class ConnectionGuardCommand implements TabExecutor {
     }
 
     private boolean reloadPlugin(CommandSender commandSender) {
-        ConnectionGuardSpigotPlugin.getInstance().reloadConfig();
+        ConnectionGuardBungeePlugin.getInstance().reloadAllConfigs();
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("commands.config-reload")
+                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.config-reload")
                 )
         );
         return true;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
-        List<String> proposals = new ArrayList<>();
-        if (strings.length == 1) {
-            if (commandSender.hasPermission("connectionguard.command.help"))
-                proposals.add("help");
-            if (commandSender.hasPermission("connectionguard.command.info"))
-                proposals.add("info");
-            if (commandSender.hasPermission("connectionguard.command.clear"))
-                proposals.add("clear");
-            if (commandSender.hasPermission("connectionguard.command.reload"))
-                proposals.add("reload");
-        }
-        return proposals;
     }
 }

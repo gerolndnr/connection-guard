@@ -2,6 +2,7 @@ package com.github.gerolndnr.connectionguard.bungee;
 
 import com.alessiodp.libby.BungeeLibraryManager;
 import com.alessiodp.libby.Library;
+import com.github.gerolndnr.connectionguard.bungee.commands.ConnectionGuardBungeeCommand;
 import com.github.gerolndnr.connectionguard.bungee.listener.ConnectionGuardBungeeListener;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
@@ -23,6 +24,8 @@ import java.util.ArrayList;
 
 public class ConnectionGuardBungeePlugin extends Plugin {
     private static ConnectionGuardBungeePlugin connectionGuardBungeePlugin;
+    private File configFile;
+    private File languageFile;
     private Configuration config;
     private Configuration languageConfig;
 
@@ -38,7 +41,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         if (!translationFolder.exists()) {
             translationFolder.mkdirs();
         }
-        File configFile = new File(getDataFolder(), "config.yml");
+        configFile = new File(getDataFolder(), "config.yml");
         if (!configFile.exists()) {
             try {
                 InputStream in = getResourceAsStream("config.yml");
@@ -55,7 +58,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         }
 
         String selectedLanguageFileName = config.getString("message-language") + ".yml";
-        File languageFile = new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName);
+        languageFile = new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName);
         if (!languageFile.exists()) {
             try {
                 InputStream in = getResourceAsStream("translation" + File.separator + "en.yml");
@@ -138,6 +141,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
         // 6. Register bungeecord listener
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
+
+        getProxy().getPluginManager().registerCommand(this, new ConnectionGuardBungeeCommand());
     }
 
     @Override
@@ -147,6 +152,19 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     public Configuration getConfig() {
         return config;
+    }
+
+    public void reloadAllConfigs() {
+        try {
+            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
+        } catch (IOException e) {
+            getLogger().info("Connection Guard | " + e.getMessage());
+        }
+        try {
+            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
+        } catch (IOException e) {
+            getLogger().info("Connection Guard | " + e.getMessage());
+        }
     }
 
     public Configuration getLanguageConfig() {

@@ -8,7 +8,7 @@ import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
-import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardCommand;
+import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardSpigotCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +18,7 @@ import java.util.ArrayList;
 
 public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     private static ConnectionGuardSpigotPlugin connectionGuardSpigotPlugin;
+    private File languageFile;
     private YamlConfiguration languageConfig;
 
     @Override
@@ -31,9 +32,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         if (!new File(getDataFolder(), "translation").exists()) {
             saveResource("translation" + File.separator + "en.yml", false);
         }
-        languageConfig = YamlConfiguration.loadConfiguration(
-                new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName)
-        );
+        languageFile = new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName);
+        languageConfig = YamlConfiguration.loadConfiguration(languageFile);
 
         ConnectionGuard.setLogger(getLogger());
 
@@ -105,8 +105,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
 
         // 7. Register commands
-        getCommand("connectionguard").setExecutor(new ConnectionGuardCommand());
-        getCommand("connectionguard").setTabCompleter(new ConnectionGuardCommand());
+        getCommand("connectionguard").setExecutor(new ConnectionGuardSpigotCommand());
+        getCommand("connectionguard").setTabCompleter(new ConnectionGuardSpigotCommand());
     }
 
     @Override
@@ -116,6 +116,11 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     public YamlConfiguration getLanguageConfig() {
         return languageConfig;
+    }
+
+    public void reloadAllConfigs() {
+        reloadConfig();
+        languageConfig = YamlConfiguration.loadConfiguration(languageFile);
     }
 
     public static ConnectionGuardSpigotPlugin getInstance() {
