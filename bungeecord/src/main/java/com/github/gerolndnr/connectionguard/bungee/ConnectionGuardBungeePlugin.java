@@ -66,7 +66,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
             }
         }
         try {
-            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
         } catch (IOException e) {
             getLogger().info("Connection Guard | " + e.getMessage());
             return;
