@@ -8,21 +8,28 @@
 plugins {
     // Apply the java-library plugin for API and implementation separation.
     `java-library`
+    id("com.github.johnrengelman.shadow").version("8.1.1")
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 
 dependencies {
-
+    shadow(project(":core"))
+    shadow("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
+    shadow("dev.dejvokep:boosted-yaml:1.3.5")
+    implementation("com.alessiodp.libby:libby-velocity:2.0.0-SNAPSHOT")
+    annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 

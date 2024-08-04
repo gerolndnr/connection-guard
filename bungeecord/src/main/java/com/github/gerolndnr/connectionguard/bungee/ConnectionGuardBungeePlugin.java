@@ -134,12 +134,12 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 getLogger().info("The specified geo provider is invalid. Please use IP-API.");
         }
 
-        // 5. Set required positive vpn flags and cache expiration
+        // 6. Set required positive vpn flags and cache expiration
         ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
         ConnectionGuard.setVpnCacheExpirationTime(getConfig().getInt("provider.cache.expiration.vpn"));
         ConnectionGuard.setGeoCacheExpirationTime(getConfig().getInt("provider.cache.expiration.geo"));
 
-        // 6. Register bungeecord listener
+        // 7. Register bungeecord listener and commands
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
 
         getProxy().getPluginManager().registerCommand(this, new ConnectionGuardBungeeCommand());
