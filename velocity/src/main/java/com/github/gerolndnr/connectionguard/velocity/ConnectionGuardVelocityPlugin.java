@@ -8,8 +8,11 @@ import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
+import com.github.gerolndnr.connectionguard.velocity.commands.ConnectionGuardVelocityCommand;
 import com.github.gerolndnr.connectionguard.velocity.listener.ConnectionGuardVelocityListener;
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandMeta;
+import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -32,6 +35,7 @@ public class ConnectionGuardVelocityPlugin {
     private final ProxyServer proxyServer;
     private final Logger logger;
     private final Path dataDirectory;
+    // Config has to be in an external class, because the YAML library is loaded at runtime.
     private CGVelocityConfig cgVelocityConfig;
     private static ConnectionGuardVelocityPlugin connectionGuardVelocityPlugin;
 
@@ -124,8 +128,15 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.setVpnCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.vpn"));
         ConnectionGuard.setGeoCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.geo"));
 
-        // 7. Register velocity listener
+        // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
+
+        CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")
+                .aliases("cg")
+                .plugin(this)
+                .build();
+        SimpleCommand simpleCommand = new ConnectionGuardVelocityCommand();
+        proxyServer.getCommandManager().register(commandMeta, simpleCommand);
     }
 
     public Logger getLogger() {
