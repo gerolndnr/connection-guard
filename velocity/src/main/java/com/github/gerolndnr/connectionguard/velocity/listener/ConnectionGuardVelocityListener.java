@@ -55,6 +55,15 @@ public class ConnectionGuardVelocityListener {
                 );
                 Component notifyMessage;
 
+                // Check if command should be executed on flag
+                if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.command.enabled")) {
+                    ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
+                            ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
+                            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.command.command")
+                                    .replaceAll("%NAME%", loginEvent.getPlayer().getUsername())
+                    );
+                }
+
                 switch (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.flag").toUpperCase()) {
                     case "KICK_NOTIFY":
                         notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
@@ -114,6 +123,15 @@ public class ConnectionGuardVelocityListener {
                                     .replaceAll("%NAME%", loginEvent.getPlayer().getUsername())
                     );
                     Component notifyMessage;
+
+                    // Check if command should be executed on flag
+                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.command.enabled")) {
+                        ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
+                                ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
+                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.command.command")
+                                        .replaceAll("%NAME%", loginEvent.getPlayer().getUsername())
+                        );
+                    }
 
                     switch (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.flag").toUpperCase()) {
                         case "KICK_NOTIFY":

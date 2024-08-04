@@ -57,6 +57,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 );
                 String notifyMessage;
 
+                // Check if command should be executed on flag
                 if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.command.enabled")) {
                     ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                             ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
@@ -128,6 +129,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     );
                     String notifyMessage;
 
+                    // Check if command should be executed on flag
                     if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.command.enabled")) {
                         ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                                 ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),

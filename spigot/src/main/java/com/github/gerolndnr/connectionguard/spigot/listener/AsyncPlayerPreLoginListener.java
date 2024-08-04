@@ -55,6 +55,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             );
             String notifyMessage;
 
+            // Check if command should be executed on flag
             if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.command.enabled")) {
                 Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
                     @Override
@@ -130,6 +131,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 );
                 String notifyMessage;
 
+                // Check if command should be executed on flag
                 if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.command.enabled")) {
                     Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
                         @Override
