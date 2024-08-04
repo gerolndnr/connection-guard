@@ -4,12 +4,11 @@ import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.github.gerolndnr.connectionguard.velocity.ConnectionGuardVelocityPlugin;
-import com.velocitypowered.api.event.Continuation;
 import com.velocitypowered.api.event.EventTask;
 import com.velocitypowered.api.event.ResultedEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.LoginEvent;
-import com.velocitypowered.api.event.connection.PreLoginEvent;
+import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
@@ -157,6 +156,10 @@ public class ConnectionGuardVelocityListener {
     }
 
     private void broadcastMessage(Component message, String permission) {
-
+        for (Player player : ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getAllPlayers()) {
+            if (player.hasPermission(permission)) {
+                player.sendMessage(message);
+            }
+        }
     }
 }

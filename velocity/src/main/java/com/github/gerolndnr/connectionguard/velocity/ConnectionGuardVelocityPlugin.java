@@ -136,6 +136,10 @@ public class ConnectionGuardVelocityPlugin {
         return cgVelocityConfig;
     }
 
+    public ProxyServer getProxyServer() {
+        return proxyServer;
+    }
+
     public static ConnectionGuardVelocityPlugin getInstance() {
         return connectionGuardVelocityPlugin;
     }
