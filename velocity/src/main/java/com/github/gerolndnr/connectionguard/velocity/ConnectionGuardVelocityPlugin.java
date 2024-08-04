@@ -132,6 +132,10 @@ public class ConnectionGuardVelocityPlugin {
         return logger;
     }
 
+    public CGVelocityConfig getCgVelocityConfig() {
+        return cgVelocityConfig;
+    }
+
     public static ConnectionGuardVelocityPlugin getInstance() {
         return connectionGuardVelocityPlugin;
     }
