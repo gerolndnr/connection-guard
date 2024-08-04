@@ -57,6 +57,13 @@ public class ConnectionGuardBungeeListener implements Listener {
                 );
                 String notifyMessage;
 
+                if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.command.enabled")) {
+                    ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
+                            ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
+                            ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.command.command")
+                                    .replaceAll("%NAME%", loginEvent.getConnection().getName()));
+                }
+
                 switch (ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.flag").toUpperCase()) {
                     case "KICK_NOTIFY":
                         notifyMessage = ChatColor.translateAlternateColorCodes(
@@ -120,6 +127,13 @@ public class ConnectionGuardBungeeListener implements Listener {
                                     .replaceAll("%NAME%", loginEvent.getConnection().getName())
                     );
                     String notifyMessage;
+
+                    if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.command.enabled")) {
+                        ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
+                                ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
+                                ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.command.command")
+                                        .replaceAll("%NAME%", loginEvent.getConnection().getName()));
+                    }
 
                     switch (ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.flag").toUpperCase()) {
                         case "KICK_NOTIFY":
