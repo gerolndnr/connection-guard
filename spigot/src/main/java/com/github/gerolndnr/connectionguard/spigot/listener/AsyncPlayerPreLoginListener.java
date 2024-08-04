@@ -55,6 +55,19 @@ public class AsyncPlayerPreLoginListener implements Listener {
             );
             String notifyMessage;
 
+            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.command.enabled")) {
+                Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
+                    @Override
+                    public void run() {
+                        Bukkit.dispatchCommand(
+                                Bukkit.getConsoleSender(),
+                                ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.command.command")
+                                        .replaceAll("%NAME%", preLoginEvent.getName())
+                        );
+                    }
+                });
+            }
+
             switch (ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.flag").toUpperCase()) {
                 case "KICK_NOTIFY":
                     notifyMessage = ChatColor.translateAlternateColorCodes(
@@ -116,6 +129,19 @@ public class AsyncPlayerPreLoginListener implements Listener {
                                 .replaceAll("%NAME%", preLoginEvent.getName())
                 );
                 String notifyMessage;
+
+                if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.command.enabled")) {
+                    Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
+                        @Override
+                        public void run() {
+                            Bukkit.dispatchCommand(
+                                    Bukkit.getConsoleSender(),
+                                    ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.command.command")
+                                            .replaceAll("%NAME%", preLoginEvent.getName())
+                            );
+                        }
+                    });
+                }
 
                 switch (ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.flag").toUpperCase()) {
                     case "KICK_NOTIFY":

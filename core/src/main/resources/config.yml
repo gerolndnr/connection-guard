@@ -73,6 +73,11 @@ behavior:
     # - NOTIFY (allow player to join your server, but notify players with connectionguard.notify.vpn permission)
     # - IGNORE (allow player to join your server and don't notify anyone)
     flag: 'KICK_NOTIFY'
+    # Execute a command (without the '/'!) when the plugin flags a player.
+    # Available placeholders: %NAME%
+    command:
+      enabled: false
+      command: ''
     # If you want some players or ip addresses to be exempted from the vpn check,
     # you can add them here.
     exemptions:
@@ -86,6 +91,9 @@ behavior:
     type: 'BLACKLIST'
     # Same options as for vpn-flag, see above.
     flag: 'NOTIFY'
+    command:
+      enabled: false
+      command: ''
     # Countries are specified by their Alpha 2 code.
     # A full list can be found here: https://www.iban.com/country-codes
     list:
