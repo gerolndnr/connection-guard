@@ -10,7 +10,7 @@
 message-language: 'en'
 
 # You can use multiple services at the same time (just enable multiple at once) to minimize
-# the possibility of a false-flag. This number determines, how many of the enabled services have
+# the possibility of a false-flag (high value) or catch very niche vpn services (low value). This number determines, how many of the enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
 # Default value: 1
 required-positive-flags: 1
