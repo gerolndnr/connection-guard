@@ -110,7 +110,7 @@ public class ConnectionGuardBungeeCommand extends Command {
             } else {
                 try {
                     ProxiedPlayer player = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry));
-                    ipAddress = ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayer(UUID.fromString(entry)).getAddress().getAddress().getHostAddress();
+                    ipAddress = player.getAddress().getAddress().getHostAddress();
                     queriedInput = player.getName();
                 } catch (Exception e) {
                     try {
