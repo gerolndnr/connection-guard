@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    shadow(project(":core"))
+    implementation(project(":core"))
     shadow("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
     shadow("dev.dejvokep:boosted-yaml:1.3.5")
     implementation("com.alessiodp.libby:libby-velocity:2.0.0-SNAPSHOT")

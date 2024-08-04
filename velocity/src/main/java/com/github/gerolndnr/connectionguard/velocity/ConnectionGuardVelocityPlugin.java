@@ -15,15 +15,9 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import dev.dejvokep.boostedyaml.YamlDocument;
-import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import org.slf4j.Logger;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
@@ -38,16 +32,17 @@ public class ConnectionGuardVelocityPlugin {
     private final ProxyServer proxyServer;
     private final Logger logger;
     private final Path dataDirectory;
-    private File configFile;
-    private File languageFile;
-    private YamlDocument config;
-    private YamlDocument languageConfig;
+    private CGVelocityConfig cgVelocityConfig;
+    private static ConnectionGuardVelocityPlugin connectionGuardVelocityPlugin;
+
 
     @Inject
     public ConnectionGuardVelocityPlugin(ProxyServer proxyServer, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxyServer = proxyServer;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
+
+        connectionGuardVelocityPlugin = this;
     }
 
     @Subscribe
@@ -58,10 +53,11 @@ public class ConnectionGuardVelocityPlugin {
         // 2. Download libraries used for vpn and geo checks and config
         VelocityLibraryManager libraryManager = new VelocityLibraryManager(this, logger, dataDirectory, proxyServer.getPluginManager());
         Library boostedYamlLibrary = Library.builder()
-                .groupId("dev.defvokep")
+                .groupId("dev.dejvokep")
                 .artifactId("boosted-yaml")
-                .version("1.3.5")
+                .version("1.3.6")
                 .resolveTransitiveDependencies(true)
+                .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
         Library httpLibrary = Library.builder()
                 .groupId("com.squareup.okhttp3")
@@ -82,47 +78,11 @@ public class ConnectionGuardVelocityPlugin {
         libraryManager.loadLibrary(gsonLibrary);
 
         // 3. Create and load configs
-        File translationFolder = dataDirectory.resolve("translation").toFile();
-        if (!translationFolder.exists()) {
-            translationFolder.mkdirs();
-        }
-        configFile = new File(dataDirectory.toFile(), "config.yml");
-        if (!configFile.exists()) {
-            try {
-                InputStream in = getClass().getResourceAsStream("config.yml");
-                Files.copy(in, configFile.toPath());
-            } catch (IOException e) {
-                logger.error("Connection Guard | " + e.getMessage());
-                return;
-            }
-        }
-        try {
-            config = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(true).build());
-        } catch (IOException e) {
-            logger.error("Connection Guard | " + e.getMessage());
-        }
-
-        String selectedLanguageFileName = config.getString("message-language") + ".yml";
-        languageFile = new File(dataDirectory.resolve("translation").toFile(), selectedLanguageFileName);
-        if (!languageFile.exists()) {
-            try {
-                InputStream in = getClass().getResourceAsStream("translation" + File.separator + "en.yml");
-                Files.copy(in, languageFile.toPath());
-            } catch (IOException e) {
-                logger.error("Connection Guard | " + e.getMessage());
-                return;
-            }
-        }
-        try {
-            languageConfig = YamlDocument.create(languageFile, GeneralSettings.builder().setUseDefaults(true).build());
-        } catch (IOException e) {
-            logger.error("Connection Guard | " + e.getMessage());
-            return;
-        }
+        cgVelocityConfig = new CGVelocityConfig(dataDirectory);
+        cgVelocityConfig.load();
 
         // 4. Register specified cache provider
-        // 4. Register specified cache provider
-        switch (getConfig().getString("provider.cache.type").toLowerCase()) {
+        switch (cgVelocityConfig.getConfig().getString("provider.cache.type").toLowerCase()) {
             case "sqlite":
                 Library sqliteLibrary = Library.builder()
                         .groupId("org.xerial")
@@ -146,12 +106,12 @@ public class ConnectionGuardVelocityPlugin {
         // 5. Add every enabled vpn provider and geo provider
         ArrayList<VpnProvider> vpnProviders = new ArrayList<>();
 
-        if (getConfig().getBoolean("provider.vpn.proxycheck.enabled"))
-            vpnProviders.add(new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
+        if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.proxycheck.enabled"))
+            vpnProviders.add(new ProxyCheckVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.proxycheck.api-key")));
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 
-        switch (getConfig().getString("provider.geo.service").toLowerCase()) {
+        switch (cgVelocityConfig.getConfig().getString("provider.geo.service").toLowerCase()) {
             case "ip-api":
                 ConnectionGuard.setGeoProvider(new IpApiGeoProvider());
                 break;
@@ -160,19 +120,19 @@ public class ConnectionGuardVelocityPlugin {
         }
 
         // 6. Set required positive vpn flags and cache expiration
-        ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
-        ConnectionGuard.setVpnCacheExpirationTime(getConfig().getInt("provider.cache.expiration.vpn"));
-        ConnectionGuard.setGeoCacheExpirationTime(getConfig().getInt("provider.cache.expiration.geo"));
+        ConnectionGuard.setRequiredPositiveFlags(cgVelocityConfig.getConfig().getInt("required-positive-flags"));
+        ConnectionGuard.setVpnCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.vpn"));
+        ConnectionGuard.setGeoCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.geo"));
 
         // 7. Register velocity listener
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
     }
 
-    public YamlDocument getConfig() {
-        return config;
+    public Logger getLogger() {
+        return logger;
     }
 
-    public YamlDocument getLanguageConfig() {
-        return languageConfig;
+    public static ConnectionGuardVelocityPlugin getInstance() {
+        return connectionGuardVelocityPlugin;
     }
 }
