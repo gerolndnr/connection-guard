@@ -13,6 +13,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -241,5 +243,40 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
                 )
         );
         return true;
+    }
+
+    @Override
+    public CompletableFuture<List<String>> suggestAsync(Invocation invocation) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<String> proposals = new ArrayList<>();
+            String[] strings = invocation.arguments();
+            CommandSource commandSender = invocation.source();
+
+            if (strings.length == 1) {
+                if (commandSender.hasPermission("connectionguard.command.help"))
+                    proposals.add("help");
+                if (commandSender.hasPermission("connectionguard.command.info"))
+                    proposals.add("info");
+                if (commandSender.hasPermission("connectionguard.command.clear"))
+                    proposals.add("clear");
+                if (commandSender.hasPermission("connectionguard.command.reload"))
+                    proposals.add("reload");
+            }
+            if (strings.length == 2) {
+                if (strings[0].equalsIgnoreCase("info")) {
+                    proposals.add("1.1.1.1");
+                    for (Player player : ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getAllPlayers()) {
+                        proposals.add(player.getUsername());
+                    }
+                }
+                if (strings[0].equalsIgnoreCase("clear")) {
+                    proposals.add("1.1.1.1");
+                    for (Player player : ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getAllPlayers()) {
+                        proposals.add(player.getUsername());
+                    }
+                }
+            }
+            return proposals;
+        });
     }
 }
