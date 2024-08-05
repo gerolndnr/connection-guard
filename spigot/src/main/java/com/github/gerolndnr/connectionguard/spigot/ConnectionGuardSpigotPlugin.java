@@ -7,6 +7,7 @@ import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
+import com.github.gerolndnr.connectionguard.core.vpn.IpApiVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardSpigotCommand;
@@ -103,6 +104,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
         if (getConfig().getBoolean("provider.vpn.proxycheck.enabled"))
             vpnProviders.add(new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
+        if (getConfig().getBoolean("provider.vpn.ip-api.enabled"))
+            vpnProviders.add(new IpApiVpnProvider());
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 

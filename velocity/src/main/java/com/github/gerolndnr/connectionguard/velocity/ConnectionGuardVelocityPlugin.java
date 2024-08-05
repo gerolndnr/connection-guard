@@ -7,6 +7,7 @@ import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
+import com.github.gerolndnr.connectionguard.core.vpn.IpApiVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 import com.github.gerolndnr.connectionguard.velocity.commands.ConnectionGuardVelocityCommand;
@@ -130,6 +131,8 @@ public class ConnectionGuardVelocityPlugin {
 
         if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.proxycheck.enabled"))
             vpnProviders.add(new ProxyCheckVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.proxycheck.api-key")));
+        if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.ip-api.enabled"))
+            vpnProviders.add(new IpApiVpnProvider());
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 
