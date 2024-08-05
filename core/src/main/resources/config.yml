@@ -28,9 +28,10 @@ provider:
     proxycheck:
       enabled: true
       api-key: ''
-    # Quality of vpn checks from IP-API isn't known to me. See for yourself.
+    # IP-API is completely free, but has a rate limit of 45 requests per minute.
     ip-api:
       enabled: false
+    # IPHub requires an api key, which can be aquired for free (1.000 free daily queries) on https://iphub.info/
     iphub:
       enabled: false
       api-key: ''
