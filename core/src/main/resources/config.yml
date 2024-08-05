@@ -61,7 +61,6 @@ provider:
     redis:
       hostname: 'localhost'
       port: 6379
-      username: ''
       password: ''
 
 behavior:
