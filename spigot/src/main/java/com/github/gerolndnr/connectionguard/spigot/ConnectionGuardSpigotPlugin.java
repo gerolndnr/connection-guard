@@ -4,6 +4,7 @@ import com.alessiodp.libby.BukkitLibraryManager;
 import com.alessiodp.libby.Library;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
@@ -68,6 +69,23 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
                 ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath()));
+                break;
+            case "redis":
+                Library jedisLibrary = Library.builder()
+                        .groupId("redis.clients")
+                        .artifactId("jedis")
+                        .version("5.0.0")
+                        .resolveTransitiveDependencies(true)
+                        .build();
+                libraryManager.loadLibrary(jedisLibrary);
+                ConnectionGuard.setCacheProvider(
+                        new RedisCacheProvider(
+                                getConfig().getString("provider.cache.redis.hostname"),
+                                getConfig().getInt("provider.cache.redis.port"),
+                                getConfig().getString("provider.cache.redis.username"),
+                                getConfig().getString("provider.cache.redis.password")
+                        )
+                );
                 break;
             case "disabled":
                 ConnectionGuard.setCacheProvider(new NoCacheProvider());
