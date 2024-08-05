@@ -249,6 +249,20 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
             if (commandSender.hasPermission("connectionguard.command.reload"))
                 proposals.add("reload");
         }
+        if (strings.length == 2) {
+            if (strings[0].equalsIgnoreCase("info")) {
+                proposals.add("1.1.1.1");
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    proposals.add(player.getName());
+                }
+            }
+            if (strings[0].equalsIgnoreCase("clear")) {
+                proposals.add("1.1.1.1");
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    proposals.add(player.getName());
+                }
+            }
+        }
         return proposals;
     }
 }
