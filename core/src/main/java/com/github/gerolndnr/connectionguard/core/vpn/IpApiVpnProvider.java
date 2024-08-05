@@ -33,6 +33,14 @@ public class IpApiVpnProvider implements VpnProvider {
                 return Optional.empty();
             }
 
+            status = jsonObject.get("status").getAsString();
+
+            if (status.equalsIgnoreCase("fail")) {
+                message = jsonObject.get("message").getAsString();
+                ConnectionGuard.getLogger().info("IP-API | " + message);
+                return Optional.empty();
+            }
+
             isProxy = jsonObject.get("proxy").getAsBoolean();
 
             if (isProxy) {
