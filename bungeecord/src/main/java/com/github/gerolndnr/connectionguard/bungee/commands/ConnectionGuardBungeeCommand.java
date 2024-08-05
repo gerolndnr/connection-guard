@@ -8,14 +8,17 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
+import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class ConnectionGuardBungeeCommand extends Command {
+public class ConnectionGuardBungeeCommand extends Command implements TabExecutor {
     public ConnectionGuardBungeeCommand() {
         super("connectionguard", "connectionguard.command", "cg");
     }
@@ -242,5 +245,35 @@ public class ConnectionGuardBungeeCommand extends Command {
                 )
         );
         return true;
+    }
+
+    @Override
+    public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
+        List<String> proposals = new ArrayList<>();
+        if (strings.length == 1) {
+            if (commandSender.hasPermission("connectionguard.command.help"))
+                proposals.add("help");
+            if (commandSender.hasPermission("connectionguard.command.info"))
+                proposals.add("info");
+            if (commandSender.hasPermission("connectionguard.command.clear"))
+                proposals.add("clear");
+            if (commandSender.hasPermission("connectionguard.command.reload"))
+                proposals.add("reload");
+        }
+        if (strings.length == 2) {
+            if (strings[0].equalsIgnoreCase("info")) {
+                proposals.add("1.1.1.1");
+                for (ProxiedPlayer player : ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayers()) {
+                    proposals.add(player.getName());
+                }
+            }
+            if (strings[0].equalsIgnoreCase("clear")) {
+                proposals.add("1.1.1.1");
+                for (ProxiedPlayer player : ConnectionGuardBungeePlugin.getInstance().getProxy().getPlayers()) {
+                    proposals.add(player.getName());
+                }
+            }
+        }
+        return proposals;
     }
 }
