@@ -35,6 +35,10 @@ provider:
     iphub:
       enabled: false
       api-key: ''
+    # VPNAPI requires an api key, which can be aquired for free (1.000 free daily queries) on https://vpnapi.io/
+    vpnapi:
+      enabled: false
+      api-key: ''
   geo:
     # Available services:
     # - IP-API (Free, no api key required, 45 requests per minute)
