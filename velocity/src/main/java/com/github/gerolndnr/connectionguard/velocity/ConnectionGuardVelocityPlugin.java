@@ -7,10 +7,7 @@ import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
-import com.github.gerolndnr.connectionguard.core.vpn.IpApiVpnProvider;
-import com.github.gerolndnr.connectionguard.core.vpn.IpHubVpnProvider;
-import com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider;
-import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
+import com.github.gerolndnr.connectionguard.core.vpn.*;
 import com.github.gerolndnr.connectionguard.velocity.commands.ConnectionGuardVelocityCommand;
 import com.github.gerolndnr.connectionguard.velocity.listener.ConnectionGuardVelocityListener;
 import com.google.inject.Inject;
@@ -136,6 +133,8 @@ public class ConnectionGuardVelocityPlugin {
             vpnProviders.add(new IpApiVpnProvider());
         if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.iphub.enabled"))
             vpnProviders.add(new IpHubVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.iphub.api-key")));
+        if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.vpnapi.enabled"))
+            vpnProviders.add(new VpnApiVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.vpnapi.api-key")));
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 
