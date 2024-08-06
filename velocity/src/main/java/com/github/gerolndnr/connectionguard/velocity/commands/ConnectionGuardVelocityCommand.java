@@ -32,6 +32,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
+                return;
             }
             sendHelpMessage(commandSender);
             return;

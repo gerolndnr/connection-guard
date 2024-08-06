@@ -30,6 +30,7 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
+                return true;
             }
             return sendHelpMessage(commandSender);
         }

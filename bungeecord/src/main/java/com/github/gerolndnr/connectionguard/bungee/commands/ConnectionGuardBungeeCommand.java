@@ -33,6 +33,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
+                return;
             }
             sendHelpMessage(commandSender);
             return;
