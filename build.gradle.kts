@@ -28,6 +28,7 @@ tasks {
     shadowJar {
         archiveVersion.set(project.version.toString())
         relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
+        relocate("com.google.gson", "com.github.gerolndnr.connectionguard.libs.com.google.gson")
     }
 
     runServer {

@@ -90,6 +90,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 .artifactId("gson")
                 .version("2.11.0")
                 .resolveTransitiveDependencies(true)
+                .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
 
         libraryManager.addMavenCentral();
