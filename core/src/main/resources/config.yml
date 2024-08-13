@@ -39,6 +39,39 @@ provider:
     vpnapi:
       enabled: false
       api-key: ''
+    custom:
+      enabled: false
+
+      # Request options
+      # Available options: GET
+      request-type: 'GET'
+      # Available placeholders: %IP%
+      request-url: 'https://my-provider.com/%IP%?key=123456789'
+      # Available placeholders: %IP%
+      request-header:
+        - "X-Key:123456789"
+      # Available options: JSON
+      request-body-type: 'JSON'
+      # Available placeholders: %IP%
+      request-body: '{ "ip": "%IP%" }'
+
+      # Response options
+      # Available options: JSON
+      response-type: 'JSON'
+      response-format:
+        is-vpn-field:
+          # Nested data can be accessed with '.', e.g. { "data": { "isVpn": true }}
+          field-name: "data.isVpn"
+          # Available options: BOOLEAN, STRING
+          field-type: 'BOOLEAN'
+          # Only necessary when field-type is set to STRING
+          string-options:
+            # If you set 'field-type' to STRING, the IP is treated as a vpn, when the field contains the following string.
+            is-vpn-string: "yes"
+        vpn-provider-field:
+          # Nested data can be accessed with '.', e.g. { "data": { "vpnProvider": "NordVPN" }}
+          # Leave empty if this detection provider does not give information about the vpn provider.
+          field-name: "data.vpnProvider"
   geo:
     # Available services:
     # - IP-API (Free, no api key required, 45 requests per minute)
