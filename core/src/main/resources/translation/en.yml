@@ -5,35 +5,14 @@
 # - /connectionguard clear (<Player/UUID/IP>) (clear the cache completely or just for the specified player/ip) - connectionguard.command.clear
 # - /connectionguard reload (reload the plugin with this config) - connectionguard.command.reload
 command:
-  no-permission: "&cYou don't have the permissions to execute this command!"
-  unknown-subcommand: "&7Unknown subcommand. Enter /cg help to view all available commands."
-  config-reload: "&7Config has been reloaded!"
-
-  # Customize the output of the /connectionguard help command!
-  help:
-    - '&7Overview of &bConnection Guard &7commands'
-    - ' &7- /cg &fhelp &7(this overview)'
-    - ' &7- /cg &freload &7(reload config)'
-    - ' &7- /cg &fclear &7(<&fPlayer&7/&fUUID&7/&fIP&7>) (clear cache)'
-    - ' &7- /cg &finfo &7<&fPlayer&7/&fUUID&7/&fIP&7> (vpn and geo data)'
-
-  # Output of the /connectionguard info <Player/UUID/IP> command
-  info:
-    # Available placeholders: %INPUT%, %IP%, %IS_VPN%, %CITY%, %COUNTRY%, %ISP%
-    text:
-      - '&7Query result for &b%INPUT%'
-      - '&7IP: &f%IP%&7 (VPN: &f%IS_VPN%&7)'
-      - '&7Location: &f%CITY%&7, &f%COUNTRY%'
-      - '&7ISP: &f%ISP%'
-
-    is-vpn: "&bYes"
-    not-vpn: "&7No"
-
+  no-permission: "&cYou don't have permissions to execute this command!"
+  unknown-subcommand: "&bConnection Guard &7| &7Unknown subcommand. Enter /cg help to view all available commands."
+  config-reload: "&bConnection Guard &7| &7Config has been reloaded!"
   clear:
-    clear-all: '&7Cleared the entire cache.'
+    clear-all: '&bConnection Guard &7| &7Cleared the entire cache.'
     # Available placeholder: %ENTRY%
-    clear-specific: '&7Cleared the cache entries for &f%ENTRY%&7.'
-  invalid-argument: '&7Please enter the name or the uuid of an online player or use an ip address instead.'
+    clear-specific: '&bConnection Guard &7| &7Cleared the cache entries for &f%ENTRY%&7.'
+  invalid-argument: '&bConnection Guard &7| &7Please enter the name or the uuid of an online player or use an ip address instead.'
 
 messages:
   # The message players see when they are vpn flagged and behaviour is set to KICK or KICK_NOTIFY
@@ -41,19 +20,19 @@ messages:
   vpn-block: '&7It looks like you are using a &eVPN&7. Please &edisable&7 it!'
   # The message players with the permission connectionguard.notify.vpn will see, if behaviour is set to
   # KICK_NOTIFY or NOTIFY.
-  vpn-notify: '&eConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7.'
-  vpn-notify-kick: '&eConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7 and kicked.'
+  vpn-notify: '&bConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7.'
+  vpn-notify-kick: '&bConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7 and kicked.'
   # The message players see when they are geo flagged and behavior is set to KICK or KICK_NOTIFY
   # Available placeholders: %NAME%, %IP%, %COUNTRY%, %CITY% and %ISP%
   geo-block: '&7It looks like you are connecting from &e%COUNTRY%&7, which is &enot allowed&7 on this server.'
   # The message players with the permission connectionguard.notify.geo will see, if behaviour is set to
   # KICK_NOTIFY or NOTIFY.
-  geo-notify: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
-  geo-notify-block: '&eConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%) and kicked'
+  geo-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
+  geo-notify-block: '&bConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%) and kicked'
 
   # Customize the output of the /connectionguard help command!
   help:
-    - '&7Overview of &bConnection Guard &7commands'
+    - '&bConnection Guard &7| &7Overview of commands'
     - ' &7- /cg &fhelp &7(this overview)'
     - ' &7- /cg &freload &7(reload config)'
     - ' &7- /cg &fclear &7(<&fPlayer&7/&fUUID&7/&fIP&7>) (clear cache)'
@@ -63,16 +42,10 @@ messages:
   info:
     # Available placeholders: %INPUT%, %IP%, %IS_VPN%, %CITY%, %COUNTRY%, %ISP%
     text:
-      - '&7Query result for &b%INPUT%'
+      - '&bConnection Guard &7| &7Query result for &b%INPUT%'
       - '&7IP: &f%IP%&7 (VPN: &f%IS_VPN%&7)'
       - '&7Location: &f%CITY%&7, &f%COUNTRY%'
       - '&7ISP: &f%ISP%'
 
     is-vpn: "&bYes"
     not-vpn: "&7No"
-
-  clear:
-    clear-all: '&7Cleared the entire cache.'
-    # Available placeholder: %ENTRY%
-    clear-specific: '&7Cleared the cache entries for &f%ENTRY%&7.'
-  invalid-argument: '&7Please enter the name or the uuid of an online player or use an ip address instead.'
