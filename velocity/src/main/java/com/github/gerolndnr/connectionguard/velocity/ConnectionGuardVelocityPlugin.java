@@ -8,6 +8,7 @@ import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.*;
+import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import com.github.gerolndnr.connectionguard.velocity.commands.ConnectionGuardVelocityCommand;
 import com.github.gerolndnr.connectionguard.velocity.listener.ConnectionGuardVelocityListener;
 import com.google.inject.Inject;
@@ -27,7 +28,7 @@ import java.util.ArrayList;
 @Plugin(
         id="connection-guard",
         name="Connection Guard",
-        version="0.1.0",
+        version="0.2.0",
         url="https://github.com/gerolndnr/connection-guard",
         authors = {"gerolndnr"}
 )
@@ -136,6 +137,23 @@ public class ConnectionGuardVelocityPlugin {
             vpnProviders.add(new IpHubVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.iphub.api-key")));
         if (cgVelocityConfig.getConfig().getBoolean("provider.vpn.vpnapi.enabled"))
             vpnProviders.add(new VpnApiVpnProvider(cgVelocityConfig.getConfig().getString("provider.vpn.vpnapi.api-key")));
+        if (getCgVelocityConfig().getConfig().getBoolean("provider.vpn.custom.enabled")) {
+            vpnProviders.add(
+                    new CustomVpnProvider(
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.request-type"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.request-url"),
+                            getCgVelocityConfig().getConfig().getStringList("provider.vpn.custom.request-header"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.request-body-type"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.request-body"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.response-type"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.field-name"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.field-type"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.string-options.is-vpn-string"),
+                            getCgVelocityConfig().getConfig().getString("provider.vpn.custom.response-format.vpn-provider-field.field-name")
+                    )
+            );
+        }
+
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 

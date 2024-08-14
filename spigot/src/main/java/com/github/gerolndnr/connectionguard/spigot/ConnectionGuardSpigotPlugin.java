@@ -8,6 +8,7 @@ import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.*;
+import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardSpigotCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -109,6 +110,22 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
             vpnProviders.add(new IpHubVpnProvider(getConfig().getString("provider.vpn.iphub.api-key")));
         if (getConfig().getBoolean("provider.vpn.vpnapi.enabled"))
             vpnProviders.add(new VpnApiVpnProvider(getConfig().getString("provider.vpn.vpnapi.api-key")));
+        if (getConfig().getBoolean("provider.vpn.custom.enabled")) {
+            vpnProviders.add(
+                    new CustomVpnProvider(
+                            getConfig().getString("provider.vpn.custom.request-type"),
+                            getConfig().getString("provider.vpn.custom.request-url"),
+                            getConfig().getStringList("provider.vpn.custom.request-header"),
+                            getConfig().getString("provider.vpn.custom.request-body-type"),
+                            getConfig().getString("provider.vpn.custom.request-body"),
+                            getConfig().getString("provider.vpn.custom.response-type"),
+                            getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.field-name"),
+                            getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.field-type"),
+                            getConfig().getString("provider.vpn.custom.response-format.is-vpn-field.string-options.is-vpn-string"),
+                            getConfig().getString("provider.vpn.custom.response-format.vpn-provider-field.field-name")
+                    )
+            );
+        }
 
         ConnectionGuard.setVpnProviders(vpnProviders);
 
