@@ -17,14 +17,14 @@ command:
 messages:
   # The message players see when they are vpn flagged and behaviour is set to KICK or KICK_NOTIFY
   # Available placeholders: %NAME%, %IP%
-  vpn-block: '&7It looks like you are using a &eVPN&7. Please &edisable&7 it!'
+  vpn-block: '&7It looks like you are using a &bVPN&7. Please &bdisable&7 it!'
   # The message players with the permission connectionguard.notify.vpn will see, if behaviour is set to
   # KICK_NOTIFY or NOTIFY.
   vpn-notify: '&bConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7.'
   vpn-notify-kick: '&bConnection Guard &7| &e%name% &7(%IP%) was flagged as a &evpn user&7 and kicked.'
   # The message players see when they are geo flagged and behavior is set to KICK or KICK_NOTIFY
   # Available placeholders: %NAME%, %IP%, %COUNTRY%, %CITY% and %ISP%
-  geo-block: '&7It looks like you are connecting from &e%COUNTRY%&7, which is &enot allowed&7 on this server.'
+  geo-block: '&7It looks like you are connecting from &b%COUNTRY%&7, which is &bnot allowed&7 on this server.'
   # The message players with the permission connectionguard.notify.geo will see, if behaviour is set to
   # KICK_NOTIFY or NOTIFY.
   geo-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
