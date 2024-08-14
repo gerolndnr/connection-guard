@@ -1,13 +1,23 @@
 package com.github.gerolndnr.connectionguard.core.vpn;
 
+import java.util.Optional;
+
 public class VpnResult {
     private final String ipAddress;
+    private Optional<String> vpnProviderName;
     private boolean isVpn;
     private long cachedOn;
 
     public VpnResult(String ipAddress, boolean isVpn) {
         this.ipAddress = ipAddress;
         this.isVpn = isVpn;
+        this.vpnProviderName = Optional.empty();
+    }
+
+    public VpnResult(String ipAddress, boolean isVpn, String vpnProviderName) {
+        this.ipAddress = ipAddress;
+        this.isVpn = isVpn;
+        this.vpnProviderName = Optional.of(vpnProviderName);
     }
 
     public String getIpAddress() {
@@ -16,6 +26,10 @@ public class VpnResult {
 
     public boolean isVpn() {
         return isVpn;
+    }
+
+    public Optional<String> getVpnProviderName() {
+        return vpnProviderName;
     }
 
     public long getCachedOn() {
