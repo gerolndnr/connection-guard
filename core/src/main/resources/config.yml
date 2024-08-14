@@ -59,8 +59,8 @@ provider:
       request-body: '{ "ip": "%IP%" }'
 
       # Response options
-      # Available options: JSON
-      response-type: 'JSON'
+      # Available options: application/json
+      response-type: 'application/json'
       response-format:
         is-vpn-field:
           # Nested data can be accessed with '#', e.g. { "data": { "isVpn": true }} with 'data#isVpn'

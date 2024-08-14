@@ -96,7 +96,7 @@ public class CustomVpnProvider implements VpnProvider {
                         throw new RuntimeException(e);
                     }
                 default:
-                    ConnectionGuard.getLogger().info("Custom Detection Provider | Unknown response type. Please use 'JSON'!");
+                    ConnectionGuard.getLogger().info("Custom Detection Provider | Unknown response type. Please use 'application/json'!");
                     break;
             }
 
