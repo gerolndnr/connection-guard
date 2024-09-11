@@ -14,10 +14,10 @@ public class VpnResult {
         this.vpnProviderName = Optional.empty();
     }
 
-    public VpnResult(String ipAddress, boolean isVpn, String vpnProviderName) {
+    public VpnResult(String ipAddress, boolean isVpn, Optional<String> vpnProviderName) {
         this.ipAddress = ipAddress;
         this.isVpn = isVpn;
-        this.vpnProviderName = Optional.of(vpnProviderName);
+        this.vpnProviderName = vpnProviderName;
     }
 
     public String getIpAddress() {

@@ -23,6 +23,7 @@ public class ConnectionGuard {
     public static CompletableFuture<VpnResult> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<VpnResult> vpnResultOptional = cacheProvider.getVpnResult(ipAddress).join();
+            Optional<String> vpnProviderName = Optional.empty();
 
             if (vpnResultOptional.isPresent())
                 return vpnResultOptional.get();
@@ -38,12 +39,15 @@ public class ConnectionGuard {
 
             for (CompletableFuture<Optional<VpnResult>> vpnResultCompleted : vpnResultList) {
                 if (vpnResultCompleted.join().isPresent()) {
+                    if (vpnResultCompleted.join().get().getVpnProviderName().isPresent()) {
+                        vpnProviderName = vpnResultCompleted.join().get().getVpnProviderName();
+                    }
                     if (vpnResultCompleted.join().get().isVpn())
                         vpnPositives++;
                 }
             }
 
-            VpnResult computedVpnResult = new VpnResult(ipAddress, false);
+            VpnResult computedVpnResult = new VpnResult(ipAddress, false, vpnProviderName);
 
             computedVpnResult.setVpn(vpnPositives >= requiredPositiveFlags);
 
