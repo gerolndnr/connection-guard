@@ -27,7 +27,9 @@
   * ProxyCheck (100 queries per day for free without api key, 1.000 queries per day for free with api key)
   * IP-Hub (1.000 queries per day for free with api key)
   * IP-API (45 queries per minute for free, no api key required)
-* **Geo-Blocking** - No more bots from China and Russia!
+  * VPN-API (1.000 queries per day for free with api key)
+  * Custom Provider (configure the plugin to automatically use the REST-API of the detection provider, supports `GET` and `POST`)
+* **Geo-Blocking** - No more bots from foreign countries!
   * `Whitelist` or `Blacklist` mode
   * Over 200 countries supported!
 * **Connection Information** - Know everything about your players connection!
