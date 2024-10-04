@@ -21,6 +21,7 @@ repositories {
 dependencies {
     shadow(project(":core"))
     shadow("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+    shadow("org.bstats:bstats-bungeecord:3.0.2")
     implementation("com.alessiodp.libby:libby-bungee:2.0.0-SNAPSHOT")
 }
 

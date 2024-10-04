@@ -20,15 +20,12 @@ dependencies {
     implementation(project(":velocity"))
 }
 
-tasks.named<ShadowJar>("shadowJar") {
-
-}
-
 tasks {
     shadowJar {
         archiveVersion.set(project.version.toString())
         relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
         relocate("com.google.gson", "com.github.gerolndnr.connectionguard.libs.com.google.gson")
+        relocate("org.bstats", "com.github.gerolndnr.connectionguard.libs.org.bstats")
     }
 
     runServer {

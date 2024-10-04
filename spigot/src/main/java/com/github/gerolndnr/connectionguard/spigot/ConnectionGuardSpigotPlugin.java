@@ -11,6 +11,7 @@ import com.github.gerolndnr.connectionguard.core.vpn.*;
 import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardSpigotCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -61,10 +62,22 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 .resolveTransitiveDependencies(true)
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
+        Library bstatsLibrary = Library.builder()
+                // Weird replaceAll is necessary, because the gradle shadow relocate method will
+                // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
+                // here, but not for libraries like gson.
+                // TODO: Investigate why it does that for bStats but not for anything else.
+                .groupId("org#bstats".replaceAll("#", "."))
+                .artifactId("bstats-bukkit")
+                .version("3.0.2")
+                .resolveTransitiveDependencies(true)
+                .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
+                .build();
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
+        libraryManager.loadLibrary(bstatsLibrary);
 
         // 3. Download libraries used for specified cache provider and register cache provider afterward
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -159,6 +172,9 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 7. Register commands
         getCommand("connectionguard").setExecutor(new ConnectionGuardSpigotCommand());
         getCommand("connectionguard").setTabCompleter(new ConnectionGuardSpigotCommand());
+
+
+        Metrics metrics = new Metrics(this, 22911);
     }
 
     @Override

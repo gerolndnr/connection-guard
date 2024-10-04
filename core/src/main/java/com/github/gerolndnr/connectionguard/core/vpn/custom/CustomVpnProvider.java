@@ -151,6 +151,6 @@ public class CustomVpnProvider implements VpnProvider {
             }
         }
 
-        return Optional.of(new VpnResult(ipAddress, isVpn, vpnProviderName));
+        return Optional.of(new VpnResult(ipAddress, isVpn, Optional.of(vpnProviderName)));
     }
 }

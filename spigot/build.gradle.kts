@@ -23,6 +23,7 @@ repositories {
 dependencies {
     shadow(project(":core"))
     shadow("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+    shadow("org.bstats:bstats-bukkit:3.0.2")
     implementation("com.alessiodp.libby:libby-bukkit:2.0.0-SNAPSHOT")
 }
 

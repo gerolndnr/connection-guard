@@ -15,7 +15,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import org.yaml.snakeyaml.Yaml;
+import org.bstats.bungeecord.Metrics;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,10 +93,21 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 .resolveTransitiveDependencies(true)
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
+        Library bstatsLibrary = Library.builder()
+                // Weird replaceAll is necessary, because the gradle shadow relocate method will
+                // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
+                // here, but not for libraries like gson.
+                .groupId("org#bstats".replaceAll("#", "."))
+                .artifactId("bstats-bungeecord")
+                .version("3.0.2")
+                .resolveTransitiveDependencies(true)
+                .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
+                .build();
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
+        libraryManager.loadLibrary(bstatsLibrary);
 
         // 4. Register specified cache provider
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -184,6 +195,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
 
         getProxy().getPluginManager().registerCommand(this, new ConnectionGuardBungeeCommand());
+
+        Metrics metrics = new Metrics(this, 22912);
     }
 
     @Override

@@ -77,11 +77,22 @@ public class ConnectionGuardVelocityPlugin {
                 .resolveTransitiveDependencies(true)
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
+        Library bstatsLibrary = Library.builder()
+                // Weird replaceAll is necessary, because the gradle shadow relocate method will
+                // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
+                // here, but not for libraries like gson.
+                .groupId("org#bstats".replaceAll("#", "."))
+                .artifactId("bstats-velocity")
+                .version("3.0.2")
+                .resolveTransitiveDependencies(true)
+                .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
+                .build();
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(boostedYamlLibrary);
         libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
+        libraryManager.loadLibrary(bstatsLibrary);
 
         // 3. Create and load configs
         cgVelocityConfig = new CGVelocityConfig(dataDirectory);
