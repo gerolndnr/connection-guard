@@ -187,7 +187,7 @@ public class ConnectionGuardVelocityListener {
                 }
 
                 // loginEvent.setResult(ResultedEvent.ComponentResult.allowed());
-                loginEvent.setResult(PreLoginEvent.PreLoginComponentResult.allowed());
+                // loginEvent.setResult(PreLoginEvent.PreLoginComponentResult.allowed());
             }
         });
     }
