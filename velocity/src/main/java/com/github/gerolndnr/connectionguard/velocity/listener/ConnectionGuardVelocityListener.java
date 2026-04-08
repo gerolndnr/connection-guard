@@ -22,7 +22,7 @@ public class ConnectionGuardVelocityListener {
     @Subscribe
     public EventTask onPreLogin(PreLoginEvent loginEvent) {
         String ipAddress = loginEvent.getConnection().getRemoteAddress().getHostString();
-        String playerUuid = loginEvent.getUniqueId().toString();
+        String playerUuid = (loginEvent.getUniqueId() != null) ? loginEvent.getUniqueId().toString() : "";
         String playerUsername = loginEvent.getUsername();
 
         CompletableFuture<VpnResult> vpnResultFuture;
