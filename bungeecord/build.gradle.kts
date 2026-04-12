@@ -15,7 +15,7 @@ repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://repo.alessiodp.com/releases/")
 }
 
 dependencies {
@@ -23,7 +23,7 @@ dependencies {
     shadow("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
     shadow("net.luckperms:api:5.4")
     shadow("org.bstats:bstats-bungeecord:3.0.2")
-    implementation("com.alessiodp.libby:libby-bungee:2.0.0-SNAPSHOT")
+    implementation("net.byteflux:libby-bungee:1.3.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

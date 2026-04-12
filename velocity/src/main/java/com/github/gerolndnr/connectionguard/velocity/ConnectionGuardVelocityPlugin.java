@@ -1,7 +1,7 @@
 package com.github.gerolndnr.connectionguard.velocity;
 
-import com.alessiodp.libby.Library;
-import com.alessiodp.libby.VelocityLibraryManager;
+import net.byteflux.libby.Library;
+import net.byteflux.libby.VelocityLibraryManager;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
@@ -59,25 +59,22 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.setLogger(java.util.logging.Logger.getLogger(logger.getName()));
 
         // 2. Download libraries used for vpn and geo checks and config
-        VelocityLibraryManager libraryManager = new VelocityLibraryManager(this, logger, dataDirectory, proxyServer.getPluginManager());
+        VelocityLibraryManager<ConnectionGuardVelocityPlugin> libraryManager = new VelocityLibraryManager<>(logger, dataDirectory, proxyServer.getPluginManager(), this);
         Library boostedYamlLibrary = Library.builder()
                 .groupId("dev.dejvokep")
                 .artifactId("boosted-yaml")
                 .version("1.3.6")
-                .resolveTransitiveDependencies(true)
                 .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
         Library httpLibrary = Library.builder()
                 .groupId("com.squareup.okhttp3")
                 .artifactId("okhttp")
                 .version("4.12.0")
-                .resolveTransitiveDependencies(true)
                 .build();
         Library gsonLibrary = Library.builder()
                 .groupId("com.google.code.gson")
                 .artifactId("gson")
                 .version("2.11.0")
-                .resolveTransitiveDependencies(true)
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
         Library bstatsLibrary = Library.builder()
@@ -87,7 +84,6 @@ public class ConnectionGuardVelocityPlugin {
                 .groupId("org#bstats".replaceAll("#", "."))
                 .artifactId("bstats-velocity")
                 .version("3.0.2")
-                .resolveTransitiveDependencies(true)
                 .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
                 .build();
 
@@ -108,7 +104,6 @@ public class ConnectionGuardVelocityPlugin {
                         .groupId("org.xerial")
                         .artifactId("sqlite-jdbc")
                         .version("3.46.0.0")
-                        .resolveTransitiveDependencies(true)
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
                 ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(dataDirectory.toFile(), "cache.db").getAbsolutePath()));
@@ -118,7 +113,6 @@ public class ConnectionGuardVelocityPlugin {
                         .groupId("redis.clients")
                         .artifactId("jedis")
                         .version("5.0.0")
-                        .resolveTransitiveDependencies(true)
                         .build();
                 libraryManager.loadLibrary(jedisLibrary);
                 ConnectionGuard.setCacheProvider(

@@ -1,7 +1,7 @@
 package com.github.gerolndnr.connectionguard.spigot;
 
-import com.alessiodp.libby.BukkitLibraryManager;
-import com.alessiodp.libby.Library;
+import net.byteflux.libby.BukkitLibraryManager;
+import net.byteflux.libby.Library;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
@@ -54,13 +54,11 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 .groupId("com.squareup.okhttp3")
                 .artifactId("okhttp")
                 .version("4.12.0")
-                .resolveTransitiveDependencies(true)
                 .build();
         Library gsonLibrary = Library.builder()
                 .groupId("com.google.code.gson")
                 .artifactId("gson")
                 .version("2.11.0")
-                .resolveTransitiveDependencies(true)
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
         Library bstatsLibrary = Library.builder()
@@ -71,7 +69,6 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 .groupId("org#bstats".replaceAll("#", "."))
                 .artifactId("bstats-bukkit")
                 .version("3.0.2")
-                .resolveTransitiveDependencies(true)
                 .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
                 .build();
 
@@ -87,7 +84,6 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .groupId("org.xerial")
                         .artifactId("sqlite-jdbc")
                         .version("3.46.0.0")
-                        .resolveTransitiveDependencies(true)
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
                 ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath()));
@@ -97,7 +93,6 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .groupId("redis.clients")
                         .artifactId("jedis")
                         .version("5.0.0")
-                        .resolveTransitiveDependencies(true)
                         .build();
                 libraryManager.loadLibrary(jedisLibrary);
                 ConnectionGuard.setCacheProvider(
