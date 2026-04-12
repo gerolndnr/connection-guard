@@ -134,7 +134,7 @@ public class ConnectionGuardVelocityListener {
                 if (isGeoFlagged) {
                     // Check if staff should be notified
                     if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.notify-staff")) {
-                        Component notifyMessage = LegacyComponentSerializer.legacySection().deserialize(
+                        Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                                 ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-notify")
                                         .replaceAll("%IP%", geoResult.getIpAddress())
                                         .replaceAll("%COUNTRY%", geoResult.getCountryName())

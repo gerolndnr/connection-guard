@@ -15,14 +15,14 @@ repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    maven("https://repo.alessiodp.com/releases/")
 }
 
 dependencies {
     implementation(project(":core"))
     shadow("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
     shadow("dev.dejvokep:boosted-yaml:1.3.5")
-    implementation("com.alessiodp.libby:libby-velocity:2.0.0-SNAPSHOT")
+    implementation("net.byteflux:libby-velocity:1.3.1")
     annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 }
 
