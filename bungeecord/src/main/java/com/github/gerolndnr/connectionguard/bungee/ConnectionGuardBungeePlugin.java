@@ -222,7 +222,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     public void reloadAllConfigs() {
         try {
-            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
+            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         } catch (IOException e) {
             getLogger().info("Connection Guard | " + e.getMessage());
         }
