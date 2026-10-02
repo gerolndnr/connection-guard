@@ -16,3 +16,7 @@ The same core logic is used by Spigot, BungeeCord and Velocity. Existing cached 
 Core aggregation warnings identify the failed provider class without printing its exception message or stack trace, which may contain a request URL, IP or API key. This does not change logging inside individual providers.
 
 Regression tests use local provider doubles and an in-memory cache to cover recovery for the same IP, partial results, vote thresholds, cache hits, synchronous/asynchronous/cancelled failures, delayed responses and warning privacy. They do not establish detection accuracy or server compatibility.
+
+## Cache startup readiness
+
+All three platform adapters wait for successful cache initialization before registering connection listeners and commands. A delayed SQLite/Redis setup must not expose an uninitialized cache to the first connection or `/cg info` call. The readiness wait is limited to 30 seconds; interruption preserves the thread interrupt flag. If setup reports failure, times out, is cancelled or throws, Connection Guard stops its initialization and reports a generic error; this does not shut down the entire server/proxy or add a fail-closed login policy. Check startup logs and fix the configured cache before relying on connection checks. The initialization wrapper does not attach cache exception details that might contain credentials.
