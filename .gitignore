@@ -5,3 +5,7 @@
 build
 
 .idea
+
+# Python artifact verifier
+__pycache__/
+*.pyc

@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 
 plugins {
     `java-library`
@@ -8,8 +9,20 @@ plugins {
 
 version = "0.4.9"
 
+allprojects {
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+    }
+}
+
 repositories {
     mavenCentral()
+    maven("https://repo.alessiodp.com/releases/") {
+        content {
+            includeGroup("net.byteflux")
+        }
+    }
 }
 
 dependencies {
