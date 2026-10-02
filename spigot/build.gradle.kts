@@ -14,15 +14,24 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven("https://oss.sonatype.org/content/repositories/central")
-    maven("https://repo.alessiodp.com/releases/")
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
+        content {
+            includeGroup("org.spigotmc")
+        }
+    }
+    maven("https://repo.alessiodp.com/releases/") {
+        content {
+            includeGroup("net.byteflux")
+        }
+    }
 }
 
 dependencies {
     shadow(project(":core"))
     shadow("org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT")
+    // Spigot 1.8.8 references the unavailable bungeecord-chat:1.8-SNAPSHOT.
+    // This published Java 8 API provides the legacy ChatColor methods used here.
+    shadow("net.md-5:bungeecord-chat:1.20-R0.2")
     shadow("org.bstats:bstats-bukkit:3.0.2")
     implementation("net.byteflux:libby-bukkit:1.3.1")
 }
