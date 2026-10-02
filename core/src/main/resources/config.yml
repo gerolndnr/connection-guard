@@ -37,6 +37,13 @@ overload:
   ipv6-prefix: 64
   tracking-capacity: 4096
 
+# Third-party providers register through the versioned API, then require explicit
+# selection and /cg reload. Missing/closed modules stay UNKNOWN. See API docs.
+integrations:
+  providers:
+    enabled: false
+    sources: []
+
 # Message config used for all messages send to the player.
 # You can add your own languages by creating a file called <language>.yml and setting the
 # entry below to the file name without the .yml extension.

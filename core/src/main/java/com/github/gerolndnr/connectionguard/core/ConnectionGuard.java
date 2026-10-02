@@ -78,6 +78,13 @@ public class ConnectionGuard {
         geoCacheExpirationTime = draft.geoTtl;
         activeCacheSignature = draft.cacheSignature;
         if (cacheProvider != null) cacheProvider.setNamespace(draft.cacheNamespace);
+        java.util.Set<String> selectedHealth = new java.util.HashSet<>();
+        for (int i = 0; i < vpnProviders.size(); i++) selectedHealth.add(quotaKey(providerId(vpnProviders.get(i), i)));
+        if (geoProvider != null) selectedHealth.add(quotaKey(providerName(geoProvider)));
+        // Successful draft activation is quiescent. Retain budgets/counters for still-selected sources,
+        // but never accumulate histories of arbitrary old extension/list IDs across reloads.
+        health.keySet().retainAll(selectedHealth);
+        for (String source : selectedHealth) health.computeIfAbsent(source, key -> new ProviderHealth());
         Map<String, Integer> days = new java.util.HashMap<>(), minutes = new java.util.HashMap<>();
         for (String id : draft.dayBudgets.keySet()) {
             String shared = quotaKey(id);
@@ -124,7 +131,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); }
+    public static void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
@@ -159,7 +166,7 @@ public class ConnectionGuard {
         final AtomicReferenceArray<ProviderVote> votes = new AtomicReferenceArray<>(providers.size());
         final AtomicReferenceArray<VpnResult> answers = new AtomicReferenceArray<>(providers.size());
         Supplier<VpnResult> timedOut = () -> aggregate(ipAddress, providers, threshold, votes, answers, started, FailureReason.TIMEOUT);
-        return coordinator.query("vpn:" + ipAddress, () -> safeCacheVpn(ipAddress).thenCompose(cached -> {
+        return coordinator.query("vpn:" + ipAddress, () -> safeCacheVpn(ipAddress, providers).thenCompose(cached -> {
             if (elapsed(started) >= lookupRuntime.getSettings().deadlineMillis) return CompletableFuture.completedFuture(timedOut.get());
             if (cached.isPresent()) { cached.get().setFromCache(true); return CompletableFuture.completedFuture(cached.get()); }
             List<CompletableFuture<?>> jobs = new ArrayList<>();
@@ -168,7 +175,12 @@ public class ConnectionGuard {
                 final VpnProvider provider = providers.get(i);
                 final String name = providerId(provider, i);
                 long remaining = lookupRuntime.getSettings().deadlineMillis - elapsed(started);
-                CompletableFuture<Optional<VpnResult>> job = providerCall(name, () -> provider.getVpnResult(ipAddress), remaining);
+                CompletableFuture<Optional<VpnResult>> job;
+                if (provider.isAvailable()) job = providerCall(name, () -> provider.getVpnResult(ipAddress), remaining);
+                else {
+                    VpnResult unavailable = new VpnResult(ipAddress, false); unavailable.setUnknown(FailureReason.NO_PROVIDER);
+                    job = CompletableFuture.completedFuture(Optional.of(unavailable));
+                }
                 jobs.add(job.handle((answer, error) -> {
                     FailureReason reason = error == null ? FailureReason.NONE : LookupException.reason(error);
                     if (error == null && (answer == null || !answer.isPresent())) reason = FailureReason.INVALID_RESPONSE;
@@ -187,8 +199,9 @@ public class ConnectionGuard {
                             status = ProviderVote.Status.UNKNOWN; reason = FailureReason.STALE_DATA; valid = false;
                         }
                     }
+                    ProviderHealth sourceHealth = health.get(quotaKey(name));
                     if (reason != FailureReason.NONE && reason != FailureReason.NO_EVIDENCE && reason != FailureReason.STALE_DATA
-                            && logger != null && health.get(quotaKey(name)).claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
+                            && logger != null && sourceHealth != null && sourceHealth.claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
                     if (valid) answers.set(index, answer.get());
                     votes.set(index, new ProviderVote(name, status, reason, elapsed(started), valid ? answer.get().getDetails() : DetectionDetails.empty(),
                             valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null, provider.isVoting()));
@@ -247,9 +260,10 @@ public class ConnectionGuard {
         return result;
     }
 
-    private static CompletableFuture<Optional<VpnResult>> safeCacheVpn(String ip) {
+    private static CompletableFuture<Optional<VpnResult>> safeCacheVpn(String ip, List<VpnProvider> providers) {
+        if (providers.stream().anyMatch(provider -> !provider.isAvailable())) return CompletableFuture.completedFuture(Optional.empty());
         try { return cacheProvider.getVpnResult(ip).exceptionally(error -> Optional.empty()).thenApply(answer -> answer.filter(result ->
-                (result.getValidUntil() == 0 || System.currentTimeMillis() < result.getValidUntil())
+                providers.stream().allMatch(VpnProvider::isAvailable) && (result.getValidUntil() == 0 || System.currentTimeMillis() < result.getValidUntil())
                         && result.getVotes().stream().allMatch(vote -> vote.isFresh(System.currentTimeMillis())))); }
         catch (RuntimeException failure) { return CompletableFuture.completedFuture(Optional.empty()); }
     }
@@ -318,7 +332,7 @@ public class ConnectionGuard {
         return bounded;
     }
     private static int stricterBudget(int first, int second) { return first == 0 ? second : second == 0 ? first : Math.min(first, second); }
-    public static String providerId(VpnProvider provider, int index) { return providerName(provider) + "#" + index; }
+    public static String providerId(VpnProvider provider, int index) { return providerName(provider) + (provider.stableSourceId() ? "" : "#" + index); }
     private static String providerName(Object provider) {
         if (provider instanceof VpnProvider && ((VpnProvider) provider).sourceName() != null) {
             String source = ((VpnProvider) provider).sourceName();
