@@ -256,21 +256,23 @@ public class ConnectionGuard {
         FailureReason admission = state.reserve(System.currentTimeMillis());
         CompletableFuture<T> bounded = new CompletableFuture<>();
         if (admission != FailureReason.NONE) { bounded.completeExceptionally(new LookupException(admission)); return bounded; }
-        ScheduledFuture<?> timeout = lookupRuntime.schedule(() -> bounded.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
-        bounded.whenComplete((answer, error) -> {
+        CompletableFuture<T> outcome = new CompletableFuture<>();
+        ScheduledFuture<?> timeout = lookupRuntime.schedule(() -> outcome.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
+        outcome.whenComplete((answer, error) -> {
             timeout.cancel(false);
             state.record(error == null ? FailureReason.NONE : LookupException.reason(error), error, lookupRuntime.getSettings());
+            if (error == null) bounded.complete(answer); else bounded.completeExceptionally(error);
         });
         try {
             lookupRuntime.submit(() -> {
-                if (bounded.isDone()) throw new LookupException(FailureReason.CANCELLED);
+                if (outcome.isDone()) throw new LookupException(FailureReason.CANCELLED);
                 return supplier.get();
             }).thenCompose(future -> future).whenComplete((answer, error) -> {
-                if (error == null && answer instanceof Optional && !((Optional<?>) answer).isPresent()) bounded.completeExceptionally(new LookupException(FailureReason.INVALID_RESPONSE));
-                else if (error == null) bounded.complete(answer);
-                else bounded.completeExceptionally(error);
+                if (error == null && answer instanceof Optional && !((Optional<?>) answer).isPresent()) outcome.completeExceptionally(new LookupException(FailureReason.INVALID_RESPONSE));
+                else if (error == null) outcome.complete(answer);
+                else outcome.completeExceptionally(error);
             });
-        } catch (RuntimeException error) { bounded.completeExceptionally(error); }
+        } catch (RuntimeException error) { outcome.completeExceptionally(error); }
         return bounded;
     }
     private static int stricterBudget(int first, int second) { return first == 0 ? second : second == 0 ? first : Math.min(first, second); }

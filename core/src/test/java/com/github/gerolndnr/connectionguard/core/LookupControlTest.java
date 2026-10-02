@@ -22,12 +22,15 @@ class LookupControlTest {
     @AfterEach void reset() { ConnectionGuard.configureLookup(LookupSettings.defaults()); }
     void provider(VpnProvider provider) { ConnectionGuard.setVpnProviders(new ArrayList<>(Collections.singletonList(provider))); }
     @Test void aHundredCallersShareOneProviderRequestAndCancellationIsIsolated() throws Exception {
+        ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 2, 4, 8, 3, 100));
         AtomicInteger calls = new AtomicInteger();
+        CountDownLatch called = new CountDownLatch(1);
         CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
-        provider(ip -> { calls.incrementAndGet(); return pending; });
+        provider(ip -> { calls.incrementAndGet(); called.countDown(); return pending; });
         List<CompletableFuture<VpnResult>> callers = new ArrayList<>();
         for (int i = 0; i < 100; i++) callers.add(ConnectionGuard.getVpnResult("192.0.2.1"));
         callers.get(0).cancel(false);
+        assertTrue(called.await(1, TimeUnit.SECONDS));
         assertEquals(1, calls.get());
         pending.complete(Optional.of(new VpnResult("192.0.2.1", true)));
         for (int i = 1; i < callers.size(); i++) assertEquals(ProviderVote.Status.POSITIVE, callers.get(i).get().getStatus());
@@ -91,6 +94,30 @@ class LookupControlTest {
         VpnResult fourth = ConnectionGuard.getVpnResult("192.0.2.4").get();
         assertEquals(FailureReason.BUDGET_EXHAUSTED, fourth.getVotes().get(0).getReason());
         assertEquals(3, calls.get());
+    }
+    @Test void aCompletionContinuationStartsAFreshFlightInsteadOfReusingTheFinishedAnswer() throws Exception {
+        try (LookupRuntime runtime = new LookupRuntime(LookupSettings.defaults())) {
+            LookupCoordinator coordinator = new LookupCoordinator(runtime);
+            CompletableFuture<String> pending = new CompletableFuture<>();
+            AtomicInteger requests = new AtomicInteger();
+            CompletableFuture<String> first = coordinator.query("same-ip", () -> { requests.incrementAndGet(); return pending; }, () -> "timeout", () -> "overloaded");
+            CompletableFuture<String> next = first.thenCompose(value -> coordinator.query("same-ip", () -> {
+                requests.incrementAndGet(); return CompletableFuture.completedFuture("fresh");
+            }, () -> "timeout", () -> "overloaded"));
+            pending.complete("old");
+            assertEquals("fresh", next.get(1, TimeUnit.SECONDS)); assertEquals(2, requests.get());
+            assertEquals(0, coordinator.inflight());
+        }
+    }
+    @Test void rateLimitHealthIsPublishedBeforeTheResultContinuationCanRetry() throws Exception {
+        CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
+        CountDownLatch called = new CountDownLatch(1);
+        provider(ip -> { called.countDown(); return pending; });
+        CompletableFuture<Boolean> observed = ConnectionGuard.getVpnResult("192.0.2.1").thenApply(result ->
+                ConnectionGuard.providerHealth().values().stream().anyMatch(state -> state.describe().contains("last=RATE_LIMIT")));
+        assertTrue(called.await(1, TimeUnit.SECONDS));
+        pending.completeExceptionally(new LookupException(FailureReason.RATE_LIMIT, 50));
+        assertTrue(observed.get(1, TimeUnit.SECONDS));
     }
     @Test void aBlockingExtensionCannotHoldTheCallerOrOutliveItsLookupDeadline() throws Exception {
         CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);

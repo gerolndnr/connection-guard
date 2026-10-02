@@ -40,7 +40,8 @@ public final class LookupCoordinator {
                 else fallback(target, timeout);
             });
         } catch (RuntimeException error) { fallback(target, timeout); }
-        return target.thenApply(value -> value);
+        // Every caller observes publication only after the flight has been removed.
+        return published.thenApply(value -> value);
     }
     private static <T> void fallback(CompletableFuture<T> target, Supplier<T> timeout) {
         try { target.complete(timeout.get()); }
