@@ -12,9 +12,10 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        if (RulesCommands.handle(args, permission, reply)) return true;
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
         String operation = args[0].toLowerCase(Locale.ROOT);
         if (!permission.test("connectionguard.command." + operation)) { reply.accept("You do not have permission for this command."); return true; }

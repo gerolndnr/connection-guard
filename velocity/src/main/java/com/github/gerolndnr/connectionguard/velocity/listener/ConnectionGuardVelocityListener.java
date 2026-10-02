@@ -17,6 +17,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import java.util.function.Consumer;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
@@ -24,27 +25,23 @@ import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionGuardVelocityListener {
-    private boolean needsAuthenticatedPhase() {
-        return ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
-                || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
-                || hasUuid(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"))
-                || hasUuid(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"));
-    }
-    private boolean hasUuid(java.util.List<String> entries) {
-        for (String entry : entries) try { UUID.fromString(entry); return true; } catch (IllegalArgumentException ignored) { }
-        return false;
-    }
     @Subscribe
-    public EventTask onPreLogin(PreLoginEvent event) {
-        if (!event.getResult().isAllowed() || needsAuthenticatedPhase()) return null;
-        return EventTask.withContinuation(continuation -> checkConnection(event.getConnection().getRemoteAddress().getAddress().getHostAddress(),
-                null, event.getUsername(), false, null, message -> event.setResult(PreLoginEvent.PreLoginComponentResult.denied(message)))
-                .whenComplete((ignored, error) -> continuation.resume()));
+    public void onPreLogin(PreLoginEvent event) {
+        if (!event.getResult().isAllowed() || ConnectionGuard.getSettings().observe) return;
+        String ip = Exemptions.normalize(event.getConnection().getRemoteAddress().getAddress().getHostAddress());
+        // Literal network denies can run before authentication. Identity is never trusted here.
+        Optional<AccessRule> vpn = ConnectionGuard.accessRule(ip, null, false, AccessRule.Scope.VPN);
+        Optional<AccessRule> geo = ConnectionGuard.accessRule(ip, null, false, AccessRule.Scope.GEO);
+        if ((vpn.isPresent() && vpn.get().getEffect() == AccessRule.Effect.DENY)
+                || (geo.isPresent() && geo.get().getEffect() == AccessRule.Effect.DENY)) {
+            event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Connection denied by server access policy.")));
+        }
     }
     @Subscribe
     public EventTask onLogin(LoginEvent event) {
-        if (!event.getResult().isAllowed() || !needsAuthenticatedPhase()) return null;
+        if (!event.getResult().isAllowed()) return null;
         Player player = event.getPlayer();
+        // A single stable phase: rule expiry/reload between events cannot skip the provider check.
         return EventTask.withContinuation(continuation -> checkConnection(player.getRemoteAddress().getAddress().getHostAddress(),
                 player.getUniqueId(), player.getUsername(), player.isOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity,
                 player, message -> event.setResult(ResultedEvent.ComponentResult.denied(message)))
@@ -53,10 +50,16 @@ public class ConnectionGuardVelocityListener {
     private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, boolean trusted,
                                                      Object subject, Consumer<Component> deny) {
         final String ipAddress = Exemptions.normalize(rawIp);
-        CompletableFuture<Boolean> vpnExempt = Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
+        Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN);
+        Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO);
+        if (!ConnectionGuard.getSettings().observe && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
+                || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
+            deny.accept(Component.text("Connection denied by server access policy.")); return CompletableFuture.completedFuture(null);
+        }
+        CompletableFuture<Boolean> vpnExempt = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject) : CompletableFuture.completedFuture(false);
-        CompletableFuture<Boolean> geoExempt = Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
+        CompletableFuture<Boolean> geoExempt = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
         CompletableFuture<VpnResult> vpnFuture = vpnExempt.thenCompose(exempt -> exempt
