@@ -66,6 +66,8 @@ def verify(artifact, version):
             require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
                     f"Server-provided API was bundled into the plugin: {prefix}")
         library_prefix = PACKAGE.replace(".", "/") + "/libs/"
+        for notice in ("Apache-2.0.txt", "THIRD-PARTY-NOTICES.txt"):
+            require("META-INF/connection-guard/" + notice in names, f"Missing HTTP dependency notice: {notice}")
         for dependency in ("okhttp3/OkHttpClient.class", "okio/Buffer.class", "kotlin/jvm/internal/Intrinsics.class"):
             require(library_prefix + dependency in names, f"Missing bundled HTTP dependency: {dependency}")
         for prefix in ("okhttp3/", "okio/", "kotlin/"):
