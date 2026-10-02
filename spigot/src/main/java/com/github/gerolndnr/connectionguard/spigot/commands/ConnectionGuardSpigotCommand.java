@@ -147,12 +147,12 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
-                                line.replaceAll("%INPUT%", queriedInput)
-                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                        .replaceAll("%CITY%", geoResult.getCityName())
-                                        .replaceAll("%ISP%", geoResult.getIspName())
-                                        .replaceAll("%IS_VPN%", isVpn)
-                                        .replaceAll("%IP%", ipAddress)
+                                line.replace("%INPUT%", queriedInput)
+                                        .replace("%COUNTRY%", geoResult.getCountryName())
+                                        .replace("%CITY%", geoResult.getCityName())
+                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%IS_VPN%", isVpn)
+                                        .replace("%IP%", ipAddress)
                         )
                 );
             }
@@ -198,7 +198,7 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
                     ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific")
-                                    .replaceAll("%ENTRY%", queriedInput)
+                                    .replace("%ENTRY%", queriedInput)
                     )
             );
         });

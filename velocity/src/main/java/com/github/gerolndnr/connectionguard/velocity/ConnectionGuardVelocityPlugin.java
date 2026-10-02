@@ -30,7 +30,7 @@ import java.util.HashMap;
 @Plugin(
         id="connection-guard",
         name="Connection Guard",
-        version="0.4.9",
+        version="0.4.10",
         url="https://github.com/gerolndnr/connection-guard",
         authors = {"gerolndnr"}
 )
@@ -66,11 +66,6 @@ public class ConnectionGuardVelocityPlugin {
                 .version("1.3.6")
                 .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
-        Library httpLibrary = Library.builder()
-                .groupId("com.squareup.okhttp3")
-                .artifactId("okhttp")
-                .version("4.12.0")
-                .build();
         Library gsonLibrary = Library.builder()
                 .groupId("com.google.code.gson")
                 .artifactId("gson")
@@ -89,7 +84,6 @@ public class ConnectionGuardVelocityPlugin {
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(boostedYamlLibrary);
-        libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
         libraryManager.loadLibrary(bstatsLibrary);
 

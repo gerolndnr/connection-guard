@@ -17,13 +17,14 @@ repositories {
 }
 
 dependencies {
-    shadow("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     shadow("com.google.code.gson:gson:2.11.0")
     shadow("org.xerial:sqlite-jdbc:3.46.0.0")
     shadow("redis.clients:jedis:5.0.0")
     shadow("net.luckperms:api:5.4")
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("com.google.code.gson:gson:2.11.0")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
