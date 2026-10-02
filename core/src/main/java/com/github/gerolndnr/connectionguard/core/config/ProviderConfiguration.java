@@ -19,6 +19,9 @@ public final class ProviderConfiguration {
     public final String cacheNamespace;
     public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys) {
         settings = GuardSettings.read(value, providerKeys);
+        String proxyCheckVersion = GuardSettings.string(value, "provider.vpn.proxycheck.api-version", "v2");
+        if (!proxyCheckVersion.equalsIgnoreCase("v2") && !proxyCheckVersion.equalsIgnoreCase("v3")) throw new IllegalArgumentException("ProxyCheck api-version must be v2 or v3.");
+        boolean proxyCheckV3 = proxyCheckVersion.equalsIgnoreCase("v3");
         threshold = GuardSettings.integer(value, "required-positive-flags", 1);
         vpnTtl = GuardSettings.integer(value, "provider.cache.expiration.vpn", 1440);
         geoTtl = GuardSettings.integer(value, "provider.cache.expiration.geo", 4320);
@@ -33,7 +36,7 @@ public final class ProviderConfiguration {
             String apiKey = GuardSettings.string(value, base + "api-key", "");
             VpnProvider provider;
             switch (key) {
-                case "proxycheck": provider = new ProxyCheckVpnProvider(apiKey); break;
+                case "proxycheck": provider = new ProxyCheckVpnProvider(apiKey, proxyCheckV3); break;
                 case "ip-api": provider = new IpApiVpnProvider(); break;
                 case "iphub": provider = new IpHubVpnProvider(apiKey); break;
                 case "vpnapi": provider = new VpnApiVpnProvider(apiKey); break;
@@ -58,10 +61,18 @@ public final class ProviderConfiguration {
                         throw new IllegalArgumentException("Custom response type/flag type is invalid.");
                     String field = GuardSettings.string(value, base + "response-format.is-vpn-field.field-name", "");
                     if (field.isEmpty()) throw new IllegalArgumentException("Custom VPN flag field is required.");
+                    Map<String, String> details = new LinkedHashMap<>();
+                    for (String name : Arrays.asList("vpn", "proxy", "tor", "relay", "hosting", "asn", "isp", "operator", "country", "risk", "confidence")) {
+                        String path = GuardSettings.string(value, base + "response-format.details." + name, "");
+                        if (!path.isEmpty()) {
+                            if (path.length() > 200 || Arrays.stream(path.split("#", -1)).anyMatch(String::isEmpty)) throw new IllegalArgumentException("Invalid custom metadata field path.");
+                            details.put(name, path);
+                        }
+                    }
                     provider = new CustomVpnProvider(method, url, requestHeaders,
                             GuardSettings.string(value, base + "request-body-type", "application/json"), GuardSettings.string(value, base + "request-body", ""),
                             responseType, field, fieldType, GuardSettings.string(value, base + "response-format.is-vpn-field.string-options.is-vpn-string", ""),
-                            GuardSettings.string(value, base + "response-format.vpn-provider-field.field-name", ""));
+                            GuardSettings.string(value, base + "response-format.vpn-provider-field.field-name", ""), details);
             }
             keys.add(key); providers.add(provider);
             String id = provider.getClass().getSimpleName() + "#" + (providers.size() - 1);
@@ -71,7 +82,7 @@ public final class ProviderConfiguration {
             dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         }
         geo = GuardSettings.string(value, "provider.geo.service", "IP-API").equalsIgnoreCase("IP-API") ? new IpApiGeoProvider()
-                : new ProxyCheckGeoProvider(GuardSettings.string(value, "provider.vpn.proxycheck.api-key", ""));
+                : new ProxyCheckGeoProvider(GuardSettings.string(value, "provider.vpn.proxycheck.api-key", ""), proxyCheckV3);
         String id = geo.getClass().getSimpleName();
         int day = GuardSettings.integer(value, "provider.geo.daily-budget", geo instanceof ProxyCheckGeoProvider
                 ? GuardSettings.string(value, "provider.vpn.proxycheck.api-key", "").isEmpty() ? 100 : 1000 : 0);
@@ -79,7 +90,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         try {
-            String input = "schema2:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema3-rich:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + geo.getClass().getSimpleName() + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

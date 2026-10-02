@@ -1,5 +1,6 @@
 package com.github.gerolndnr.connectionguard.spigot.listener;
 
+import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
@@ -54,13 +55,21 @@ public class AsyncPlayerPreLoginListener implements Listener {
         Boolean hasGeoExemptionPermission = hasGeoExemptionPermissionFuture.join();
 
 
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoLookupFuture.join());
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoLookupFuture.join());
+            boolean vpnBypassed = hasVpnExemptionPermission || vpnPolicy.isBypassed();
+            boolean geoBypassed = hasGeoExemptionPermission || geoPolicy.isBypassed();
+            if (!ConnectionGuard.getSettings().observe && ((!hasVpnExemptionPermission && vpnPolicy.isDenied()) || (!hasGeoExemptionPermission && geoPolicy.isDenied()))) {
+                preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection denied by server access policy.");
+                return;
+            }
             if (!ConnectionGuard.getSettings().observe && (
-                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (geoLookupFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (!geoBypassed && (geoLookupFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection verification is temporarily unavailable. Please retry shortly.");
                 return;
             }
-        if (vpnResult.isVpn() && !hasVpnExemptionPermission) {
+        if (vpnResult.isVpn() && !vpnBypassed) {
             // Check if staff should be notified
             if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                 String notifyMessage = ChatColor.translateAlternateColorCodes(
@@ -112,7 +121,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
         }
 
         Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
-        if (geoResultOptional.isPresent() && !hasGeoExemptionPermission) {
+        if (geoResultOptional.isPresent() && !geoBypassed) {
             GeoResult geoResult = geoResultOptional.get();
             boolean isGeoFlagged = false;
 

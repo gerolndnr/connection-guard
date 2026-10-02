@@ -8,6 +8,10 @@ import com.google.gson.JsonObject;
 import okhttp3.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Collections;
+import com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails;
+import com.github.gerolndnr.connectionguard.core.http.DetectionFields;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -22,6 +26,7 @@ public class CustomVpnProvider implements VpnProvider {
     private String isVpnFieldType;
     private String isVpnString;
     private String vpnProviderFieldName;
+    private Map<String, String> detailsFields;
 
     public CustomVpnProvider(
             String requestType,
@@ -35,6 +40,11 @@ public class CustomVpnProvider implements VpnProvider {
             String isVpnString,
             String vpnProviderFieldName
     ) {
+        this(requestType, requestUrl, requestHeaders, requestBodyType, requestBody, responseType, isVpnFieldName, isVpnFieldType, isVpnString, vpnProviderFieldName, Collections.emptyMap());
+    }
+    public CustomVpnProvider(String requestType, String requestUrl, List<String> requestHeaders, String requestBodyType,
+                             String requestBody, String responseType, String isVpnFieldName, String isVpnFieldType,
+                             String isVpnString, String vpnProviderFieldName, Map<String, String> detailsFields) {
         this.requestType = requestType;
         this.requestUrl = requestUrl;
         this.requestHeaders = requestHeaders;
@@ -45,6 +55,7 @@ public class CustomVpnProvider implements VpnProvider {
         this.isVpnFieldType = isVpnFieldType;
         this.isVpnString = isVpnString;
         this.vpnProviderFieldName = vpnProviderFieldName;
+        this.detailsFields = Collections.unmodifiableMap(new java.util.HashMap<>(detailsFields));
     }
 
     @Override
@@ -85,12 +96,32 @@ public class CustomVpnProvider implements VpnProvider {
         } else {
             throw new IllegalArgumentException("Invalid VPN flag type");
         }
-        if (vpnProviderFieldName.isEmpty()) return Optional.of(new VpnResult(ipAddress, isVpn));
-        JsonElement name = field(json, vpnProviderFieldName.replace("%IP%", ipAddress));
-        if (!name.isJsonPrimitive() || !name.getAsJsonPrimitive().isString()) {
-            throw new IllegalArgumentException("Invalid VPN provider name");
+        Optional<String> providerName = Optional.empty();
+        if (!vpnProviderFieldName.isEmpty()) {
+            JsonObject name = new JsonObject(); name.add("name", field(json, vpnProviderFieldName.replace("%IP%", ipAddress)));
+            providerName = Optional.ofNullable(DetectionFields.text(name, "name"));
         }
-        return Optional.of(new VpnResult(ipAddress, isVpn, Optional.of(name.getAsString())));
+        VpnResult result = new VpnResult(ipAddress, isVpn, providerName);
+        JsonObject details = new JsonObject();
+        for (Map.Entry<String, String> entry : detailsFields.entrySet()) {
+            // A configured but absent optional metadata field stays unknown, not false/zero.
+            JsonElement value = optionalField(json, entry.getValue().replace("%IP%", ipAddress));
+            if (value != null) details.add(entry.getKey(), value);
+        }
+        result.setDetails(new DetectionDetails(DetectionFields.types(details, DetectionDetails.Type.values()),
+                DetectionFields.asn(details, "asn", false), DetectionFields.text(details, "isp"), DetectionFields.text(details, "operator"),
+                DetectionFields.text(details, "country"), DetectionFields.score(details, "risk"), DetectionFields.score(details, "confidence")));
+        return Optional.of(result);
+    }
+
+    private static JsonElement optionalField(JsonObject json, String path) {
+        JsonElement value = json;
+        for (String key : path.split("#", -1)) {
+            if (value == null || value.isJsonNull()) return null;
+            if (key.isEmpty() || !value.isJsonObject()) throw new IllegalArgumentException("Invalid metadata path.");
+            value = value.getAsJsonObject().get(key);
+        }
+        return value == null || value.isJsonNull() ? null : value;
     }
 
     private static JsonElement field(JsonObject json, String path) {

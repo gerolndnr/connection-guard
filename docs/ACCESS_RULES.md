@@ -2,6 +2,8 @@
 
 Development feature for the next release; not present in the existing 0.4.10 tag.
 
+The same store also accepts [source-specific metadata selectors](RICH_RULES.md) for ASN, ISP/operator, classification, country and scores. Address/identity overrides precede metadata; the detailed uncertainty rules are documented there.
+
 The same commands work on Spigot, BungeeCord and Velocity:
 
 ```text

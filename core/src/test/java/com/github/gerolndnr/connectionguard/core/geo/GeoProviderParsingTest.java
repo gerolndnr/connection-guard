@@ -15,4 +15,9 @@ class GeoProviderParsingTest {
     @Test void proxyCheckDenialNeedsNoLocationFields() {
         assertFalse(ProxyCheckGeoProvider.parse("192.0.2.1", JsonParser.parseString("{\"status\":\"denied\"}").getAsJsonObject()).isPresent());
     }
+    @Test void proxyCheckV3UsesLocationIsocodeAndCityAndReadsAsn() {
+        GeoResult result = ProxyCheckGeoProvider.parseV3("192.0.2.1", JsonParser.parseString("{\"status\":\"ok\",\"192.0.2.1\":{\"location\":{\"isocode\":\"US\",\"city\":\"Ashburn\"},\"network\":{\"asn\":\"AS16509\",\"provider\":\"Fixture ISP\"}}}").getAsJsonObject()).get();
+        assertEquals("US", result.getCountryName()); assertEquals("Ashburn", result.getCityName()); assertEquals(Long.valueOf(16509), result.getAsn());
+        assertFalse(ProxyCheckGeoProvider.parseV3("192.0.2.1", JsonParser.parseString("{\"status\":\"ok\",\"192.0.2.1\":{\"location\":{\"isocode\":null}}}").getAsJsonObject()).isPresent());
+    }
 }

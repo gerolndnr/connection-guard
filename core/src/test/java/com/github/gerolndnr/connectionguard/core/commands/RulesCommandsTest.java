@@ -35,4 +35,11 @@ class RulesCommandsTest {
         assertEquals(2, replies.size()); assertTrue(ConnectionGuard.getRuleStore().snapshot().isEmpty());
         assertFalse(java.nio.file.Files.exists(directory.resolve("access-rules.json")));
     }
+    @Test void multiwordOperatorTargetIsNotConfusedWithScopeOrReason() throws Exception {
+        CountDownLatch reply = new CountDownLatch(1);
+        RulesCommands.handle(new String[]{"deny", "add", "operator:Fixture", "VPN", "Company", "vpn", "15m", "Synthetic", "rule"}, permission -> true, text -> reply.countDown());
+        assertTrue(reply.await(2, TimeUnit.SECONDS));
+        assertEquals("operator:Fixture VPN Company", ConnectionGuard.getRuleStore().snapshot().get(0).getTarget());
+        assertEquals("Synthetic rule", ConnectionGuard.getRuleStore().snapshot().get(0).getReason());
+    }
 }

@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import com.github.gerolndnr.connectionguard.core.lookup.ProviderVote;
+import com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails;
 
 public class VpnResult {
     private final String ipAddress;
@@ -14,6 +15,7 @@ public class VpnResult {
     private ProviderVote.Status status;
     private List<ProviderVote> votes = Collections.emptyList();
     private boolean fromCache;
+    private DetectionDetails details;
 
     public VpnResult(String ipAddress, boolean isVpn) {
         this.ipAddress = ipAddress;
@@ -59,4 +61,6 @@ public class VpnResult {
     public void setVotes(List<ProviderVote> votes) { this.votes = Collections.unmodifiableList(new ArrayList<>(votes)); }
     public boolean isFromCache() { return fromCache; }
     public void setFromCache(boolean fromCache) { this.fromCache = fromCache; }
+    public DetectionDetails getDetails() { return details == null ? DetectionDetails.empty() : details; }
+    public void setDetails(DetectionDetails details) { if (details != null) details.validate(); this.details = details; }
 }

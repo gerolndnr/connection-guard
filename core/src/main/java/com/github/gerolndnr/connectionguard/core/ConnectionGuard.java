@@ -1,5 +1,8 @@
 package com.github.gerolndnr.connectionguard.core;
 
+import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
+import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
+import com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore;
 import com.github.gerolndnr.connectionguard.core.cache.CacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.GeoProvider;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
@@ -27,17 +30,35 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ConnectionGuard {
-    private static volatile com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore rules;
+    private static volatile AccessRuleStore rules;
     public static void initializeRules(java.nio.file.Path directory) {
-        try { rules = new com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore(directory); }
+        try { rules = new AccessRuleStore(directory); }
         catch (java.io.IOException invalid) { throw new IllegalStateException("Access rule file invalid; correct it before enabling checks (values redacted)."); }
     }
-    public static com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore getRuleStore() { return rules; }
-    public static Optional<com.github.gerolndnr.connectionguard.core.rules.AccessRule> accessRule(String ip, java.util.UUID uuid, boolean trusted, com.github.gerolndnr.connectionguard.core.rules.AccessRule.Scope scope) {
+    public static AccessRuleStore getRuleStore() { return rules; }
+    public static Optional<AccessRule> accessRule(String ip, java.util.UUID uuid, boolean trusted, AccessRule.Scope scope) {
         return rules == null ? Optional.empty() : rules.match(ip, uuid, trusted, scope);
     }
+    public static EvidencePolicy.Decision evidenceRule(String ip, java.util.UUID uuid, boolean trusted,
+            AccessRule.Scope scope, VpnResult vpn, GeoLookup geo) {
+        List<ProviderVote> sources = new ArrayList<>(vpn.getVotes());
+        if (geoProvider != null) {
+            DetectionDetails details = DetectionDetails.empty();
+            if (geo.getResult().isPresent()) {
+                GeoResult result = geo.getResult().get();
+                String country = result.getCountryName(), isp = result.getIspName();
+                details = new DetectionDetails(null, result.getAsn(), "Unknown".equalsIgnoreCase(isp) ? null : isp, null,
+                        country != null && country.matches("[A-Z]{2}") ? country : null, null, null);
+            }
+            if (geo.getResult().isPresent() || geo.getReason() != FailureReason.NONE) sources.add(new ProviderVote("geo." + providerName(geoProvider),
+                    geo.getResult().isPresent() ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN,
+                    geo.getResult().isPresent() ? FailureReason.NONE : geo.getReason(), geo.getDurationMillis(), details));
+        }
+        return EvidencePolicy.evaluate(rules == null ? Collections.emptyList() : rules.snapshot(),
+                ip, uuid, trusted, scope, sources, System.currentTimeMillis());
+    }
     public static boolean hasIdentityRules() {
-        return rules != null && rules.snapshot().stream().anyMatch(rule -> rule.getType() == com.github.gerolndnr.connectionguard.core.rules.AccessRule.Target.UUID
+        return rules != null && rules.snapshot().stream().anyMatch(rule -> rule.getType() == AccessRule.Target.UUID
                 && (rule.getExpiresAt() == 0 || rule.getExpiresAt() > System.currentTimeMillis()));
     }
     private static String activeCacheSignature;
@@ -125,17 +146,22 @@ public class ConnectionGuard {
             for (int i = 0; i < providers.size(); i++) {
                 final int index = i;
                 final VpnProvider provider = providers.get(i);
-                final String name = provider.getClass().getSimpleName() + "#" + i;
+                final String name = providerId(provider, i);
                 long remaining = lookupRuntime.getSettings().deadlineMillis - elapsed(started);
                 CompletableFuture<Optional<VpnResult>> job = providerCall(name, () -> provider.getVpnResult(ipAddress), remaining);
                 jobs.add(job.handle((answer, error) -> {
                     FailureReason reason = error == null ? FailureReason.NONE : LookupException.reason(error);
                     if (error == null && (answer == null || !answer.isPresent())) reason = FailureReason.INVALID_RESPONSE;
+                    if (reason == FailureReason.NONE) {
+                        try { if (!ipAddress.equals(Exemptions.normalize(answer.get().getIpAddress()))) throw new IllegalArgumentException(); answer.get().getDetails().validate(); }
+                        catch (RuntimeException invalid) { reason = FailureReason.INVALID_RESPONSE; }
+                    }
                     ProviderVote.Status status = reason == FailureReason.NONE
                             ? (answer.get().isVpn() ? ProviderVote.Status.POSITIVE : ProviderVote.Status.NEGATIVE) : ProviderVote.Status.UNKNOWN;
                     if (reason != FailureReason.NONE && logger != null && health.get(quotaKey(name)).claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
                     if (status != ProviderVote.Status.UNKNOWN) answers.set(index, answer.get());
-                    votes.set(index, new ProviderVote(name, status, reason, elapsed(started)));
+                    votes.set(index, new ProviderVote(name, status, reason, elapsed(started),
+                            status == ProviderVote.Status.UNKNOWN ? DetectionDetails.empty() : answer.get().getDetails()));
                     return null;
                 }));
             }
@@ -159,7 +185,7 @@ public class ConnectionGuard {
         Optional<String> operator = Optional.empty();
         for (int i = 0; i < providers.size(); i++) {
             ProviderVote vote = votes.get(i);
-            if (vote == null) vote = new ProviderVote(providers.get(i).getClass().getSimpleName() + "#" + i,
+            if (vote == null) vote = new ProviderVote(providerId(providers.get(i), i),
                     ProviderVote.Status.UNKNOWN, missing, elapsed(started));
             trace.add(vote);
             if (vote.getStatus() != ProviderVote.Status.UNKNOWN) complete++;
@@ -202,10 +228,14 @@ public class ConnectionGuard {
             return cache.thenCompose(cached -> {
                 if (cached.isPresent()) return CompletableFuture.completedFuture(new GeoLookup(cached, FailureReason.NONE, true, elapsed(started)));
                 if (provider == null) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NO_PROVIDER, false, elapsed(started)));
-                return providerCall(provider.getClass().getSimpleName(), () -> provider.getGeoResult(ipAddress),
+                return providerCall(providerName(provider), () -> provider.getGeoResult(ipAddress),
                         lookupRuntime.getSettings().deadlineMillis - elapsed(started)).handle((answer, error) -> {
                     FailureReason reason = error == null ? FailureReason.NONE : LookupException.reason(error);
                     if (answer == null || !answer.isPresent()) { answer = Optional.empty(); if (error == null) reason = FailureReason.INVALID_RESPONSE; }
+                    if (answer.isPresent()) {
+                        try { if (!ipAddress.equals(Exemptions.normalize(answer.get().getIpAddress()))) throw new IllegalArgumentException(); answer.get().validate(); }
+                        catch (RuntimeException invalid) { answer = Optional.empty(); reason = FailureReason.INVALID_RESPONSE; }
+                    }
                     if (answer.isPresent()) {
                         answer.get().setCachedOn(System.currentTimeMillis());
                         try { cacheProvider.addGeoResult(answer.get()).exceptionally(failure -> null); }
@@ -226,21 +256,32 @@ public class ConnectionGuard {
         FailureReason admission = state.reserve(System.currentTimeMillis());
         CompletableFuture<T> bounded = new CompletableFuture<>();
         if (admission != FailureReason.NONE) { bounded.completeExceptionally(new LookupException(admission)); return bounded; }
-        ScheduledFuture<?> timeout = lookupRuntime.schedule(() -> bounded.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
-        bounded.whenComplete((answer, error) -> {
+        CompletableFuture<T> outcome = new CompletableFuture<>();
+        ScheduledFuture<?> timeout = lookupRuntime.schedule(() -> outcome.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
+        outcome.whenComplete((answer, error) -> {
             timeout.cancel(false);
             state.record(error == null ? FailureReason.NONE : LookupException.reason(error), error, lookupRuntime.getSettings());
+            if (error == null) bounded.complete(answer); else bounded.completeExceptionally(error);
         });
         try {
-            supplier.get().whenComplete((answer, error) -> {
-                if (error == null && answer instanceof Optional && !((Optional<?>) answer).isPresent()) bounded.completeExceptionally(new LookupException(FailureReason.INVALID_RESPONSE));
-                else if (error == null) bounded.complete(answer);
-                else bounded.completeExceptionally(error);
+            lookupRuntime.submit(() -> {
+                if (outcome.isDone()) throw new LookupException(FailureReason.CANCELLED);
+                return supplier.get();
+            }).thenCompose(future -> future).whenComplete((answer, error) -> {
+                if (error == null && answer instanceof Optional && !((Optional<?>) answer).isPresent()) outcome.completeExceptionally(new LookupException(FailureReason.INVALID_RESPONSE));
+                else if (error == null) outcome.complete(answer);
+                else outcome.completeExceptionally(error);
             });
-        } catch (RuntimeException error) { bounded.completeExceptionally(error); }
+        } catch (RuntimeException error) { outcome.completeExceptionally(error); }
         return bounded;
     }
     private static int stricterBudget(int first, int second) { return first == 0 ? second : second == 0 ? first : Math.min(first, second); }
+    public static String providerId(VpnProvider provider, int index) { return providerName(provider) + "#" + index; }
+    private static String providerName(Object provider) {
+        String name = provider.getClass().getSimpleName().replaceAll("\\$\\$Lambda\\$.*", "Lambda").replaceAll("[^a-zA-Z0-9_.-]", "_");
+        if (name.isEmpty()) name = "AnonymousProvider";
+        return name.substring(0, Math.min(80, name.length()));
+    }
     private static String quotaKey(String name) {
         if (name.startsWith("IpApi")) return "IP-API";
         if (name.startsWith("ProxyCheck")) return "ProxyCheck";

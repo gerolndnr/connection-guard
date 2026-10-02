@@ -1,5 +1,7 @@
 package com.github.gerolndnr.connectionguard.core.commands;
 
+import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
+import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
 import com.github.gerolndnr.connectionguard.core.lookup.ProviderVote;
@@ -24,13 +26,19 @@ public final class OperationsCommands {
             final String ip;
             try { ip = Exemptions.normalize(args[1]); }
             catch (IllegalArgumentException invalid) { reply.accept("Use a literal IPv4/IPv6 address."); return true; }
-            ConnectionGuard.getVpnResult(ip).thenAccept(result -> {
+            ConnectionGuard.getVpnResult(ip).thenCombine(ConnectionGuard.getGeoLookup(ip), (result, geo) -> {
                 reply.accept("VPN=" + result.getStatus() + " threshold=" + ConnectionGuard.getRequiredPositiveFlags()
                         + " cached=" + result.isFromCache() + " ageMs=" + (result.getCachedOn() == 0 ? "unavailable" : Math.max(0, System.currentTimeMillis() - result.getCachedOn())));
-                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis());
+                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis() + " " + vote.getDetails().describe());
+                reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
+                        + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
+                for (AccessRule.Scope scope : new AccessRule.Scope[]{AccessRule.Scope.VPN, AccessRule.Scope.GEO}) {
+                    EvidencePolicy.Decision decision = ConnectionGuard.evidenceRule(ip, null, false, scope, result, geo);
+                    reply.accept(scope + " " + decision.describe() + "; identity/permission exemptions not evaluated for a literal IP.");
+                    decision.getTrace().stream().limit(20).forEach(entry -> reply.accept(entry.getRule().getId() + " " + entry.getRule().getType() + "=" + entry.getMatch()));
+                }
+                return null;
             }).exceptionally(error -> { reply.accept("Explanation unavailable (details redacted)."); return null; });
-            ConnectionGuard.getGeoLookup(ip).thenAccept(geo -> reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
-                    + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis()));
             return true;
         }
         if (args.length != 1) { reply.accept("Usage: /cg " + operation); return true; }
