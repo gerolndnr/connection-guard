@@ -22,6 +22,10 @@ dependencies {
     shadow("org.xerial:sqlite-jdbc:3.46.0.0")
     shadow("redis.clients:jedis:5.0.0")
     shadow("net.luckperms:api:5.4")
+
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

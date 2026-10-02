@@ -75,6 +75,11 @@ behavior:
 # the possibility of a false-flag (high value) or catch very niche vpn services (low value). This number determines, how many of the enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
 # Default value: 1
+# Missing or failed provider responses do not count as positive votes. If the
+# threshold is not met, the existing behavior allows the connection; an incomplete
+# verdict is not cached, so a later connection can retry after provider recovery.
+# Positive verdicts are cached once the threshold is met. Negative verdicts are
+# cached only when all enabled providers have returned a result.
 required-positive-flags: 1
 
 # There are a lot of different services which help the plugin identify which
