@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.run-paper").version("2.3.0")
 }
 
-version = "0.4.9"
+version = "0.4.10"
 
 allprojects {
     tasks.withType<AbstractArchiveTask>().configureEach {
@@ -35,6 +35,11 @@ dependencies {
 tasks {
     shadowJar {
         archiveVersion.set(project.version.toString())
+        // Keep the HTTP client and its transitive dependencies self-contained.
+        relocate("okhttp3", "com.github.gerolndnr.connectionguard.libs.okhttp3")
+        relocate("okio", "com.github.gerolndnr.connectionguard.libs.okio")
+        relocate("kotlin", "com.github.gerolndnr.connectionguard.libs.kotlin")
+        relocate("org.jetbrains.annotations", "com.github.gerolndnr.connectionguard.libs.org.jetbrains.annotations")
         relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
         relocate("com.google.gson", "com.github.gerolndnr.connectionguard.libs.com.google.gson")
         relocate("org.bstats", "com.github.gerolndnr.connectionguard.libs.org.bstats")

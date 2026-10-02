@@ -65,6 +65,12 @@ def verify(artifact, version):
         for prefix in ("org/bukkit/", "net/md_5/bungee/", "com/velocitypowered/api/"):
             require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
                     f"Server-provided API was bundled into the plugin: {prefix}")
+        library_prefix = PACKAGE.replace(".", "/") + "/libs/"
+        for dependency in ("okhttp3/OkHttpClient.class", "okio/Buffer.class", "kotlin/jvm/internal/Intrinsics.class"):
+            require(library_prefix + dependency in names, f"Missing bundled HTTP dependency: {dependency}")
+        for prefix in ("okhttp3/", "okio/", "kotlin/"):
+            require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
+                    f"HTTP dependency was not relocated: {prefix}")
     return {"artifact": str(artifact), "version": version, "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
             "modules": counts, "packaging_verified": True, "server_runtime_tested": False}
 

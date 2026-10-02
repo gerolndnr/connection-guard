@@ -1,14 +1,12 @@
 package com.github.gerolndnr.connectionguard.core.vpn.custom;
 
-import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.http.ProviderHttp;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import okhttp3.*;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -52,106 +50,58 @@ public class CustomVpnProvider implements VpnProvider {
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
-            OkHttpClient httpClient = new OkHttpClient();
-
-            // Set URL
-            Request.Builder requestBuilder = new Request.Builder()
-                    .url(requestUrl.replaceAll("%IP%", ipAddress));
-
-            // Set method and request body
-            switch (requestType.toUpperCase()) {
-                case "GET":
-                    break;
-                case "POST":
-                    requestBuilder = requestBuilder.post(
-                            RequestBody.create(requestBody.replaceAll("%IP%", ipAddress), MediaType.get(requestBodyType))
-                    );
-                    break;
-                default:
-                    ConnectionGuard.getLogger().info("Custom Detection Provider | Unknown request type. Please use 'GET' or 'POST'!");
-                    return Optional.empty();
-            }
-
-            // Set request headers
-            for (String header : requestHeaders) {
-                String[] headerSplit = header.split(":");
-                if (headerSplit.length == 2) {
-                    requestBuilder = requestBuilder.addHeader(headerSplit[0], headerSplit[1]);
-                }
-            }
-
-            Response response;
             try {
-                response = httpClient.newCall(requestBuilder.build()).execute();
-            } catch (IOException e) {
-                ConnectionGuard.getLogger().info(
-                        "Could not execute GET request on custom vpn detection provider."
-                );
+                Request.Builder request = new Request.Builder().url(requestUrl.replace("%IP%", ipAddress));
+                if (requestType.equalsIgnoreCase("POST")) {
+                    request.post(RequestBody.create(requestBody.replace("%IP%", ipAddress), MediaType.get(requestBodyType)));
+                } else if (!requestType.equalsIgnoreCase("GET")) {
+                    throw new IllegalArgumentException("Unsupported request type");
+                }
+                for (String header : requestHeaders) {
+                    String[] parts = header.split(":", 2);
+                    if (parts.length != 2) throw new IllegalArgumentException("Invalid request header");
+                    request.addHeader(parts[0].trim(), parts[1].trim().replace("%IP%", ipAddress));
+                }
+                if (!responseType.equalsIgnoreCase("application/json")) {
+                    throw new IllegalArgumentException("Unsupported response type");
+                }
+                Optional<JsonObject> json = ProviderHttp.readJson(request.build(), "Custom VPN provider");
+                return json.isPresent() ? readJsonResponse(ipAddress, json.get()) : Optional.empty();
+            } catch (RuntimeException failure) {
+                ProviderHttp.unavailable("Custom VPN provider");
                 return Optional.empty();
             }
-
-            switch (responseType.toLowerCase()) {
-                case "application/json":
-                    try {
-                        return readJsonResponse(ipAddress, response.body().string());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                default:
-                    ConnectionGuard.getLogger().info("Custom Detection Provider | Unknown response type. Please use 'application/json'!");
-                    break;
-            }
-
-            return Optional.empty();
         });
     }
 
-    private Optional<VpnResult> readJsonResponse(String ipAddress, String responseBody) {
-        JsonElement jsonElement = JsonParser.parseString(responseBody);
-        String[] isVpnTree = isVpnFieldName.replaceAll("%IP%", ipAddress).split("#");
-
-        if (isVpnTree.length == 0)
-            isVpnTree = new String[]{ isVpnFieldName.replaceAll("%IP%", ipAddress) };
-        JsonObject isVpnObject = jsonElement.getAsJsonObject();
-        boolean isVpn = false;
-
-        for (int i = 0; i < isVpnTree.length; i++) {
-            if (isVpnTree.length - 1 == i) {
-                if (isVpnFieldType.equalsIgnoreCase("STRING")) {
-                    String isVpnResult = isVpnObject.get(isVpnTree[i]).getAsString();
-                    if (isVpnResult.equalsIgnoreCase(isVpnString)) {
-                        isVpn = true;
-                        break;
-                    }
-                }
-                if (isVpnFieldType.equalsIgnoreCase("BOOLEAN")) {
-                    isVpn = isVpnObject.get(isVpnTree[i]).getAsBoolean();
-                    break;
-                }
-            } else {
-                isVpnObject = isVpnObject.getAsJsonObject(isVpnTree[i]);
-            }
+    private Optional<VpnResult> readJsonResponse(String ipAddress, JsonObject json) {
+        JsonElement flag = field(json, isVpnFieldName.replace("%IP%", ipAddress));
+        boolean isVpn;
+        if (isVpnFieldType.equalsIgnoreCase("STRING") && flag.isJsonPrimitive()
+                && flag.getAsJsonPrimitive().isString()) {
+            isVpn = flag.getAsString().equalsIgnoreCase(isVpnString);
+        } else if (isVpnFieldType.equalsIgnoreCase("BOOLEAN") && flag.isJsonPrimitive()
+                && flag.getAsJsonPrimitive().isBoolean()) {
+            isVpn = flag.getAsBoolean();
+        } else {
+            throw new IllegalArgumentException("Invalid VPN flag type");
         }
-
-        if (vpnProviderFieldName.equalsIgnoreCase("")) {
-            return Optional.of(new VpnResult(ipAddress, isVpn));
+        if (vpnProviderFieldName.isEmpty()) return Optional.of(new VpnResult(ipAddress, isVpn));
+        JsonElement name = field(json, vpnProviderFieldName.replace("%IP%", ipAddress));
+        if (!name.isJsonPrimitive() || !name.getAsJsonPrimitive().isString()) {
+            throw new IllegalArgumentException("Invalid VPN provider name");
         }
+        return Optional.of(new VpnResult(ipAddress, isVpn, Optional.of(name.getAsString())));
+    }
 
-        String[] vpnProviderNameTree = vpnProviderFieldName.replaceAll("%IP%", ipAddress).split(".");
-        if (vpnProviderNameTree.length == 0)
-            vpnProviderNameTree = new String[]{ vpnProviderFieldName.replaceAll("%IP%", ipAddress) };
-        JsonObject vpnProviderNameObject = jsonElement.getAsJsonObject();
-        String vpnProviderName = "";
-
-        for (int i = 0; i < vpnProviderNameTree.length; i++) {
-            if (vpnProviderNameTree.length - 1 == i) {
-                vpnProviderName = vpnProviderNameObject.get(vpnProviderNameTree[i]).getAsString();
-                break;
-            } else {
-                vpnProviderNameObject = vpnProviderNameObject.get(vpnProviderNameTree[i]).getAsJsonObject();
-            }
+    private static JsonElement field(JsonObject json, String path) {
+        JsonElement value = json;
+        // Both fields use the documented '#' separator; IPv4 keys contain literal dots.
+        for (String key : path.split("#", -1)) {
+            if (key.isEmpty() || !value.isJsonObject()) throw new IllegalArgumentException("Invalid field path");
+            value = value.getAsJsonObject().get(key);
+            if (value == null || value.isJsonNull()) throw new IllegalArgumentException("Missing field");
         }
-
-        return Optional.of(new VpnResult(ipAddress, isVpn, Optional.of(vpnProviderName)));
+        return value;
     }
 }

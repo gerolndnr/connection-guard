@@ -44,9 +44,9 @@
 
 ### Installation
 
-To use Connection Guard, you need a **Spigot server** (or Paper, Pufferfish, Purpur, ...) running on `1.8.X` and `1.21.X` or an up-to-date version of **BungeeCord** (or Waterfall) or **Velocity**.
+Connection Guard provides adapters for **Spigot** (and compatible servers), **BungeeCord** and **Velocity**. The Spigot adapter builds against the 1.8.8 API; the Velocity adapter builds against the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. See the [changelog](CHANGELOG.md) for the release's actual runtime checks and compatibility limits.
 
-1. Build the project (`./gradlew clean shadowJar`) download it from the [release section](https://github.com/gerolndnr/connection-guard/releases).
+1. Download the combined JAR from [GitHub releases](https://github.com/gerolndnr/connection-guard/releases), [Modrinth](https://modrinth.com/plugin/connectionguard) or [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
 2. Place the downloaded `.jar` file into the plugins folder of your Spigot, BungeeCord or Velocity server.
 3. Start or restart your server.
 4. Optional: Configure Connection Guard configuration in its directory (`config.yml` and `translation/en.yml`)
@@ -92,5 +92,4 @@ MIT
 ---
 
 > GitHub [@gerolndnr](https://github.com/gerolndnr)
-
 

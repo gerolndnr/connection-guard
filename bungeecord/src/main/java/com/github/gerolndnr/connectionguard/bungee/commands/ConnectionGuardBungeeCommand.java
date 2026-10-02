@@ -158,12 +158,12 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
-                                line.replaceAll("%INPUT%", queriedInput)
-                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                        .replaceAll("%CITY%", geoResult.getCityName())
-                                        .replaceAll("%ISP%", geoResult.getIspName())
-                                        .replaceAll("%IS_VPN%", isVpn)
-                                        .replaceAll("%IP%", ipAddress)
+                                line.replace("%INPUT%", queriedInput)
+                                        .replace("%COUNTRY%", geoResult.getCountryName())
+                                        .replace("%CITY%", geoResult.getCityName())
+                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%IS_VPN%", isVpn)
+                                        .replace("%IP%", ipAddress)
                         )
                 );
             }
@@ -209,7 +209,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                     ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific")
-                                    .replaceAll("%ENTRY%", queriedInput)
+                                    .replace("%ENTRY%", queriedInput)
                     )
             );
         });

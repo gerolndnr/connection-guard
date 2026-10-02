@@ -85,11 +85,6 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         // 3. Download libraries used for vpn and geo checks
         BungeeLibraryManager libraryManager = new BungeeLibraryManager(this);
 
-        Library httpLibrary = Library.builder()
-                .groupId("com.squareup.okhttp3")
-                .artifactId("okhttp")
-                .version("4.12.0")
-                .build();
         Library gsonLibrary = Library.builder()
                 .groupId("com.google.code.gson")
                 .artifactId("gson")
@@ -107,7 +102,6 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 .build();
 
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
         libraryManager.loadLibrary(bstatsLibrary);
 

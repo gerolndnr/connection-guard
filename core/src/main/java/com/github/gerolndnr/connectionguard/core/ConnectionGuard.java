@@ -111,8 +111,17 @@ public class ConnectionGuard {
             if (geoResultOptional.isPresent())
                 return geoResultOptional;
 
-            geoResultOptional = geoProvider.getGeoResult(ipAddress).join();
-
+            try {
+                geoResultOptional = geoProvider.getGeoResult(ipAddress).join();
+            } catch (RuntimeException failure) {
+                if (logger != null) {
+                    logger.warning("Geo provider response unavailable; the next lookup can retry.");
+                }
+                return Optional.empty();
+            }
+            if (geoResultOptional.isPresent()) {
+                cacheProvider.addGeoResult(geoResultOptional.get()).join();
+            }
             return geoResultOptional;
         });
     }

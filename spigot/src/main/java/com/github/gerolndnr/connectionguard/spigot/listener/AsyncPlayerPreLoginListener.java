@@ -73,8 +73,8 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 String notifyMessage = ChatColor.translateAlternateColorCodes(
                         '&',
                         ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
-                                .replaceAll("%IP%", vpnResult.getIpAddress())
-                                .replaceAll("%NAME%", preLoginEvent.getName())
+                                .replace("%IP%", vpnResult.getIpAddress())
+                                .replace("%NAME%", preLoginEvent.getName())
                 );
                 int amountRecipients = ConnectionGuardSpigotPlugin.getInstance().getServer().broadcast(notifyMessage, "connectionguard.notify.vpn");
                 ConnectionGuard.getLogger().info("amount recipients: " + amountRecipients);
@@ -90,8 +90,8 @@ public class AsyncPlayerPreLoginListener implements Listener {
                         Bukkit.dispatchCommand(
                                 Bukkit.getConsoleSender(),
                                 ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command")
-                                        .replaceAll("%NAME%", preLoginEvent.getName())
-                                        .replaceAll("%IP%", ipAddress)
+                                        .replace("%NAME%", preLoginEvent.getName())
+                                        .replace("%IP%", ipAddress)
                         );
                     }
                 });
@@ -100,8 +100,8 @@ public class AsyncPlayerPreLoginListener implements Listener {
             // Check if WebHook should be executed
             if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                 String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
-                        .replaceAll("%NAME%", preLoginEvent.getName())
-                        .replaceAll("%IP%", ipAddress);
+                        .replace("%NAME%", preLoginEvent.getName())
+                        .replace("%IP%", ipAddress);
                 String webhookUrl = ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.send-webhook.url");
 
                 CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
@@ -112,8 +112,8 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 String kickMessage = ChatColor.translateAlternateColorCodes(
                         '&',
                         ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
-                                .replaceAll("%IP%", vpnResult.getIpAddress())
-                                .replaceAll("%NAME%", preLoginEvent.getName())
+                                .replace("%IP%", vpnResult.getIpAddress())
+                                .replace("%NAME%", preLoginEvent.getName())
                 );
 
                 preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, kickMessage);
@@ -146,11 +146,11 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     String notifyMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-notify")
-                                    .replaceAll("%IP%", geoResult.getIpAddress())
-                                    .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                    .replaceAll("%CITY%", geoResult.getCityName())
-                                    .replaceAll("%ISP%", geoResult.getIspName())
-                                    .replaceAll("%NAME%", preLoginEvent.getName())
+                                    .replace("%IP%", geoResult.getIpAddress())
+                                    .replace("%COUNTRY%", geoResult.getCountryName())
+                                    .replace("%CITY%", geoResult.getCityName())
+                                    .replace("%ISP%", geoResult.getIspName())
+                                    .replace("%NAME%", preLoginEvent.getName())
                     );
                     Bukkit.broadcast(notifyMessage, "connectionguard.notify.geo");
                 }
@@ -163,8 +163,8 @@ public class AsyncPlayerPreLoginListener implements Listener {
                             Bukkit.dispatchCommand(
                                     Bukkit.getConsoleSender(),
                                     ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command")
-                                            .replaceAll("%NAME%", preLoginEvent.getName())
-                                            .replaceAll("%IP%", ipAddress)
+                                            .replace("%NAME%", preLoginEvent.getName())
+                                            .replace("%IP%", ipAddress)
                             );
                         }
                     });
@@ -173,11 +173,11 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 // Check if WebHook should be executed
                 if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                     String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
-                            .replaceAll("%NAME%", preLoginEvent.getName())
-                            .replaceAll("%IP%", ipAddress)
-                            .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                            .replaceAll("%CITY%", geoResult.getCityName())
-                            .replaceAll("%ISP%", geoResult.getIspName());
+                            .replace("%NAME%", preLoginEvent.getName())
+                            .replace("%IP%", ipAddress)
+                            .replace("%COUNTRY%", geoResult.getCountryName())
+                            .replace("%CITY%", geoResult.getCityName())
+                            .replace("%ISP%", geoResult.getIspName());
                     String webhookUrl = ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.send-webhook.url");
 
                     CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
@@ -188,11 +188,11 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
-                                    .replaceAll("%IP%", geoResult.getIpAddress())
-                                    .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                    .replaceAll("%CITY%", geoResult.getCityName())
-                                    .replaceAll("%ISP%", geoResult.getIspName())
-                                    .replaceAll("%NAME%", preLoginEvent.getName())
+                                    .replace("%IP%", geoResult.getIpAddress())
+                                    .replace("%COUNTRY%", geoResult.getCountryName())
+                                    .replace("%CITY%", geoResult.getCityName())
+                                    .replace("%ISP%", geoResult.getIspName())
+                                    .replace("%NAME%", preLoginEvent.getName())
                     );
 
                     preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, kickMessage);

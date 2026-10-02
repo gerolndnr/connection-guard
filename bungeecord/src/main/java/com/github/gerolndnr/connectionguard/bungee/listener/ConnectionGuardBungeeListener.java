@@ -74,8 +74,8 @@ public class ConnectionGuardBungeeListener implements Listener {
                     String notifyMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
-                                    .replaceAll("%IP%", vpnResult.getIpAddress())
-                                    .replaceAll("%NAME%", loginEvent.getConnection().getName())
+                                    .replace("%IP%", vpnResult.getIpAddress())
+                                    .replace("%NAME%", loginEvent.getConnection().getName())
                     );
                     broadcastMessage(notifyMessage, "connectionguard.notify.vpn");
                 }
@@ -85,15 +85,15 @@ public class ConnectionGuardBungeeListener implements Listener {
                     ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                             ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                             ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command")
-                                    .replaceAll("%NAME%", loginEvent.getConnection().getName())
-                                    .replaceAll("%IP%", ipAddress));
+                                    .replace("%NAME%", loginEvent.getConnection().getName())
+                                    .replace("%IP%", ipAddress));
                 }
 
                 // Check if WebHook should be executed
                 if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                     String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
-                            .replaceAll("%NAME%", loginEvent.getConnection().getName())
-                            .replaceAll("%IP%", ipAddress);
+                            .replace("%NAME%", loginEvent.getConnection().getName())
+                            .replace("%IP%", ipAddress);
                     String webhookUrl = ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.send-webhook.url");
 
                     CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
@@ -104,8 +104,8 @@ public class ConnectionGuardBungeeListener implements Listener {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
-                                    .replaceAll("%IP%", vpnResult.getIpAddress())
-                                    .replaceAll("%NAME%", loginEvent.getConnection().getName())
+                                    .replace("%IP%", vpnResult.getIpAddress())
+                                    .replace("%NAME%", loginEvent.getConnection().getName())
                     );
 
                     loginEvent.setCancelReason(new TextComponent(kickMessage));
@@ -141,11 +141,11 @@ public class ConnectionGuardBungeeListener implements Listener {
                         String notifyMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
                                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-notify")
-                                        .replaceAll("%IP%", geoResult.getIpAddress())
-                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                        .replaceAll("%CITY%", geoResult.getCityName())
-                                        .replaceAll("%ISP%", geoResult.getIspName())
-                                        .replaceAll("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%IP%", geoResult.getIpAddress())
+                                        .replace("%COUNTRY%", geoResult.getCountryName())
+                                        .replace("%CITY%", geoResult.getCityName())
+                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%NAME%", loginEvent.getConnection().getName())
                         );
                         broadcastMessage(notifyMessage, "connectionguard.notify.geo");
                     }
@@ -155,18 +155,18 @@ public class ConnectionGuardBungeeListener implements Listener {
                         ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                                 ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                                 ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command")
-                                        .replaceAll("%NAME%", loginEvent.getConnection().getName())
-                                        .replaceAll("%IP%", ipAddress));
+                                        .replace("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%IP%", ipAddress));
                     }
 
                     // Check if WebHook should be executed
                     if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                         String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
-                                .replaceAll("%NAME%", loginEvent.getConnection().getName())
-                                .replaceAll("%IP%", ipAddress)
-                                .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                .replaceAll("%CITY%", geoResult.getCityName())
-                                .replaceAll("%ISP%", geoResult.getIspName());
+                                .replace("%NAME%", loginEvent.getConnection().getName())
+                                .replace("%IP%", ipAddress)
+                                .replace("%COUNTRY%", geoResult.getCountryName())
+                                .replace("%CITY%", geoResult.getCityName())
+                                .replace("%ISP%", geoResult.getIspName());
                         String webhookUrl = ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.send-webhook.url");
 
                         CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
@@ -177,11 +177,11 @@ public class ConnectionGuardBungeeListener implements Listener {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
                                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
-                                        .replaceAll("%IP%", geoResult.getIpAddress())
-                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                        .replaceAll("%CITY%", geoResult.getCityName())
-                                        .replaceAll("%ISP%", geoResult.getIspName())
-                                        .replaceAll("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%IP%", geoResult.getIpAddress())
+                                        .replace("%COUNTRY%", geoResult.getCountryName())
+                                        .replace("%CITY%", geoResult.getCityName())
+                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%NAME%", loginEvent.getConnection().getName())
                         );
 
                         loginEvent.setCancelReason(new TextComponent(kickMessage));

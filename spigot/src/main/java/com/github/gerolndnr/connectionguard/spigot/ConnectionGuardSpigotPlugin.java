@@ -50,11 +50,6 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 2. Download libraries used for vpn and geo checks
         BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
 
-        Library httpLibrary = Library.builder()
-                .groupId("com.squareup.okhttp3")
-                .artifactId("okhttp")
-                .version("4.12.0")
-                .build();
         Library gsonLibrary = Library.builder()
                 .groupId("com.google.code.gson")
                 .artifactId("gson")
@@ -73,7 +68,6 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 .build();
 
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(httpLibrary);
         libraryManager.loadLibrary(gsonLibrary);
         libraryManager.loadLibrary(bstatsLibrary);
 

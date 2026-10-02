@@ -1,55 +1,34 @@
 package com.github.gerolndnr.connectionguard.core.vpn;
 
-import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.http.ProviderHttp;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
-
-import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class IpHubVpnProvider implements VpnProvider {
-    private String apiKey;
+    private final String apiKey;
 
-    public IpHubVpnProvider(String apiKey) {
-        this.apiKey = apiKey;
-    }
+    public IpHubVpnProvider(String apiKey) { this.apiKey = apiKey; }
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
-            OkHttpClient httpClient = new OkHttpClient();
-            Request request = new Request.Builder()
-                    .url("http://v2.api.iphub.info/ip/" + ipAddress)
-                    .header("X-Key", apiKey)
-                    .build();
-            Response response;
-
-            int blockLevel;
-            JsonObject jsonObject;
             try {
-                response = httpClient.newCall(request).execute();
-                jsonObject = JsonParser.parseString(response.body().string()).getAsJsonObject();
-            } catch (IOException e) {
-                ConnectionGuard.getLogger().info("IP-API | " + e.getMessage());
+                Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://v2.api.iphub.info/ip/" + ipAddress).header("X-Key", apiKey).build(), "IpHubVpnProvider");
+                return json.isPresent() ? parse(ipAddress, json.get()) : Optional.empty();
+            } catch (RuntimeException failure) {
+                ProviderHttp.unavailable("IpHubVpnProvider");
                 return Optional.empty();
-            }
-
-            if (response.code() != 200) {
-                ConnectionGuard.getLogger().info("IP-Hub | API returned with status code " + response.code());
-                return Optional.empty();
-            }
-
-            blockLevel = jsonObject.get("block").getAsInt();
-
-            if (blockLevel == 1) {
-                return Optional.of(new VpnResult(ipAddress, true));
-            } else {
-                return Optional.of(new VpnResult(ipAddress, false));
             }
         });
+    }
+
+    static Optional<VpnResult> parse(String ipAddress, JsonObject json) {
+        if (json.get("block") == null || !json.get("block").isJsonPrimitive()
+                || !json.get("block").getAsJsonPrimitive().isNumber()) return Optional.empty();
+        double block = json.get("block").getAsDouble();
+        if (block != 0 && block != 1 && block != 2) return Optional.empty();
+        return Optional.of(new VpnResult(ipAddress, block == 1));
     }
 }

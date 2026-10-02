@@ -149,12 +149,12 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             for (String line : ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                line.replaceAll("%INPUT%", queriedInput)
-                                        .replaceAll("%COUNTRY%", geoResult.getCountryName())
-                                        .replaceAll("%CITY%", geoResult.getCityName())
-                                        .replaceAll("%ISP%", geoResult.getIspName())
-                                        .replaceAll("%IS_VPN%", isVpn)
-                                        .replaceAll("%IP%", ipAddress)
+                                line.replace("%INPUT%", queriedInput)
+                                        .replace("%COUNTRY%", geoResult.getCountryName())
+                                        .replace("%CITY%", geoResult.getCityName())
+                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%IS_VPN%", isVpn)
+                                        .replace("%IP%", ipAddress)
                         )
                 );
             }
@@ -198,7 +198,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             commandSender.sendMessage(
                     LegacyComponentSerializer.legacyAmpersand().deserialize(
                             ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.clear.clear-specific")
-                                    .replaceAll("%ENTRY%", queriedInput)
+                                    .replace("%ENTRY%", queriedInput)
                     )
             );
         });
