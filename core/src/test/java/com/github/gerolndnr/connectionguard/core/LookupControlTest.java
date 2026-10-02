@@ -86,11 +86,27 @@ class LookupControlTest {
         AtomicInteger calls = new AtomicInteger();
         VpnProvider provider = ip -> { calls.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); };
         provider(provider);
-        ConnectionGuard.setProviderBudget(provider.getClass().getSimpleName() + "#0", 3, 0);
+        ConnectionGuard.setProviderBudget(ConnectionGuard.providerId(provider, 0), 3, 0);
         for (int i = 1; i <= 3; i++) assertEquals(ProviderVote.Status.NEGATIVE, ConnectionGuard.getVpnResult("192.0.2." + i).get().getStatus());
         VpnResult fourth = ConnectionGuard.getVpnResult("192.0.2.4").get();
         assertEquals(FailureReason.BUDGET_EXHAUSTED, fourth.getVotes().get(0).getReason());
         assertEquals(3, calls.get());
+    }
+    @Test void aBlockingExtensionCannotHoldTheCallerOrOutliveItsLookupDeadline() throws Exception {
+        CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
+        ConnectionGuard.configureLookup(new LookupSettings(150, 100, 1, 2, 2, 3, 100));
+        provider(ip -> {
+            entered.countDown();
+            try { release.await(2, TimeUnit.SECONDS); } catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+            return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, true)));
+        });
+        try {
+            long started = System.nanoTime();
+            CompletableFuture<VpnResult> result = ConnectionGuard.getVpnResult("192.0.2.1");
+            assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started) < 1000, "Provider invocation must return a future without waiting for the blocked extension.");
+            assertTrue(entered.await(1, TimeUnit.SECONDS));
+            assertEquals(ProviderVote.Status.UNKNOWN, result.get(1, TimeUnit.SECONDS).getStatus());
+        } finally { release.countDown(); }
     }
     @Test void rateLimitPausesProviderThenRecovers() throws Exception {
         AtomicInteger calls = new AtomicInteger();

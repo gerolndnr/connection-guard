@@ -1,5 +1,6 @@
 package com.github.gerolndnr.connectionguard.velocity.listener;
 
+import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
@@ -69,13 +70,21 @@ public class ConnectionGuardVelocityListener {
         return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
             VpnResult vpnResult = vpnFuture.join();
             Optional<GeoResult> geoResultOptional = geoFuture.join().getResult();
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoFuture.join());
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoFuture.join());
+            boolean vpnBypassed = vpnExempt.join() || vpnPolicy.isBypassed();
+            boolean geoBypassed = geoExempt.join() || geoPolicy.isBypassed();
+            if (!ConnectionGuard.getSettings().observe && ((!vpnExempt.join() && vpnPolicy.isDenied()) || (!geoExempt.join() && geoPolicy.isDenied()))) {
+                deny.accept(Component.text("Connection denied by server access policy."));
+                return;
+            }
             if (!ConnectionGuard.getSettings().observe && (
-                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (geoFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (!geoBypassed && (geoFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly."));
                 return;
             }
-            if (vpnResult.isVpn()) {
+            if (vpnResult.isVpn() && !vpnBypassed) {
                 // Check if staff should be notified
                 if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                     Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
@@ -119,7 +128,7 @@ public class ConnectionGuardVelocityListener {
                 }
             }
 
-            if (geoResultOptional.isPresent()) {
+            if (geoResultOptional.isPresent() && !geoBypassed) {
                 GeoResult geoResult = geoResultOptional.get();
                 boolean isGeoFlagged = false;
 

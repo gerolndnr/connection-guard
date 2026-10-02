@@ -1,5 +1,6 @@
 package com.github.gerolndnr.connectionguard.bungee.listener;
 
+import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
@@ -57,14 +58,22 @@ public class ConnectionGuardBungeeListener implements Listener {
             Boolean hasGeoExemption = hasGeoExemptionPermissionFuture.join();
 
 
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoLookupFuture.join());
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoLookupFuture.join());
+            boolean vpnBypassed = hasVpnExemption || vpnPolicy.isBypassed();
+            boolean geoBypassed = hasGeoExemption || geoPolicy.isBypassed();
+            if (!ConnectionGuard.getSettings().observe && ((!hasVpnExemption && vpnPolicy.isDenied()) || (!hasGeoExemption && geoPolicy.isDenied()))) {
+                loginEvent.setCancelReason(new TextComponent("Connection denied by server access policy.")); loginEvent.setCancelled(true);
+                return;
+            }
             if (!ConnectionGuard.getSettings().observe && (
-                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (geoLookupFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (!geoBypassed && (geoLookupFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 loginEvent.setCancelReason(new TextComponent("Connection verification is temporarily unavailable. Please retry shortly."));
                 loginEvent.setCancelled(true);
                 return;
             }
-            if (vpnResult.isVpn() && !hasVpnExemption) {
+            if (vpnResult.isVpn() && !vpnBypassed) {
                 // Check if staff should be notified
                 if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                     String notifyMessage = ChatColor.translateAlternateColorCodes(
@@ -112,7 +121,7 @@ public class ConnectionGuardBungeeListener implements Listener {
             }
 
             Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
-            if (geoResultOptional.isPresent() && !hasGeoExemption) {
+            if (geoResultOptional.isPresent() && !geoBypassed) {
                 GeoResult geoResult = geoResultOptional.get();
                 boolean isGeoFlagged = false;
 

@@ -33,20 +33,27 @@ public final class RulesCommands {
                     .exceptionally(error -> { reply.accept("Rule removal failed; existing rules preserved."); return null; }); return true;
         }
         if (args.length >= 6 && args[1].equalsIgnoreCase("add")) {
-            final AccessRule.Scope scope; final long expiry; final String reason;
+            final AccessRule.Scope scope; final long expiry; final String reason; final String target;
             try {
-                scope = AccessRule.Scope.valueOf(args[3].toUpperCase(Locale.ROOT)); expiry = expiry(args[4]);
-                reason = String.join(" ", Arrays.copyOfRange(args, 5, args.length));
+                int boundary = -1;
+                for (int i = 3; i < args.length - 2; i++) {
+                    if (args[i].matches("(?i)vpn|geo|all") && (args[i+1].equalsIgnoreCase("permanent") || args[i+1].matches("[1-9][0-9]{0,5}[smhd]"))) { boundary = i; break; }
+                }
+                if (boundary < 0) throw new IllegalArgumentException("Missing scope/duration.");
+                scope = AccessRule.Scope.valueOf(args[boundary].toUpperCase(Locale.ROOT)); expiry = expiry(args[boundary+1]);
+                String raw = String.join(" ", Arrays.copyOfRange(args, 2, boundary));
+                target = raw.startsWith("\"") && raw.endsWith("\"") ? raw.substring(1, raw.length()-1) : raw;
+                reason = String.join(" ", Arrays.copyOfRange(args, boundary+2, args.length));
                 // Validate before scheduling any write.
-                new AccessRule("validation", effect, scope, args[2], expiry, reason);
-            } catch (IllegalArgumentException | ArithmeticException invalid) { reply.accept("Invalid target, scope, duration or reason. Use literal IP/CIDR or canonical UUID; no player names."); return true; }
+                new AccessRule("validation", effect, scope, target, expiry, reason);
+            } catch (IllegalArgumentException | ArithmeticException invalid) { reply.accept("Invalid target, scope, duration or reason. Use IP/CIDR, UUID or a documented metadata selector; no player names."); return true; }
             ConnectionGuard.getLookupRuntime().submit(() -> {
-                try { return store.add(effect, scope, args[2], expiry, reason); }
+                try { return store.add(effect, scope, target, expiry, reason); }
                 catch (java.io.IOException failure) { throw new IllegalStateException("Rule write failed (details redacted)."); }
             }).thenAccept(rule -> reply.accept("Stored " + rule.getId() + " " + rule.getEffect() + " " + rule.getTarget() + " " + rule.getScope()))
                     .exceptionally(error -> { reply.accept("Rule write failed; active rules preserved."); return null; }); return true;
         }
-        reply.accept("/cg " + name + " add <IP/CIDR/UUID> <vpn|geo|all> <15m|2h|7d|permanent> <reason>");
+        reply.accept("/cg " + name + " add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <reason>");
         reply.accept("/cg " + name + " list | remove <rule-id>; explicit deny overrides allow/exempt; UUID requires trusted identity.");
         return true;
     }

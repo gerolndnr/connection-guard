@@ -97,13 +97,12 @@ required-positive-flags: 1
 
 provider:
   vpn:
-    # ProxyCheck is the most reliable service when it comes to detecting vpns and proxies.
-    # Without an api key, it is limited to 100 requests daily (should work fine for 30-40 unique players
-    # per day). With a free api key, which can be received after registration on https://proxycheck.io/,
-    # 1.000 requests per day are free (should work fine for 300 unique players per day). Upgrades
-    # are not very expensive, especially if you have a server with more than 300 unique players per day.
+    # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
+    # VPN/Geo currently use separate queries; the plugin counts requests locally.
     proxycheck:
       enabled: true
+      # v3 supplies separate detections and operator/confidence fields. Missing setting retains v2.
+      api-version: v3
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
     # IP-API is completely free, but has a rate limit of 45 requests per minute.

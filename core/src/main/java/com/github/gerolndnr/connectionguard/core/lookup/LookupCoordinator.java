@@ -28,7 +28,7 @@ public final class LookupCoordinator {
         }
         final CompletableFuture<T> published = result;
         final CompletableFuture<T> target = new CompletableFuture<>();
-        ScheduledFuture<?> deadline = runtime.schedule(() -> target.complete(timeout.get()), runtime.getSettings().deadlineMillis);
+        ScheduledFuture<?> deadline = runtime.schedule(() -> fallback(target, timeout), runtime.getSettings().deadlineMillis);
         target.whenComplete((value, error) -> {
             deadline.cancel(false);
             synchronized (flights) { flights.remove(key, published); }
@@ -37,10 +37,14 @@ public final class LookupCoordinator {
         try {
             operation.get().whenComplete((value, error) -> {
                 if (error == null) target.complete(value);
-                else target.complete(timeout.get());
+                else fallback(target, timeout);
             });
-        } catch (RuntimeException error) { target.complete(timeout.get()); }
+        } catch (RuntimeException error) { fallback(target, timeout); }
         return target.thenApply(value -> value);
+    }
+    private static <T> void fallback(CompletableFuture<T> target, Supplier<T> timeout) {
+        try { target.complete(timeout.get()); }
+        catch (RuntimeException invalid) { target.completeExceptionally(invalid); }
     }
     public int inflight() { synchronized (flights) { return flights.size(); } }
     public String describe() {
