@@ -112,7 +112,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)));
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath());
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
@@ -145,7 +145,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         YamlConfiguration next = new YamlConfiguration();
         try { next.load(new File(getDataFolder(), "config.yml")); }
         catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
-        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)));
+        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath());
         ConnectionGuard.applyProviders(draft);
         activeConfig = next;
         languageConfig = YamlConfiguration.loadConfiguration(languageFile);

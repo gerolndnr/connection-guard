@@ -6,6 +6,8 @@ import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import java.util.*;
 import java.util.function.Function;
 import java.net.URI;
+import java.nio.file.Path;
+import com.github.gerolndnr.connectionguard.core.local.*;
 
 /** Build a complete provider draft before mutating active state. No network or file writes. */
 public final class ProviderConfiguration {
@@ -17,8 +19,27 @@ public final class ProviderConfiguration {
     public final int threshold, vpnTtl, geoTtl;
     public final String cacheSignature;
     public final String cacheNamespace;
+    public final LocalDataStore localStore;
+    public final List<LocalSnapshot> localSnapshots;
+    public final int localUpdateHours;
+    private final transient Function<String, Object> values;
+    private final transient List<String> providerKeys;
+    private final transient Path dataDirectory;
     public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys) {
+        this(value, providerKeys, null);
+    }
+    public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory) {
+        this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
         settings = GuardSettings.read(value, providerKeys);
+        LocalDataSettings local = new LocalDataSettings(value);
+        localUpdateHours = local.updateHours;
+        localStore = local.vpnEnabled || local.geoEnabled ? new LocalDataStore(dataDirectory, local.sources) : null;
+        List<LocalSnapshot> loaded = new ArrayList<>();
+        if (localStore != null) for (LocalSource source : local.sources) {
+            try { loaded.add(localStore.load(source.id, System.currentTimeMillis())); }
+            catch (java.io.IOException invalid) { throw new IllegalArgumentException("Local data is invalid; previous settings preserved (values redacted)."); }
+        }
+        localSnapshots = Collections.unmodifiableList(loaded);
         String proxyCheckVersion = GuardSettings.string(value, "provider.vpn.proxycheck.api-version", "v2");
         if (!proxyCheckVersion.equalsIgnoreCase("v2") && !proxyCheckVersion.equalsIgnoreCase("v3")) throw new IllegalArgumentException("ProxyCheck api-version must be v2 or v3.");
         boolean proxyCheckV3 = proxyCheckVersion.equalsIgnoreCase("v3");
@@ -31,6 +52,7 @@ public final class ProviderConfiguration {
                 + "\n" + GuardSettings.integer(value, "provider.cache.redis.port", 6379) + "\n"
                 + GuardSettings.string(value, "provider.cache.redis.username", "") + "\n" + GuardSettings.string(value, "provider.cache.redis.password", "") + "\n" + GuardSettings.bool(value, "provider.cache.redis.tls", false);
         for (String key : providerKeys) {
+            if (key.equals("local")) continue;
             String base = "provider.vpn." + key + ".";
             if (!GuardSettings.bool(value, base + "enabled", false)) continue;
             String apiKey = GuardSettings.string(value, base + "api-key", "");
@@ -81,20 +103,27 @@ public final class ProviderConfiguration {
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
             dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         }
-        geo = GuardSettings.string(value, "provider.geo.service", "IP-API").equalsIgnoreCase("IP-API") ? new IpApiGeoProvider()
+        if (local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
+        String geoService = GuardSettings.string(value, "provider.geo.service", "IP-API");
+        geo = geoService.equalsIgnoreCase("Disabled") ? null : geoService.equalsIgnoreCase("Local")
+                ? new LocalGeoProvider(loaded.stream().filter(snapshot -> snapshot.source.kind == LocalSource.Kind.GEO).findFirst().get(),
+                    loaded.stream().filter(snapshot -> snapshot.source.kind == LocalSource.Kind.ASN).findFirst().orElse(null))
+                : geoService.equalsIgnoreCase("IP-API") ? new IpApiGeoProvider()
                 : new ProxyCheckGeoProvider(GuardSettings.string(value, "provider.vpn.proxycheck.api-key", ""), proxyCheckV3);
-        String id = geo.getClass().getSimpleName();
+        String id = geo == null ? "disabled" : geo.getClass().getSimpleName();
         int day = GuardSettings.integer(value, "provider.geo.daily-budget", geo instanceof ProxyCheckGeoProvider
                 ? GuardSettings.string(value, "provider.vpn.proxycheck.api-key", "").isEmpty() ? 100 : 1000 : 0);
         int minute = GuardSettings.integer(value, "provider.geo.minute-budget", geo instanceof IpApiGeoProvider ? 45 : 0);
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
-        dayBudgets.put(id, day); minuteBudgets.put(id, minute);
+        if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema3-rich:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
-                    + ":" + geo.getClass().getSimpleName() + ":" + new com.google.gson.Gson().toJson(geo);
+            String input = "schema5-local:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+                    + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));
             cacheNamespace = hex.toString();
         } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable."); }
     }
+    /** Read a complete new local generation from the already active configuration, without editing YAML. */
+    public ProviderConfiguration refreshLocal() { return new ProviderConfiguration(values, providerKeys, dataDirectory); }
 }

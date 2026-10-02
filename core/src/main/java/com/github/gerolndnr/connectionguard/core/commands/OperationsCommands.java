@@ -14,9 +14,10 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        if (LocalDataCommands.handle(args, permission, reply)) return true;
         if (RulesCommands.handle(args, permission, reply)) return true;
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
         String operation = args[0].toLowerCase(Locale.ROOT);
@@ -26,10 +27,13 @@ public final class OperationsCommands {
             final String ip;
             try { ip = Exemptions.normalize(args[1]); }
             catch (IllegalArgumentException invalid) { reply.accept("Use a literal IPv4/IPv6 address."); return true; }
-            ConnectionGuard.getVpnResult(ip).thenCombine(ConnectionGuard.getGeoLookup(ip), (result, geo) -> {
+            ConnectionGuard.getVpnResult(ip).thenCombine(ConnectionGuard.getGeoLookup(ip), (rawResult, rawGeo) -> {
+                long asOf = System.currentTimeMillis();
+                com.github.gerolndnr.connectionguard.core.vpn.VpnResult result = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.vpn(rawResult, asOf);
+                com.github.gerolndnr.connectionguard.core.lookup.GeoLookup geo = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.geo(rawGeo, asOf);
                 reply.accept("VPN=" + result.getStatus() + " threshold=" + ConnectionGuard.getRequiredPositiveFlags()
                         + " cached=" + result.isFromCache() + " ageMs=" + (result.getCachedOn() == 0 ? "unavailable" : Math.max(0, System.currentTimeMillis() - result.getCachedOn())));
-                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis() + " " + vote.getDetails().describe());
+                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
                 reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
                         + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
                 for (AccessRule.Scope scope : new AccessRule.Scope[]{AccessRule.Scope.VPN, AccessRule.Scope.GEO}) {
@@ -44,6 +48,7 @@ public final class OperationsCommands {
         if (args.length != 1) { reply.accept("Usage: /cg " + operation); return true; }
         if (operation.equals("stats")) reply.accept(ConnectionGuard.lookupStats());
         if (operation.equals("providers")) {
+            if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
             if (ConnectionGuard.providerHealth().isEmpty()) reply.accept("No provider attempts recorded yet.");
             ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                     .forEach(entry -> reply.accept(entry.getKey() + ": " + entry.getValue().describe()));
@@ -59,6 +64,7 @@ public final class OperationsCommands {
         lines.add("Cache=" + (ConnectionGuard.getCacheProvider() == null ? "unavailable" : ConnectionGuard.getCacheProvider().getClass().getSimpleName())
                 + "; health requires an actual lookup. This command does not spend API quota.");
         lines.addAll(ConnectionGuard.getSettings().warnings);
+        if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> lines.add(snapshot.describe(System.currentTimeMillis())));
         lines.add("Verify client IP forwarding with a controlled client; a public address alone does not establish correct forwarding.");
         lines.add(ConnectionGuard.lookupStats());
         return lines;

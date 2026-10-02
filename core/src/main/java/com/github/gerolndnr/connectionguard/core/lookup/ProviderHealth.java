@@ -41,7 +41,7 @@ public final class ProviderHealth {
     }
     public synchronized void record(FailureReason reason, Throwable error, LookupSettings settings) {
         lastReason = reason;
-        if (reason == FailureReason.NONE) { successes++; failures = 0; pausedUntil = 0; return; }
+        if (reason == FailureReason.NONE || reason == FailureReason.NO_EVIDENCE || reason == FailureReason.STALE_DATA) { successes++; failures = 0; pausedUntil = 0; return; }
         if (reason == FailureReason.OVERLOADED || reason == FailureReason.CANCELLED) return;
         long pause = settings.circuitPauseMillis;
         while (error instanceof CompletionException) error = error.getCause();

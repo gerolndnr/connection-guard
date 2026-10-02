@@ -42,4 +42,6 @@ public final class IpNetwork {
         try { return InetAddress.getByAddress(network).getHostAddress() + "/" + prefix; }
         catch (UnknownHostException impossible) { throw new IllegalStateException(); }
     }
+    public byte[] getNetworkBytes() { return network.clone(); }
+    public int getPrefix() { return prefix; }
 }

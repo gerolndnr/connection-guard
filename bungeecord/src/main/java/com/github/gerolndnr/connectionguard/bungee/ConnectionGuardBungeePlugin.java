@@ -143,7 +143,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()));
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()), getDataFolder().toPath());
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
@@ -171,7 +171,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     public void reloadAllConfigs() {
         try {
             Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()));
+            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath());
             ConnectionGuard.applyProviders(draft);
             config = next;
             languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);

@@ -117,6 +117,10 @@ provider:
       enabled: false
       api-key: ''
 
+    # Positive-only local lists and optional MMDB metadata. Missing/stale data stays UNKNOWN.
+    local:
+      enabled: false
+
     # For advanced usage, there is the option to add other vpn detection provider.
     # You can find settings for different other provider in the Connection Guard wiki!
     # https://github.com/gerolndnr/connection-guard/wiki/Custom-Services
@@ -156,11 +160,21 @@ provider:
           # Nested data can be accessed with '#', e.g. { "data": { "vpnProvider": "NordVPN" }} with 'data#vpnProvider'
           # Leave empty if this detection provider does not give information about the vpn provider.
           field-name: "data#vpnProvider"
+  local:
+    # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
+    # MMDBs are always operator-imported, with their embedded build date and your source's license.
+    update-hours: 0
+    # Explicit attribution is mandatory. See docs/LOCAL_DATA.md for complete examples/imports.
+    # Eight sources max, one GEO and one ASN max. VPN/PROXY/TOR/RELAY vote positively on membership;
+    # HOSTING/GEO/ASN enrich metadata without contributing generic VPN votes.
+    sources: []
   geo:
     # Available services:
     # - IP-API (Free, no api key required, 45 requests per minute)
     # - ProxyCheck (Free, api key is free and optional and can be configured above in the vpn section,
     #               100 requests per day without api key or 1.000 requests per day with api key)
+    # - Local (operator-imported country/city MMDB plus optional ASN; no API)
+    # - Disabled (geo stays UNKNOWN; choose an appropriate failure policy)
     service: 'IP-API'
   cache:
     # The cache is very important to effectively use the requests you have and avoid running into the request limit.
