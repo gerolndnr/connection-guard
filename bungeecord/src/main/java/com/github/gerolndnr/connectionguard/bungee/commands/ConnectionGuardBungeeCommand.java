@@ -2,9 +2,11 @@ package com.github.gerolndnr.connectionguard.bungee.commands;
 
 import com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
@@ -30,6 +32,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.no-permission")
         );
 
+        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(new TextComponent(text)))) return;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -238,7 +241,10 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     }
 
     private boolean reloadPlugin(CommandSender commandSender) {
-        ConnectionGuardBungeePlugin.getInstance().reloadAllConfigs();
+        try { ConnectionGuardBungeePlugin.getInstance().reloadAllConfigs(); }
+        catch (IllegalArgumentException | IllegalStateException rejected) {
+            commandSender.sendMessage(new TextComponent("Reload rejected: " + rejected.getMessage())); return true;
+        }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
@@ -251,6 +257,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     @Override
     public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
         List<String> proposals = new ArrayList<>();
+        for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
         if (strings.length == 1) {
             if (commandSender.hasPermission("connectionguard.command.help"))
                 proposals.add("help");

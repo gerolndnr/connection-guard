@@ -3,6 +3,8 @@ package com.github.gerolndnr.connectionguard.spigot;
 import net.byteflux.libby.BukkitLibraryManager;
 import net.byteflux.libby.Library;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
+import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 
 public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     private static ConnectionGuardSpigotPlugin connectionGuardSpigotPlugin;
+    private YamlConfiguration activeConfig;
     private File languageFile;
     private YamlConfiguration languageConfig;
     private HashMap<String, VpnProvider> vpnProviderMap;
@@ -37,6 +40,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     public void onEnable() {
         // 1. Save Default Config & set logger
         saveDefaultConfig();
+        activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
 
         String selectedLanguageFileName = getConfig().getString("message-language") + ".yml";
         if (!new File(getDataFolder(), "translation").exists()) {
@@ -94,7 +98,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                                 getConfig().getString("provider.cache.redis.hostname"),
                                 getConfig().getInt("provider.cache.redis.port"),
                                 getConfig().getString("provider.cache.redis.username"),
-                                getConfig().getString("provider.cache.redis.password")
+                                getConfig().getString("provider.cache.redis.password"),
+                                GuardSettings.bool(path -> getConfig().get(path, null), "provider.cache.redis.tls", false)
                         )
                 );
                 break;
@@ -107,57 +112,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 return;
         }
 
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)));
+        ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
 
-        // 4. Add every enabled vpn provider and geo provider
-        vpnProviderMap.put("proxycheck", new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
-        vpnProviderMap.put("ip-api", new IpApiVpnProvider());
-        vpnProviderMap.put("iphub", new IpHubVpnProvider(getConfig().getString("provider.vpn.iphub.api-key")));
-        vpnProviderMap.put("vpnapi", new VpnApiVpnProvider(getConfig().getString("provider.vpn.vpnapi.api-key")));
-
-        ArrayList<VpnProvider> vpnProviders = new ArrayList<>();
-
-        for (String key : getConfig().getConfigurationSection("provider.vpn").getKeys(false)) {
-            if (getConfig().getBoolean("provider.vpn." + key + ".enabled")) {
-                if (vpnProviderMap.get(key) != null) {
-                    vpnProviders.add(vpnProviderMap.get(key));
-                } else {
-                    vpnProviders.add(
-                            new CustomVpnProvider(
-                                    getConfig().getString("provider.vpn." + key + ".request-type"),
-                                    getConfig().getString("provider.vpn." + key + ".request-url"),
-                                    getConfig().getStringList("provider.vpn." + key + ".request-header"),
-                                    getConfig().getString("provider.vpn." + key + ".request-body-type"),
-                                    getConfig().getString("provider.vpn." + key + ".request-body"),
-                                    getConfig().getString("provider.vpn." + key + ".response-type"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-name"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-type"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.string-options.is-vpn-string"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.vpn-provider-field.field-name")
-                            )
-                    );
-                }
-                ConnectionGuard.getLogger().info("Registered vpn detection provider '" + key + "'.");
-            }
-        }
-
-        ConnectionGuard.setVpnProviders(vpnProviders);
-
-        switch (getConfig().getString("provider.geo.service").toLowerCase()) {
-            case "ip-api":
-                ConnectionGuard.setGeoProvider(new IpApiGeoProvider());
-                break;
-            case "proxycheck":
-                ConnectionGuard.setGeoProvider(new ProxyCheckGeoProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
-                break;
-            default:
-                getLogger().info("The specified geo provider is invalid. Please use IP-API.");
-        }
-
-        // 5. Set required positive vpn flags and cache expiration
-        ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
-        ConnectionGuard.setVpnCacheExpirationTime(getConfig().getInt("provider.cache.expiration.vpn"));
-        ConnectionGuard.setGeoCacheExpirationTime(getConfig().getInt("provider.cache.expiration.geo"));
 
         // 6. Register bukkit listener
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
@@ -172,15 +130,23 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        ConnectionGuard.getCacheProvider().disband();
+        ConnectionGuard.shutdown();
+        com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
+        if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();
     }
 
     public YamlConfiguration getLanguageConfig() {
         return languageConfig;
     }
 
+    @Override public org.bukkit.configuration.file.FileConfiguration getConfig() { return activeConfig != null ? activeConfig : super.getConfig(); }
     public void reloadAllConfigs() {
-        reloadConfig();
+        YamlConfiguration next = new YamlConfiguration();
+        try { next.load(new File(getDataFolder(), "config.yml")); }
+        catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
+        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)));
+        ConnectionGuard.applyProviders(draft);
+        activeConfig = next;
         languageConfig = YamlConfiguration.loadConfiguration(languageFile);
     }
 

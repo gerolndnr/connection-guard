@@ -3,6 +3,8 @@ package com.github.gerolndnr.connectionguard.velocity;
 import net.byteflux.libby.Library;
 import net.byteflux.libby.VelocityLibraryManager;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
+import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
@@ -114,7 +116,8 @@ public class ConnectionGuardVelocityPlugin {
                                 getCgVelocityConfig().getConfig().getString("provider.cache.redis.hostname"),
                                 getCgVelocityConfig().getConfig().getInt("provider.cache.redis.port"),
                                 getCgVelocityConfig().getConfig().getString("provider.cache.redis.username"),
-                                getCgVelocityConfig().getConfig().getString("provider.cache.redis.password")
+                                getCgVelocityConfig().getConfig().getString("provider.cache.redis.password"),
+                                GuardSettings.bool(path -> getCgVelocityConfig().getConfig().get(path), "provider.cache.redis.tls", false)
                         )
                 );
                 break;
@@ -126,60 +129,10 @@ public class ConnectionGuardVelocityPlugin {
                 return;
         }
 
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getCgVelocityConfig().getConfig().get(path), getCgVelocityConfig().getConfig().getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()));
+        ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
 
-        // 5. Add every enabled vpn provider and geo provider
-        vpnProviderMap.put("proxycheck", new ProxyCheckVpnProvider(getCgVelocityConfig().getConfig().getString("provider.vpn.proxycheck.api-key")));
-        vpnProviderMap.put("ip-api", new IpApiVpnProvider());
-        vpnProviderMap.put("iphub", new IpHubVpnProvider(getCgVelocityConfig().getConfig().getString("provider.vpn.iphub.api-key")));
-        vpnProviderMap.put("vpnapi", new VpnApiVpnProvider(getCgVelocityConfig().getConfig().getString("provider.vpn.vpnapi.api-key")));
-
-        ArrayList<VpnProvider> vpnProviders = new ArrayList<>();
-
-        for (Object keyObject : getCgVelocityConfig().getConfig().getSection("provider.vpn").getKeys()) {
-            String key = keyObject.toString();
-            if (getCgVelocityConfig().getConfig().getBoolean("provider.vpn." + key + ".enabled")) {
-                if (vpnProviderMap.get(key) != null) {
-                    vpnProviders.add(vpnProviderMap.get(key));
-                } else {
-                    vpnProviders.add(
-                            new CustomVpnProvider(
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".request-type"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".request-url"),
-                                    getCgVelocityConfig().getConfig().getStringList("provider.vpn." + key + ".request-header"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".request-body-type"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".request-body"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".response-type"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-name"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-type"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.string-options.is-vpn-string"),
-                                    getCgVelocityConfig().getConfig().getString("provider.vpn." + key + ".response-format.vpn-provider-field.field-name")
-                            )
-                    );
-                }
-                ConnectionGuard.getLogger().info("Registered vpn detection provider '" + key + "'.");
-            }
-        }
-
-        ConnectionGuard.setVpnProviders(vpnProviders);
-
-        switch (cgVelocityConfig.getConfig().getString("provider.geo.service").toLowerCase()) {
-            case "ip-api":
-                ConnectionGuard.setGeoProvider(new IpApiGeoProvider());
-                break;
-            case "proxycheck":
-                ConnectionGuard.setGeoProvider(new ProxyCheckGeoProvider(
-                        getCgVelocityConfig().getConfig().getString("provider.vpn.proxycheck.api-key")
-                ));
-                break;
-            default:
-                logger.info("The specified geo provider is invalid. Please use IP-API.");
-        }
-
-        // 6. Set required positive vpn flags and cache expiration
-        ConnectionGuard.setRequiredPositiveFlags(cgVelocityConfig.getConfig().getInt("required-positive-flags"));
-        ConnectionGuard.setVpnCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.vpn"));
-        ConnectionGuard.setGeoCacheExpirationTime(cgVelocityConfig.getConfig().getInt("provider.cache.expiration.geo"));
 
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
@@ -190,6 +143,13 @@ public class ConnectionGuardVelocityPlugin {
                 .build();
         SimpleCommand simpleCommand = new ConnectionGuardVelocityCommand();
         proxyServer.getCommandManager().register(commandMeta, simpleCommand);
+    }
+
+    @Subscribe
+    public void onProxyShutdown(com.velocitypowered.api.event.proxy.ProxyShutdownEvent event) {
+        ConnectionGuard.shutdown();
+        com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
+        if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();
     }
 
     public Logger getLogger() {

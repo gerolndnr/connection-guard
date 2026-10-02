@@ -1,0 +1,118 @@
+package com.github.gerolndnr.connectionguard.core;
+
+import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
+import com.github.gerolndnr.connectionguard.core.lookup.*;
+import com.github.gerolndnr.connectionguard.core.vpn.*;
+import org.junit.jupiter.api.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+@Timeout(5)
+class LookupControlTest {
+    @BeforeEach void setup() {
+        ConnectionGuard.configureLookup(new LookupSettings(200, 100, 2, 4, 8, 3, 100));
+        ConnectionGuard.setCacheProvider(new NoCacheProvider());
+        ConnectionGuard.setRequiredPositiveFlags(1);
+        ConnectionGuard.setVpnProviders(new ArrayList<>());
+        Logger logger = Logger.getAnonymousLogger(); logger.setLevel(Level.OFF); ConnectionGuard.setLogger(logger);
+    }
+    @AfterEach void reset() { ConnectionGuard.configureLookup(LookupSettings.defaults()); }
+    void provider(VpnProvider provider) { ConnectionGuard.setVpnProviders(new ArrayList<>(Collections.singletonList(provider))); }
+    @Test void aHundredCallersShareOneProviderRequestAndCancellationIsIsolated() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
+        provider(ip -> { calls.incrementAndGet(); return pending; });
+        List<CompletableFuture<VpnResult>> callers = new ArrayList<>();
+        for (int i = 0; i < 100; i++) callers.add(ConnectionGuard.getVpnResult("192.0.2.1"));
+        callers.get(0).cancel(false);
+        assertEquals(1, calls.get());
+        pending.complete(Optional.of(new VpnResult("192.0.2.1", true)));
+        for (int i = 1; i < callers.size(); i++) assertEquals(ProviderVote.Status.POSITIVE, callers.get(i).get().getStatus());
+        assertTrue(ConnectionGuard.lookupStats().contains("shared=99"));
+    }
+    @Test void deadlineRetainsAHealthyVoteWithoutInventingTheMissingVote() throws Exception {
+        ConnectionGuard.setRequiredPositiveFlags(2);
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(
+                ip -> CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, true))),
+                ip -> new CompletableFuture<>())));
+        VpnResult result = ConnectionGuard.getVpnResult("192.0.2.1").get(1, TimeUnit.SECONDS);
+        assertEquals(ProviderVote.Status.UNKNOWN, result.getStatus());
+        assertEquals(ProviderVote.Status.POSITIVE, result.getVotes().get(0).getStatus());
+        assertEquals(FailureReason.TIMEOUT, result.getVotes().get(1).getReason());
+        assertEquals(2, ConnectionGuard.getRequiredPositiveFlags());
+    }
+    @Test void stuckCacheCannotHoldALoginPastTheDeadline() throws Exception {
+        ConnectionGuard.setCacheProvider(new NoCacheProvider() {
+            @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) { return new CompletableFuture<>(); }
+        });
+        provider(ip -> { throw new AssertionError("Provider must not run during hung cache read."); });
+        VpnResult result = ConnectionGuard.getVpnResult("192.0.2.1").get(1, TimeUnit.SECONDS);
+        assertEquals(ProviderVote.Status.UNKNOWN, result.getStatus());
+        assertEquals(FailureReason.TIMEOUT, result.getVotes().get(0).getReason());
+    }
+    @Test void admissionRejectsUniqueIpsBeyondTheBound() throws Exception {
+        ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 1, 1, 2, 3, 100));
+        AtomicInteger calls = new AtomicInteger();
+        CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
+        provider(ip -> { calls.incrementAndGet(); return pending; });
+        CompletableFuture<VpnResult> first = ConnectionGuard.getVpnResult("192.0.2.1");
+        CompletableFuture<VpnResult> second = ConnectionGuard.getVpnResult("192.0.2.2");
+        VpnResult rejected = ConnectionGuard.getVpnResult("192.0.2.3").get();
+        assertEquals(FailureReason.OVERLOADED, rejected.getVotes().get(0).getReason());
+        assertEquals(2, calls.get());
+        pending.complete(Optional.of(new VpnResult("192.0.2.1", false)));
+        first.get(); second.get();
+    }
+    @Test void workerPoolAndQueueRejectExcessWorkWithoutGrowing() throws Exception {
+        try (LookupRuntime runtime = new LookupRuntime(new LookupSettings(1000, 100, 1, 1, 2, 3, 100))) {
+            CountDownLatch started = new CountDownLatch(1), release = new CountDownLatch(1);
+            CompletableFuture<Integer> first = runtime.submit(() -> {
+                started.countDown();
+                try { release.await(1, TimeUnit.SECONDS); } catch (InterruptedException error) { Thread.currentThread().interrupt(); }
+                return 1;
+            });
+            assertTrue(started.await(1, TimeUnit.SECONDS));
+            CompletableFuture<Integer> second = runtime.submit(() -> 2);
+            CompletableFuture<Integer> rejected = runtime.submit(() -> 3);
+            assertEquals(FailureReason.OVERLOADED, LookupException.reason(assertThrows(ExecutionException.class, rejected::get)));
+            assertEquals(1, runtime.getQueueSize());
+            release.countDown(); assertEquals(1, first.get()); assertEquals(2, second.get());
+        }
+    }
+    @Test void quotaPreventsTheFourthDistinctLookup() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        VpnProvider provider = ip -> { calls.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); };
+        provider(provider);
+        ConnectionGuard.setProviderBudget(provider.getClass().getSimpleName() + "#0", 3, 0);
+        for (int i = 1; i <= 3; i++) assertEquals(ProviderVote.Status.NEGATIVE, ConnectionGuard.getVpnResult("192.0.2." + i).get().getStatus());
+        VpnResult fourth = ConnectionGuard.getVpnResult("192.0.2.4").get();
+        assertEquals(FailureReason.BUDGET_EXHAUSTED, fourth.getVotes().get(0).getReason());
+        assertEquals(3, calls.get());
+    }
+    @Test void rateLimitPausesProviderThenRecovers() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        provider(ip -> {
+            if (calls.incrementAndGet() > 1) return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false)));
+            CompletableFuture<Optional<VpnResult>> failed = new CompletableFuture<>();
+            failed.completeExceptionally(new LookupException(FailureReason.RATE_LIMIT, 100)); return failed;
+        });
+        assertEquals(FailureReason.RATE_LIMIT, ConnectionGuard.getVpnResult("192.0.2.1").get().getVotes().get(0).getReason());
+        assertEquals(FailureReason.CIRCUIT_OPEN, ConnectionGuard.getVpnResult("192.0.2.2").get().getVotes().get(0).getReason());
+        assertEquals(1, calls.get());
+        Thread.sleep(150);
+        assertEquals(ProviderVote.Status.NEGATIVE, ConnectionGuard.getVpnResult("192.0.2.3").get().getStatus());
+        assertEquals(2, calls.get());
+    }
+    @Test void canonicalIpv6SharesTheSameInFlightLookup() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
+        provider(ip -> { calls.incrementAndGet(); return pending; });
+        CompletableFuture<VpnResult> one = ConnectionGuard.getVpnResult("2001:db8::1");
+        CompletableFuture<VpnResult> two = ConnectionGuard.getVpnResult("2001:0db8:0:0:0:0:0:1");
+        pending.complete(Optional.of(new VpnResult("2001:db8::1", false)));
+        one.get(); two.get(); assertEquals(1, calls.get());
+    }
+}

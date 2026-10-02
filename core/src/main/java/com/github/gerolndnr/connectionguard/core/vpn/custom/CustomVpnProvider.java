@@ -49,7 +49,7 @@ public class CustomVpnProvider implements VpnProvider {
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
-        return CompletableFuture.supplyAsync(() -> {
+        return ProviderHttp.submit(() -> {
             try {
                 Request.Builder request = new Request.Builder().url(requestUrl.replace("%IP%", ipAddress));
                 if (requestType.equalsIgnoreCase("POST")) {
@@ -68,8 +68,7 @@ public class CustomVpnProvider implements VpnProvider {
                 Optional<JsonObject> json = ProviderHttp.readJson(request.build(), "Custom VPN provider");
                 return json.isPresent() ? readJsonResponse(ipAddress, json.get()) : Optional.empty();
             } catch (RuntimeException failure) {
-                ProviderHttp.unavailable("Custom VPN provider");
-                return Optional.empty();
+                throw ProviderHttp.failure(failure);
             }
         });
     }

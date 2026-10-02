@@ -13,52 +13,32 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 import java.util.Optional;
+import java.util.UUID;
+import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.lookup.*;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class AsyncPlayerPreLoginListener implements Listener {
     @EventHandler
     public void onAsyncPreLogin(AsyncPlayerPreLoginEvent preLoginEvent) {
-        String ipAddress = preLoginEvent.getAddress().getHostAddress();
+        String rawIp = preLoginEvent.getAddress().getHostAddress();
 
-        CompletableFuture<VpnResult> vpnResultFuture;
-        CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture;
-        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture;
-        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture;
-
-        // Check if ip address is in exemption lists
-        if (
-                ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(ipAddress)
-                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(preLoginEvent.getUniqueId().toString())
-                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(preLoginEvent.getName())
-        ) {
-            vpnResultFuture = CompletableFuture.completedFuture(new VpnResult(ipAddress, false));
-            hasVpnExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-        } else {
-            vpnResultFuture = ConnectionGuard.getVpnResult(ipAddress);
-
-            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")) {
-                hasVpnExemptionPermissionFuture = CGLuckPermsHelper.hasPermission(preLoginEvent.getUniqueId(), "connectionguard.exemption.vpn");
-            } else {
-                hasVpnExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-            }
-        }
-
-        if (
-                ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(ipAddress)
-                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(preLoginEvent.getUniqueId().toString())
-                || ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(preLoginEvent.getName())
-        ) {
-            geoResultOptionalFuture = CompletableFuture.completedFuture(Optional.empty());
-            hasGeoExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-        } else {
-            geoResultOptionalFuture = ConnectionGuard.getGeoResult(ipAddress);
-
-            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")) {
-                hasGeoExemptionPermissionFuture = CGLuckPermsHelper.hasPermission(preLoginEvent.getUniqueId(), "connectionguard.exemption.geo");
-            } else {
-                hasGeoExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-            }
-        }
+        final String ipAddress = Exemptions.normalize(rawIp);
+        final String clientIp = ipAddress;
+        UUID uuid = preLoginEvent.getUniqueId();
+        boolean trusted = Bukkit.getOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity;
+        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture = Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn") : CompletableFuture.completedFuture(false);
+        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo") : CompletableFuture.completedFuture(false);
+        CompletableFuture<VpnResult> vpnResultFuture = hasVpnExemptionPermissionFuture.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new VpnResult(clientIp, false)) : ConnectionGuard.getVpnResult(clientIp));
+        CompletableFuture<GeoLookup> geoLookupFuture = hasGeoExemptionPermissionFuture.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(clientIp));
+        CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = geoLookupFuture.thenApply(GeoLookup::getResult);
 
         CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).join();
 
@@ -66,10 +46,16 @@ public class AsyncPlayerPreLoginListener implements Listener {
         Boolean hasVpnExemptionPermission = hasVpnExemptionPermissionFuture.join();
         Boolean hasGeoExemptionPermission = hasGeoExemptionPermissionFuture.join();
 
+
+            if (!ConnectionGuard.getSettings().observe && (
+                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (geoLookupFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection verification is temporarily unavailable. Please retry shortly.");
+                return;
+            }
         if (vpnResult.isVpn() && !hasVpnExemptionPermission) {
             // Check if staff should be notified
             if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
-                ConnectionGuard.getLogger().info("staff should be notified");
                 String notifyMessage = ChatColor.translateAlternateColorCodes(
                         '&',
                         ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
@@ -77,13 +63,10 @@ public class AsyncPlayerPreLoginListener implements Listener {
                                 .replace("%NAME%", preLoginEvent.getName())
                 );
                 int amountRecipients = ConnectionGuardSpigotPlugin.getInstance().getServer().broadcast(notifyMessage, "connectionguard.notify.vpn");
-                ConnectionGuard.getLogger().info("amount recipients: " + amountRecipients);
-            } else {
-                ConnectionGuard.getLogger().info("staff should not be notified");
             }
 
             // Check if command should be executed on flag
-            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
+            if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
                 Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
                     @Override
                     public void run() {
@@ -98,7 +81,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             }
 
             // Check if WebHook should be executed
-            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+            if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                 String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
                         .replace("%NAME%", preLoginEvent.getName())
                         .replace("%IP%", ipAddress);
@@ -108,7 +91,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             }
 
             // Check if player should be kicked
-            if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
+            if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
                 String kickMessage = ChatColor.translateAlternateColorCodes(
                         '&',
                         ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
@@ -156,7 +139,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
 
                 // Check if command should be executed on flag
-                if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
                     Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
                         @Override
                         public void run() {
@@ -171,7 +154,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
 
                 // Check if WebHook should be executed
-                if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                     String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
                             .replace("%NAME%", preLoginEvent.getName())
                             .replace("%IP%", ipAddress)
@@ -184,7 +167,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
 
                 // Check if player should be kicked
-                if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-block")

@@ -5,6 +5,8 @@ import net.byteflux.libby.Library;
 import com.github.gerolndnr.connectionguard.bungee.commands.ConnectionGuardBungeeCommand;
 import com.github.gerolndnr.connectionguard.bungee.listener.ConnectionGuardBungeeListener;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
+import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
@@ -128,7 +130,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                                 getConfig().getString("provider.cache.redis.hostname"),
                                 getConfig().getInt("provider.cache.redis.port"),
                                 getConfig().getString("provider.cache.redis.username"),
-                                getConfig().getString("provider.cache.redis.password")
+                                getConfig().getString("provider.cache.redis.password"),
+                                GuardSettings.bool(path -> getConfig().get(path, null), "provider.cache.redis.tls", false)
                         )
                 );
                 break;
@@ -140,57 +143,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 return;
         }
 
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()));
+        ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
 
-        // 5. Add every enabled vpn provider and geo provider
-        vpnProviderMap.put("proxycheck", new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
-        vpnProviderMap.put("ip-api", new IpApiVpnProvider());
-        vpnProviderMap.put("iphub", new IpHubVpnProvider(getConfig().getString("provider.vpn.iphub.api-key")));
-        vpnProviderMap.put("vpnapi", new VpnApiVpnProvider(getConfig().getString("provider.vpn.vpnapi.api-key")));
-
-        ArrayList<VpnProvider> vpnProviders = new ArrayList<>();
-
-        for (String key : getConfig().getSection("provider.vpn").getKeys()) {
-            if (getConfig().getBoolean("provider.vpn." + key + ".enabled")) {
-                if (vpnProviderMap.get(key) != null) {
-                    vpnProviders.add(vpnProviderMap.get(key));
-                } else {
-                    vpnProviders.add(
-                            new CustomVpnProvider(
-                                    getConfig().getString("provider.vpn." + key + ".request-type"),
-                                    getConfig().getString("provider.vpn." + key + ".request-url"),
-                                    getConfig().getStringList("provider.vpn." + key + ".request-header"),
-                                    getConfig().getString("provider.vpn." + key + ".request-body-type"),
-                                    getConfig().getString("provider.vpn." + key + ".request-body"),
-                                    getConfig().getString("provider.vpn." + key + ".response-type"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-name"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.field-type"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.is-vpn-field.string-options.is-vpn-string"),
-                                    getConfig().getString("provider.vpn." + key + ".response-format.vpn-provider-field.field-name")
-                            )
-                    );
-                }
-                ConnectionGuard.getLogger().info("Registered vpn detection provider '" + key + "'.");
-            }
-        }
-
-        ConnectionGuard.setVpnProviders(vpnProviders);
-
-        switch (getConfig().getString("provider.geo.service").toLowerCase()) {
-            case "ip-api":
-                ConnectionGuard.setGeoProvider(new IpApiGeoProvider());
-                break;
-            case "proxycheck":
-                ConnectionGuard.setGeoProvider(new ProxyCheckGeoProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));
-                break;
-            default:
-                getLogger().info("The specified geo provider is invalid. Please use IP-API.");
-        }
-
-        // 6. Set required positive vpn flags and cache expiration
-        ConnectionGuard.setRequiredPositiveFlags(getConfig().getInt("required-positive-flags"));
-        ConnectionGuard.setVpnCacheExpirationTime(getConfig().getInt("provider.cache.expiration.vpn"));
-        ConnectionGuard.setGeoCacheExpirationTime(getConfig().getInt("provider.cache.expiration.geo"));
 
         // 7. Register bungeecord listener and commands
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
@@ -202,7 +158,9 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     @Override
     public void onDisable() {
-        ConnectionGuard.getCacheProvider().disband();
+        ConnectionGuard.shutdown();
+        com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
+        if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();
     }
 
     public Configuration getConfig() {
@@ -211,15 +169,12 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     public void reloadAllConfigs() {
         try {
-            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-        } catch (IOException e) {
-            getLogger().info("Connection Guard | " + e.getMessage());
-        }
-        try {
+            Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()));
+            ConnectionGuard.applyProviders(draft);
+            config = next;
             languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
-        } catch (IOException e) {
-            getLogger().info("Connection Guard | " + e.getMessage());
-        }
+        } catch (IOException invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
     }
 
     public Configuration getLanguageConfig() {

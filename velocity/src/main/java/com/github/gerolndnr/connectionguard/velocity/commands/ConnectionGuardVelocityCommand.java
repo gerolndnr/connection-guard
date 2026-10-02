@@ -1,6 +1,7 @@
 package com.github.gerolndnr.connectionguard.velocity.commands;
 
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.github.gerolndnr.connectionguard.velocity.ConnectionGuardVelocityPlugin;
@@ -29,6 +30,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
                 ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.no-permission")
         );
 
+        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(Component.text(text)))) return;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -227,10 +229,9 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
 
     private boolean reloadPlugin(CommandSource commandSender) {
         try {
-            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().reload();
-            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().reload();
-        } catch (IOException e) {
-            ConnectionGuardVelocityPlugin.getInstance().getLogger().error("Boosted YAML | " + e.getMessage());
+            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().reloadValidated();
+        } catch (IOException | IllegalArgumentException | IllegalStateException rejected) {
+            commandSender.sendMessage(Component.text("Reload rejected; active settings preserved. Check config.yml and /cg doctor."));
             return true;
         }
 
@@ -249,6 +250,8 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             List<String> proposals = new ArrayList<>();
             String[] strings = invocation.arguments();
             CommandSource commandSender = invocation.source();
+            for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
+
 
             if (strings.length == 1) {
                 if (commandSender.hasPermission("connectionguard.command.help"))

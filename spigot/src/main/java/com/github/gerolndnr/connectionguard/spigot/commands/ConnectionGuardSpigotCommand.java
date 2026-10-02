@@ -1,6 +1,7 @@
 package com.github.gerolndnr.connectionguard.spigot.commands;
 
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin;
@@ -27,6 +28,8 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
                 ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.no-permission")
         );
 
+        if (OperationsCommands.handle(args, commandSender::hasPermission,
+                text -> Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), () -> commandSender.sendMessage(text)))) return true;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -227,7 +230,10 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     }
 
     private boolean reloadPlugin(CommandSender commandSender) {
-        ConnectionGuardSpigotPlugin.getInstance().reloadAllConfigs();
+        try { ConnectionGuardSpigotPlugin.getInstance().reloadAllConfigs(); }
+        catch (IllegalArgumentException | IllegalStateException rejected) {
+            commandSender.sendMessage("Reload rejected: " + rejected.getMessage()); return true;
+        }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
@@ -240,6 +246,7 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
         List<String> proposals = new ArrayList<>();
+        for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
         if (strings.length == 1) {
             if (commandSender.hasPermission("connectionguard.command.help"))
                 proposals.add("help");

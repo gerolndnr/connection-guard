@@ -6,11 +6,21 @@ import okhttp3.*;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 
 public class CGWebHookHelper {
+    private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
+            .callTimeout(2500, TimeUnit.MILLISECONDS).followRedirects(false).followSslRedirects(false).build();
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS,
+            new ArrayBlockingQueue<>(16), task -> {
+                Thread thread = new Thread(task, "ConnectionGuard-webhooks"); thread.setDaemon(true); return thread;
+            }, new ThreadPoolExecutor.AbortPolicy());
     public static CompletableFuture<Void> sendWebHook(String url, String content) {
-        return CompletableFuture.runAsync(() -> {
-            OkHttpClient httpClient = new OkHttpClient();
+        try { return CompletableFuture.runAsync(() -> {
+            try {
             Gson gson = new Gson();
             String jsonRequest = gson.toJson(new CGWebHookRequest(content));
 
@@ -21,15 +31,15 @@ public class CGWebHookHelper {
                     .post(requestBody)
                     .build();
 
-            try {
-                Response response = httpClient.newCall(request).execute();
-
-                if (response.code() != 204) {
-                    ConnectionGuard.getLogger().info("WebHook | " + response.message());
-                }
-            } catch (IOException e) {
-                ConnectionGuard.getLogger().info("WebHook | " + e.getMessage());
+            try (Response response = CLIENT.newCall(request).execute()) {
+                if (!response.isSuccessful()) unavailable();
             }
-        });
+            } catch (IOException | RuntimeException failure) { unavailable(); }
+        }, EXECUTOR); }
+        catch (RejectedExecutionException full) { return CompletableFuture.completedFuture(null); }
     }
+    private static void unavailable() {
+        if (ConnectionGuard.getLogger() != null) ConnectionGuard.getLogger().warning("Webhook unavailable; check URL and delivery settings (details redacted).");
+    }
+    public static void shutdown() { EXECUTOR.shutdownNow(); CLIENT.dispatcher().cancelAll(); }
 }

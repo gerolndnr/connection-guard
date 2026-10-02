@@ -25,6 +25,9 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("com.google.code.gson:gson:2.11.0")
+    testImplementation("net.luckperms:api:5.4")
+    testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
+    testImplementation("redis.clients:jedis:5.0.0")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
