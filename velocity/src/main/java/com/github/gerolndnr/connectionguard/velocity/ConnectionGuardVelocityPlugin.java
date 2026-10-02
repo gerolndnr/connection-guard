@@ -129,7 +129,7 @@ public class ConnectionGuardVelocityPlugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getCgVelocityConfig().getConfig().get(path), getCgVelocityConfig().getConfig().getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()));
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getCgVelocityConfig().getConfig().get(path), getCgVelocityConfig().getConfig().getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory);
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(dataDirectory);

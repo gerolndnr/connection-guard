@@ -31,7 +31,7 @@ public final class EvidencePolicy {
         for (AccessRule.Effect effect : precedence()) for (AccessRule rule : rules)
             if (rule.getEffect() == effect && rule.matches(ip, uuid, trusted, scope, now)) return new Decision(rule, Collections.emptyList());
         List<Evaluation> trace = new ArrayList<>();
-        for (AccessRule rule : rules) if (rule.isMetadata() && rule.active(scope, now)) trace.add(new Evaluation(rule, match(rule, sources)));
+        for (AccessRule rule : rules) if (rule.isMetadata() && rule.active(scope, now)) trace.add(new Evaluation(rule, match(rule, sources, now)));
         for (AccessRule.Effect effect : precedence()) {
             // Metadata cannot grant access around an unresolved higher-priority deny.
             if (effect != AccessRule.Effect.DENY && trace.stream().anyMatch(entry -> entry.rule.getEffect() == AccessRule.Effect.DENY && entry.match == Match.UNKNOWN)) return new Decision(null, trace);
@@ -41,7 +41,7 @@ public final class EvidencePolicy {
         return new Decision(null, trace);
     }
     private static AccessRule.Effect[] precedence() { return new AccessRule.Effect[]{AccessRule.Effect.DENY, AccessRule.Effect.ALLOW, AccessRule.Effect.EXEMPT}; }
-    static Match match(AccessRule rule, List<ProviderVote> sources) {
+    static Match match(AccessRule rule, List<ProviderVote> sources, long now) {
         int yes = 0, no = 0, unknown = 0, selected = 0;
         String value = rule.value();
         boolean score = rule.getType() == AccessRule.Target.RISK || rule.getType() == AccessRule.Target.CONFIDENCE;
@@ -50,7 +50,8 @@ public final class EvidencePolicy {
             if (score && !vote.getProvider().equals(source)) continue;
             if (vote.getProvider().startsWith("geo.") && (rule.getType() == AccessRule.Target.TYPE || rule.getType() == AccessRule.Target.OPERATOR)) continue;
             selected++;
-            if (vote.getStatus() == ProviderVote.Status.UNKNOWN) { unknown++; continue; }
+            if (!vote.isFresh(now) || (vote.getStatus() == ProviderVote.Status.UNKNOWN
+                    && vote.getReason() != FailureReason.NO_EVIDENCE)) { unknown++; continue; }
             Boolean answer = compare(rule, vote.getDetails());
             if (answer == null) unknown++; else if (answer) yes++; else no++;
         }

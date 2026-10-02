@@ -24,6 +24,8 @@ Commands and permissions:
 
 - `/cg doctor` — configuration/mode/limits/cache selection/forwarding warnings, no external request; `connectionguard.command.doctor`.
 - `/cg providers` — sanitized health, attempts and local budgets; `connectionguard.command.providers`.
+- `/cg local status|prepare|reload|import|update` — optional attributed local data, freshness and atomic activation;
+  `connectionguard.command.local`. See [local data setup and limits](LOCAL_DATA.md).
 - `/cg stats` — current workers/queue/inflight/shared/rejected counters; `connectionguard.command.stats`.
 - `/cg explain <IPv4/IPv6>` — active VPN votes/status/cache age and geo status, may consume API quota; `connectionguard.command.explain`.
 

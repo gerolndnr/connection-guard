@@ -52,7 +52,9 @@ public class ConnectionGuard {
             }
             if (geo.getResult().isPresent() || geo.getReason() != FailureReason.NONE) sources.add(new ProviderVote("geo." + providerName(geoProvider),
                     geo.getResult().isPresent() ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN,
-                    geo.getResult().isPresent() ? FailureReason.NONE : geo.getReason(), geo.getDurationMillis(), details));
+                    geo.getResult().isPresent() ? FailureReason.NONE : geo.getReason(), geo.getDurationMillis(), details,
+                    geo.getResult().isPresent() ? geo.getResult().get().getValidUntil() : 0,
+                    geo.getResult().isPresent() ? geo.getResult().get().getSourceVersion() : null));
         }
         return EvidencePolicy.evaluate(rules == null ? Collections.emptyList() : rules.snapshot(),
                 ip, uuid, trusted, scope, sources, System.currentTimeMillis());
@@ -62,6 +64,8 @@ public class ConnectionGuard {
                 && (rule.getExpiresAt() == 0 || rule.getExpiresAt() > System.currentTimeMillis()));
     }
     private static String activeCacheSignature;
+    private static volatile ProviderConfiguration activeDraft;
+    public static ProviderConfiguration getActiveDraft() { return activeDraft; }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {
             throw new IllegalArgumentException("Cache connection changes require a restart; active configuration preserved.");
@@ -81,6 +85,8 @@ public class ConnectionGuard {
             minutes.merge(shared, draft.minuteBudgets.get(id), ConnectionGuard::stricterBudget);
         }
         for (String id : days.keySet()) setProviderBudget(id, days.get(id), minutes.get(id));
+        activeDraft = draft;
+        com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.configure(draft);
     }
     private static volatile GuardSettings settings = GuardSettings.defaults();
     public static GuardSettings getSettings() { return settings; }
@@ -104,7 +110,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static void shutdown() { lookupRuntime.close(); }
+    public static void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
@@ -156,12 +162,22 @@ public class ConnectionGuard {
                         try { if (!ipAddress.equals(Exemptions.normalize(answer.get().getIpAddress()))) throw new IllegalArgumentException(); answer.get().getDetails().validate(); }
                         catch (RuntimeException invalid) { reason = FailureReason.INVALID_RESPONSE; }
                     }
-                    ProviderVote.Status status = reason == FailureReason.NONE
-                            ? (answer.get().isVpn() ? ProviderVote.Status.POSITIVE : ProviderVote.Status.NEGATIVE) : ProviderVote.Status.UNKNOWN;
-                    if (reason != FailureReason.NONE && logger != null && health.get(quotaKey(name)).claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
-                    if (status != ProviderVote.Status.UNKNOWN) answers.set(index, answer.get());
-                    votes.set(index, new ProviderVote(name, status, reason, elapsed(started),
-                            status == ProviderVote.Status.UNKNOWN ? DetectionDetails.empty() : answer.get().getDetails()));
+                    boolean valid = reason == FailureReason.NONE;
+                    ProviderVote.Status status = valid ? answer.get().getStatus() : ProviderVote.Status.UNKNOWN;
+                    if (valid) {
+                        reason = answer.get().getSourceReason();
+                        if (status == null || answer.get().isVpn() != (status == ProviderVote.Status.POSITIVE) || (status == ProviderVote.Status.UNKNOWN) != (reason != FailureReason.NONE)
+                                || answer.get().getValidUntil() < 0 || answer.get().getSourceVersion() != null && !answer.get().getSourceVersion().matches("[0-9a-f]{64}")) {
+                            status = ProviderVote.Status.UNKNOWN; reason = FailureReason.INVALID_RESPONSE; valid = false;
+                        } else if (answer.get().getValidUntil() != 0 && System.currentTimeMillis() >= answer.get().getValidUntil()) {
+                            status = ProviderVote.Status.UNKNOWN; reason = FailureReason.STALE_DATA; valid = false;
+                        }
+                    }
+                    if (reason != FailureReason.NONE && reason != FailureReason.NO_EVIDENCE && reason != FailureReason.STALE_DATA
+                            && logger != null && health.get(quotaKey(name)).claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
+                    if (valid) answers.set(index, answer.get());
+                    votes.set(index, new ProviderVote(name, status, reason, elapsed(started), valid ? answer.get().getDetails() : DetectionDetails.empty(),
+                            valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null));
                     return null;
                 }));
             }
@@ -181,23 +197,31 @@ public class ConnectionGuard {
     private static VpnResult aggregate(String ip, List<VpnProvider> providers, int threshold,
             AtomicReferenceArray<ProviderVote> votes, AtomicReferenceArray<VpnResult> answers, long started, FailureReason missing) {
         List<ProviderVote> trace = new ArrayList<>();
-        int positive = 0, complete = 0;
+        int positive = 0, complete = 0, voting = 0;
         Optional<String> operator = Optional.empty();
         for (int i = 0; i < providers.size(); i++) {
             ProviderVote vote = votes.get(i);
             if (vote == null) vote = new ProviderVote(providerId(providers.get(i), i),
                     ProviderVote.Status.UNKNOWN, missing, elapsed(started));
+            if (!vote.isFresh(System.currentTimeMillis())) vote = new ProviderVote(vote.getProvider(), ProviderVote.Status.UNKNOWN,
+                    FailureReason.STALE_DATA, vote.getDurationMillis(), DetectionDetails.empty(), 0, vote.getSourceVersion());
             trace.add(vote);
-            if (vote.getStatus() != ProviderVote.Status.UNKNOWN) complete++;
-            if (vote.getStatus() == ProviderVote.Status.POSITIVE) positive++;
+            if (providers.get(i).isVoting()) {
+                voting++;
+                if (vote.getStatus() != ProviderVote.Status.UNKNOWN) complete++;
+                if (vote.getStatus() == ProviderVote.Status.POSITIVE) positive++;
+            }
             VpnResult answer = answers.get(i);
-            if (answer != null && answer.getVpnProviderName().isPresent()) operator = answer.getVpnProviderName();
+            if (answer != null && vote.getReason() != FailureReason.STALE_DATA && answer.getVpnProviderName().isPresent()) operator = answer.getVpnProviderName();
         }
         VpnResult result = new VpnResult(ip, false, operator);
         result.setStatus(positive >= threshold ? ProviderVote.Status.POSITIVE
-                : !providers.isEmpty() && complete == providers.size() ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN);
+                : voting > 0 && complete == voting ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN);
         if (trace.isEmpty()) trace.add(new ProviderVote("none", ProviderVote.Status.UNKNOWN, FailureReason.NO_PROVIDER, elapsed(started)));
         result.setVotes(trace);
+        long expiry = 0;
+        for (ProviderVote vote : trace) if (vote.getValidUntil() > 0) expiry = expiry == 0 ? vote.getValidUntil() : Math.min(expiry, vote.getValidUntil());
+        result.setValidUntil(expiry);
         return result;
     }
 
@@ -209,7 +233,9 @@ public class ConnectionGuard {
     }
 
     private static CompletableFuture<Optional<VpnResult>> safeCacheVpn(String ip) {
-        try { return cacheProvider.getVpnResult(ip).exceptionally(error -> Optional.empty()); }
+        try { return cacheProvider.getVpnResult(ip).exceptionally(error -> Optional.empty()).thenApply(answer -> answer.filter(result ->
+                (result.getValidUntil() == 0 || System.currentTimeMillis() < result.getValidUntil())
+                        && result.getVotes().stream().allMatch(vote -> vote.isFresh(System.currentTimeMillis())))); }
         catch (RuntimeException failure) { return CompletableFuture.completedFuture(Optional.empty()); }
     }
 
@@ -226,7 +252,7 @@ public class ConnectionGuard {
             try { cache = cacheProvider.getGeoResult(ipAddress).exceptionally(error -> Optional.empty()); }
             catch (RuntimeException failure) { cache = CompletableFuture.completedFuture(Optional.empty()); }
             return cache.thenCompose(cached -> {
-                if (cached.isPresent()) return CompletableFuture.completedFuture(new GeoLookup(cached, FailureReason.NONE, true, elapsed(started)));
+                if (cached.isPresent() && (cached.get().getValidUntil() == 0 || System.currentTimeMillis() < cached.get().getValidUntil())) return CompletableFuture.completedFuture(new GeoLookup(cached, FailureReason.NONE, true, elapsed(started)));
                 if (provider == null) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NO_PROVIDER, false, elapsed(started)));
                 return providerCall(providerName(provider), () -> provider.getGeoResult(ipAddress),
                         lookupRuntime.getSettings().deadlineMillis - elapsed(started)).handle((answer, error) -> {
@@ -235,6 +261,7 @@ public class ConnectionGuard {
                     if (answer.isPresent()) {
                         try { if (!ipAddress.equals(Exemptions.normalize(answer.get().getIpAddress()))) throw new IllegalArgumentException(); answer.get().validate(); }
                         catch (RuntimeException invalid) { answer = Optional.empty(); reason = FailureReason.INVALID_RESPONSE; }
+                        if (answer.isPresent() && answer.get().getValidUntil() != 0 && System.currentTimeMillis() >= answer.get().getValidUntil()) { answer = Optional.empty(); reason = FailureReason.STALE_DATA; }
                     }
                     if (answer.isPresent()) {
                         answer.get().setCachedOn(System.currentTimeMillis());
@@ -278,6 +305,11 @@ public class ConnectionGuard {
     private static int stricterBudget(int first, int second) { return first == 0 ? second : second == 0 ? first : Math.min(first, second); }
     public static String providerId(VpnProvider provider, int index) { return providerName(provider) + "#" + index; }
     private static String providerName(Object provider) {
+        if (provider instanceof VpnProvider && ((VpnProvider) provider).sourceName() != null) {
+            String source = ((VpnProvider) provider).sourceName();
+            if (!source.matches("[a-zA-Z0-9_.-]{1,80}")) throw new IllegalArgumentException("Invalid public provider ID.");
+            return source;
+        }
         String name = provider.getClass().getSimpleName().replaceAll("\\$\\$Lambda\\$.*", "Lambda").replaceAll("[^a-zA-Z0-9_.-]", "_");
         if (name.isEmpty()) name = "AnonymousProvider";
         return name.substring(0, Math.min(80, name.length()));

@@ -65,7 +65,7 @@ public class CGVelocityConfig {
     public void reloadValidated() throws IOException {
         YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
         com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
-                next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()));
+                next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory);
         com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
         config = next;
         languageConfig.reload();

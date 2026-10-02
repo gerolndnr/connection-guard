@@ -32,12 +32,17 @@ public final class GuardSettings {
         if (!mode.equals("OBSERVE") && !mode.equals("ENFORCE")) throw new IllegalArgumentException("operation.mode must be OBSERVE or ENFORCE.");
         int enabled = 0;
         for (String key : providerKeys) if (bool(value, "provider.vpn." + key + ".enabled", false)) {
+            if (key.equals("local")) continue;
             enabled++;
             if (enabled > 16) throw new IllegalArgumentException("At most 16 VPN providers may be enabled.");
             if ((key.equals("iphub") || key.equals("vpnapi")) && string(value, "provider.vpn." + key + ".api-key", "").trim().isEmpty()) {
                 throw new IllegalArgumentException("Enabled " + key + " requires an API key.");
             }
         }
+        com.github.gerolndnr.connectionguard.core.local.LocalDataSettings local = new com.github.gerolndnr.connectionguard.core.local.LocalDataSettings(value);
+        enabled += local.votingProviders();
+        int allSources = enabled + (local.vpnEnabled ? local.sources.size() - local.votingProviders() : 0);
+        if (allSources > 16) throw new IllegalArgumentException("At most 16 VPN/enrichment providers may be enabled.");
         int threshold = integer(value, "required-positive-flags", 1);
         if (threshold < 1 || (enabled > 0 && threshold > enabled)) throw new IllegalArgumentException("required-positive-flags must be 1..enabled provider count.");
         if (enabled == 0) warnings.add("No VPN provider enabled: VPN classification is UNKNOWN.");
@@ -57,7 +62,7 @@ public final class GuardSettings {
         String geo = string(value, "behavior.geo.type", "BLACKLIST");
         if (!geo.equalsIgnoreCase("BLACKLIST") && !geo.equalsIgnoreCase("WHITELIST")) throw new IllegalArgumentException("Geo type must be BLACKLIST or WHITELIST.");
         String service = string(value, "provider.geo.service", "IP-API");
-        if (!service.equalsIgnoreCase("IP-API") && !service.equalsIgnoreCase("ProxyCheck")) throw new IllegalArgumentException("Geo service must be IP-API or ProxyCheck.");
+        if (!service.equalsIgnoreCase("IP-API") && !service.equalsIgnoreCase("ProxyCheck") && !service.equalsIgnoreCase("Local") && !service.equalsIgnoreCase("Disabled")) throw new IllegalArgumentException("Geo service must be IP-API, ProxyCheck, Local or Disabled.");
         if (service.equalsIgnoreCase("IP-API") || bool(value, "provider.vpn.ip-api.enabled", false)) {
             warnings.add("IP-API free uses HTTP and is restricted to non-commercial use; check provider terms.");
         }

@@ -1,0 +1,36 @@
+{
+  "sourceCommit": "276926d23b4109ca5452709bfb5931c338afb34c",
+  "license": "MIT",
+  "files": [
+    {
+      "file": "GeoIP2-Country-Test.mmdb",
+      "source": "https://raw.githubusercontent.com/maxmind/MaxMind-DB/276926d23b4109ca5452709bfb5931c338afb34c/test-data/GeoIP2-Country-Test.mmdb",
+      "bytes": 19492,
+      "sha256": "b37601903448683d241af52893c8cbf0fed461e0cdebe0bfaca01891fdeb6db9"
+    },
+    {
+      "file": "GeoLite2-ASN-Test.mmdb",
+      "source": "https://raw.githubusercontent.com/maxmind/MaxMind-DB/276926d23b4109ca5452709bfb5931c338afb34c/test-data/GeoLite2-ASN-Test.mmdb",
+      "bytes": 12653,
+      "sha256": "75901b98ed6e58d3bd41af9985044b747a7ec0be1369f930c24f5e044427181a"
+    },
+    {
+      "file": "MaxMind-DB-test-pointer-decoder-dos-ipv6.mmdb",
+      "source": "https://raw.githubusercontent.com/maxmind/MaxMind-DB/276926d23b4109ca5452709bfb5931c338afb34c/test-data/MaxMind-DB-test-pointer-decoder-dos-ipv6.mmdb",
+      "bytes": 1027,
+      "sha256": "c10db83947de1f74d590abac4c66c6ac09b9c20d21636166afd9e27c006a42f4"
+    },
+    {
+      "file": "MaxMind-DB-test-payload-amplification-dos-worst-case.mmdb",
+      "source": "https://raw.githubusercontent.com/maxmind/MaxMind-DB/276926d23b4109ca5452709bfb5931c338afb34c/test-data/MaxMind-DB-test-payload-amplification-dos-worst-case.mmdb",
+      "bytes": 196822,
+      "sha256": "a94146d6ad237382535e6ad45c6a682051466946141345cfe53cea07e420a0b6"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "source": "https://raw.githubusercontent.com/maxmind/MaxMind-DB/276926d23b4109ca5452709bfb5931c338afb34c/LICENSE-MIT",
+      "bytes": 1023,
+      "sha256": "91276db973f25602d1aa43491f59cbc84cb88e6f151e1d0cc82a755563ce0195"
+    }
+  ]
+}
