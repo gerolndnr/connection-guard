@@ -54,8 +54,16 @@ public final class GuardSettings {
         if (!cache.equalsIgnoreCase("SQLite") && !cache.equalsIgnoreCase("Redis") && !cache.equalsIgnoreCase("Disabled")) {
             throw new IllegalArgumentException("provider.cache.type must be SQLite, Redis or Disabled.");
         }
-        if (cache.equalsIgnoreCase("Redis") && string(value, "provider.cache.redis.hostname", "").trim().isEmpty()) {
-            throw new IllegalArgumentException("Redis hostname is required.");
+        if (cache.equalsIgnoreCase("Redis")) {
+            String hostname = string(value, "provider.cache.redis.hostname", "");
+            if (hostname.isEmpty() || hostname.length() > 253 || !hostname.matches("[A-Za-z0-9_.:%-]+"))
+                throw new IllegalArgumentException("Redis requires a hostname or literal address, without a URL scheme (value redacted).");
+            int port = integer(value, "provider.cache.redis.port", 6379);
+            if (port < 1 || port > 65535) throw new IllegalArgumentException("Redis port must be 1..65535.");
+            if (string(value, "provider.cache.redis.username", "").length() > 256
+                    || string(value, "provider.cache.redis.password", "").length() > 4096)
+                throw new IllegalArgumentException("Redis credential is too large (value redacted).");
+            bool(value, "provider.cache.redis.tls", false);
         }
         if (integer(value, "provider.cache.expiration.vpn", 1440) < 1 || integer(value, "provider.cache.expiration.geo", 4320) < 1) {
             throw new IllegalArgumentException("Cache expiration must be a positive number of minutes.");

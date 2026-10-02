@@ -1,6 +1,7 @@
 # Bounded lookups and diagnosis
 
 Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
+Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
 
 Development documentation for the next release. Do not infer these features from the unchanged 0.4.10 tag.
 
