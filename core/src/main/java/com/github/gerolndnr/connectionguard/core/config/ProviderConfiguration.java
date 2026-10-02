@@ -117,7 +117,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema4-local:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema5-local:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

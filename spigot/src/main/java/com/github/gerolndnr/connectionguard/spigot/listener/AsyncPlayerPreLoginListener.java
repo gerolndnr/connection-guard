@@ -50,13 +50,15 @@ public class AsyncPlayerPreLoginListener implements Listener {
 
         CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).join();
 
-        VpnResult vpnResult = vpnResultFuture.join();
+        long asOf = System.currentTimeMillis();
+            VpnResult vpnResult = LookupFreshness.vpn(vpnResultFuture.join(), asOf);
+            GeoLookup currentGeo = LookupFreshness.geo(geoLookupFuture.join(), asOf);
         Boolean hasVpnExemptionPermission = hasVpnExemptionPermissionFuture.join();
         Boolean hasGeoExemptionPermission = hasGeoExemptionPermissionFuture.join();
 
 
-            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoLookupFuture.join());
-            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoLookupFuture.join());
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
             boolean vpnBypassed = hasVpnExemptionPermission || vpnPolicy.isBypassed();
             boolean geoBypassed = hasGeoExemptionPermission || geoPolicy.isBypassed();
             if (!ConnectionGuard.getSettings().observe && ((!hasVpnExemptionPermission && vpnPolicy.isDenied()) || (!hasGeoExemptionPermission && geoPolicy.isDenied()))) {
@@ -65,7 +67,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             }
             if (!ConnectionGuard.getSettings().observe && (
                     (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (!geoBypassed && (geoLookupFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection verification is temporarily unavailable. Please retry shortly.");
                 return;
             }
@@ -120,7 +122,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             }
         }
 
-        Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
+        Optional<GeoResult> geoResultOptional = currentGeo.getResult();
         if (geoResultOptional.isPresent() && !geoBypassed) {
             GeoResult geoResult = geoResultOptional.get();
             boolean isGeoFlagged = false;

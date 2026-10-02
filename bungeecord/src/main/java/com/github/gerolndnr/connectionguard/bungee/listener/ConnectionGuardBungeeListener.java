@@ -53,13 +53,15 @@ public class ConnectionGuardBungeeListener implements Listener {
         CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = geoLookupFuture.thenApply(GeoLookup::getResult);
 
         CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).thenRun(() -> {
-            VpnResult vpnResult = vpnResultFuture.join();
+            long asOf = System.currentTimeMillis();
+            VpnResult vpnResult = LookupFreshness.vpn(vpnResultFuture.join(), asOf);
+            GeoLookup currentGeo = LookupFreshness.geo(geoLookupFuture.join(), asOf);
             Boolean hasVpnExemption = hasVpnExemptionPermissionFuture.join();
             Boolean hasGeoExemption = hasGeoExemptionPermissionFuture.join();
 
 
-            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoLookupFuture.join());
-            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoLookupFuture.join());
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
             boolean vpnBypassed = hasVpnExemption || vpnPolicy.isBypassed();
             boolean geoBypassed = hasGeoExemption || geoPolicy.isBypassed();
             if (!ConnectionGuard.getSettings().observe && ((!hasVpnExemption && vpnPolicy.isDenied()) || (!hasGeoExemption && geoPolicy.isDenied()))) {
@@ -68,7 +70,7 @@ public class ConnectionGuardBungeeListener implements Listener {
             }
             if (!ConnectionGuard.getSettings().observe && (
                     (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (!geoBypassed && (geoLookupFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 loginEvent.setCancelReason(new TextComponent("Connection verification is temporarily unavailable. Please retry shortly."));
                 loginEvent.setCancelled(true);
                 return;
@@ -120,7 +122,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
             }
 
-            Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
+            Optional<GeoResult> geoResultOptional = currentGeo.getResult();
             if (geoResultOptional.isPresent() && !geoBypassed) {
                 GeoResult geoResult = geoResultOptional.get();
                 boolean isGeoFlagged = false;

@@ -15,14 +15,21 @@ public final class CacheCodec {
         try {
             if (json == null || json.length() > 262144) return Optional.empty();
             com.google.gson.JsonObject raw = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+            if (!raw.has("positiveThreshold") || !raw.get("positiveThreshold").isJsonPrimitive()
+                    || !raw.get("positiveThreshold").getAsJsonPrimitive().isNumber()
+                    || !raw.get("positiveThreshold").getAsString().matches("[1-9]|1[0-6]")) return Optional.empty();
             validateProvenance(raw);
             validateDetails(raw.get("details"));
-            if (raw.has("votes")) for (com.google.gson.JsonElement vote : raw.getAsJsonArray("votes")) { validateProvenance(vote.getAsJsonObject()); validateDetails(vote.getAsJsonObject().get("details")); }
+            if (raw.has("votes")) for (com.google.gson.JsonElement vote : raw.getAsJsonArray("votes")) {
+                com.google.gson.JsonObject source = vote.getAsJsonObject();
+                if (!source.has("voting") || !source.get("voting").isJsonPrimitive() || !source.get("voting").getAsJsonPrimitive().isBoolean()) return Optional.empty();
+                validateProvenance(source); validateDetails(source.get("details"));
+            }
             VpnResult result = GSON.fromJson(json, VpnResult.class);
             if (result == null || !ip.equals(result.getIpAddress()) || result.getStatus() == null
                     || result.getStatus() == ProviderVote.Status.UNKNOWN
                     || result.isVpn() != (result.getStatus() == ProviderVote.Status.POSITIVE)
-                    || !fresh(result.getCachedOn(), ttlMillis)) return Optional.empty();
+                    || result.getPositiveThreshold() < 1 || result.getPositiveThreshold() > 16 || !fresh(result.getCachedOn(), ttlMillis)) return Optional.empty();
             if (result.getVotes().size() > 16) return Optional.empty();
             result.getDetails().validate();
             if (result.getValidUntil() < 0 || result.getValidUntil() != 0 && System.currentTimeMillis() >= result.getValidUntil()) return Optional.empty();

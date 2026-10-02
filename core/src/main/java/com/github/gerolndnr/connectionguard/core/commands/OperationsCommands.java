@@ -27,7 +27,10 @@ public final class OperationsCommands {
             final String ip;
             try { ip = Exemptions.normalize(args[1]); }
             catch (IllegalArgumentException invalid) { reply.accept("Use a literal IPv4/IPv6 address."); return true; }
-            ConnectionGuard.getVpnResult(ip).thenCombine(ConnectionGuard.getGeoLookup(ip), (result, geo) -> {
+            ConnectionGuard.getVpnResult(ip).thenCombine(ConnectionGuard.getGeoLookup(ip), (rawResult, rawGeo) -> {
+                long asOf = System.currentTimeMillis();
+                com.github.gerolndnr.connectionguard.core.vpn.VpnResult result = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.vpn(rawResult, asOf);
+                com.github.gerolndnr.connectionguard.core.lookup.GeoLookup geo = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.geo(rawGeo, asOf);
                 reply.accept("VPN=" + result.getStatus() + " threshold=" + ConnectionGuard.getRequiredPositiveFlags()
                         + " cached=" + result.isFromCache() + " ageMs=" + (result.getCachedOn() == 0 ? "unavailable" : Math.max(0, System.currentTimeMillis() - result.getCachedOn())));
                 for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());

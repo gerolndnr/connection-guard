@@ -20,6 +20,7 @@ public class VpnResult {
     private FailureReason sourceReason = FailureReason.NONE;
     private long validUntil;
     private String sourceVersion;
+    private int positiveThreshold = 1;
 
     public VpnResult(String ipAddress, boolean isVpn) {
         this.ipAddress = ipAddress;
@@ -67,6 +68,8 @@ public class VpnResult {
     public long getValidUntil() { return validUntil; }
     public void setValidUntil(long until) { if (until < 0) throw new IllegalArgumentException("Invalid source expiry."); validUntil = until; }
     public String getSourceVersion() { return sourceVersion; }
+    public int getPositiveThreshold() { return positiveThreshold; }
+    public void setPositiveThreshold(int threshold) { if (threshold < 1 || threshold > 16) throw new IllegalArgumentException("Invalid positive threshold."); positiveThreshold = threshold; }
     public void setSourceVersion(String version) { if (version != null && !version.matches("[0-9a-f]{64}")) throw new IllegalArgumentException("Invalid source version."); sourceVersion = version; }
     public List<ProviderVote> getVotes() { return votes == null ? Collections.emptyList() : Collections.unmodifiableList(votes); }
     public void setVotes(List<ProviderVote> votes) { this.votes = Collections.unmodifiableList(new ArrayList<>(votes)); }

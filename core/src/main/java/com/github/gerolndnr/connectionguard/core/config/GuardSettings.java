@@ -44,7 +44,7 @@ public final class GuardSettings {
         int allSources = enabled + (local.vpnEnabled ? local.sources.size() - local.votingProviders() : 0);
         if (allSources > 16) throw new IllegalArgumentException("At most 16 VPN/enrichment providers may be enabled.");
         int threshold = integer(value, "required-positive-flags", 1);
-        if (threshold < 1 || (enabled > 0 && threshold > enabled)) throw new IllegalArgumentException("required-positive-flags must be 1..enabled provider count.");
+        if (threshold < 1 || threshold > 16 || (enabled > 0 && threshold > enabled)) throw new IllegalArgumentException("required-positive-flags must be 1..enabled voting provider count (maximum 16).");
         if (enabled == 0) warnings.add("No VPN provider enabled: VPN classification is UNKNOWN.");
         if (bool(value, "behavior.vpn.use-permission-exemption", false) || bool(value, "behavior.geo.use-permission-exemption", false)) {
             if (!CGLuckPermsHelper.isAvailable()) warnings.add("Permission exemptions enabled but LuckPerms is unavailable; checks remain active.");

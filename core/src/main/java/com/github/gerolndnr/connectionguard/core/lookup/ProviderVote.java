@@ -9,6 +9,7 @@ public final class ProviderVote {
     private final DetectionDetails details;
     private final long validUntil;
     private final String sourceVersion;
+    private final boolean voting;
     public ProviderVote(String provider, Status status, FailureReason reason, long durationMillis) {
         this(provider, status, reason, durationMillis, DetectionDetails.empty());
     }
@@ -16,12 +17,16 @@ public final class ProviderVote {
         this(provider, status, reason, durationMillis, details, 0, null);
     }
     public ProviderVote(String provider, Status status, FailureReason reason, long durationMillis, DetectionDetails details, long validUntil, String sourceVersion) {
+        this(provider, status, reason, durationMillis, details, validUntil, sourceVersion, true);
+    }
+    public ProviderVote(String provider, Status status, FailureReason reason, long durationMillis, DetectionDetails details, long validUntil, String sourceVersion, boolean voting) {
         this.provider = provider;
         this.status = status;
         this.reason = reason;
         this.durationMillis = durationMillis;
         this.details = details;
         this.validUntil = validUntil; this.sourceVersion = sourceVersion;
+        this.voting = voting;
         validate();
     }
     public String getProvider() { return provider; }
@@ -31,6 +36,7 @@ public final class ProviderVote {
     public DetectionDetails getDetails() { return details == null ? DetectionDetails.empty() : details; }
     public long getValidUntil() { return validUntil; }
     public String getSourceVersion() { return sourceVersion; }
+    public boolean isVoting() { return voting; }
     public boolean isFresh(long now) { return validUntil == 0 || now < validUntil; }
     public void validate() {
         if (provider == null || !provider.matches("[a-zA-Z0-9_#.-]{1,100}") || status == null || reason == null || durationMillis < 0

@@ -25,6 +25,9 @@ grant a license or validate the accuracy of that source.
   time basis, family coverage/database type and source/license/notice. No download endpoint appears in these diagnostics.
 - Local content or data-time/configuration changes create a different cache namespace. Cached source facts also carry
   an expiry; they cannot outlive their local data just because the normal SQLite/Redis cache TTL is longer.
+  The three login adapters and explain also check at the final decision time, after both scopes have finished.
+  Expired source facts become UNKNOWN; still-fresh voting sources are reaggregated using the captured threshold,
+  which is not lowered. Expired enrichment cannot erase an independent fresh positive.
 
 ## Configuration
 

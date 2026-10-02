@@ -68,10 +68,12 @@ public class ConnectionGuardVelocityListener {
         CompletableFuture<GeoLookup> geoFuture = geoExempt.thenCompose(exempt -> exempt
                 ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress));
         return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
-            VpnResult vpnResult = vpnFuture.join();
-            Optional<GeoResult> geoResultOptional = geoFuture.join().getResult();
-            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, geoFuture.join());
-            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, geoFuture.join());
+            long asOf = System.currentTimeMillis();
+            VpnResult vpnResult = LookupFreshness.vpn(vpnFuture.join(), asOf);
+            GeoLookup currentGeo = LookupFreshness.geo(geoFuture.join(), asOf);
+            Optional<GeoResult> geoResultOptional = currentGeo.getResult();
+            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
+            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
             boolean vpnBypassed = vpnExempt.join() || vpnPolicy.isBypassed();
             boolean geoBypassed = geoExempt.join() || geoPolicy.isBypassed();
             if (!ConnectionGuard.getSettings().observe && ((!vpnExempt.join() && vpnPolicy.isDenied()) || (!geoExempt.join() && geoPolicy.isDenied()))) {
@@ -80,7 +82,7 @@ public class ConnectionGuardVelocityListener {
             }
             if (!ConnectionGuard.getSettings().observe && (
                     (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (!geoBypassed && (geoFuture.join().getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
                 deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly."));
                 return;
             }

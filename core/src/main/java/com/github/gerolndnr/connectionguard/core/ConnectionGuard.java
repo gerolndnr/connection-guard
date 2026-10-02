@@ -54,7 +54,7 @@ public class ConnectionGuard {
                     geo.getResult().isPresent() ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN,
                     geo.getResult().isPresent() ? FailureReason.NONE : geo.getReason(), geo.getDurationMillis(), details,
                     geo.getResult().isPresent() ? geo.getResult().get().getValidUntil() : 0,
-                    geo.getResult().isPresent() ? geo.getResult().get().getSourceVersion() : null));
+                    geo.getResult().isPresent() ? geo.getResult().get().getSourceVersion() : null, false));
         }
         return EvidencePolicy.evaluate(rules == null ? Collections.emptyList() : rules.snapshot(),
                 ip, uuid, trusted, scope, sources, System.currentTimeMillis());
@@ -177,7 +177,7 @@ public class ConnectionGuard {
                             && logger != null && health.get(quotaKey(name)).claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
                     if (valid) answers.set(index, answer.get());
                     votes.set(index, new ProviderVote(name, status, reason, elapsed(started), valid ? answer.get().getDetails() : DetectionDetails.empty(),
-                            valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null));
+                            valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null, provider.isVoting()));
                     return null;
                 }));
             }
@@ -202,9 +202,9 @@ public class ConnectionGuard {
         for (int i = 0; i < providers.size(); i++) {
             ProviderVote vote = votes.get(i);
             if (vote == null) vote = new ProviderVote(providerId(providers.get(i), i),
-                    ProviderVote.Status.UNKNOWN, missing, elapsed(started));
+                    ProviderVote.Status.UNKNOWN, missing, elapsed(started), DetectionDetails.empty(), 0, null, providers.get(i).isVoting());
             if (!vote.isFresh(System.currentTimeMillis())) vote = new ProviderVote(vote.getProvider(), ProviderVote.Status.UNKNOWN,
-                    FailureReason.STALE_DATA, vote.getDurationMillis(), DetectionDetails.empty(), 0, vote.getSourceVersion());
+                    FailureReason.STALE_DATA, vote.getDurationMillis(), DetectionDetails.empty(), 0, vote.getSourceVersion(), vote.isVoting());
             trace.add(vote);
             if (providers.get(i).isVoting()) {
                 voting++;
@@ -219,6 +219,7 @@ public class ConnectionGuard {
                 : voting > 0 && complete == voting ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN);
         if (trace.isEmpty()) trace.add(new ProviderVote("none", ProviderVote.Status.UNKNOWN, FailureReason.NO_PROVIDER, elapsed(started)));
         result.setVotes(trace);
+        result.setPositiveThreshold(threshold);
         long expiry = 0;
         for (ProviderVote vote : trace) if (vote.getValidUntil() > 0) expiry = expiry == 0 ? vote.getValidUntil() : Math.min(expiry, vote.getValidUntil());
         result.setValidUntil(expiry);

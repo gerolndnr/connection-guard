@@ -41,6 +41,8 @@ class LocalConfigurationTest {
         assertThrows(IllegalArgumentException.class, () -> new LocalDataSettings(values::get));
         values.put("provider.geo.service", "Disabled");
         assertThrows(IllegalArgumentException.class, () -> new ProviderConfiguration(values::get, Collections.singletonList("local")));
+        values.put("provider.local.sources", Collections.singletonList(source("hosting", "HOSTING"))); values.put("required-positive-flags", 17);
+        assertThrows(IllegalArgumentException.class, () -> GuardSettings.read(values::get, Collections.singletonList("local")));
     }
     @Test void localCommandsRequireTheirOwnPermissionBeforeAnyWork() {
         List<String> replies = new ArrayList<>();
