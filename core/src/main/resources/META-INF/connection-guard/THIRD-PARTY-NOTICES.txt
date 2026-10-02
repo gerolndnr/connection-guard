@@ -1,0 +1,21 @@
+Connection Guard bundles and relocates the following HTTP dependencies:
+
+OkHttp 4.12.0 — Square, Inc. — Apache License 2.0
+https://github.com/square/okhttp
+
+Okio / Okio JVM 3.6.0 — Square, Inc. — Apache License 2.0
+https://github.com/square/okio
+
+Kotlin standard libraries — JetBrains s.r.o. and Kotlin contributors — Apache License 2.0
+https://github.com/JetBrains/kotlin
+
+JetBrains Java annotations — JetBrains s.r.o. — Apache License 2.0
+https://github.com/JetBrains/java-annotations
+
+The Apache License 2.0 is included as Apache-2.0.txt in this directory.
+Packages are relocated under com.github.gerolndnr.connectionguard.libs.
+OkHttp's public suffix notice is retained in its internal/publicsuffix/NOTICE resource.
+Upstream project links provide source code and component-specific attribution.
+
+Other runtime-loaded dependencies are documented in the project README and
+their own upstream distributions. Connection Guard's own code uses the MIT license.
