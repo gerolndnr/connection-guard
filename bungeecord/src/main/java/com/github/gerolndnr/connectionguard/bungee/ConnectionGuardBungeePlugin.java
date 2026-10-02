@@ -146,7 +146,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 return;
         }
 
-        ConnectionGuard.getCacheProvider().setup();
+        ConnectionGuard.initializeCache();
 
         // 5. Add every enabled vpn provider and geo provider
         vpnProviderMap.put("proxycheck", new ProxyCheckVpnProvider(getConfig().getString("provider.vpn.proxycheck.api-key")));

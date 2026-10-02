@@ -9,6 +9,9 @@ import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ConnectionGuard {
@@ -19,6 +22,24 @@ public class ConnectionGuard {
     private static Logger logger;
     private static int vpnCacheExpirationTime = 1440;
     private static int geoCacheExpirationTime = 1440;
+
+    public static void initializeCache() {
+        initializeCache(30, TimeUnit.SECONDS);
+    }
+
+    static void initializeCache(long timeout, TimeUnit unit) {
+        try {
+            if (Boolean.TRUE.equals(cacheProvider.setup().get(timeout, unit))) {
+                return;
+            }
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+        } catch (RuntimeException | ExecutionException | TimeoutException failure) {
+            // Do not forward exception details that may contain cache credentials.
+        }
+        throw new IllegalStateException("Connection Guard could not initialize the configured cache; "
+                + "check cache settings and server logs before enabling connection checks.");
+    }
 
     public static CompletableFuture<VpnResult> getVpnResult(String ipAddress) {
         return CompletableFuture.supplyAsync(() -> {
