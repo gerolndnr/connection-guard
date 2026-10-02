@@ -29,20 +29,34 @@ public class ConnectionGuard {
                 return vpnResultOptional.get();
 
             int vpnPositives = 0;
+            int successfulResponses = 0;
             ArrayList<CompletableFuture<Optional<VpnResult>>> vpnResultList = new ArrayList<>();
 
             for (VpnProvider vpnProvider : vpnProviders) {
-                vpnResultList.add(vpnProvider.getVpnResult(ipAddress));
+                try {
+                    vpnResultList.add(vpnProvider.getVpnResult(ipAddress).handle((result, failure) -> {
+                        if (failure != null) {
+                            logVpnProviderFailure(vpnProvider);
+                            return Optional.<VpnResult>empty();
+                        }
+                        return result;
+                    }));
+                } catch (RuntimeException failure) {
+                    logVpnProviderFailure(vpnProvider);
+                    vpnResultList.add(CompletableFuture.completedFuture(Optional.empty()));
+                }
             }
 
             CompletableFuture.allOf(vpnResultList.toArray(new CompletableFuture[0])).join();
 
             for (CompletableFuture<Optional<VpnResult>> vpnResultCompleted : vpnResultList) {
-                if (vpnResultCompleted.join().isPresent()) {
-                    if (vpnResultCompleted.join().get().getVpnProviderName().isPresent()) {
-                        vpnProviderName = vpnResultCompleted.join().get().getVpnProviderName();
+                Optional<VpnResult> result = vpnResultCompleted.join();
+                if (result.isPresent()) {
+                    successfulResponses++;
+                    if (result.get().getVpnProviderName().isPresent()) {
+                        vpnProviderName = result.get().getVpnProviderName();
                     }
-                    if (vpnResultCompleted.join().get().isVpn())
+                    if (result.get().isVpn())
                         vpnPositives++;
                 }
             }
@@ -51,9 +65,22 @@ public class ConnectionGuard {
 
             computedVpnResult.setVpn(vpnPositives >= requiredPositiveFlags);
 
-            cacheProvider.addVpnResult(computedVpnResult).join();
+            // A met threshold remains valid if another provider fails. A negative
+            // verdict is cacheable only when every configured provider answered.
+            if (computedVpnResult.isVpn()
+                    || (!vpnResultList.isEmpty() && successfulResponses == vpnResultList.size())) {
+                cacheProvider.addVpnResult(computedVpnResult).join();
+            }
             return computedVpnResult;
         });
+    }
+
+    private static void logVpnProviderFailure(VpnProvider provider) {
+        if (logger != null) {
+            // Exception messages can contain request URLs, IP addresses or API keys.
+            logger.warning("VPN provider " + provider.getClass().getSimpleName()
+                    + " failed; its response is unavailable.");
+        }
     }
 
     public static CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
