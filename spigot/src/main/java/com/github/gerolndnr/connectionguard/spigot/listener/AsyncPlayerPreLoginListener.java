@@ -14,6 +14,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
 import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
@@ -28,10 +29,16 @@ public class AsyncPlayerPreLoginListener implements Listener {
         final String clientIp = ipAddress;
         UUID uuid = preLoginEvent.getUniqueId();
         boolean trusted = Bukkit.getOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity;
-        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture = Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
+        Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.VPN);
+        Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.GEO);
+        if (!ConnectionGuard.getSettings().observe && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
+                || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
+            preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection denied by server access policy."); return;
+        }
+        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn") : CompletableFuture.completedFuture(false);
-        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
+        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo") : CompletableFuture.completedFuture(false);
         CompletableFuture<VpnResult> vpnResultFuture = hasVpnExemptionPermissionFuture.thenCompose(exempt -> exempt

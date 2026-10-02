@@ -146,6 +146,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()));
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
+        ConnectionGuard.initializeRules(getDataFolder().toPath());
 
 
         // 7. Register bungeecord listener and commands

@@ -132,6 +132,7 @@ public class ConnectionGuardVelocityPlugin {
         ProviderConfiguration draft = new ProviderConfiguration(path -> getCgVelocityConfig().getConfig().get(path), getCgVelocityConfig().getConfig().getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()));
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
+        ConnectionGuard.initializeRules(dataDirectory);
 
 
         // 7. Register velocity listener and commands

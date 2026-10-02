@@ -115,6 +115,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)));
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
+        ConnectionGuard.initializeRules(getDataFolder().toPath());
 
 
         // 6. Register bukkit listener

@@ -27,6 +27,19 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ConnectionGuard {
+    private static volatile com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore rules;
+    public static void initializeRules(java.nio.file.Path directory) {
+        try { rules = new com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore(directory); }
+        catch (java.io.IOException invalid) { throw new IllegalStateException("Access rule file invalid; correct it before enabling checks (values redacted)."); }
+    }
+    public static com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore getRuleStore() { return rules; }
+    public static Optional<com.github.gerolndnr.connectionguard.core.rules.AccessRule> accessRule(String ip, java.util.UUID uuid, boolean trusted, com.github.gerolndnr.connectionguard.core.rules.AccessRule.Scope scope) {
+        return rules == null ? Optional.empty() : rules.match(ip, uuid, trusted, scope);
+    }
+    public static boolean hasIdentityRules() {
+        return rules != null && rules.snapshot().stream().anyMatch(rule -> rule.getType() == com.github.gerolndnr.connectionguard.core.rules.AccessRule.Target.UUID
+                && (rule.getExpiresAt() == 0 || rule.getExpiresAt() > System.currentTimeMillis()));
+    }
     private static String activeCacheSignature;
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {
