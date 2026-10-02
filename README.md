@@ -1,95 +1,68 @@
+<p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="240"></p>
 
-<h1 align="center">
-  <br>
-  <a href="https://github.com/gerolndnr/connection-guard"><img src="https://raw.githubusercontent.com/gerolndnr/connection-guard/master/docs/connection-guard-logo.png" alt="Connection Guard" width="300"></a>
-  <br>
-  Connection Guard
-  <br>
-</h1>
+# Connection Guard
 
-<h4 align="center">A feature-rich vpn and geo-blocker for Spigot, BungeeCord and Velocity</h4>
+### Connection rules. Your control.
 
-<p align="center">
-  <a href="#key-features">Key Features</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#credits">Credits</a> •
-  <a href="#related">Related</a> •
-  <a href="#license">License</a>
-</p>
+Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord and Velocity. Choose your detection providers and what happens when a rule matches.
 
-## Key Features
+[Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/GekQVPqsfS)
 
-* **Detect VPNs** - react to them how you like!
-  * Kick: Prevent players with VPNs to join your server.
-  * Notify: Notify admins or moderators that a VPN user joined.
-  * Command: Execute a command when a VPN user joins.
-* **Multiple Detection Provider** - Minimize false flags, maximize detection!
-  * ProxyCheck (100 queries per day for free without api key, 1.000 queries per day for free with api key)
-  * IP-Hub (1.000 queries per day for free with api key)
-  * IP-API (45 queries per minute for free, no api key required)
-  * VPN-API (1.000 queries per day for free with api key)
-  * Custom Provider (configure the plugin to automatically use the REST-API of the detection provider, supports `GET` and `POST`)
-* **Geo-Blocking** - No more bots from foreign countries!
-  * `Whitelist` or `Blacklist` mode
-  * Over 200 countries supported!
-* **Connection Information** - Know everything about your players connection!
-  * IP address (and whether it is a vpn/proxy)
-  * Country code (e.g. `US`, `CA`, ...)
-  * City name (e.g. `Berlin`, `London`, ...)
-  * ISP provider (e.g. `AT&T`, `Telekom`, ...)
-* **WebHook Support for Discord** - Send messages to discord channels when a geo-blocked or vpn user tries to connect!
-* **Exclude players** from the vpn- and geo-check by giving them the `connectionguard.exemption.vpn` or `connectionguard.exemption.geo` permission! (can be enabled in the config, requires LuckPerms on BungeeCord and Spigot)
+**MIT licensed.** No Connection Guard account or GitHub star is required. External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
-## How To Use
+## What you can control
 
-### Installation
+- **VPN/proxy checks:** select supported providers or configure a custom REST API provider.
+- **Actions:** reject a flagged connection, notify staff, execute a configured console command or send a Discord webhook.
+- **Country rules:** choose an allowlist or blocklist and the response to a match.
+- **Multiple-provider voting:** configure how many enabled providers must return a positive VPN/proxy result.
+- **Caching:** reuse lookup results to reduce repeated provider requests.
+- **Connection details:** inspect the information returned by your providers with `/cg info <IP>`.
 
-Connection Guard provides adapters for **Spigot** (and compatible servers), **BungeeCord** and **Velocity**. The Spigot adapter builds against the 1.8.8 API; the Velocity adapter builds against the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. See the [changelog](CHANGELOG.md) for the release's actual runtime checks and compatibility limits.
+## Start here
 
-1. Download the combined JAR from [GitHub releases](https://github.com/gerolndnr/connection-guard/releases), [Modrinth](https://modrinth.com/plugin/connectionguard) or [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
-2. Place the downloaded `.jar` file into the plugins folder of your Spigot, BungeeCord or Velocity server.
-3. Start or restart your server.
-4. Optional: Configure Connection Guard configuration in its directory (`config.yml` and `translation/en.yml`)
+| Your setup | Guide |
+| --- | --- |
+| Standalone Spigot or compatible server | [Spigot quickstart](docs/quickstarts/SPIGOT.md) |
+| BungeeCord proxy network | [BungeeCord quickstart](docs/quickstarts/BUNGEECORD.md) |
+| Velocity proxy network | [Velocity quickstart](docs/quickstarts/VELOCITY.md) |
 
-### Usage
-When freshly installed, Connection Guard blocks VPN connections and notifies all players with the `connectionguard.notify.vpn` permission (`KICK_NOTIFY`).
-All players are geo checked by default, but when players from Russia or China join, all players with the 
-`connectionguard.notify.geo` permission are notified (`NOTIFY`). You can customize every aspect including all
-messages sent to players in the `config.yml` and the corresponding messages file (`en.yml` by default.)
- - `/connectionguard help` Help overview of Connection Guard commands
-   - Permission: `connectionguard.command.help`
- - `/connectionguard reload` Reload the config and the messages file. Changes to providers require a restart.
-   - Permission: `connectionguard.command.reload`
- - `/connectionguard clear (<Player/UUID/IP>)` Clear the entire cache or just for the specified player/uuid/ip. If you specify a player or an uuid, the player has to be online.
-   - Permission: `connectionguard.command.clear`
- - `/connectionguard info <Player/UUID/IP>` Show all connection information (IP, VPN, Country, City, ISP) about the player or the IP. If you specify a player or an uuid, the player has to be online.
-   - Permission: `connectionguard.command.info`
+The combined JAR is available from [GitHub](https://github.com/gerolndnr/connection-guard/releases/latest), [Spigot](https://www.spigotmc.org/resources/121509/), [Modrinth](https://modrinth.com/plugin/connectionguard) and [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Review the generated configuration before accepting live players. **The shipped 0.4.10 config enables VPN and geo kicks, with CN/RU in its country blocklist.** [Start with notifications](docs/CONFIGURATION.md) to evaluate decisions before blocking.
+
+The default VPN provider is ProxyCheck; the default geo provider is IP-API. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment.
+
+## Commands and permissions
+
+Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
+
+| Command | Purpose | Permission |
+| --- | --- | --- |
+| `/cg help` | Show available commands | `connectionguard.command.help` |
+| `/cg info <IP>` | Inspect provider-supplied information | `connectionguard.command.info` |
+| `/cg reload` | Reload settings/messages; provider/cache changes require a restart | `connectionguard.command.reload` |
+| `/cg clear <IP>` | Clear VPN and geo cache entries for an IP | `connectionguard.command.clear` |
+| `/cg clear` | Clear the entire cache, temporarily increasing provider requests | `connectionguard.command.clear` |
+
+Targeted `info` and `clear` also accept an online player name or UUID. Staff notification permissions are `connectionguard.notify.vpn` and `connectionguard.notify.geo`. [Troubleshoot flagged players and exemptions](docs/TROUBLESHOOTING.md).
+
+## Reliability and compatibility
+
+0.4.10 includes 48 passing regression tests and a controlled runtime check on **Velocity 3.4.0 / Java 21** covering startup, HTTP detection, pre-login rejection, SQLite caching, provider recovery and commands. [Read the checks and limits](CHANGELOG.md).
+
+Core/Spigot/BungeeCord bytecode targets Java 8. The Spigot adapter builds against the 1.8.8 API. The Velocity adapter targets the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. Build targets do not prove every server version was tested; Folia support is unverified.
+
+If the configured VPN vote threshold is not met, the connection proceeds, subject to geo rules and other plugins. An unavailable geo lookup provides no geo verdict. See [provider failures and caching](docs/PROVIDER_FAILURES.md). Tests do not establish real-world detection accuracy. Connection Guard does not replace an anticheat, a complete antibot system or network-level DDoS protection.
+
+## Help and contribution
+
+[Open an issue](https://github.com/gerolndnr/connection-guard/issues) or use [project Discord](https://discord.gg/GekQVPqsfS). Share plugin, platform and Java versions, reproduction steps and sanitized settings. Remove keys, webhook URLs and personal connection data.
+
+Contributions and documentation improvements are welcome. [Development guide](CONTRIBUTING.md) · [MIT license](LICENSE). Stars and honest reviews are optional.
 
 ## Credits
 
-This software uses the following open source packages:
+Connection Guard uses [OkHttp](https://github.com/square/okhttp), [Okio](https://github.com/square/okio), [Kotlin](https://github.com/JetBrains/kotlin), [Gson](https://github.com/google/gson), [sqlite-jdbc](https://github.com/xerial/sqlite-jdbc) and [Jedis](https://github.com/redis/jedis). License notices for bundled dependencies are included in the release JAR. The original README was adapted from [electron-markdownify](https://github.com/amitmerchant1990/electron-markdownify).
 
-- [OkHttp](https://github.com/square/okhttp)
-- [Gson](https://github.com/google/gson)
-- [sqlite-jdbc](https://github.com/xerial/sqlite-jdbc)
-- [Jedis](https://github.com/redis/jedis)
-- Readme is taken from [here](https://github.com/amitmerchant1990/electron-markdownify)
-
-## Related
-
-[Connection Guard Spigot Page](https://www.spigotmc.org/resources/connection-guard-vpn-and-geo-blocking-spigot-bungeecord-velocity.121509/) - Official Resource Page
-
-[LNDNR's Anti-VPN & Geo-Blocking](https://www.spigotmc.org/resources/lndnrs-anti-vpn-geo-blocking-1-16-5-1-21-x-bedrock-support.116744/) - Predecessor of Connection Guard
-
-## Help
-
-- [Discord Server](https://discord.gg/GekQVPqsfS) or contact me on discord directly: `gold.ly`
-
-## License
-
-MIT
-
----
-
-> GitHub [@gerolndnr](https://github.com/gerolndnr)
-
+[LNDNR's Anti-VPN & Geo-Blocking](https://www.spigotmc.org/resources/116744/) is the predecessor. Current documentation and downloads are linked above.
