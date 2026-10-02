@@ -59,15 +59,19 @@ class LookupControlTest {
     @Test void admissionRejectsUniqueIpsBeyondTheBound() throws Exception {
         ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 1, 1, 2, 3, 100));
         AtomicInteger calls = new AtomicInteger();
+        CountDownLatch called = new CountDownLatch(2);
         CompletableFuture<Optional<VpnResult>> pending = new CompletableFuture<>();
-        provider(ip -> { calls.incrementAndGet(); return pending; });
+        provider(ip -> { calls.incrementAndGet(); called.countDown(); return pending.thenApply(ignored -> Optional.of(new VpnResult(ip, false))); });
         CompletableFuture<VpnResult> first = ConnectionGuard.getVpnResult("192.0.2.1");
         CompletableFuture<VpnResult> second = ConnectionGuard.getVpnResult("192.0.2.2");
-        VpnResult rejected = ConnectionGuard.getVpnResult("192.0.2.3").get();
-        assertEquals(FailureReason.OVERLOADED, rejected.getVotes().get(0).getReason());
-        assertEquals(2, calls.get());
-        pending.complete(Optional.of(new VpnResult("192.0.2.1", false)));
-        first.get(); second.get();
+        try {
+            VpnResult rejected = ConnectionGuard.getVpnResult("192.0.2.3").get();
+            assertEquals(FailureReason.OVERLOADED, rejected.getVotes().get(0).getReason());
+            assertTrue(called.await(1, TimeUnit.SECONDS)); assertEquals(2, calls.get());
+        } finally {
+            pending.complete(Optional.empty());
+            first.get(2, TimeUnit.SECONDS); second.get(2, TimeUnit.SECONDS);
+        }
     }
     @Test void workerPoolAndQueueRejectExcessWorkWithoutGrowing() throws Exception {
         try (LookupRuntime runtime = new LookupRuntime(new LookupSettings(1000, 100, 1, 1, 2, 3, 100))) {
