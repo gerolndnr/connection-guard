@@ -3,6 +3,7 @@ package com.github.gerolndnr.connectionguard.bungee.listener;
 import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
@@ -25,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class ConnectionGuardBungeeListener implements Listener {
     @EventHandler
     public void onLogin(LoginEvent loginEvent) {
+        if (loginEvent.isCancelled()) return;
         loginEvent.registerIntent(ConnectionGuardBungeePlugin.getInstance());
 
         String rawIp = loginEvent.getConnection().getAddress().getAddress().getHostAddress();
@@ -46,13 +48,24 @@ public class ConnectionGuardBungeeListener implements Listener {
         CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo") : CompletableFuture.completedFuture(false);
-        CompletableFuture<VpnResult> vpnResultFuture = hasVpnExemptionPermissionFuture.thenCompose(exempt -> exempt
-                ? CompletableFuture.completedFuture(new VpnResult(clientIp, false)) : ConnectionGuard.getVpnResult(clientIp));
-        CompletableFuture<GeoLookup> geoLookupFuture = hasGeoExemptionPermissionFuture.thenCompose(exempt -> exempt
-                ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(clientIp));
+        CompletableFuture<LoginAdmission> admission = hasVpnExemptionPermissionFuture.thenCombine(hasGeoExemptionPermissionFuture,
+                (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(clientIp, vpnBypass, geoBypass));
+        CompletableFuture<VpnResult> vpnResultFuture = admission.thenCompose(entry -> entry.isAllowed()
+                ? (hasVpnExemptionPermissionFuture.join() ? CompletableFuture.completedFuture(new VpnResult(clientIp, false)) : ConnectionGuard.getVpnResult(clientIp))
+                : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(clientIp, FailureReason.OVERLOADED)));
+        CompletableFuture<GeoLookup> geoLookupFuture = admission.thenCompose(entry -> entry.isAllowed()
+                ? (hasGeoExemptionPermissionFuture.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(clientIp))
+                : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
         CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = geoLookupFuture.thenApply(GeoLookup::getResult);
 
         CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).thenRun(() -> {
+            if (!admission.join().isAllowed()) {
+                if (admission.join().shouldDeny()) {
+                    loginEvent.setCancelReason(new TextComponent("Connection checks are temporarily busy. Please retry shortly."));
+                    loginEvent.setCancelled(true);
+                }
+                return;
+            }
             long asOf = System.currentTimeMillis();
             VpnResult vpnResult = LookupFreshness.vpn(vpnResultFuture.join(), asOf);
             GeoLookup currentGeo = LookupFreshness.geo(geoLookupFuture.join(), asOf);

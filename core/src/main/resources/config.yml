@@ -20,6 +20,23 @@ lookup:
     failures: 3
     pause-ms: 30000
 
+# Optional admission limits for real login checks (not /cg explain).
+# Limits are disabled by default; tune for households, shared IPs and events.
+# Refusals skip detection. Only deny-connections can temporarily refuse access;
+# provider failure-policy does not change this choice. OBSERVE suppresses refusal.
+overload:
+  enabled: false
+  deny-connections: false
+  window-ms: 10000
+  cooldown-ms: 10000
+  alarm-cooldown-ms: 30000
+  global-attempts: 0
+  per-ip-attempts: 0
+  per-subnet-attempts: 0
+  ipv4-prefix: 24
+  ipv6-prefix: 64
+  tracking-capacity: 4096
+
 # Message config used for all messages send to the player.
 # You can add your own languages by creating a file called <language>.yml and setting the
 # entry below to the file name without the .yml extension.

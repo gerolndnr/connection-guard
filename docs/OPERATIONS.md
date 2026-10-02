@@ -1,5 +1,7 @@
 # Bounded lookups and diagnosis
 
+Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
+
 Development documentation for the next release. Do not infer these features from the unchanged 0.4.10 tag.
 
 New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.

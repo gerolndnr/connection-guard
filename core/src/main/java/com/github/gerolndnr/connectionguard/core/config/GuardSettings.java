@@ -11,14 +11,15 @@ import java.util.function.Function;
 public final class GuardSettings {
     public enum FailurePolicy { OPEN, CLOSED, OBSERVE }
     public final LookupSettings lookup;
+    public final com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission;
     public final boolean observe;
     public final boolean trustForwardedIdentity;
     public final FailurePolicy vpnFailure;
     public final FailurePolicy geoFailure;
     public final List<String> warnings;
-    private GuardSettings(LookupSettings lookup, boolean observe, boolean trust, FailurePolicy vpn,
+    private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, FailurePolicy vpn,
                           FailurePolicy geo, List<String> warnings) {
-        this.lookup = lookup; this.observe = observe; this.trustForwardedIdentity = trust;
+        this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
@@ -74,7 +75,9 @@ public final class GuardSettings {
         }
         boolean trust = bool(value, "identity.trust-forwarded-uuid", false);
         if (trust) warnings.add("Forwarded UUID trust enabled: restrict backend access and verify proxy/Floodgate forwarding; a public IP is insufficient proof.");
-        return new GuardSettings(limits, mode.equals("OBSERVE"), trust,
+        com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings(value);
+        if (admission.enabled) warnings.add("Overload limits skip detection on refused admissions; only overload.deny-connections may temporarily deny (OBSERVE suppresses denial). Provider failure policies do not change this choice.");
+        return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust,
                 policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }
