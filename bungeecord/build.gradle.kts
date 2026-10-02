@@ -14,13 +14,21 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-    maven("https://oss.sonatype.org/content/repositories/snapshots")
-    maven("https://repo.alessiodp.com/releases/")
+    maven("https://libraries.minecraft.net/") {
+        content {
+            includeGroup("com.mojang")
+        }
+    }
+    maven("https://repo.alessiodp.com/releases/") {
+        content {
+            includeGroup("net.byteflux")
+        }
+    }
 }
 
 dependencies {
     shadow(project(":core"))
-    shadow("net.md-5:bungeecord-api:1.19-R0.1-SNAPSHOT")
+    shadow("net.md-5:bungeecord-api:1.20-R0.2")
     shadow("net.luckperms:api:5.4")
     shadow("org.bstats:bstats-bungeecord:3.0.2")
     implementation("net.byteflux:libby-bungee:1.3.1")

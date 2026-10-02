@@ -1,0 +1,73 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and verify plugin
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+
+      - name: Verify Gradle wrapper
+        run: |
+          printf '%s  %s\n' \
+            'cb0da6751c2b753a16ac168bb354870ebb1e162e9083f116729cec9c781156b8' \
+            'gradle/wrapper/gradle-wrapper.jar' | sha256sum --check --strict
+
+      - name: Install Java toolchains
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+          cache: gradle
+
+      - name: Configure installed toolchains
+        run: |
+          mkdir -p "$HOME/.gradle"
+          cat >> "$HOME/.gradle/gradle.properties" <<'EOF'
+          org.gradle.java.installations.auto-download=false
+          org.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_17_X64
+          EOF
+
+      - name: Build all platforms
+        run: ./gradlew --no-daemon --console=plain check shadowJar
+
+      - name: Verify repeatable archive
+        run: |
+          sha256sum build/libs/*-all.jar > "$RUNNER_TEMP/connection-guard-first-build.sha256"
+          ./gradlew --no-daemon --console=plain --rerun-tasks shadowJar
+          sha256sum --check "$RUNNER_TEMP/connection-guard-first-build.sha256"
+
+      - name: Verify plugin artifact
+        run: python3 ci/verify_artifact.py
+
+      - name: Create SHA-256 checksum
+        run: sha256sum build/libs/*-all.jar > build/libs/SHA256SUMS
+
+      - name: Upload development artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: connection-guard-ci-${{ github.sha }}
+          path: |
+            build/libs/*-all.jar
+            build/libs/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
