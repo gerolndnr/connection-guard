@@ -46,7 +46,7 @@ public final class OperationsCommands {
             return true;
         }
         if (args.length != 1) { reply.accept("Usage: /cg " + operation); return true; }
-        if (operation.equals("stats")) reply.accept(ConnectionGuard.lookupStats());
+        if (operation.equals("stats")) { reply.accept(ConnectionGuard.lookupStats()); reply.accept(ConnectionGuard.admissionStats()); }
         if (operation.equals("providers")) {
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
             if (ConnectionGuard.providerHealth().isEmpty()) reply.accept("No provider attempts recorded yet.");
@@ -67,6 +67,7 @@ public final class OperationsCommands {
         if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> lines.add(snapshot.describe(System.currentTimeMillis())));
         lines.add("Verify client IP forwarding with a controlled client; a public address alone does not establish correct forwarding.");
         lines.add(ConnectionGuard.lookupStats());
+        lines.add(ConnectionGuard.admissionStats());
         return lines;
     }
 }

@@ -90,7 +90,21 @@ public class ConnectionGuard {
     }
     private static volatile GuardSettings settings = GuardSettings.defaults();
     public static GuardSettings getSettings() { return settings; }
-    public static void applySettings(GuardSettings next) { configureLookup(next.lookup); settings = next; }
+    public static synchronized void applySettings(GuardSettings next) {
+        configureLookup(next.lookup);
+        admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
+        settings = next;
+    }
+    private static volatile com.github.gerolndnr.connectionguard.core.admission.AdmissionController admission =
+            new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(settings.admission);
+    public static synchronized com.github.gerolndnr.connectionguard.core.admission.LoginAdmission admitLogin(String ip, boolean vpnExempt, boolean geoExempt) {
+        com.github.gerolndnr.connectionguard.core.admission.AdmissionController current = admission;
+        com.github.gerolndnr.connectionguard.core.admission.LoginAdmission result = current.admit(ip, !vpnExempt || !geoExempt, settings.observe);
+        if (result.shouldAlert() && logger != null) logger.warning("Lookup admission skipped: " + result.getReason()
+                + " retryMs=" + result.getRetryMillis() + "; " + current.describe());
+        return result;
+    }
+    public static String admissionStats() { return admission.describe(); }
     private static int requiredPositiveFlags = 1;
     private static volatile LookupRuntime lookupRuntime = new LookupRuntime(LookupSettings.defaults());
     private static volatile LookupCoordinator coordinator = new LookupCoordinator(lookupRuntime);

@@ -2,6 +2,7 @@ package com.github.gerolndnr.connectionguard.velocity.listener;
 
 import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
@@ -63,11 +64,19 @@ public class ConnectionGuardVelocityListener {
         CompletableFuture<Boolean> geoExempt = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
                 ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                     ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
-        CompletableFuture<VpnResult> vpnFuture = vpnExempt.thenCompose(exempt -> exempt
-                ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress));
-        CompletableFuture<GeoLookup> geoFuture = geoExempt.thenCompose(exempt -> exempt
-                ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress));
+        CompletableFuture<LoginAdmission> admission = vpnExempt.thenCombine(geoExempt,
+                (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(ipAddress, vpnBypass, geoBypass));
+        CompletableFuture<VpnResult> vpnFuture = admission.thenCompose(entry -> entry.isAllowed()
+                ? (vpnExempt.join() ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress))
+                : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(ipAddress, FailureReason.OVERLOADED)));
+        CompletableFuture<GeoLookup> geoFuture = admission.thenCompose(entry -> entry.isAllowed()
+                ? (geoExempt.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress))
+                : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
         return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
+            if (!admission.join().isAllowed()) {
+                if (admission.join().shouldDeny()) deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));
+                return;
+            }
             long asOf = System.currentTimeMillis();
             VpnResult vpnResult = LookupFreshness.vpn(vpnFuture.join(), asOf);
             GeoLookup currentGeo = LookupFreshness.geo(geoFuture.join(), asOf);
