@@ -18,6 +18,15 @@ jobs:
     name: Build and verify plugin
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    services:
+      redis:
+        image: redis:7.2.4-alpine
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      CG_TEST_REDIS: '6379'
     steps:
       - name: Check out source
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5

@@ -13,13 +13,12 @@ public class IpApiGeoProvider implements GeoProvider {
 
     @Override
     public CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
-        return CompletableFuture.supplyAsync(() -> {
+        return ProviderHttp.submit(() -> {
             try {
                 Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("http://ip-api.com/json/" + ipAddress + "?fields=status,message,countryCode,city,isp").build(), "IpApiGeoProvider");
                 return json.isPresent() ? parse(ipAddress, json.get()) : Optional.empty();
             } catch (RuntimeException failure) {
-                ProviderHttp.unavailable("IpApiGeoProvider");
-                return Optional.empty();
+                throw ProviderHttp.failure(failure);
             }
         });
     }

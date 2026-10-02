@@ -13,13 +13,12 @@ public class IpApiVpnProvider implements VpnProvider {
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
-        return CompletableFuture.supplyAsync(() -> {
+        return ProviderHttp.submit(() -> {
             try {
                 Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("http://ip-api.com/json/" + ipAddress + "?fields=status,message,proxy").build(), "IpApiVpnProvider");
                 return json.isPresent() ? parse(ipAddress, json.get()) : Optional.empty();
             } catch (RuntimeException failure) {
-                ProviderHttp.unavailable("IpApiVpnProvider");
-                return Optional.empty();
+                throw ProviderHttp.failure(failure);
             }
         });
     }

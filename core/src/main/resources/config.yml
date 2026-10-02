@@ -1,8 +1,24 @@
-# Thanks for using Connection Guard, the free connection security plugin with premium quality.
-# There is a lot to configure, if you want to. If not, you don't have to!
-# If you leave it as default, Connection Guard will use ProxyCheck (https://proxycheck.io/)
-# to check for vpn or proxy usage and block connections from those. For geo data, Connection Guard
-# will use the IP-API (https://ip-api.com/) service.
+# Connection Guard starts in observation mode on a new installation.
+# Review /cg doctor and provider terms, then deliberately choose ENFORCE.
+operation:
+  mode: OBSERVE
+identity:
+  # Only enable after protecting the backend and verifying proxy/Floodgate forwarding.
+  trust-forwarded-uuid: false
+failure-policy:
+  # OPEN allows UNKNOWN; CLOSED rejects temporarily without commands/bans/webhooks.
+  # OBSERVE allows UNKNOWN; inspect explain/providers for the reason.
+  vpn: OPEN
+  geo: OPEN
+lookup:
+  deadline-ms: 5000
+  http-timeout-ms: 2500
+  workers: 8
+  queue-capacity: 64
+  max-inflight: 128
+  circuit:
+    failures: 3
+    pause-ms: 30000
 
 # Message config used for all messages send to the player.
 # You can add your own languages by creating a file called <language>.yml and setting the
@@ -29,9 +45,7 @@ behavior:
 
     # If you want some players or ip addresses to be exempted from the vpn check,
     # you can add them here.
-    exemptions:
-      - '069a79f4-44e9-4726-a5be-fca90e38aaf5'
-      - '127.0.0.1'
+    exemptions: []
     # If enabled, players with the permission connectionguard.exemption.vpn will not be flagged as vpn players.
     # Only available when having LuckPerms installed.
     use-permission-exemption: false
@@ -59,24 +73,20 @@ behavior:
 
     # Countries are specified by their Alpha 2 code.
     # A full list can be found here: https://www.iban.com/country-codes
-    list:
-      - CN
-      - RU
+    list: []
     # If you want some players or ip addresses to be exempted from the geo check,
     # you can add them here.
-    exemptions:
-      - '069a79f4-44e9-4726-a5be-fca90e38aaf5'
-      - '127.0.0.1'
+    exemptions: []
     # If enabled, players with the permission connectionguard.exemption.geo will not be flagged as geo-blocked players.
     # Only available when having LuckPerms.
     use-permission-exemption: false
 
 # You can use multiple services at the same time (just enable multiple at once) to minimize
-# the possibility of a false-flag (high value) or catch very niche vpn services (low value). This number determines, how many of the enabled services have
+# the number of provider votes required. Provider votes are not necessarily independent. This determines how many enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
 # Default value: 1
 # Missing or failed provider responses do not count as positive votes. If the
-# threshold is not met, the existing behavior allows the connection; an incomplete
+# threshold is not met, failure-policy decides how UNKNOWN is handled; an incomplete
 # verdict is not cached, so a later connection can retry after provider recovery.
 # Positive verdicts are cached once the threshold is met. Negative verdicts are
 # cached only when all enabled providers have returned a result.
@@ -94,6 +104,7 @@ provider:
     # are not very expensive, especially if you have a server with more than 300 unique players per day.
     proxycheck:
       enabled: true
+      # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
     # IP-API is completely free, but has a rate limit of 45 requests per minute.
     ip-api:
@@ -171,6 +182,8 @@ provider:
       geo: 4320
 
     redis:
+      # Enable TLS for a remote Redis server; uses the JVM trust store.
+      tls: false
       hostname: 'localhost'
       port: 6379
       password: ''

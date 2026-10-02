@@ -46,7 +46,6 @@ tasks {
     }
 
     runServer {
-        jvmArgs("-Dcom.mojang.eula.agree=true")
-        minecraftVersion("1.8.8")
+            minecraftVersion("1.8.8")
     }
 }

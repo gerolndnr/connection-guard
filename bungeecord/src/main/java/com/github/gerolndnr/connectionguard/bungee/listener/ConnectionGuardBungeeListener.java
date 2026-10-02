@@ -14,6 +14,10 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 import java.util.Optional;
+import java.util.UUID;
+import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.lookup.*;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionGuardBungeeListener implements Listener {
@@ -21,53 +25,37 @@ public class ConnectionGuardBungeeListener implements Listener {
     public void onLogin(LoginEvent loginEvent) {
         loginEvent.registerIntent(ConnectionGuardBungeePlugin.getInstance());
 
-        String ipAddress = loginEvent.getConnection().getAddress().getAddress().getHostAddress();
+        String rawIp = loginEvent.getConnection().getAddress().getAddress().getHostAddress();
 
-        CompletableFuture<VpnResult> vpnResultFuture;
-        CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture;
-        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture;
-        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture;
-
-        // Check if ip address is in exemption lists
-        if (
-                ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(ipAddress)
-                        || ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(loginEvent.getConnection().getUniqueId().toString())
-                        || ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions").contains(loginEvent.getConnection().getName())
-        ) {
-            vpnResultFuture = CompletableFuture.completedFuture(new VpnResult(ipAddress, false));
-            hasVpnExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-        } else {
-            vpnResultFuture = ConnectionGuard.getVpnResult(ipAddress);
-
-            if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")) {
-                hasVpnExemptionPermissionFuture = CGLuckPermsHelper.hasPermission(loginEvent.getConnection().getUniqueId(), "connectionguard.exemption.vpn");
-            } else {
-                hasVpnExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-            }
-        }
-
-        if (
-                ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(ipAddress)
-                        || ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(loginEvent.getConnection().getUniqueId().toString())
-                        || ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions").contains(loginEvent.getConnection().getName())
-        ) {
-            geoResultOptionalFuture = CompletableFuture.completedFuture(Optional.empty());
-            hasGeoExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-        } else {
-            geoResultOptionalFuture = ConnectionGuard.getGeoResult(ipAddress);
-
-            if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")) {
-                hasGeoExemptionPermissionFuture = CGLuckPermsHelper.hasPermission(loginEvent.getConnection().getUniqueId(), "connectionguard.exemption.geo");
-            } else {
-                hasGeoExemptionPermissionFuture = CompletableFuture.completedFuture(false);
-            }
-        }
+        final String ipAddress = Exemptions.normalize(rawIp);
+        final String clientIp = ipAddress;
+        UUID uuid = loginEvent.getConnection().getUniqueId();
+        boolean trusted = loginEvent.getConnection().isOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity;
+        CompletableFuture<Boolean> hasVpnExemptionPermissionFuture = Exemptions.matches(ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn") : CompletableFuture.completedFuture(false);
+        CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = Exemptions.matches(ConnectionGuardBungeePlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo") : CompletableFuture.completedFuture(false);
+        CompletableFuture<VpnResult> vpnResultFuture = hasVpnExemptionPermissionFuture.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new VpnResult(clientIp, false)) : ConnectionGuard.getVpnResult(clientIp));
+        CompletableFuture<GeoLookup> geoLookupFuture = hasGeoExemptionPermissionFuture.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(clientIp));
+        CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = geoLookupFuture.thenApply(GeoLookup::getResult);
 
         CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).thenRun(() -> {
             VpnResult vpnResult = vpnResultFuture.join();
             Boolean hasVpnExemption = hasVpnExemptionPermissionFuture.join();
             Boolean hasGeoExemption = hasGeoExemptionPermissionFuture.join();
 
+
+            if (!ConnectionGuard.getSettings().observe && (
+                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (geoLookupFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                loginEvent.setCancelReason(new TextComponent("Connection verification is temporarily unavailable. Please retry shortly."));
+                loginEvent.setCancelled(true);
+                return;
+            }
             if (vpnResult.isVpn() && !hasVpnExemption) {
                 // Check if staff should be notified
                 if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
@@ -81,7 +69,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
 
                 // Check if command should be executed on flag
-                if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
                     ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                             ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                             ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command")
@@ -90,7 +78,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
 
                 // Check if WebHook should be executed
-                if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                     String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
                             .replace("%NAME%", loginEvent.getConnection().getName())
                             .replace("%IP%", ipAddress);
@@ -100,7 +88,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
 
                 // Check if player should be kicked
-                if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
@@ -111,7 +99,6 @@ public class ConnectionGuardBungeeListener implements Listener {
                     loginEvent.setCancelReason(new TextComponent(kickMessage));
                     loginEvent.setCancelled(true);
 
-                    loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance());
                     return;
                 }
             }
@@ -151,7 +138,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     }
 
                     // Check if command should be executed on flag
-                    if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
                         ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                                 ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                                 ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command")
@@ -160,7 +147,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     }
 
                     // Check if WebHook should be executed
-                    if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                         String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
                                 .replace("%NAME%", loginEvent.getConnection().getName())
                                 .replace("%IP%", ipAddress)
@@ -173,7 +160,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     }
 
                     // Check if player should be kicked
-                    if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
                                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
@@ -186,14 +173,12 @@ public class ConnectionGuardBungeeListener implements Listener {
 
                         loginEvent.setCancelReason(new TextComponent(kickMessage));
                         loginEvent.setCancelled(true);
-                        loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance());
-                        return;
+                            return;
                     }
                 }
             }
 
-            loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance());
-        });
+        }).whenComplete((ignored, error) -> loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance()));
 
     }
 

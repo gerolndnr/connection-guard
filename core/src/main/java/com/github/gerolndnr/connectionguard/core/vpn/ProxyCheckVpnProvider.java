@@ -13,13 +13,12 @@ public class ProxyCheckVpnProvider implements VpnProvider {
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
-        return CompletableFuture.supplyAsync(() -> {
+        return ProviderHttp.submit(() -> {
             try {
                 Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://proxycheck.io/v2/" + ipAddress + "?key=" + apiKey + "&vpn=1").build(), "ProxyCheckVpnProvider");
                 return json.isPresent() ? parse(ipAddress, json.get()) : Optional.empty();
             } catch (RuntimeException failure) {
-                ProviderHttp.unavailable("ProxyCheckVpnProvider");
-                return Optional.empty();
+                throw ProviderHttp.failure(failure);
             }
         });
     }

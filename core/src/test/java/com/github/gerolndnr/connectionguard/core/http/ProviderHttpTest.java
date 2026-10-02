@@ -4,6 +4,8 @@ import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.sun.net.httpserver.HttpServer;
+import com.github.gerolndnr.connectionguard.core.lookup.*;
+import java.util.concurrent.ExecutionException;
 import okhttp3.Request;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,13 +73,15 @@ class ProviderHttpTest {
     @ParameterizedTest @ValueSource(ints={401,429,500,503})
     void httpErrorsAreUnavailableEvenWithAValidLookingBody(int code) throws Exception {
         status = code;
-        assertFalse(query(provider("GET", "data#isVpn", "BOOLEAN", "")).isPresent());
+        ExecutionException failure = assertThrows(ExecutionException.class, () -> query(provider("GET", "data#isVpn", "BOOLEAN", "")));
+        assertEquals(code == 429 ? FailureReason.RATE_LIMIT : code == 401 ? FailureReason.AUTHENTICATION : FailureReason.HTTP_ERROR, LookupException.reason(failure));
     }
     @ParameterizedTest @ValueSource(strings={"not JSON", "[]", "{}", "{\"data\":null}",
             "{\"data\":{\"isVpn\":\"false\"}}", "{\"data\":{\"isVpn\":null}}"})
     void missingOrMalformedFlagsNeverBecomeNegativeVotes(String response) throws Exception {
         body = response;
-        assertFalse(query(provider("GET", "data#isVpn", "BOOLEAN", "")).isPresent());
+        ExecutionException failure = assertThrows(ExecutionException.class, () -> query(provider("GET", "data#isVpn", "BOOLEAN", "")));
+        assertEquals(FailureReason.INVALID_RESPONSE, LookupException.reason(failure));
     }
     @Test void readsValidJsonThroughSharedTransport() {
         assertTrue(ProviderHttp.readJson(new Request.Builder().url(url.replace("%IP%", "192.0.2.1")).build(), "Test").isPresent());

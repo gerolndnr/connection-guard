@@ -16,58 +16,62 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
+import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.lookup.*;
+import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionGuardVelocityListener {
+    private boolean needsAuthenticatedPhase() {
+        return ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                || hasUuid(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"))
+                || hasUuid(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"));
+    }
+    private boolean hasUuid(java.util.List<String> entries) {
+        for (String entry : entries) try { UUID.fromString(entry); return true; } catch (IllegalArgumentException ignored) { }
+        return false;
+    }
     @Subscribe
-    public EventTask onPreLogin(PreLoginEvent loginEvent) {
-        String ipAddress = loginEvent.getConnection().getRemoteAddress().getHostString();
-        String playerUuid = (loginEvent.getUniqueId() != null) ? loginEvent.getUniqueId().toString() : "";
-        String playerUsername = loginEvent.getUsername();
-
-        CompletableFuture<VpnResult> vpnResultFuture;
-        CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture;
-
-        // Check if ip address is in exemption lists
-        if (
-                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions").contains(ipAddress)
-                        || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions").contains(playerUuid)
-                        || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions").contains(playerUsername)
-        ) {
-            vpnResultFuture = CompletableFuture.completedFuture(new VpnResult(ipAddress, false));
-        } else {
-            vpnResultFuture = ConnectionGuard.getVpnResult(ipAddress);
-        }
-
-        if (
-                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions").contains(ipAddress)
-                        || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions").contains(playerUuid)
-                        || ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions").contains(playerUsername)
-        ) {
-            geoResultOptionalFuture = CompletableFuture.completedFuture(Optional.empty());
-        } else {
-            geoResultOptionalFuture = ConnectionGuard.getGeoResult(ipAddress);
-        }
-
-        return EventTask.async(() -> {
-            VpnResult vpnResult = vpnResultFuture.join();
-            Optional<GeoResult> geoResultOptional = geoResultOptionalFuture.join();
-
-            // Check if player has a permission exemption
-            if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")) {
-                if (CGLuckPermsHelper.hasPermission(loginEvent.getUniqueId(), "connectionguard.exemption.vpn").join()) {
-                    vpnResult = new VpnResult(ipAddress, false);
-                }
+    public EventTask onPreLogin(PreLoginEvent event) {
+        if (!event.getResult().isAllowed() || needsAuthenticatedPhase()) return null;
+        return EventTask.withContinuation(continuation -> checkConnection(event.getConnection().getRemoteAddress().getAddress().getHostAddress(),
+                null, event.getUsername(), false, null, message -> event.setResult(PreLoginEvent.PreLoginComponentResult.denied(message)))
+                .whenComplete((ignored, error) -> continuation.resume()));
+    }
+    @Subscribe
+    public EventTask onLogin(LoginEvent event) {
+        if (!event.getResult().isAllowed() || !needsAuthenticatedPhase()) return null;
+        Player player = event.getPlayer();
+        return EventTask.withContinuation(continuation -> checkConnection(player.getRemoteAddress().getAddress().getHostAddress(),
+                player.getUniqueId(), player.getUsername(), player.isOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity,
+                player, message -> event.setResult(ResultedEvent.ComponentResult.denied(message)))
+                .whenComplete((ignored, error) -> continuation.resume()));
+    }
+    private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, boolean trusted,
+                                                     Object subject, Consumer<Component> deny) {
+        final String ipAddress = Exemptions.normalize(rawIp);
+        CompletableFuture<Boolean> vpnExempt = Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject) : CompletableFuture.completedFuture(false);
+        CompletableFuture<Boolean> geoExempt = Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
+                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
+        CompletableFuture<VpnResult> vpnFuture = vpnExempt.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress));
+        CompletableFuture<GeoLookup> geoFuture = geoExempt.thenCompose(exempt -> exempt
+                ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress));
+        return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
+            VpnResult vpnResult = vpnFuture.join();
+            Optional<GeoResult> geoResultOptional = geoFuture.join().getResult();
+            if (!ConnectionGuard.getSettings().observe && (
+                    (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                    || (geoFuture.join().getReason() != FailureReason.NONE && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly."));
+                return;
             }
-
-            if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")) {
-                if (CGLuckPermsHelper.hasPermission(loginEvent.getUniqueId(), "connectionguard.exemption.geo").join()) {
-                    geoResultOptional = Optional.empty();
-                }
-            }
-
-
-
             if (vpnResult.isVpn()) {
                 // Check if staff should be notified
                 if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
@@ -80,7 +84,7 @@ public class ConnectionGuardVelocityListener {
                 }
 
                 // Check if command should be executed on flag
-                if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
                     ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
                             ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
                             ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.execute-command.command")
@@ -90,7 +94,7 @@ public class ConnectionGuardVelocityListener {
                 }
 
                 // Check if WebHook should be executed
-                if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                     String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-webhook")
                             .replace("%NAME%", playerUsername)
                             .replace("%IP%", ipAddress);
@@ -100,15 +104,14 @@ public class ConnectionGuardVelocityListener {
                 }
 
                 // Check if player should be kicked
-                if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
+                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
                     Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                             ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-block")
                                     .replace("%IP%", vpnResult.getIpAddress())
                                     .replace("%NAME%", playerUsername)
                     );
 
-                    // loginEvent.setResult(ResultedEvent.ComponentResult.denied(kickMessage));
-                    loginEvent.setResult(PreLoginEvent.PreLoginComponentResult.denied(kickMessage));
+                    deny.accept(kickMessage);
                     return;
                 }
             }
@@ -146,7 +149,7 @@ public class ConnectionGuardVelocityListener {
                     }
 
                     // Check if command should be executed on flag
-                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
                         ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
                                 ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
                                 ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.execute-command.command")
@@ -157,7 +160,7 @@ public class ConnectionGuardVelocityListener {
                     }
 
                     // Check if WebHook should be executed
-                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                         String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-webhook")
                                 .replace("%NAME%", playerUsername)
                                 .replace("%IP%", ipAddress)
@@ -170,7 +173,7 @@ public class ConnectionGuardVelocityListener {
                     }
 
                     // Check if player should be kicked
-                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
+                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
                         Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                                 ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-block")
                                         .replace("%IP%", geoResult.getIpAddress())
@@ -180,14 +183,11 @@ public class ConnectionGuardVelocityListener {
                                         .replace("%NAME%", playerUsername)
                         );
 
-                        // loginEvent.setResult(ResultedEvent.ComponentResult.denied(kickMessage));
-                        loginEvent.setResult(PreLoginEvent.PreLoginComponentResult.denied(kickMessage));
+                        deny.accept(kickMessage);
                         return;
                     }
                 }
 
-                // loginEvent.setResult(ResultedEvent.ComponentResult.allowed());
-                // loginEvent.setResult(PreLoginEvent.PreLoginComponentResult.allowed());
             }
         });
     }

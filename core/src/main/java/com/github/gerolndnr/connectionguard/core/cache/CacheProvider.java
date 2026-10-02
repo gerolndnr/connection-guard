@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface CacheProvider {
+    /** Schema/configuration isolation. Call before accepting lookups. */
+    default void setNamespace(String namespace) { }
     CompletableFuture<Boolean> setup();
     CompletableFuture<Boolean> disband();
     CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress);
