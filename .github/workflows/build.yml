@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 15
     services:
       redis:
-        image: redis:7.2.4-alpine
+        image: redis:7.2.12-alpine
         ports: [6379:6379]
         options: >-
           --health-cmd "redis-cli ping"
