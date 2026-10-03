@@ -1,0 +1,15 @@
+{
+  "artifact_sha256": "3df3148c76195238f519b32715e4df691114a44e1bcaffa2f5488889fed8071e",
+  "addon_sha256": "1b43741f0188b6779c5dd54bdbeeaa65a7267e388df02e7b62bc40cc2b86461c",
+  "fixture_source_sha256": "e41ef19a0afec7e080664a7387dda9ba66d68707d1727e1e16aaaecd2ae3acc0",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "backend_join_tested": false,
+  "authenticated_identity_tested": false,
+  "other_platforms_tested": false,
+  "blocked_supplier_times_out_without_negative_fact": true,
+  "repeated_same_and_changed_reload_never_creates_replacement_workers": true,
+  "release_allows_deliberate_new_limits_and_fresh_negative_lookup": true,
+  "shutdown_passed": true
+}

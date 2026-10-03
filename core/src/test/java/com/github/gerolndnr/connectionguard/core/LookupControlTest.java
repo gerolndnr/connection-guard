@@ -19,7 +19,12 @@ class LookupControlTest {
         ConnectionGuard.setVpnProviders(new ArrayList<>());
         Logger logger = Logger.getAnonymousLogger(); logger.setLevel(Level.OFF); ConnectionGuard.setLogger(logger);
     }
-    @AfterEach void reset() { ConnectionGuard.configureLookup(LookupSettings.defaults()); }
+    @AfterEach void reset() throws Exception {
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (!ConnectionGuard.getLookupRuntime().isIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        assertTrue(ConnectionGuard.getLookupRuntime().isIdle(), "Test left transport work or deadlines active.");
+        ConnectionGuard.configureLookup(LookupSettings.defaults());
+    }
     void provider(VpnProvider provider) { ConnectionGuard.setVpnProviders(new ArrayList<>(Collections.singletonList(provider))); }
     @Test void aHundredCallersShareOneProviderRequestAndCancellationIsIsolated() throws Exception {
         ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 2, 4, 8, 3, 100));
@@ -152,6 +157,24 @@ class LookupControlTest {
         Thread.sleep(150);
         assertEquals(ProviderVote.Status.NEGATIVE, ConnectionGuard.getVpnResult("192.0.2.3").get().getStatus());
         assertEquals(2, calls.get());
+    }
+    @Test void expiredFlightDoesNotAuthorizeReplacementAroundBlockedSupplier() throws Exception {
+        CountDownLatch running = new CountDownLatch(1), release = new CountDownLatch(1), exited = new CountDownLatch(1);
+        LookupRuntime previous = ConnectionGuard.getLookupRuntime();
+        provider(ip -> {
+            running.countDown();
+            try { while (release.getCount() > 0) { try { release.await(); } catch (InterruptedException ignored) { } } }
+            finally { exited.countDown(); }
+            return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false)));
+        });
+        CompletableFuture<VpnResult> lookup = ConnectionGuard.getVpnResult("192.0.2.200");
+        try {
+            assertTrue(running.await(1, TimeUnit.SECONDS));
+            assertEquals(ProviderVote.Status.UNKNOWN, lookup.get(1, TimeUnit.SECONDS).getStatus());
+            assertTrue(ConnectionGuard.lookupStats().contains("inflight=0"));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.configureLookup(LookupSettings.defaults()));
+            assertSame(previous, ConnectionGuard.getLookupRuntime());
+        } finally { release.countDown(); assertTrue(exited.await(1, TimeUnit.SECONDS)); }
     }
     @Test void canonicalIpv6SharesTheSameInFlightLookup() throws Exception {
         AtomicInteger calls = new AtomicInteger();

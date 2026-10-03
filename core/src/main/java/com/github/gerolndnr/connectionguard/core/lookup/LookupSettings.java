@@ -24,5 +24,16 @@ public final class LookupSettings {
         this.circuitFailures = circuitFailures;
         this.circuitPauseMillis = circuitPauseMillis;
     }
+    @Override public boolean equals(Object other) {
+        if (!(other instanceof LookupSettings)) return false;
+        LookupSettings next = (LookupSettings) other;
+        return deadlineMillis == next.deadlineMillis && httpTimeoutMillis == next.httpTimeoutMillis
+                && workers == next.workers && queueCapacity == next.queueCapacity && maxInflight == next.maxInflight
+                && circuitFailures == next.circuitFailures && circuitPauseMillis == next.circuitPauseMillis;
+    }
+    @Override public int hashCode() {
+        return java.util.Objects.hash(deadlineMillis, httpTimeoutMillis, workers, queueCapacity,
+                maxInflight, circuitFailures, circuitPauseMillis);
+    }
     public static LookupSettings defaults() { return new LookupSettings(5000, 2500, 8, 64, 128, 3, 30000); }
 }
