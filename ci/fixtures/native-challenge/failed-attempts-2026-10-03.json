@@ -1,0 +1,44 @@
+{
+  "attempts": [
+    {
+      "fixture": "native-challenge-2026-10-03-a",
+      "status": "failed",
+      "main_sha256": "23d3849c0a6bdcd4b0210db6ba18724be9382634416502fd1195eba6849fd5fa",
+      "addon_sha256": "67921b78ab2669887941bd131427604397f2c94ebc6ecd6d7f6bb9694c49899d",
+      "native_sha256": "c1e58ce5d4b38c3e1b898cfc70e28a4e0d87240a91f03ffa8adfb183f327d6ce",
+      "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+      "java": 21,
+      "client_protocol": 760,
+      "actual_authenticated_accounts": false,
+      "backend_join_tested": false,
+      "backend_target": "owned counting loopback TCP sink, no Minecraft backend",
+      "cases": [],
+      "error": "CalledProcessError: Command '['/opt/homebrew/Cellar/openjdk@21/21.0.9/libexec/openjdk.jdk/Contents/Home/bin/java', '-Djava.awt.headless=true', '-cp', '/Users/gerolindner/Code/janus-article-website-benchmarking/connection-guard-full-ownership/.runtime/native-integration-fixture', 'MapDigits']' returned non-zero exit status 1.",
+      "all_own_processes_stopped": true,
+      "console_sha256": "9a1dcf6bb63368611bbb1ed0e3eb3b9f44388ac05a1dc848af1a4b4462828720"
+    },
+    {
+      "fixture": "native-challenge-2026-10-03-b",
+      "status": "failed",
+      "main_sha256": "23d3849c0a6bdcd4b0210db6ba18724be9382634416502fd1195eba6849fd5fa",
+      "addon_sha256": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4",
+      "native_sha256": "c1e58ce5d4b38c3e1b898cfc70e28a4e0d87240a91f03ffa8adfb183f327d6ce",
+      "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+      "java": 21,
+      "client_protocol": 760,
+      "actual_authenticated_accounts": false,
+      "backend_join_tested": false,
+      "backend_target": "owned counting loopback TCP sink, no Minecraft backend",
+      "cases": [
+        "pending and disconnected challenge: no provider or backend contact"
+      ],
+      "error": "AssertionError: ",
+      "all_own_processes_stopped": true,
+      "console_sha256": "03d52ae07de4048d7fd54b0e23305acb2c89b986bfa0130deb51bf8560d240e2"
+    }
+  ],
+  "explanation": {
+    "a": "Actual native SDK loaded and map packet arrived. Independent fixture decoder assumed exact binary font pixels; actual map antialiasing required bounded unambiguous nearest-glyph comparison. No production completion setter introduced.",
+    "b": "Same-username reconnect fixture consumed a saved previous-session prompt. Actual client log contains the correct Incorrect reply. Fixture events now bind name plus its actual connection generation; production owner-identity/liveness checks unchanged."
+  }
+}
