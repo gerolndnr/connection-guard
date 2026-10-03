@@ -2,6 +2,7 @@ package com.github.gerolndnr.connectionguard.core;
 
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
+import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.*;
 import org.junit.jupiter.api.*;
 import java.util.*;
@@ -60,6 +61,49 @@ class LookupControlTest {
         VpnResult result = ConnectionGuard.getVpnResult("192.0.2.1").get(1, TimeUnit.SECONDS);
         assertEquals(ProviderVote.Status.UNKNOWN, result.getStatus());
         assertEquals(FailureReason.TIMEOUT, result.getVotes().get(0).getReason());
+    }
+    @Test void expiredVpnCacheReadCannotRestartAfterALongerRuntimeReload() throws Exception {
+        CompletableFuture<Optional<VpnResult>> cache = new CompletableFuture<>();
+        AtomicInteger calls = new AtomicInteger(), writes = new AtomicInteger();
+        ConnectionGuard.setCacheProvider(new NoCacheProvider() {
+            @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) { return cache; }
+            @Override public CompletableFuture<Void> addVpnResult(VpnResult value) {
+                writes.incrementAndGet(); return CompletableFuture.completedFuture(null);
+            }
+        });
+        provider(ip -> { calls.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); });
+        assertEquals(ProviderVote.Status.UNKNOWN, ConnectionGuard.getVpnResult("192.0.2.240").get(1, TimeUnit.SECONDS).getStatus());
+        awaitIdle();
+        ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 2, 4, 8, 3, 100));
+        cache.complete(Optional.empty());
+        awaitIdle();
+        assertEquals(0, calls.get(), "An expired cache read must not start a provider on the replacement runtime.");
+        assertEquals(0, writes.get(), "The retired query must not write facts into the replacement cache configuration.");
+    }
+    @Test void expiredGeoCacheReadCannotRestartAfterALongerRuntimeReload() throws Exception {
+        CompletableFuture<Optional<GeoResult>> cache = new CompletableFuture<>();
+        AtomicInteger calls = new AtomicInteger(), writes = new AtomicInteger();
+        ConnectionGuard.setCacheProvider(new NoCacheProvider() {
+            @Override public CompletableFuture<Optional<GeoResult>> getGeoResult(String ip) { return cache; }
+            @Override public CompletableFuture<Void> addGeoResult(GeoResult value) {
+                writes.incrementAndGet(); return CompletableFuture.completedFuture(null);
+            }
+        });
+        ConnectionGuard.setGeoProvider(ip -> { calls.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new GeoResult(ip, "PT", "Test", "Test"))); });
+        try {
+            assertEquals(FailureReason.TIMEOUT, ConnectionGuard.getGeoLookup("192.0.2.241").get(1, TimeUnit.SECONDS).getReason());
+            awaitIdle();
+            ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 2, 4, 8, 3, 100));
+            cache.complete(Optional.empty());
+            awaitIdle();
+            assertEquals(0, calls.get(), "An expired geo cache read must not start a provider on the replacement runtime.");
+            assertEquals(0, writes.get());
+        } finally { ConnectionGuard.setGeoProvider(null); }
+    }
+    private static void awaitIdle() throws Exception {
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+        while (!ConnectionGuard.getLookupRuntime().isIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        assertTrue(ConnectionGuard.getLookupRuntime().isIdle());
     }
     @Test void admissionRejectsUniqueIpsBeyondTheBound() throws Exception {
         ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 1, 1, 2, 3, 100));

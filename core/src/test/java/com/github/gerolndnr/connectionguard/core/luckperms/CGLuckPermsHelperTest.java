@@ -114,6 +114,20 @@ class CGLuckPermsHelperTest {
             assertFalse(result.get(2, TimeUnit.SECONDS));
         } finally { loading.complete(user); }
     }
+    @Test void loginDeadlineClipsNativeUserLoadWaitAndIgnoresALaterGrant() throws Exception {
+        ConnectionGuard.configureLookup(new LookupSettings(200, 100, 2, 8, 8, 100, 100));
+        loaded = false; loading = new CompletableFuture<>();
+        com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.Result result =
+                com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.check("192.0.2.211",
+                        ConnectionGuard.getLookupRuntime().getSettings(), System.nanoTime(), false,
+                        com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject)),
+                        com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.Permission.known(true)).get(1, TimeUnit.SECONDS);
+        assertTrue(result.isExpired()); assertFalse(result.vpnExempt()); assertEquals(1, loads.get());
+        loading.complete(user); assertEquals(1, cleanups.get()); assertFalse(result.vpnExempt());
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+        while (!ConnectionGuard.getLookupRuntime().isIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        ConnectionGuard.configureLookup(LookupSettings.defaults());
+    }
     @Test void failedUserLoadIsSafelyDenied() throws Exception {
         loaded = false; loading = new CompletableFuture<>(); loading.completeExceptionally(new IllegalStateException("sensitive database URL"));
         assertFalse(CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject).get());

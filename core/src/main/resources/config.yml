@@ -11,6 +11,8 @@ failure-policy:
   vpn: OPEN
   geo: OPEN
 lookup:
+  # One eligible-login check budget: permissions, admission, cache and detection.
+  # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
   http-timeout-ms: 2500
   workers: 8

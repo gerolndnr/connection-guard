@@ -35,6 +35,7 @@ public final class DecisionCapture implements AutoCloseable {
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
         synchronized (ConnectionGuard.class) { return new DecisionCapture(platform, phase, ip, uuid, trust); }
     }
+    public long startedNanos() { return started; }
     public boolean observe() { return settings.observe; }
     public GuardSettings settings() { return settings; }
     public void denied(Reason reason) { denied = reason; }
