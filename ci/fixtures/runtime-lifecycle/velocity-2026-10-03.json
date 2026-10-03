@@ -1,6 +1,6 @@
 {
-  "artifact_sha256": "3df3148c76195238f519b32715e4df691114a44e1bcaffa2f5488889fed8071e",
-  "addon_sha256": "1b43741f0188b6779c5dd54bdbeeaa65a7267e388df02e7b62bc40cc2b86461c",
+  "artifact_sha256": "da453473d918fee1f636c78ef1edb168db86d10d80afdd1647a797968d20d928",
+  "addon_sha256": "d71d3e40ba4f8cf7dd3ee84752626872670a083bd14e3547d287e722b25a39ee",
   "fixture_source_sha256": "e41ef19a0afec7e080664a7387dda9ba66d68707d1727e1e16aaaecd2ae3acc0",
   "proxy": "Velocity 3.4.0 build 566",
   "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",

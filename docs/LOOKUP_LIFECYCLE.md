@@ -19,8 +19,9 @@ not a JVM sandbox and cannot safely be forcibly killed.
 
 Shutdown cancels queued/running transport futures and interrupts workers. Existing
 finite deadline callbacks remain scheduled to settle owners such as a pending
-LuckPerms permission request. New submissions are rejected. A closed runtime cannot
-be reinitialized while its old worker/timer executors remain live. A later user load
+LuckPerms permission request. New submissions are rejected. A query racing with shutdown returns CANCELLED without
+invoking its supplier or leaving a shared flight behind. After shutdown, a runtime
+cannot be reinitialized while its old worker/timer executors remain live. A later user load
 cannot grant a timed-out permission; loaded-by-helper users are cleaned up on completion.
 
 The core regressions reproduce lost permission timeouts and replacement around an

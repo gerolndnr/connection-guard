@@ -28,7 +28,13 @@ public final class LookupCoordinator {
         }
         final CompletableFuture<T> published = result;
         final CompletableFuture<T> target = new CompletableFuture<>();
-        ScheduledFuture<?> deadline = runtime.schedule(() -> fallback(target, timeout), runtime.getSettings().deadlineMillis);
+        ScheduledFuture<?> deadline;
+        try { deadline = runtime.schedule(() -> fallback(target, timeout), runtime.getSettings().deadlineMillis); }
+        catch (RejectedExecutionException closed) {
+            synchronized (flights) { flights.remove(key, published); }
+            published.completeExceptionally(new LookupException(FailureReason.CANCELLED));
+            return published.thenApply(value -> value);
+        }
         target.whenComplete((value, error) -> {
             deadline.cancel(false);
             synchronized (flights) { flights.remove(key, published); }

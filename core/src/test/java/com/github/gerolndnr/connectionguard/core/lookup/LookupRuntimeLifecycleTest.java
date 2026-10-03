@@ -82,6 +82,16 @@ class LookupRuntimeLifecycleTest {
             assertTrue(runtime.retireIfIdle());
         }
     }
+    @Test void queryAfterShutdownCannotLeakASharedFlightOrInvokeTheSupplier() throws Exception {
+        LookupRuntime runtime = new LookupRuntime(LookupSettings.defaults());
+        LookupCoordinator coordinator = new LookupCoordinator(runtime); runtime.close();
+        CompletableFuture<String> rejected = coordinator.query("late-ip", () -> {
+            fail("Shutdown query invoked supplier."); return CompletableFuture.completedFuture("bad");
+        }, () -> "timeout", () -> "overloaded");
+        ExecutionException error = assertThrows(ExecutionException.class, () -> rejected.get(1, TimeUnit.SECONDS));
+        assertEquals(FailureReason.CANCELLED, LookupException.reason(error));
+        assertEquals(0, coordinator.inflight());
+    }
     static void awaitRelease(CountDownLatch release) {
         while (release.getCount() > 0) { try { release.await(); } catch (InterruptedException ignored) { } }
     }
