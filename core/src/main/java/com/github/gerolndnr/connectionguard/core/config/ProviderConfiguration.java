@@ -22,6 +22,7 @@ public final class ProviderConfiguration {
     public final LocalDataStore localStore;
     public final List<LocalSnapshot> localSnapshots;
     public final int localUpdateHours;
+    public final List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> extensionProviders;
     private final transient Function<String, Object> values;
     private final transient List<String> providerKeys;
     private final transient Path dataDirectory;
@@ -104,6 +105,13 @@ public final class ProviderConfiguration {
             dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         }
         if (local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
+        List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> selected = new ArrayList<>();
+        for (com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings.Source source : new com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings(value).sources) {
+            com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider adapter = new com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider(source);
+            keys.add(adapter.sourceName()); providers.add(adapter); selected.add(adapter);
+            dayBudgets.put(adapter.sourceName(), source.dayBudget); minuteBudgets.put(adapter.sourceName(), source.minuteBudget);
+        }
+        extensionProviders = Collections.unmodifiableList(selected);
         String geoService = GuardSettings.string(value, "provider.geo.service", "IP-API");
         geo = geoService.equalsIgnoreCase("Disabled") ? null : geoService.equalsIgnoreCase("Local")
                 ? new LocalGeoProvider(loaded.stream().filter(snapshot -> snapshot.source.kind == LocalSource.Kind.GEO).findFirst().get(),
@@ -117,7 +125,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema5-local:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema6-extensions:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

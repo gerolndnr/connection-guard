@@ -51,7 +51,13 @@ def verify(artifact, version):
         require(velocity.get("version") == version, "Velocity version differs from the Gradle project version.")
 
         counts = {}
-        for module, expected_major in MAJORS.items():
+        expected_modules = dict(MAJORS)
+        if re.search(r"^integrations:\s*$", jar.read("config.yml").decode("utf-8"), re.MULTILINE):
+            expected_modules["api"] = 52
+            for api_type in ("ConnectionGuardApi", "DetectionProvider", "DetectionObservation", "DetectionMetadata", "ProviderDescriptor", "ProviderRegistration"):
+                entry = PACKAGE.replace(".", "/") + "/api/v1/" + api_type + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate versioned API type: {api_type}")
+        for module, expected_major in expected_modules.items():
             prefix = PACKAGE.replace(".", "/") + "/" + module + "/"
             classes = [name for name in names if name.startswith(prefix) and name.endswith(".class")]
             require(classes, f"No classes found for module: {module}")

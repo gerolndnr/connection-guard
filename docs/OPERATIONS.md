@@ -2,6 +2,7 @@
 
 Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
 Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
+Explicit addon selection: [versioned provider contract](PROVIDER_API_V1.md).
 
 Development documentation for the next release. Do not infer these features from the unchanged 0.4.10 tag.
 

@@ -1,0 +1,23 @@
+{
+  "artifact_sha256": "fa21cb6ac0432fa0827505d16870609ad6baeb79038fe015e3d42a7bc5401635",
+  "addon_sha256": "0e3be96fc6f8cdb9e1dcd54273feddbd877d44f8a2a6416aaf0f4c4207a9ff08",
+  "fixture_source_sha256": "37239b149dc9018f1d083b7a789e79f9d0440233fd7223c5c8704510b2464411",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "backend_join_tested": false,
+  "authenticated_identity_tested": false,
+  "installed_addon_does_not_activate_itself": true,
+  "selected_missing_module_is_unknown_without_callback": true,
+  "unshaded_addon_classloader_and_rich_stable_attribution": true,
+  "positive_cache_reuses_callback_facts": true,
+  "closing_module_invalidates_prior_cached_negative": true,
+  "replacement_requires_reload_and_old_close_cannot_remove_it": true,
+  "invalid_voting_or_quorum_keeps_active_draft": true,
+  "selected_module_obeys_actual_request_budget": true,
+  "32_real_logins_share_one_addon_invocation": true,
+  "pending_addon_login_deadline_ms": 407,
+  "blocking_addon_login_deadline_ms": 407,
+  "invalid_and_typed_failed_observations_remain_unknown": true,
+  "shutdown_passed": true
+}

@@ -1,0 +1,1 @@
+{"id":"connection-guard-contract-fixture","name":"Connection Guard synthetic API contract fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false}],"main":"fixture.ProviderContractFixture"}

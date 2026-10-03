@@ -41,8 +41,9 @@ public final class GuardSettings {
             }
         }
         com.github.gerolndnr.connectionguard.core.local.LocalDataSettings local = new com.github.gerolndnr.connectionguard.core.local.LocalDataSettings(value);
-        enabled += local.votingProviders();
-        int allSources = enabled + (local.vpnEnabled ? local.sources.size() - local.votingProviders() : 0);
+        com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings extensions = new com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings(value);
+        enabled += local.votingProviders() + extensions.voting();
+        int allSources = enabled + (local.vpnEnabled ? local.sources.size() - local.votingProviders() : 0) + extensions.sources.size() - extensions.voting();
         if (allSources > 16) throw new IllegalArgumentException("At most 16 VPN/enrichment providers may be enabled.");
         int threshold = integer(value, "required-positive-flags", 1);
         if (threshold < 1 || threshold > 16 || (enabled > 0 && threshold > enabled)) throw new IllegalArgumentException("required-positive-flags must be 1..enabled voting provider count (maximum 16).");
