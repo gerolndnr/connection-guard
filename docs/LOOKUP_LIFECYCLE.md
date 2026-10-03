@@ -31,3 +31,7 @@ timer callbacks, blocked completion callbacks and addon linkage failure. The act
 same/changed reloads and recovery after a blocked supplier releases. Its named proof
 does not qualify authenticated identities, Floodgate or an entire end-to-end login
 budget; those require their own integration work.
+
+The separate [login check budget](LOGIN_CHECK_BUDGET.md) now clips permission and
+detection waits together. Delayed cache responses retain the original runtime and
+limits, so an expired cache miss cannot restart work after a longer-limit reload.

@@ -9,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 
 /** Schema v2 leaves legacy tables untouched and never imports old boolean-only decisions. */
 public class SQLiteCacheProvider extends SerialCacheProvider {
+    // Avoid javac 8 bridge debug-table differences between full and incremental builds.
+    @Override public void setNamespace(String namespace) { super.setNamespace(namespace); }
     private final String location;
     private Connection connection;
     public SQLiteCacheProvider(String location) { this.location = location; }

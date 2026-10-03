@@ -1,0 +1,1 @@
+{"id":"connection-guard-budget-fixture","name":"Connection Guard synthetic login budget fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false}],"main":"fixture.LoginBudgetFixture"}

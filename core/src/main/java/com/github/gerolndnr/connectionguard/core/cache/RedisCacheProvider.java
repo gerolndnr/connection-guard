@@ -11,6 +11,8 @@ import java.util.concurrent.CompletableFuture;
 
 /** Bounded serial connection, explicit ACL username, server TTL on each entry. */
 public class RedisCacheProvider extends SerialCacheProvider {
+    // Avoid javac 8 bridge debug-table differences between full and incremental builds.
+    @Override public void setNamespace(String namespace) { super.setNamespace(namespace); }
     private final String host, username, password;
     private final int port;
     private final boolean tls;

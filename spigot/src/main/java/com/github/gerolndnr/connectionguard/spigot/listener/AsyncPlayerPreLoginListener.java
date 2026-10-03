@@ -44,37 +44,28 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
                 preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection denied by server access policy."); decision.denied(DecisionObservation.Reason.ACCESS_RULE); return;
             }
-            CompletableFuture<Boolean> hasVpnExemptionPermissionFuture = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
-                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
-                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn") : CompletableFuture.completedFuture(false);
-            CompletableFuture<Boolean> hasGeoExemptionPermissionFuture = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
-                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
-                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo") : CompletableFuture.completedFuture(false);
-            CompletableFuture<LoginAdmission> admission = hasVpnExemptionPermissionFuture.thenCombine(hasGeoExemptionPermissionFuture,
-                    (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(clientIp, vpnBypass, geoBypass, decision.observe()));
-            CompletableFuture<VpnResult> vpnResultFuture = admission.thenCompose(entry -> entry.isAllowed()
-                    ? (hasVpnExemptionPermissionFuture.join() ? CompletableFuture.completedFuture(new VpnResult(clientIp, false)) : ConnectionGuard.getVpnResult(clientIp))
-                    : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(clientIp, FailureReason.OVERLOADED)));
-            CompletableFuture<GeoLookup> geoLookupFuture = admission.thenCompose(entry -> entry.isAllowed()
-                    ? (hasGeoExemptionPermissionFuture.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(clientIp))
-                    : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
-            CompletableFuture<Optional<GeoResult>> geoResultOptionalFuture = geoLookupFuture.thenApply(GeoLookup::getResult);
-
-            CompletableFuture.allOf(vpnResultFuture, geoResultOptionalFuture, hasVpnExemptionPermissionFuture, hasGeoExemptionPermissionFuture).join();
-
-            if (!admission.join().isAllowed()) {
+            LoginChecks.Permission vpnPermission = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
+                    ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                        ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn")) : LoginChecks.Permission.known(false);
+            LoginChecks.Permission geoPermission = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.exemptions"), clientIp, uuid, trusted)
+                    ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                        ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo")) : LoginChecks.Permission.known(false);
+            LoginChecks.Result checks = LoginChecks.check(clientIp, decision.settings().lookup, decision.startedNanos(), decision.observe(),
+                    vpnPermission, geoPermission).join();
+            if (checks.isCancelled()) { decision.error(); return; }
+            if (!checks.isAdmitted()) {
                 decision.overload();
-                if (admission.join().shouldDeny()) {
+                if (checks.shouldDenyAdmission()) {
                     preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection checks are temporarily busy. Please retry shortly.");
                     decision.denied(DecisionObservation.Reason.OVERLOAD);
                 }
                 return;
             }
             long asOf = System.currentTimeMillis();
-                VpnResult vpnResult = LookupFreshness.vpn(vpnResultFuture.join(), asOf);
-                GeoLookup currentGeo = LookupFreshness.geo(geoLookupFuture.join(), asOf);
-            Boolean hasVpnExemptionPermission = hasVpnExemptionPermissionFuture.join();
-            Boolean hasGeoExemptionPermission = hasGeoExemptionPermissionFuture.join();
+                VpnResult vpnResult = LookupFreshness.vpn(checks.vpn(), asOf);
+                GeoLookup currentGeo = LookupFreshness.geo(checks.geo(), asOf);
+            Boolean hasVpnExemptionPermission = checks.vpnExempt();
+            Boolean hasGeoExemptionPermission = checks.geoExempt();
             decision.facts(vpnResult, currentGeo, hasVpnExemptionPermission, hasGeoExemptionPermission, asOf);
 
 

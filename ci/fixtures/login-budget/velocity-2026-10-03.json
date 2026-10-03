@@ -1,0 +1,31 @@
+{
+  "artifact_sha256": "5a7038676adc7ed79cb1bbc2bfa12e0efabf21f28f25aa329089c5975942570b",
+  "addon_sha256": "4f5e27947025c043703cd5ba935fef441dd4449cf97372dc4312b42decf65c4d",
+  "fixture_source_sha256": "748ebf2233676f5064c07387cecf620a0da314959e575dd935ec4cf160c6d8d8",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "permission_api": "LuckPerms API 5.4",
+  "permission_api_sha256": "086e3971ea63c0b5ad567881b2dfd955acbbffa24fe85ceac8abf54b114ce986",
+  "permission_authority_is_synthetic": true,
+  "native_luckperms_plugin_tested": false,
+  "authenticated_identity_tested": false,
+  "backend_join_tested": false,
+  "other_platforms_tested": false,
+  "java": 21,
+  "configured_check_budget_ms": 250,
+  "observed_durations_ms": [
+    34,
+    254,
+    257,
+    49,
+    24,
+    252
+  ],
+  "untrusted_offline_name_does_not_query_or_grant_permissions": true,
+  "permission_wait_is_clipped_and_late_grant_starts_no_detection_or_commands": true,
+  "permission_and_source_wait_share_one_budget_and_late_positive_has_no_second_action": true,
+  "timely_positive_performs_one_existing_configured_action": true,
+  "timely_permission_grant_avoids_detection": true,
+  "observe_timeout_preserves_unknown_without_command_or_denial": true,
+  "shutdown_passed": true
+}

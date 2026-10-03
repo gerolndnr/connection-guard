@@ -72,40 +72,34 @@ public class ConnectionGuardVelocityListener {
                     || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
                 deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE); decision.close(); return CompletableFuture.completedFuture(null);
             }
-            CompletableFuture<Boolean> vpnExempt = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
-                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
-                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject) : CompletableFuture.completedFuture(false);
-            CompletableFuture<Boolean> geoExempt = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
-                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
-                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
-            CompletableFuture<LoginAdmission> admission = vpnExempt.thenCombine(geoExempt,
-                    (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(ipAddress, vpnBypass, geoBypass, decision.observe()));
-            CompletableFuture<VpnResult> vpnFuture = admission.thenCompose(entry -> entry.isAllowed()
-                    ? (vpnExempt.join() ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress))
-                    : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(ipAddress, FailureReason.OVERLOADED)));
-            CompletableFuture<GeoLookup> geoFuture = admission.thenCompose(entry -> entry.isAllowed()
-                    ? (geoExempt.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress))
-                    : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
-            return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
-                if (!admission.join().isAllowed()) {
+            LoginChecks.Permission vpnPermission = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
+                    ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                        ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject)) : LoginChecks.Permission.known(false);
+            LoginChecks.Permission geoPermission = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
+                    ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                        ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject)) : LoginChecks.Permission.known(false);
+            return LoginChecks.check(ipAddress, decision.settings().lookup, decision.startedNanos(), decision.observe(),
+                    vpnPermission, geoPermission).thenAccept(checks -> {
+                if (checks.isCancelled()) { decision.error(); return; }
+                if (!checks.isAdmitted()) {
                     decision.overload();
-                    if (admission.join().shouldDeny()) {
+                    if (checks.shouldDenyAdmission()) {
                         deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));
                         decision.denied(DecisionObservation.Reason.OVERLOAD);
                     }
                     return;
                 }
                 long asOf = System.currentTimeMillis();
-                VpnResult vpnResult = LookupFreshness.vpn(vpnFuture.join(), asOf);
-                GeoLookup currentGeo = LookupFreshness.geo(geoFuture.join(), asOf);
+                VpnResult vpnResult = LookupFreshness.vpn(checks.vpn(), asOf);
+                GeoLookup currentGeo = LookupFreshness.geo(checks.geo(), asOf);
                 Optional<GeoResult> geoResultOptional = currentGeo.getResult();
-                decision.facts(vpnResult, currentGeo, vpnExempt.join(), geoExempt.join(), asOf);
+                decision.facts(vpnResult, currentGeo, checks.vpnExempt(), checks.geoExempt(), asOf);
                 EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
                 EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
                 decision.policy(vpnPolicy, geoPolicy);
-                boolean vpnBypassed = vpnExempt.join() || vpnPolicy.isBypassed();
-                boolean geoBypassed = geoExempt.join() || geoPolicy.isBypassed();
-                if (!decision.observe() && ((!vpnExempt.join() && vpnPolicy.isDenied()) || (!geoExempt.join() && geoPolicy.isDenied()))) {
+                boolean vpnBypassed = checks.vpnExempt() || vpnPolicy.isBypassed();
+                boolean geoBypassed = checks.geoExempt() || geoPolicy.isBypassed();
+                if (!decision.observe() && ((!checks.vpnExempt() && vpnPolicy.isDenied()) || (!checks.geoExempt() && geoPolicy.isDenied()))) {
                     deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                     return;
                 }

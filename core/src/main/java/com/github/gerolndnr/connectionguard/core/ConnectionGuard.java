@@ -170,20 +170,22 @@ public class ConnectionGuard {
         final List<VpnProvider> providers = vpnProviders == null ? Collections.emptyList() : new ArrayList<>(vpnProviders);
         final int threshold = requiredPositiveFlags;
         final long started = System.nanoTime();
-        final AtomicReferenceArray<ProviderVote> votes = new AtomicReferenceArray<>(providers.size());
-        final AtomicReferenceArray<VpnResult> answers = new AtomicReferenceArray<>(providers.size());
-        Supplier<VpnResult> timedOut = () -> aggregate(ipAddress, providers, threshold, votes, answers, started, FailureReason.TIMEOUT);
-        return coordinator.query("vpn:" + ipAddress, () -> safeCacheVpn(ipAddress, providers).thenCompose(cached -> {
-            if (elapsed(started) >= lookupRuntime.getSettings().deadlineMillis) return CompletableFuture.completedFuture(timedOut.get());
+        final LookupRuntime runtime = lookupRuntime;
+        final LookupSettings limits = runtime.getSettings();
+        final CacheProvider cache = cacheProvider;
+        final AtomicReferenceArray<CompletedSource> sources = new AtomicReferenceArray<>(providers.size());
+        Supplier<VpnResult> timedOut = () -> aggregate(ipAddress, providers, threshold, sources, started, FailureReason.TIMEOUT, Long.MAX_VALUE);
+        return coordinator.query("vpn:" + ipAddress, () -> safeCacheVpn(cache, ipAddress, providers).thenCompose(cached -> {
+            if (!runtime.isOpen() || elapsed(started) >= limits.deadlineMillis) return CompletableFuture.completedFuture(timedOut.get());
             if (cached.isPresent()) { cached.get().setFromCache(true); return CompletableFuture.completedFuture(cached.get()); }
             List<CompletableFuture<?>> jobs = new ArrayList<>();
             for (int i = 0; i < providers.size(); i++) {
                 final int index = i;
                 final VpnProvider provider = providers.get(i);
                 final String name = providerId(provider, i);
-                long remaining = lookupRuntime.getSettings().deadlineMillis - elapsed(started);
+                long remaining = limits.deadlineMillis - elapsed(started);
                 CompletableFuture<Optional<VpnResult>> job;
-                if (provider.isAvailable()) job = providerCall(name, () -> provider.getVpnResult(ipAddress), remaining);
+                if (provider.isAvailable()) job = providerCall(runtime, name, () -> provider.getVpnResult(ipAddress), remaining);
                 else {
                     VpnResult unavailable = new VpnResult(ipAddress, false); unavailable.setUnknown(FailureReason.NO_PROVIDER);
                     job = CompletableFuture.completedFuture(Optional.of(unavailable));
@@ -209,32 +211,41 @@ public class ConnectionGuard {
                     ProviderHealth sourceHealth = health.get(quotaKey(name));
                     if (reason != FailureReason.NONE && reason != FailureReason.NO_EVIDENCE && reason != FailureReason.STALE_DATA
                             && logger != null && sourceHealth != null && sourceHealth.claimAlert()) logger.warning("VPN provider response unavailable (" + reason + ").");
-                    if (valid) answers.set(index, answer.get());
-                    votes.set(index, new ProviderVote(name, status, reason, elapsed(started), valid ? answer.get().getDetails() : DetectionDetails.empty(),
-                            valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null, provider.isVoting()));
+                    sources.set(index, new CompletedSource(new ProviderVote(name, status, reason, elapsed(started), valid ? answer.get().getDetails() : DetectionDetails.empty(),
+                            valid ? answer.get().getValidUntil() : 0, valid ? answer.get().getSourceVersion() : null, provider.isVoting()),
+                            valid ? answer.get().getVpnProviderName() : Optional.empty()));
                     return null;
                 }));
             }
             return CompletableFuture.allOf(jobs.toArray(new CompletableFuture[0])).thenApply(ignored -> {
-                VpnResult result = aggregate(ipAddress, providers, threshold, votes, answers, started, FailureReason.NO_PROVIDER);
+                VpnResult result = aggregate(ipAddress, providers, threshold, sources, started, FailureReason.NO_PROVIDER, Long.MAX_VALUE);
                 if (result.getStatus() != ProviderVote.Status.UNKNOWN) {
                     // Persisting is best effort; it must never extend the login deadline.
                     result.setCachedOn(System.currentTimeMillis());
-                    try { cacheProvider.addVpnResult(result).exceptionally(error -> null); }
+                    try { cache.addVpnResult(result).exceptionally(error -> null); }
                     catch (RuntimeException failure) { /* A cache outage cannot turn a positive into a negative. */ }
                 }
                 return result;
             });
-        }), timedOut, () -> unknownVpn(ipAddress, FailureReason.OVERLOADED));
+        }), timedOut, () -> unknownVpn(ipAddress, FailureReason.OVERLOADED),
+                cutoff -> aggregate(ipAddress, providers, threshold, sources, started, FailureReason.TIMEOUT, cutoff));
     }
 
+    private static final class CompletedSource {
+        private final ProviderVote vote;
+        private final Optional<String> operator;
+        private final long atNanos = System.nanoTime();
+        private CompletedSource(ProviderVote vote, Optional<String> operator) { this.vote = vote; this.operator = operator; }
+    }
     private static VpnResult aggregate(String ip, List<VpnProvider> providers, int threshold,
-            AtomicReferenceArray<ProviderVote> votes, AtomicReferenceArray<VpnResult> answers, long started, FailureReason missing) {
+            AtomicReferenceArray<CompletedSource> sources, long started, FailureReason missing, long notAfterNanos) {
         List<ProviderVote> trace = new ArrayList<>();
         int positive = 0, complete = 0, voting = 0;
         Optional<String> operator = Optional.empty();
         for (int i = 0; i < providers.size(); i++) {
-            ProviderVote vote = votes.get(i);
+            CompletedSource source = sources.get(i);
+            if (source != null && notAfterNanos != Long.MAX_VALUE && source.atNanos - notAfterNanos > 0) source = null;
+            ProviderVote vote = source == null ? null : source.vote;
             if (vote == null) vote = new ProviderVote(providerId(providers.get(i), i),
                     ProviderVote.Status.UNKNOWN, missing, elapsed(started), DetectionDetails.empty(), 0, null, providers.get(i).isVoting());
             if (!vote.isFresh(System.currentTimeMillis())) vote = new ProviderVote(vote.getProvider(), ProviderVote.Status.UNKNOWN,
@@ -245,8 +256,7 @@ public class ConnectionGuard {
                 if (vote.getStatus() != ProviderVote.Status.UNKNOWN) complete++;
                 if (vote.getStatus() == ProviderVote.Status.POSITIVE) positive++;
             }
-            VpnResult answer = answers.get(i);
-            if (answer != null && vote.getReason() != FailureReason.STALE_DATA && answer.getVpnProviderName().isPresent()) operator = answer.getVpnProviderName();
+            if (source != null && vote.getReason() != FailureReason.STALE_DATA && source.operator.isPresent()) operator = source.operator;
         }
         VpnResult result = new VpnResult(ip, false, operator);
         result.setStatus(positive >= threshold ? ProviderVote.Status.POSITIVE
@@ -260,6 +270,11 @@ public class ConnectionGuard {
         return result;
     }
 
+    /** Current in-flight facts only: no cache read, network work, publication or caller cancellation. */
+    public static synchronized Optional<VpnResult> snapshotVpn(String address, long notAfterNanos) {
+        return coordinator.<VpnResult>snapshot("vpn:" + Exemptions.normalize(address), notAfterNanos);
+    }
+
     public static VpnResult unknownVpn(String ip, FailureReason reason) {
         VpnResult result = new VpnResult(ip, false);
         result.setStatus(ProviderVote.Status.UNKNOWN);
@@ -267,9 +282,9 @@ public class ConnectionGuard {
         return result;
     }
 
-    private static CompletableFuture<Optional<VpnResult>> safeCacheVpn(String ip, List<VpnProvider> providers) {
+    private static CompletableFuture<Optional<VpnResult>> safeCacheVpn(CacheProvider cache, String ip, List<VpnProvider> providers) {
         if (providers.stream().anyMatch(provider -> !provider.isAvailable())) return CompletableFuture.completedFuture(Optional.empty());
-        try { return cacheProvider.getVpnResult(ip).exceptionally(error -> Optional.empty()).thenApply(answer -> answer.filter(result ->
+        try { return cache.getVpnResult(ip).exceptionally(error -> Optional.empty()).thenApply(answer -> answer.filter(result ->
                 providers.stream().allMatch(VpnProvider::isAvailable) && (result.getValidUntil() == 0 || System.currentTimeMillis() < result.getValidUntil())
                         && result.getVotes().stream().allMatch(vote -> vote.isFresh(System.currentTimeMillis())))); }
         catch (RuntimeException failure) { return CompletableFuture.completedFuture(Optional.empty()); }
@@ -283,15 +298,19 @@ public class ConnectionGuard {
         final String ipAddress = Exemptions.normalize(address);
         final long started = System.nanoTime();
         final GeoProvider provider = geoProvider;
+        final LookupRuntime runtime = lookupRuntime;
+        final LookupSettings limits = runtime.getSettings();
+        final CacheProvider store = cacheProvider;
         return coordinator.query("geo:" + ipAddress, () -> {
             CompletableFuture<Optional<GeoResult>> cache;
-            try { cache = cacheProvider.getGeoResult(ipAddress).exceptionally(error -> Optional.empty()); }
+            try { cache = store.getGeoResult(ipAddress).exceptionally(error -> Optional.empty()); }
             catch (RuntimeException failure) { cache = CompletableFuture.completedFuture(Optional.empty()); }
             return cache.thenCompose(cached -> {
+                if (!runtime.isOpen() || elapsed(started) >= limits.deadlineMillis) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.TIMEOUT, false, elapsed(started)));
                 if (cached.isPresent() && (cached.get().getValidUntil() == 0 || System.currentTimeMillis() < cached.get().getValidUntil())) return CompletableFuture.completedFuture(new GeoLookup(cached, FailureReason.NONE, true, elapsed(started)));
                 if (provider == null) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NO_PROVIDER, false, elapsed(started)));
-                return providerCall(providerName(provider), () -> provider.getGeoResult(ipAddress),
-                        lookupRuntime.getSettings().deadlineMillis - elapsed(started)).handle((answer, error) -> {
+                return providerCall(runtime, providerName(provider), () -> provider.getGeoResult(ipAddress),
+                        limits.deadlineMillis - elapsed(started)).handle((answer, error) -> {
                     FailureReason reason = error == null ? FailureReason.NONE : LookupException.reason(error);
                     if (answer == null || !answer.isPresent()) { answer = Optional.empty(); if (error == null) reason = FailureReason.INVALID_RESPONSE; }
                     if (answer.isPresent()) {
@@ -301,7 +320,7 @@ public class ConnectionGuard {
                     }
                     if (answer.isPresent()) {
                         answer.get().setCachedOn(System.currentTimeMillis());
-                        try { cacheProvider.addGeoResult(answer.get()).exceptionally(failure -> null); }
+                        try { store.addGeoResult(answer.get()).exceptionally(failure -> null); }
                         catch (RuntimeException failure) { /* best effort */ }
                     }
                     return new GeoLookup(answer, reason, false, elapsed(started));
@@ -311,23 +330,23 @@ public class ConnectionGuard {
            () -> new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, elapsed(started)));
     }
 
-    private static <T> CompletableFuture<T> providerCall(String name, Supplier<CompletableFuture<T>> supplier, long remaining) {
-        if (remaining <= 0) {
-            CompletableFuture<T> expired = new CompletableFuture<>(); expired.completeExceptionally(new LookupException(FailureReason.TIMEOUT)); return expired;
+    private static <T> CompletableFuture<T> providerCall(LookupRuntime runtime, String name, Supplier<CompletableFuture<T>> supplier, long remaining) {
+        if (remaining <= 0 || !runtime.isOpen()) {
+            CompletableFuture<T> expired = new CompletableFuture<>(); expired.completeExceptionally(new LookupException(runtime.isOpen() ? FailureReason.TIMEOUT : FailureReason.CANCELLED)); return expired;
         }
         ProviderHealth state = health.computeIfAbsent(quotaKey(name), key -> new ProviderHealth());
         FailureReason admission = state.reserve(System.currentTimeMillis());
         CompletableFuture<T> bounded = new CompletableFuture<>();
         if (admission != FailureReason.NONE) { bounded.completeExceptionally(new LookupException(admission)); return bounded; }
         CompletableFuture<T> outcome = new CompletableFuture<>();
-        ScheduledFuture<?> timeout = lookupRuntime.schedule(() -> outcome.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
+        ScheduledFuture<?> timeout = runtime.schedule(() -> outcome.completeExceptionally(new LookupException(FailureReason.TIMEOUT)), Math.max(0, remaining));
         outcome.whenComplete((answer, error) -> {
             timeout.cancel(false);
-            state.record(error == null ? FailureReason.NONE : LookupException.reason(error), error, lookupRuntime.getSettings());
+            state.record(error == null ? FailureReason.NONE : LookupException.reason(error), error, runtime.getSettings());
             if (error == null) bounded.complete(answer); else bounded.completeExceptionally(error);
         });
         try {
-            lookupRuntime.submit(() -> {
+            runtime.submit(() -> {
                 if (outcome.isDone()) throw new LookupException(FailureReason.CANCELLED);
                 return supplier.get();
             }).thenCompose(future -> future).whenComplete((answer, error) -> {
