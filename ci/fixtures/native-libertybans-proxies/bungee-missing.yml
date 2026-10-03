@@ -1,0 +1,4 @@
+name: BungeeMissingBanFixture
+version: 1
+main: fixture.BungeeMissingBanFixture
+depends: [ConnectionGuard, ConnectionGuardLibertyBans]
