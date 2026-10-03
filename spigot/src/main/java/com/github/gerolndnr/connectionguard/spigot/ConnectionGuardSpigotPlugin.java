@@ -14,7 +14,6 @@ import com.github.gerolndnr.connectionguard.core.vpn.*;
 import com.github.gerolndnr.connectionguard.core.vpn.custom.CustomVpnProvider;
 import com.github.gerolndnr.connectionguard.spigot.commands.ConnectionGuardSpigotCommand;
 import com.github.gerolndnr.connectionguard.spigot.listener.AsyncPlayerPreLoginListener;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,10 +23,13 @@ import java.util.HashMap;
 
 public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     private static ConnectionGuardSpigotPlugin connectionGuardSpigotPlugin;
-    private YamlConfiguration activeConfig;
+    private volatile YamlConfiguration activeConfig;
     private File languageFile;
-    private YamlConfiguration languageConfig;
+    private volatile YamlConfiguration languageConfig;
     private HashMap<String, VpnProvider> vpnProviderMap;
+    private PlatformTasks platformTasks;
+    private PlatformMetrics metrics;
+    public PlatformTasks tasks() { return platformTasks; }
 
     @Override
     public void onLoad() {
@@ -38,6 +40,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        platformTasks = new PlatformTasks(this);
+        getLogger().info("Platform task dispatch: " + platformTasks.mode());
         // 1. Save Default Config & set logger
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
@@ -60,20 +64,9 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 .version("2.11.0")
                 .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
                 .build();
-        Library bstatsLibrary = Library.builder()
-                // Weird replaceAll is necessary, because the gradle shadow relocate method will
-                // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
-                // here, but not for libraries like gson.
-                // TODO: Investigate why it does that for bStats but not for anything else.
-                .groupId("org#bstats".replaceAll("#", "."))
-                .artifactId("bstats-bukkit")
-                .version("3.0.2")
-                .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
-                .build();
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(gsonLibrary);
-        libraryManager.loadLibrary(bstatsLibrary);
 
         // 3. Download libraries used for specified cache provider and register cache provider afterward
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -126,11 +119,13 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         getCommand("connectionguard").setTabCompleter(new ConnectionGuardSpigotCommand());
 
 
-        Metrics metrics = new Metrics(this, 22911);
+        metrics = new PlatformMetrics(this, platformTasks, 22911);
     }
 
     @Override
     public void onDisable() {
+        if (metrics != null) metrics.close();
+        if (platformTasks != null) platformTasks.close();
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
         if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();

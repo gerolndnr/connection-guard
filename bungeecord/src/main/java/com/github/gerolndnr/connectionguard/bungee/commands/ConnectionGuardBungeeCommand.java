@@ -3,7 +3,6 @@ package com.github.gerolndnr.connectionguard.bungee.commands;
 import com.github.gerolndnr.connectionguard.bungee.ConnectionGuardBungeePlugin;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
-import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -16,7 +15,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -136,35 +134,30 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
             }
 
             VpnResult vpnResult = ConnectionGuard.getVpnResult(ipAddress).join();
-            Optional<GeoResult> geoResultOptional = ConnectionGuard.getGeoResult(ipAddress).join();
-
-            GeoResult geoResult;
-
-            if (geoResultOptional.isPresent()) {
-                geoResult = geoResultOptional.get();
-            } else {
-                geoResult = new GeoResult(ipAddress, "-", "-", "-");
-            }
+            com.github.gerolndnr.connectionguard.core.commands.LookupInformation info = com.github.gerolndnr.connectionguard.core.commands.LookupInformation.asOf(
+                    vpnResult, ConnectionGuard.getGeoLookup(ipAddress).join(), System.currentTimeMillis());
 
             String isVpn = ChatColor.translateAlternateColorCodes(
                     '&',
                     ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
             );
-            if (vpnResult.isVpn()) {
+            if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE) {
                 isVpn = ChatColor.translateAlternateColorCodes(
                         '&',
                         ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
                 );
             }
 
+            if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN) isVpn = "UNKNOWN";
+
             for (String line : ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
                                 line.replace("%INPUT%", queriedInput)
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
-                                        .replace("%CITY%", geoResult.getCityName())
-                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%COUNTRY%", info.getCountry())
+                                        .replace("%CITY%", info.getCity())
+                                        .replace("%ISP%", info.getIsp())
                                         .replace("%IS_VPN%", isVpn)
                                         .replace("%IP%", ipAddress)
                         )

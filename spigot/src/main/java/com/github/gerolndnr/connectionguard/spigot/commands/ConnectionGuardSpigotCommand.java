@@ -2,8 +2,6 @@ package com.github.gerolndnr.connectionguard.spigot.commands;
 
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
-import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
-import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,13 +10,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class ConnectionGuardSpigotCommand implements TabExecutor {
     @Override
@@ -29,7 +22,7 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
         );
 
         if (OperationsCommands.handle(args, commandSender::hasPermission,
-                text -> Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), () -> commandSender.sendMessage(text)))) return true;
+                text -> ConnectionGuardSpigotPlugin.getInstance().tasks().reply(commandSender, text))) return true;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -94,128 +87,42 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
         return true;
     }
 
-    private boolean sendInformationMessage(CommandSender commandSender, String entry) {
-        CompletableFuture.runAsync(() -> {
-            String ipAddress;
-            String queriedInput;
-
-            if (Bukkit.getPlayer(entry) != null) {
-                Player player = Bukkit.getPlayer(entry);
-                ipAddress = player.getAddress().getAddress().getHostAddress();
-                queriedInput = player.getName();
-            } else {
-                try {
-                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
-                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getAddress().getHostAddress();
-                    queriedInput = player.getName();
-                } catch (Exception e) {
-                    try {
-                        ipAddress = InetAddress.getByName(entry).getHostAddress();
-                        queriedInput = ipAddress;
-                    } catch (UnknownHostException ex) {
-                        commandSender.sendMessage(
-                                ChatColor.translateAlternateColorCodes(
-                                        '&',
-                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
-                                )
-                        );
-                        return;
-                    }
-                }
-            }
-
-            VpnResult vpnResult = ConnectionGuard.getVpnResult(ipAddress).join();
-            Optional<GeoResult> geoResultOptional = ConnectionGuard.getGeoResult(ipAddress).join();
-
-            GeoResult geoResult;
-
-            if (geoResultOptional.isPresent()) {
-                geoResult = geoResultOptional.get();
-            } else {
-                geoResult = new GeoResult(ipAddress, "-", "-", "-");
-            }
-
-            String isVpn = ChatColor.translateAlternateColorCodes(
-                    '&',
-                    ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
-            );
-            if (vpnResult.isVpn()) {
-                isVpn = ChatColor.translateAlternateColorCodes(
-                        '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
-                );
-            }
-
-            for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
-                commandSender.sendMessage(
-                        ChatColor.translateAlternateColorCodes(
-                                '&',
-                                line.replace("%INPUT%", queriedInput)
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
-                                        .replace("%CITY%", geoResult.getCityName())
-                                        .replace("%ISP%", geoResult.getIspName())
-                                        .replace("%IS_VPN%", isVpn)
-                                        .replace("%IP%", ipAddress)
-                        )
-                );
-            }
-        });
-
+    private void reply(CommandSender sender, String text) {
+        ConnectionGuardSpigotPlugin.getInstance().tasks().reply(sender, text);
+    }
+    private void target(CommandSender sender, String entry, java.util.function.Consumer<com.github.gerolndnr.connectionguard.spigot.PlatformTasks.Target> action) {
+        ConnectionGuardSpigotPlugin.getInstance().tasks().target(entry, action,
+            () -> reply(sender, "Use a literal IP or the name/UUID of an online player."));
+    }
+    private boolean sendInformationMessage(CommandSender sender, String entry) {
+        target(sender, entry, selected -> ConnectionGuard.getVpnResult(selected.ip).thenCombine(ConnectionGuard.getGeoLookup(selected.ip), (rawVpn, rawGeo) -> {
+            com.github.gerolndnr.connectionguard.core.commands.LookupInformation info = com.github.gerolndnr.connectionguard.core.commands.LookupInformation.asOf(rawVpn, rawGeo, System.currentTimeMillis());
+            String flag = info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN ? "UNKNOWN"
+                    : ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString(info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE ? "messages.info.is-vpn" : "messages.info.not-vpn"));
+            for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) reply(sender,
+                    ChatColor.translateAlternateColorCodes('&', line.replace("%INPUT%", selected.display).replace("%COUNTRY%", info.getCountry())
+                    .replace("%CITY%", info.getCity()).replace("%ISP%", info.getIsp()).replace("%IS_VPN%", flag).replace("%IP%", selected.ip)));
+            return null;
+        }).exceptionally(error -> { reply(sender, "Information unavailable (details redacted)."); return null; }));
         return true;
     }
-
-    private boolean clearCache(CommandSender commandSender, String entry) {
-        // Async, because InetAddress.getByName could affect the main thread (used to determine, if it is a valid hostname/ip address)
-        CompletableFuture.runAsync(() -> {
-            String ipAddress;
-            String queriedInput;
-
-            if (Bukkit.getPlayer(entry) != null) {
-                Player player = Bukkit.getPlayer(entry);
-                ipAddress = player.getAddress().getHostName();
-                queriedInput = player.getName();
-            } else {
-                try {
-                    Player player = Bukkit.getPlayer(UUID.fromString(entry));
-                    ipAddress = Bukkit.getPlayer(UUID.fromString(entry)).getAddress().getHostName();
-                    queriedInput = player.getName();
-                } catch (Exception e) {
-                    try {
-                        ipAddress = InetAddress.getByName(entry).getHostAddress();
-                        queriedInput = ipAddress;
-                    } catch (UnknownHostException ex) {
-                        commandSender.sendMessage(
-                                ChatColor.translateAlternateColorCodes(
-                                        '&',
-                                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
-                                )
-                        );
-                        return;
-                    }
-                }
-            }
-
-            ConnectionGuard.getCacheProvider().removeGeoResult(ipAddress);
-            ConnectionGuard.getCacheProvider().removeVpnResult(ipAddress);
-            commandSender.sendMessage(
-                    ChatColor.translateAlternateColorCodes(
-                            '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific")
-                                    .replace("%ENTRY%", queriedInput)
-                    )
-            );
-        });
-
+    private boolean clearCache(CommandSender sender, String entry) {
+        target(sender, entry, selected -> ConnectionGuard.getCacheProvider().removeGeoResult(selected.ip)
+            .thenCombine(ConnectionGuard.getCacheProvider().removeVpnResult(selected.ip), (geo, vpn) -> {
+                reply(sender, Boolean.TRUE.equals(geo) && Boolean.TRUE.equals(vpn)
+                    ? ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific").replace("%ENTRY%", selected.display))
+                    : "Cache clear unavailable (details redacted).");
+                return null;
+            }).exceptionally(error -> { reply(sender, "Cache clear unavailable (details redacted)."); return null; }));
         return true;
     }
-
-    private boolean clearCache(CommandSender commandSender) {
-        ConnectionGuard.getCacheProvider().removeAllVpnResults();
-        ConnectionGuard.getCacheProvider().removeAllGeoResults();
-        commandSender.sendMessage(ChatColor.translateAlternateColorCodes(
-                '&',
-                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-all")
-        ));
+    private boolean clearCache(CommandSender sender) {
+        ConnectionGuard.getCacheProvider().removeAllVpnResults().thenCombine(ConnectionGuard.getCacheProvider().removeAllGeoResults(), (vpn, geo) -> {
+            reply(sender, Boolean.TRUE.equals(vpn) && Boolean.TRUE.equals(geo)
+                ? ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-all"))
+                : "Cache clear unavailable (details redacted).");
+            return null;
+        }).exceptionally(error -> { reply(sender, "Cache clear unavailable (details redacted)."); return null; });
         return true;
     }
 

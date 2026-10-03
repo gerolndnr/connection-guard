@@ -2,7 +2,6 @@ package com.github.gerolndnr.connectionguard.velocity.commands;
 
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
-import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import com.github.gerolndnr.connectionguard.velocity.ConnectionGuardVelocityPlugin;
 import com.velocitypowered.api.command.CommandSource;
@@ -16,7 +15,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -132,29 +130,24 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             }
 
             VpnResult vpnResult = ConnectionGuard.getVpnResult(ipAddress).join();
-            Optional<GeoResult> geoResultOptional = ConnectionGuard.getGeoResult(ipAddress).join();
-
-            GeoResult geoResult;
-
-            if (geoResultOptional.isPresent()) {
-                geoResult = geoResultOptional.get();
-            } else {
-                geoResult = new GeoResult(ipAddress, "-", "-", "-");
-            }
+            com.github.gerolndnr.connectionguard.core.commands.LookupInformation info = com.github.gerolndnr.connectionguard.core.commands.LookupInformation.asOf(
+                    vpnResult, ConnectionGuard.getGeoLookup(ipAddress).join(), System.currentTimeMillis());
 
             String isVpn = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.info.not-vpn");
 
-            if (vpnResult.isVpn()) {
+            if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE) {
                 isVpn = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.info.is-vpn");
             }
+
+            if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN) isVpn = "UNKNOWN";
 
             for (String line : ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         LegacyComponentSerializer.legacyAmpersand().deserialize(
                                 line.replace("%INPUT%", queriedInput)
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
-                                        .replace("%CITY%", geoResult.getCityName())
-                                        .replace("%ISP%", geoResult.getIspName())
+                                        .replace("%COUNTRY%", info.getCountry())
+                                        .replace("%CITY%", info.getCity())
+                                        .replace("%ISP%", info.getIsp())
                                         .replace("%IS_VPN%", isVpn)
                                         .replace("%IP%", ipAddress)
                         )
