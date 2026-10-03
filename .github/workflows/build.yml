@@ -46,6 +46,7 @@ jobs:
           java-version: |
             8
             17
+            21
           cache: gradle
 
       - name: Configure installed toolchains
@@ -67,6 +68,25 @@ jobs:
 
       - name: Verify plugin artifact
         run: python3 ci/verify_artifact.py
+
+      - name: Verify release regression guards
+        run: python3 ci/test_release_gate.py
+
+      - name: Start the combined JAR on a clean Velocity proxy
+        run: |
+          python3 ci/startup_smoke.py --platform velocity --artifact build/libs/*-all.jar \
+            --java "$JAVA_HOME_21_X64/bin/java" --work-dir "$RUNNER_TEMP/connection-guard-velocity"
+
+      - name: Retain runtime qualification logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: connection-guard-runtime-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/connection-guard-velocity/console.log
+            ${{ runner.temp }}/connection-guard-velocity/result.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Create SHA-256 checksum
         run: sha256sum build/libs/*-all.jar > build/libs/SHA256SUMS

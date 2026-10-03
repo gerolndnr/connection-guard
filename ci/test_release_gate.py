@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""Regression checks: missing runtime classes and stale/failed runtime proof must fail."""
+import copy
+import hashlib
+import json
+from pathlib import Path
+import tempfile
+import unittest
+import warnings
+import zipfile
+
+from release_gate import QualificationError, validate_runtime_evidence
+from startup_smoke import RUNTIMES
+from verify_artifact import verify, PACKAGE
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class RuntimeEvidenceTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.manifest = {"version": "0.4.11", "sha256": "a" * 64, "source_commit": "b" * 40, "startup_evidence": {}}
+        for platform in RUNTIMES:
+            directory = self.root / platform
+            directory.mkdir()
+            log = b"Done (1s)!\nOverview of commands\nConfig has been reloaded!\n"
+            (directory / "console.log").write_bytes(log)
+            result = {"schema": 1, "kind": "connection-guard-startup", "platform": platform,
+                      "version": self.manifest["version"], "artifact_sha256": self.manifest["sha256"],
+                      "source_commit": self.manifest["source_commit"], "runtime": RUNTIMES[platform]["name"],
+                      "runtime_sha256": RUNTIMES[platform]["sha256"], "console_sha256": hashlib.sha256(log).hexdigest(),
+                      "other_plugins": [], "telemetry_enabled": False, "plugin_enabled": True,
+                      "help_passed": True, "reload_passed": True, "shutdown_passed": True}
+            (directory / "result.json").write_text(json.dumps(result))
+            self.manifest["startup_evidence"][platform] = platform + "/result.json"
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_matching_proof_passes(self):
+        self.assertEqual(["paper", "velocity"], validate_runtime_evidence(self.root, self.manifest))
+
+    def test_missing_platform_fails(self):
+        del self.manifest["startup_evidence"]["paper"]
+        with self.assertRaises(QualificationError):
+            validate_runtime_evidence(self.root, self.manifest)
+
+    def test_changed_artifact_or_source_fails(self):
+        for key in ("sha256", "source_commit", "version"):
+            manifest = copy.deepcopy(self.manifest)
+            manifest[key] = "changed"
+            with self.assertRaises(QualificationError):
+                validate_runtime_evidence(self.root, manifest)
+
+    def test_failed_runtime_and_wrong_runtime_fail(self):
+        original = (self.root / "paper/result.json").read_text()
+        for key, value in (("plugin_enabled", False), ("reload_passed", False), ("shutdown_passed", False),
+                           ("runtime_sha256", "c" * 64), ("other_plugins", ["helper"]), ("schema", 2)):
+            result = json.loads(original)
+            result[key] = value
+            (self.root / "paper/result.json").write_text(json.dumps(result))
+            with self.assertRaises(QualificationError):
+                validate_runtime_evidence(self.root, self.manifest)
+
+    def test_tampered_log_fails(self):
+        (self.root / "paper/console.log").write_text("different log")
+        with self.assertRaises(QualificationError):
+            validate_runtime_evidence(self.root, self.manifest)
+
+    def test_error_in_hash_matching_log_fails(self):
+        log = (self.root / "paper/console.log").read_bytes() + b"NoClassDefFoundError: org/bstats/MetricsBase\n"
+        (self.root / "paper/console.log").write_bytes(log)
+        result = json.loads((self.root / "paper/result.json").read_text())
+        result["console_sha256"] = hashlib.sha256(log).hexdigest()
+        (self.root / "paper/result.json").write_text(json.dumps(result))
+        with self.assertRaises(QualificationError):
+            validate_runtime_evidence(self.root, self.manifest)
+
+    def test_path_escape_and_symlink_fail(self):
+        for relative in ("../outside.json", "/tmp/outside.json"):
+            self.manifest["startup_evidence"]["paper"] = relative
+            with self.assertRaises(QualificationError):
+                validate_runtime_evidence(self.root, self.manifest)
+        (self.root / "alias.json").symlink_to(self.root / "paper/result.json")
+        self.manifest["startup_evidence"]["paper"] = "alias.json"
+        with self.assertRaises(QualificationError):
+            validate_runtime_evidence(self.root, self.manifest)
+
+
+class ArtifactRegressionTest(unittest.TestCase):
+    def test_removed_or_duplicate_bstats_class_is_rejected(self):
+        artifacts = list((ROOT / "build/libs").glob("*-all.jar"))
+        self.assertEqual(1, len(artifacts), "Build the combined JAR before running artifact regression tests.")
+        artifact = artifacts[0]
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+        verify(artifact, version)
+        with tempfile.TemporaryDirectory() as directory:
+            for dependency in ("MetricsBase", "json/JsonObjectBuilder"):
+                name = PACKAGE.replace(".", "/") + "/libs/org/bstats/" + dependency + ".class"
+                for duplicate in (False, True):
+                    broken = Path(directory) / "broken.jar"
+                    with zipfile.ZipFile(artifact) as source, zipfile.ZipFile(broken, "w") as target:
+                        for entry in source.infolist():
+                            if duplicate or entry.filename != name:
+                                target.writestr(entry, source.read(entry))
+                        if duplicate:
+                            with warnings.catch_warnings():
+                                warnings.simplefilter("ignore", UserWarning)
+                                target.writestr(name, source.read(name))
+                    with self.assertRaisesRegex(ValueError, "bStats runtime dependency"):
+                        verify(broken, version)
+
+
+if __name__ == "__main__":
+    unittest.main()

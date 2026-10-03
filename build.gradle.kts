@@ -26,6 +26,8 @@ repositories {
 }
 
 dependencies {
+    // Libby loads only the named adapter; its Maven transitives are not loaded.
+    implementation("org.bstats:bstats-base:3.0.2")
     implementation(project(":core"))
     implementation(project(":spigot"))
     implementation(project(":bungeecord"))
