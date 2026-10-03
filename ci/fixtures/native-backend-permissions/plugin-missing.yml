@@ -1,0 +1,9 @@
+name: CGMissingBackendFixture
+version: '1'
+main: fixture.CGMissingBackendFixture
+api-version: '1.21'
+folia-supported: true
+depend: [ConnectionGuard]
+commands:
+  fixture-native:
+    description: Console-only synthetic missing native SDK probe

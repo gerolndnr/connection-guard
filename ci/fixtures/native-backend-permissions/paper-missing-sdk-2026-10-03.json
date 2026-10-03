@@ -1,0 +1,17 @@
+{
+  "artifact_sha256": "7862012f3cc49a4a2ff16d841d30217c6ba6229f898de01ca6295a135e748017",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "java": 21,
+  "native_plugins": {},
+  "addon_sha256": "e23c4dfdc62245671e8475ac87220716d729c4b4bfa42afd153d500ecc762d6a",
+  "fixture_source_sha256": "86d85a827be872e0bf151a5acc9b10e4936e57e7bef7f0cc4c07e193526986e7",
+  "synthetic_permission_authority": false,
+  "authenticated_identity_tested": false,
+  "bedrock_authentication_tested": false,
+  "legacy_spigot_tested": false,
+  "null_identity_cannot_grant_permission": true,
+  "absent_permission_sdk_reports_unavailable": true,
+  "missing_permission_sdk_does_not_exempt_declared_trust_login": true,
+  "shutdown_passed": true
+}

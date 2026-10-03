@@ -56,3 +56,6 @@ artifact, whose observed hash is pinned here (no separate upstream signature/che
 was verified). These named cases do not qualify authenticated Java/Bedrock sessions,
 linked accounts, complete Geyser behavior, other platforms, native bans/challenges,
 verified temporary grants or a complete version range.
+
+Separate named native backend cases are now recorded in
+[`native-backend-permissions/`](../native-backend-permissions/README.md).
