@@ -51,6 +51,16 @@ with real Redis, nine release/packaging guards, repeatable builds and
 [successful CI](https://github.com/gerolndnr/connection-guard/actions/runs/37120305485).
 Test count and gateway checks do not establish a complete compatibility matrix.
 
+The newer [platform connection-binding regression package](../ci/fixtures/authenticated-identity/README.md)
+re-reads the proxy connection's canonical UUID/name/full socket, authentication
+mode and live state before verified authority is used after waits. Its 238 core
+tests include synthetic metadata changes; actual selected native gateway
+regressions on Velocity/Paper/Folia and a globally online Velocity proxy with a
+per-connection offline override pass on the same newer artifact. Positive genuine
+account logins, live native authenticated-object mutation and Bungee runtime are
+not established by those cases. The earlier receipts above retain their original
+hash and test counts.
+
 ## What remains open
 
 [Issue #39](https://github.com/gerolndnr/connection-guard/issues/39) follows a reported

@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.identity.AuthenticatedIdentity;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
 import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
@@ -37,10 +38,16 @@ public class ConnectionGuardBungeeListener implements Listener {
         final String ipAddress = Exemptions.normalize(rawIp);
         final String clientIp = ipAddress;
         UUID uuid = loginEvent.getConnection().getUniqueId();
+        net.md_5.bungee.api.connection.PendingConnection identityConnection = loginEvent.getConnection();
+        String identityName = identityConnection.getName();
+        java.net.InetSocketAddress identityAddress = identityConnection.getAddress();
+        AuthenticatedIdentity.Probe authenticated = AuthenticatedIdentity.capture(uuid, identityName, identityAddress,
+                () -> new AuthenticatedIdentity.State(identityConnection.getUniqueId(), identityConnection.getName(), identityConnection.getAddress(),
+                        identityConnection.isOnlineMode(), identityConnection.isConnected()));
         com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
-                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, loginEvent.getConnection().getName(),
-                        loginEvent.getConnection().getAddress(), loginEvent.getConnection()::isConnected,
-                        loginEvent.getConnection().isOnlineMode(), false, ConnectionGuard.getSettings().trustForwardedIdentity,
+                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, identityName,
+                        identityAddress, loginEvent.getConnection()::isConnected,
+                        authenticated, false, ConnectionGuard.getSettings().trustForwardedIdentity,
                         ConnectionGuard.getSettings().nativeFloodgateIdentity);
         boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUNGEE, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
@@ -108,7 +115,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                                 '&',
                                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
                                         .replace("%IP%", vpnResult.getIpAddress())
-                                        .replace("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%NAME%", identityName)
                         );
                         broadcastMessage(notifyMessage, "connectionguard.notify.vpn");
                     }
@@ -118,14 +125,14 @@ public class ConnectionGuardBungeeListener implements Listener {
                         ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                                 ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                                 ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command")
-                                        .replace("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%NAME%", identityName)
                                         .replace("%IP%", ipAddress));
                     }
 
                     // Check if WebHook should be executed
                     if (!decision.observe() && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
                         String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
-                                .replace("%NAME%", loginEvent.getConnection().getName())
+                                .replace("%NAME%", identityName)
                                 .replace("%IP%", ipAddress);
                         String webhookUrl = ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.vpn.send-webhook.url");
 
@@ -138,7 +145,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                                 '&',
                                 ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
                                         .replace("%IP%", vpnResult.getIpAddress())
-                                        .replace("%NAME%", loginEvent.getConnection().getName())
+                                        .replace("%NAME%", identityName)
                         );
 
                         loginEvent.setCancelReason(new TextComponent(kickMessage));
@@ -178,7 +185,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())
                                             .replace("%ISP%", geoResult.getIspName())
-                                            .replace("%NAME%", loginEvent.getConnection().getName())
+                                            .replace("%NAME%", identityName)
                             );
                             broadcastMessage(notifyMessage, "connectionguard.notify.geo");
                         }
@@ -188,14 +195,14 @@ public class ConnectionGuardBungeeListener implements Listener {
                             ConnectionGuardBungeePlugin.getInstance().getProxy().getPluginManager().dispatchCommand(
                                     ConnectionGuardBungeePlugin.getInstance().getProxy().getConsole(),
                                     ConnectionGuardBungeePlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command")
-                                            .replace("%NAME%", loginEvent.getConnection().getName())
+                                            .replace("%NAME%", identityName)
                                             .replace("%IP%", ipAddress));
                         }
 
                         // Check if WebHook should be executed
                         if (!decision.observe() && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
                             String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
-                                    .replace("%NAME%", loginEvent.getConnection().getName())
+                                    .replace("%NAME%", identityName)
                                     .replace("%IP%", ipAddress)
                                     .replace("%COUNTRY%", geoResult.getCountryName())
                                     .replace("%CITY%", geoResult.getCityName())
@@ -214,7 +221,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())
                                             .replace("%ISP%", geoResult.getIspName())
-                                            .replace("%NAME%", loginEvent.getConnection().getName())
+                                            .replace("%NAME%", identityName)
                             );
 
                             loginEvent.setCancelReason(new TextComponent(kickMessage));

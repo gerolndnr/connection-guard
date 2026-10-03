@@ -24,6 +24,7 @@ import java.util.UUID;
 import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import java.util.function.Consumer;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.identity.AuthenticatedIdentity;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
 import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
@@ -53,13 +54,19 @@ public class ConnectionGuardVelocityListener {
         if (!event.getResult().isAllowed()) return null;
         long startedNanos = System.nanoTime();
         Player player = event.getPlayer();
+        java.util.UUID identityUuid = player.getUniqueId();
+        String identityName = player.getUsername();
+        java.net.InetSocketAddress identityAddress = player.getRemoteAddress();
+        AuthenticatedIdentity.Probe authenticated = AuthenticatedIdentity.capture(identityUuid, identityName, identityAddress,
+                () -> new AuthenticatedIdentity.State(player.getUniqueId(), player.getUsername(), player.getRemoteAddress(),
+                        player.isOnlineMode(), player.isActive()));
         // A single stable phase: rule expiry/reload between events cannot skip the provider check.
         com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
-                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(player.getUniqueId(), player.getUsername(),
-                        player.getRemoteAddress(), player::isActive, player.isOnlineMode(), false,
+                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(identityUuid, identityName,
+                        identityAddress, player::isActive, authenticated, false,
                         ConnectionGuard.getSettings().trustForwardedIdentity, ConnectionGuard.getSettings().nativeFloodgateIdentity);
-        return EventTask.withContinuation(continuation -> checkConnection(player.getRemoteAddress().getAddress().getHostAddress(),
-                player.getUniqueId(), player.getUsername(), identity, startedNanos,
+        return EventTask.withContinuation(continuation -> checkConnection(identityAddress.getAddress().getHostAddress(),
+                identityUuid, identityName, identity, startedNanos,
                 player, message -> event.setResult(ResultedEvent.ComponentResult.denied(message)))
                 .whenComplete((ignored, error) -> continuation.resume()));
     }

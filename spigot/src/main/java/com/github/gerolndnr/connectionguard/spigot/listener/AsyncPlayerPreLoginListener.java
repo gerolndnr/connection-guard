@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
+import com.github.gerolndnr.connectionguard.core.identity.AuthenticatedIdentity;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
 import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +39,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 com.github.gerolndnr.connectionguard.spigot.PaperLoginConnection.read(preLoginEvent);
         com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
                 com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, preLoginEvent.getName(), connection.address,
-                        connection.connected, false, Bukkit.getOnlineMode(), ConnectionGuard.getSettings().trustForwardedIdentity,
+                        connection.connected, AuthenticatedIdentity.unavailable(), Bukkit.getOnlineMode(), ConnectionGuard.getSettings().trustForwardedIdentity,
                         ConnectionGuard.getSettings().nativeFloodgateIdentity);
         boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUKKIT, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);

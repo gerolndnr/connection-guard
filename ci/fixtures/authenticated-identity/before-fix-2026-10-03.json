@@ -1,0 +1,9 @@
+{
+  "state": "reproduced-before-fix",
+  "base_commit": "60fa243480ed5038c7ba2ea3887dfded2436eed4",
+  "artifact_sha256": "8254d278e67d848facffa7250f07e5446345a76069e9f3b8e408bbb6e4e22a65",
+  "reproducer_source_sha256": "63e37a7f05abb75756baef1cfa23b81e0f6a3327d4a237c0ac4ecfdb65fd8509",
+  "exit_code": 3,
+  "result": "modeChanged=true canonicalUuidChanged=true connected=true verifiedAfterChanges=true",
+  "scope": "Core connection identity contract with synthetic metadata suppliers; no authenticated account or native server session claimed."
+}

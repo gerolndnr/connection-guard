@@ -15,9 +15,10 @@ public final class ConnectionIdentity {
         this.uuid = uuid; this.source = uuid == null ? Source.UNTRUSTED : source; this.current = current;
     }
     public static ConnectionIdentity resolve(UUID uuid, String name, InetSocketAddress address, BooleanSupplier connected,
-            boolean authenticatedConnection, boolean legacyServerOnline, boolean declaredForwarding, boolean floodgateEnabled) {
+            AuthenticatedIdentity.Probe authenticatedConnection, boolean legacyServerOnline, boolean declaredForwarding, boolean floodgateEnabled) {
         if (uuid == null) return new ConnectionIdentity(null, Source.UNTRUSTED, connected);
-        if (authenticatedConnection) return new ConnectionIdentity(uuid, Source.AUTHENTICATED_CONNECTION, connected);
+        if (authenticatedConnection != null && authenticatedConnection.isBoundTo(uuid, name, address))
+            return new ConnectionIdentity(uuid, Source.AUTHENTICATED_CONNECTION, authenticatedConnection::isCurrent);
         if (floodgateEnabled) {
             FloodgateIdentity.Probe probe = FloodgateIdentity.capture(uuid, name, address, connected);
             if (probe.isBound()) return nativeConnection(uuid, () ->

@@ -1,0 +1,21 @@
+{
+  "artifact_sha256": "6848d238f9f98b95c954174a84bf1b3c711c25d1bfcc3e5f833709ea6d9eda83",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "native_plugins": {},
+  "addon_sha256": "c5840a97eaf9f81a9dce6d6e1349faed1b88f11154bda3453871399a80a42bdc",
+  "fixture_source_sha256": "04d3ac2a4ba05aa50641dc75d46c356c25a3a2fd68c2610136160a4443b520a6",
+  "synthetic_permission_authority": false,
+  "authenticated_identity_tested": false,
+  "bedrock_authentication_tested": false,
+  "backend_join_tested": false,
+  "other_platforms_tested": false,
+  "proxy_online_mode": false,
+  "test_addon_deliberately_forces_offline_login": false,
+  "null_identity_cannot_grant_permission": true,
+  "absent_permission_sdk_reports_unavailable": true,
+  "enabled_but_absent_native_identity_sdk_cannot_invent_proof": true,
+  "missing_permission_sdk_does_not_exempt_declared_trust_login": true,
+  "shutdown_passed": true
+}
