@@ -1,0 +1,28 @@
+{
+  "artifact_sha256": "5a7038676adc7ed79cb1bbc2bfa12e0efabf21f28f25aa329089c5975942570b",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-velocity-5.5.85.jar": "dbf7090ee4ef2d0eaf054a93a89ac328dda36f7a21c4e4ab3694a00ba3d8ef44",
+    "floodgate-velocity-2.2.5-141.jar": "649835022de37ff09255fc626d4bfe7bc2a3b926d07b0dfaf1f51e12bf37001d"
+  },
+  "addon_sha256": "bcbb4356ba9c48734c8c860bda6b603287c130ecbea8901f1eeced58e6fce749",
+  "fixture_source_sha256": "bde96625dbb1ddab395f52fcba4a4ffa3fe3d770db87c5b23fa337a507b96c29",
+  "synthetic_permission_authority": false,
+  "authenticated_identity_tested": false,
+  "bedrock_authentication_tested": false,
+  "backend_join_tested": false,
+  "other_platforms_tested": false,
+  "proxy_online_mode": false,
+  "test_addon_deliberately_forces_offline_login": false,
+  "null_identity_cannot_grant_permission": true,
+  "native_guard_api_classloader_is_available": true,
+  "loaded_native_user_permissions_respect_selected_server_context": true,
+  "native_unloaded_user_load_does_not_invent_permission": true,
+  "actual_native_permission_does_not_exempt_default_untrusted_offline_login": true,
+  "declared_trust_login_branch_uses_real_native_permission_and_context": true,
+  "declared_trust_is_not_verified_forwarding_or_authenticated_identity": true,
+  "shutdown_passed": true,
+  "native_floodgate_reports_no_membership_for_unregistered_uuid": true
+}
