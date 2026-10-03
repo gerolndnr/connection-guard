@@ -1,0 +1,1 @@
+{"id":"connection-guard-native-identity-fixture","name":"Connection Guard native gateway identity fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false},{"id":"luckperms","optional":false},{"id":"floodgate","optional":false}],"main":"fixture.NativeIdentityFixture"}

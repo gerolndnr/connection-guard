@@ -64,6 +64,9 @@ public final class OperationsCommands {
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);
         lines.add("Cache=" + (ConnectionGuard.getCacheProvider() == null ? "unavailable" : ConnectionGuard.getCacheProvider().getClass().getSimpleName())
                 + "; health requires an actual lookup. This command does not spend API quota.");
+        lines.add("Identity declaredForwarding=" + ConnectionGuard.getSettings().trustForwardedIdentity
+                + " nativeFloodgate=" + ConnectionGuard.getSettings().nativeFloodgateIdentity
+                + "; declared/global trust is not verified temporary-grant authority.");
         lines.addAll(ConnectionGuard.getSettings().warnings);
         if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> lines.add(snapshot.describe(System.currentTimeMillis())));
         if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().extensionProviders.forEach(provider -> lines.add(provider.describe()));

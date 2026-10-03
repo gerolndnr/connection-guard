@@ -5,6 +5,11 @@ operation:
 identity:
   # Only enable after protecting the backend and verifying proxy/Floodgate forwarding.
   trust-forwarded-uuid: false
+  floodgate:
+    # Opt in only with an installed canonical Floodgate API and a protected gateway key.
+    # Matches the active record, canonical UUID/name and current client IP+port.
+    # Missing, retired, mismatched or unbound records grant no native exception.
+    enabled: false
 failure-policy:
   # OPEN allows UNKNOWN; CLOSED rejects temporarily without commands/bans/webhooks.
   # OBSERVE allows UNKNOWN; inspect explain/providers for the reason.

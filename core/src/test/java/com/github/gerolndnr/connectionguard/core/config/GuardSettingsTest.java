@@ -15,6 +15,15 @@ class GuardSettingsTest {
         fields.put("required-positive-flags", 1); fields.put("lookup.http-timeout-ms", 6000);
         assertThrows(IllegalArgumentException.class, () -> GuardSettings.read(fields::get, Collections.singletonList("proxycheck")));
     }
+    @Test void nativeIdentityOptInIsStrictAndMissingSdkCannotPretendAvailability() {
+        assertFalse(GuardSettings.defaults().nativeFloodgateIdentity);
+        Map<String,Object> fields=new HashMap<>();fields.put("identity.floodgate.enabled",true);
+        GuardSettings settings=GuardSettings.read(fields::get,Collections.emptyList());assertTrue(settings.nativeFloodgateIdentity);
+        assertTrue(settings.warnings.stream().anyMatch(s->s.contains("canonical API is unavailable")));
+        fields.put("identity.floodgate.enabled","synthetic-private-invalid");
+        Exception error=assertThrows(IllegalArgumentException.class,()->GuardSettings.read(fields::get,Collections.emptyList()));
+        assertFalse(error.getMessage().contains("synthetic-private-invalid"));
+    }
     @Test void invalidWebhookIsRedacted() {
         Map<String, Object> fields = new HashMap<>(); fields.put("behavior.vpn.send-webhook.enabled", true);
         fields.put("behavior.vpn.send-webhook.url", "http://example.invalid/fake-sensitive-secret");

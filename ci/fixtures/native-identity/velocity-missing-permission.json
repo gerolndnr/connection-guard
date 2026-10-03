@@ -1,0 +1,1 @@
+{"id": "connection-guard-missing-perm-fixture", "name": "Connection Guard absent permission fixture", "version": "1", "authors": ["gerolndnr"], "dependencies": [{"id": "connection-guard", "optional": false}], "main": "fixture.MissingIdentityFixture"}

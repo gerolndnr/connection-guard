@@ -51,19 +51,23 @@ public class ConnectionGuardVelocityListener {
     @Subscribe
     public EventTask onLogin(LoginEvent event) {
         if (!event.getResult().isAllowed()) return null;
+        long startedNanos = System.nanoTime();
         Player player = event.getPlayer();
         // A single stable phase: rule expiry/reload between events cannot skip the provider check.
+        com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
+                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(player.getUniqueId(), player.getUsername(),
+                        player.getRemoteAddress(), player::isActive, player.isOnlineMode(), false,
+                        ConnectionGuard.getSettings().trustForwardedIdentity, ConnectionGuard.getSettings().nativeFloodgateIdentity);
         return EventTask.withContinuation(continuation -> checkConnection(player.getRemoteAddress().getAddress().getHostAddress(),
-                player.getUniqueId(), player.getUsername(), player.isOnlineMode() ? DecisionObservation.IdentityTrust.AUTHENTICATED
-                        : ConnectionGuard.getSettings().trustForwardedIdentity ? DecisionObservation.IdentityTrust.FORWARDED : DecisionObservation.IdentityTrust.UNTRUSTED,
+                player.getUniqueId(), player.getUsername(), identity, startedNanos,
                 player, message -> event.setResult(ResultedEvent.ComponentResult.denied(message)))
                 .whenComplete((ignored, error) -> continuation.resume()));
     }
-    private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, DecisionObservation.IdentityTrust identityTrust,
+    private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity, long startedNanos,
                                                      Object subject, Consumer<Component> deny) {
         final String ipAddress = Exemptions.normalize(rawIp);
-        final boolean trusted = identityTrust != DecisionObservation.IdentityTrust.UNTRUSTED;
-        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY, DecisionObservation.Phase.LOGIN, ipAddress, uuid, identityTrust);
+        final boolean trusted = identity.isTrusted();
+        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY, DecisionObservation.Phase.LOGIN, ipAddress, uuid, identity.observationTrust(), startedNanos);
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO);
@@ -80,6 +84,11 @@ public class ConnectionGuardVelocityListener {
                         ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject)) : LoginChecks.Permission.known(false);
             return LoginChecks.check(ipAddress, decision.settings().lookup, decision.startedNanos(), decision.observe(),
                     vpnPermission, geoPermission).thenAccept(checks -> {
+                if (identity.requiresCurrentProof() && !identity.isCurrent()) {
+                    decision.identityUnavailable();
+                    if (!decision.observe()) { deny.accept(Component.text("Connection identity verification is no longer available. Please retry.")); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                    return;
+                }
                 if (checks.isCancelled()) { decision.error(); return; }
                 if (!checks.isAdmitted()) {
                     decision.overload();

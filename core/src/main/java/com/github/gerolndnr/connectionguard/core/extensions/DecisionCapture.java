@@ -19,27 +19,33 @@ public final class DecisionCapture implements AutoCloseable {
     private final UUID uuid;
     private final IdentityTrust identityTrust;
     private final GuardSettings settings;
-    private final long generation, started = System.nanoTime();
+    private final long generation, started;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     private final List<Source> sources = new ArrayList<>();
     private final List<Rule> rules = new ArrayList<>();
     private Reason denied;
     private long observedAt = System.currentTimeMillis();
-    private boolean processingError, finished, overload, unresolved, invalidObservation;
-    private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
+    private boolean processingError, finished, overload, unresolved, invalidObservation, identityUnavailable;
+    private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
+        this.started = startedNanos;
         this.platform = platform; this.phase = phase; this.ip = ip; this.uuid = uuid; this.identityTrust = trust;
         settings = ConnectionGuard.getSettings(); generation = DecisionObservers.captureGeneration();
         geoSource = "geo." + (ConnectionGuard.getGeoProvider() == null ? "none" : ConnectionGuard.getGeoProvider().getClass().getSimpleName());
     }
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
-        synchronized (ConnectionGuard.class) { return new DecisionCapture(platform, phase, ip, uuid, trust); }
+        return begin(platform, phase, ip, uuid, trust, System.nanoTime());
+    }
+    /** Includes connection/native-identity inspection in the caller's existing whole-login budget. */
+    public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
+        synchronized (ConnectionGuard.class) { return new DecisionCapture(platform, phase, ip, uuid, trust, startedNanos); }
     }
     public long startedNanos() { return started; }
     public boolean observe() { return settings.observe; }
     public GuardSettings settings() { return settings; }
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
+    public void identityUnavailable() { identityUnavailable = true; }
     public void overload() { overload = true; }
     public void flag(Flag flag) { if (generation >= 0) flags.add(flag); }
     public void manual(Optional<AccessRule> vpn, Optional<AccessRule> geo) {
@@ -108,7 +114,7 @@ public final class DecisionCapture implements AutoCloseable {
         // Observation construction must never change admission or retain exception details.
         try {
             Outcome outcome = denied != null ? Outcome.DENY : processingError ? Outcome.ERROR : Outcome.ALLOW;
-            Reason reason = denied != null ? denied : processingError ? Reason.INTERNAL_ERROR : overload ? Reason.OVERLOAD
+            Reason reason = denied != null ? denied : identityUnavailable ? Reason.IDENTITY_UNAVAILABLE : processingError ? Reason.INTERNAL_ERROR : overload ? Reason.OVERLOAD
                     : !flags.isEmpty() ? Reason.FLAG_ALLOWED : unresolved || vpnCheck == Check.UNKNOWN || geoCheck == Check.UNKNOWN
                     ? Reason.UNKNOWN_ALLOWED : Reason.CHECKS_COMPLETE;
             DecisionObservers.publish(new DecisionObservation(platform, phase,

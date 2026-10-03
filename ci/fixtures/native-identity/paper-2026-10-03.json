@@ -1,0 +1,29 @@
+{
+  "artifact_sha256": "8254d278e67d848facffa7250f07e5446345a76069e9f3b8e408bbb6e4e22a65",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-bukkit-5.5.85.jar": "dc637ce18f48d3b75a7ffd1784b85be16a627359090dfe5adf15dab6d145dc7d",
+    "floodgate-spigot-2.2.5-141.jar": "21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
+  },
+  "addon_sha256": "c4c1077da43a254e138cc961a49bb52efcaaa8d0fec9f28557fefc5e8010a64e",
+  "fixture_source_sha256": {
+    "CGNativeIdentityBackendFixture.java": "629d0d51b61bb8e91e9053b008e49d7608d4dbc58fc094c54a9a59947da65da1",
+    "GatewayHandshakeFixture.java": "a17c243e229589543e99e267d8beefc3027154d6eab7097a2593c564898fb90e"
+  },
+  "client_source_sha256": "dc35d60afe0b859fc407b2747871359153d3350689087f837cedd255b0c0b465",
+  "synthetic_gateway_delegation": true,
+  "actual_native_encrypted_handshake": true,
+  "sdk_player_insertion_by_fixture": false,
+  "xbox_authentication_tested": false,
+  "mojang_authentication_tested": false,
+  "real_native_account_link_tested": false,
+  "legacy_spigot_tested": false,
+  "sdk_presence_does_not_trust_ordinary_offline_login": true,
+  "current_native_canonical_gateway_uuid_uses_real_lp_permission_and_joins_backend": true,
+  "synthetic_linked_gateway_canonical_uuid_preserves_native_permission_context": true,
+  "disabled_native_identity_cannot_use_gateway_uuid_permission": true,
+  "manual_deny_preserved_despite_native_gateway_permission": true,
+  "shutdown_passed": true
+}

@@ -28,14 +28,20 @@ public class AsyncPlayerPreLoginListener implements Listener {
     @EventHandler
     public void onAsyncPreLogin(AsyncPlayerPreLoginEvent preLoginEvent) {
         if (preLoginEvent.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        long startedNanos = System.nanoTime();
         String rawIp = preLoginEvent.getAddress().getHostAddress();
 
         final String ipAddress = Exemptions.normalize(rawIp);
         final String clientIp = ipAddress;
         UUID uuid = preLoginEvent.getUniqueId();
-        boolean trusted = Bukkit.getOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity;
-        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUKKIT, DecisionObservation.Phase.LOGIN, clientIp, uuid,
-                Bukkit.getOnlineMode() ? DecisionObservation.IdentityTrust.AUTHENTICATED : trusted ? DecisionObservation.IdentityTrust.FORWARDED : DecisionObservation.IdentityTrust.UNTRUSTED);
+        com.github.gerolndnr.connectionguard.spigot.PaperLoginConnection connection =
+                com.github.gerolndnr.connectionguard.spigot.PaperLoginConnection.read(preLoginEvent);
+        com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
+                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, preLoginEvent.getName(), connection.address,
+                        connection.connected, false, Bukkit.getOnlineMode(), ConnectionGuard.getSettings().trustForwardedIdentity,
+                        ConnectionGuard.getSettings().nativeFloodgateIdentity);
+        boolean trusted = identity.isTrusted();
+        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUKKIT, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.GEO);
@@ -52,6 +58,11 @@ public class AsyncPlayerPreLoginListener implements Listener {
                         ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo")) : LoginChecks.Permission.known(false);
             LoginChecks.Result checks = LoginChecks.check(clientIp, decision.settings().lookup, decision.startedNanos(), decision.observe(),
                     vpnPermission, geoPermission).join();
+            if (identity.requiresCurrentProof() && !identity.isCurrent()) {
+                decision.identityUnavailable();
+                if (!decision.observe()) { preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection identity verification is no longer available. Please retry."); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                return;
+            }
             if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
                 decision.overload();

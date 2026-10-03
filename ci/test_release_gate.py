@@ -89,6 +89,24 @@ class RuntimeEvidenceTest(unittest.TestCase):
 
 
 class ArtifactRegressionTest(unittest.TestCase):
+    def test_optional_native_sdk_copies_are_rejected(self):
+        artifacts = list((ROOT / "build/libs").glob("*-all.jar"))
+        self.assertEqual(1, len(artifacts))
+        artifact = artifacts[0]
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            harmless_class = jar.read(PACKAGE.replace(".", "/") + "/api/v1/ConnectionGuardApi.class")
+        with tempfile.TemporaryDirectory() as directory:
+            for name in ("org/geysermc/floodgate/api/FloodgateApi.class", "net/luckperms/api/LuckPerms.class"):
+                for prefix in ("", PACKAGE.replace(".", "/") + "/libs/"):
+                    broken = Path(directory) / "duplicate-native-api.jar"
+                    with zipfile.ZipFile(artifact) as source, zipfile.ZipFile(broken, "w") as target:
+                        for entry in source.infolist(): target.writestr(entry, source.read(entry))
+                        # Synthetic class bytes: no upstream SDK redistributed by the negative fixture.
+                        target.writestr(prefix + name, harmless_class)
+                    with self.assertRaisesRegex(ValueError, "Optional native SDK"):
+                        verify(broken, version)
+
     def test_removed_or_duplicate_bstats_class_is_rejected(self):
         artifacts = list((ROOT / "build/libs").glob("*-all.jar"))
         self.assertEqual(1, len(artifacts), "Build the combined JAR before running artifact regression tests.")

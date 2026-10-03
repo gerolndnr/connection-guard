@@ -32,6 +32,22 @@ class DecisionObserversTest {
         CompletableFuture<DecisionObservation> next = new CompletableFuture<>();
         ConnectionGuardApi.registerDecisionObserver(id, next::complete); return next;
     }
+    @Test void connectionInspectionTimeBelongsToTheWholeLoginAndObservationDuration() throws Exception {
+        CompletableFuture<DecisionObservation> next=observer("fixture");DecisionObservers.configure(settings("fixture"));
+        long entered=System.nanoTime()-TimeUnit.MILLISECONDS.toNanos(90);
+        DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",UUID.randomUUID(),IdentityTrust.FLOODGATE,entered);
+        assertEquals(entered,capture.startedNanos());capture.close();
+        assertTrue(next.get(2,TimeUnit.SECONDS).getDurationMillis()>=90);
+    }
+    @Test void observeReportsLostIdentityAuthorityWithoutClaimingSuccessfulChecks() throws Exception {
+        Map<String,Object> fields=new HashMap<>();fields.put("operation.mode","OBSERVE");
+        ConnectionGuard.applySettings(GuardSettings.read(fields::get,Collections.emptyList()));
+        CompletableFuture<DecisionObservation> next=observer("fixture");DecisionObservers.configure(settings("fixture"));
+        DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",UUID.randomUUID(),IdentityTrust.FLOODGATE);
+        capture.identityUnavailable();capture.close();DecisionObservation event=next.get(2,TimeUnit.SECONDS);
+        assertEquals(Outcome.ALLOW,event.getOutcome());assertEquals(Reason.IDENTITY_UNAVAILABLE,event.getReason());
+        assertEquals(Check.NOT_CHECKED,event.getVpnCheck());
+    }
     @Test void registrationAndLateInstallationRequireExplicitSelectionAndReload() throws Exception {
         CompletableFuture<DecisionObservation> next = observer("fixture");
         DecisionObservers.publish(sample()); assertFalse(next.isDone());

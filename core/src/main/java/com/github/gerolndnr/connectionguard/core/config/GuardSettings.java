@@ -14,12 +14,13 @@ public final class GuardSettings {
     public final com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission;
     public final boolean observe;
     public final boolean trustForwardedIdentity;
+    public final boolean nativeFloodgateIdentity;
     public final FailurePolicy vpnFailure;
     public final FailurePolicy geoFailure;
     public final List<String> warnings;
-    private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, FailurePolicy vpn,
+    private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, FailurePolicy vpn,
                           FailurePolicy geo, List<String> warnings) {
-        this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust;
+        this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust; this.nativeFloodgateIdentity = floodgate;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
@@ -86,7 +87,10 @@ public final class GuardSettings {
         if (trust) warnings.add("Forwarded UUID trust enabled: restrict backend access and verify proxy/Floodgate forwarding; a public IP is insufficient proof.");
         com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings(value);
         if (admission.enabled) warnings.add("Overload limits skip detection on refused admissions; only overload.deny-connections may temporarily deny (OBSERVE suppresses denial). Provider failure policies do not change this choice.");
-        return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust,
+        boolean floodgate = bool(value, "identity.floodgate.enabled", false);
+        if (floodgate && !com.github.gerolndnr.connectionguard.core.identity.FloodgateIdentity.isAvailable())
+            warnings.add("Native Floodgate identity selected but the canonical API is unavailable; no native exemption is granted.");
+        return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust, floodgate,
                 policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }
