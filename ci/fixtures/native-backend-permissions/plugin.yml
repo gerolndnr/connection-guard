@@ -1,0 +1,9 @@
+name: CGNativeBackendFixture
+version: '1'
+main: fixture.CGNativeBackendFixture
+api-version: '1.21'
+folia-supported: true
+depend: [ConnectionGuard, LuckPerms, floodgate]
+commands:
+  fixture-native:
+    description: Console-only synthetic native permission probe

@@ -1,0 +1,26 @@
+{
+  "artifact_sha256": "7862012f3cc49a4a2ff16d841d30217c6ba6229f898de01ca6295a135e748017",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-bukkit-5.5.85.jar": "dc637ce18f48d3b75a7ffd1784b85be16a627359090dfe5adf15dab6d145dc7d",
+    "floodgate-spigot-2.2.5-141.jar": "21570aff9ce17d6983928e8552777760e1ede5050026b04c686b0ae112e6fd7e"
+  },
+  "addon_sha256": "1baebcf44e5687151c99556ee212137540c7f475c83e7fb2c78adfcfc4f51d40",
+  "fixture_source_sha256": "5f3b6f83e003cb12ca395ad53475bc2a58fff42110361e390509c4f649e00aa0",
+  "synthetic_permission_authority": false,
+  "authenticated_identity_tested": false,
+  "bedrock_authentication_tested": false,
+  "legacy_spigot_tested": false,
+  "null_identity_cannot_grant_permission": true,
+  "native_guard_api_classloader_is_available": true,
+  "native_floodgate_reports_no_membership_for_unregistered_uuid": true,
+  "loaded_native_user_permissions_respect_selected_server_context": true,
+  "native_unloaded_user_load_does_not_invent_permission": true,
+  "actual_native_permission_does_not_exempt_default_untrusted_offline_login": true,
+  "declared_trust_login_branch_uses_real_native_permission_and_context": true,
+  "declared_trust_is_not_verified_forwarding_or_authenticated_identity": true,
+  "manual_deny_is_preserved_despite_native_permission_grant": true,
+  "shutdown_passed": true
+}
