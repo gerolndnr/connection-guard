@@ -1,0 +1,37 @@
+{
+  "artifact_sha256": "dac5ace1612f8fe027501f8e12fc669d245305af3668db872b216f664c0c206b",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-bukkit-5.5.85.jar": "dc637ce18f48d3b75a7ffd1784b85be16a627359090dfe5adf15dab6d145dc7d"
+  },
+  "proxy_sha256": null,
+  "addon_sha256": "e6d1a7509bc7883d5f13e154bd2be868c530668d418720ccd4184eda64d2a9c7",
+  "fixture_source_sha256": "59b8b87e511aaef9d95153b7f95020118e64ac5328b9c8d9db78025e313cee1d",
+  "client_source_sha256": "0a19cb3b04b0a66ec78c430ac5a758b9294cb344a0f28c6ed8b2aa80dd1aa377",
+  "genuine_account_authentication_tested": false,
+  "gateway_secret_compromise_prevented": false,
+  "ordinary_offline_backend": true,
+  "decisions": [
+    {
+      "client": "CGFwAllowed",
+      "reason": "VPN_FLAG",
+      "vpn": "POSITIVE",
+      "identity": "UNTRUSTED",
+      "expected": "VPN",
+      "joined_name": null
+    }
+  ],
+  "enabled_adapter_cannot_promote_ordinary_offline_native_prelogin": true,
+  "shutdown_passed": true,
+  "runtime_error_check_passed": true,
+  "passed": true,
+  "logs": {
+    "server/smoke.log": "3a1d7b3b42308472e709ce302d481c24d6aeae6d78f4c79bd9c912210223613d",
+    "direct-client.log": "d06cd0342718f08894b643cfc8d14053cba4a931df2226c4ca4e5b9929cca5ea"
+  },
+  "fixture_descriptor_sha256": "2e4360e129f5bf46c0135b13de058af7483e802019a1516e63b7a00fe7fbf9f5",
+  "actual_decision_records": 1,
+  "actual_backend_joins": 0
+}

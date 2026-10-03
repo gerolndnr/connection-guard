@@ -40,7 +40,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
         com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
                 com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, preLoginEvent.getName(), connection.address,
                         connection.connected, AuthenticatedIdentity.unavailable(), Bukkit.getOnlineMode(), ConnectionGuard.getSettings().trustForwardedIdentity,
-                        ConnectionGuard.getSettings().nativeFloodgateIdentity);
+                        ConnectionGuard.getSettings().nativeFloodgateIdentity, connection.forwardedProof(uuid, preLoginEvent.getName()));
         boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUKKIT, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
         try {

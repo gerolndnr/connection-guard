@@ -1,0 +1,47 @@
+{
+  "artifact_sha256": "dac5ace1612f8fe027501f8e12fc669d245305af3668db872b216f664c0c206b",
+  "attempts": [
+    {
+      "fixture": "native-forwarding-paper-2026-10-03-a",
+      "reason": "Fixture-only SocketAddress logger compile failure; no runtime started",
+      "passed": false,
+      "runtime_started": false
+    },
+    {
+      "fixture": "native-forwarding-paper-2026-10-03-b",
+      "reason": "Fixture used deny remove with a target rather than the returned rule ID",
+      "passed": false,
+      "shutdown_passed": true,
+      "logs": {
+        "server/smoke.log": "56ddd9f725b724726e93e73da4b3ffccca3a6a5fd2a551949593d1da31c33c3d",
+        "direct-client.log": "7f81baae17191a8a42aff5bbac86dcfdbb6f81c20b8e7c56a8f56364883feb32",
+        "proxy-client.log": "84ec7ce8b1c08e465d734fcfba0553178ca1eb6e389f86555b1b197d30e52488",
+        "proxy/smoke.log": "c37ce9bee41008612e8162bd872aabeedfe3b4ab9f3784c9f8129ad6f7e28a02"
+      }
+    },
+    {
+      "fixture": "native-forwarding-paper-2026-10-03-c",
+      "reason": "Fixture expected the lookup-unavailable text for a distinct identity-unavailable denial",
+      "passed": false,
+      "shutdown_passed": true,
+      "logs": {
+        "server/smoke.log": "65f6a7906156f869599a61691ecb8698d90ee685fe45cad91f4085540ff86531",
+        "direct-client.log": "dbc3a2ec504de4a9daa5ebfa3c2ecf6286e92b4e8816c8be3588b2026a050abb",
+        "proxy-client.log": "84ec7ce8b1c08e465d734fcfba0553178ca1eb6e389f86555b1b197d30e52488",
+        "proxy/smoke.log": "e23466236cba0fab6fdeda3349ee3da5c26b4e2a3db0177e09cf0248635e9304"
+      }
+    },
+    {
+      "fixture": "native-forwarding-paper-2026-10-03-d",
+      "reason": "Both event UUID/name changed; guard OBSERVE correctly allowed without facts, actual LuckPerms independently denied the UUID not processed during pre-login",
+      "passed": false,
+      "shutdown_passed": true,
+      "logs": {
+        "server/smoke.log": "f8621c6514d8ee4ce0bb233ab6177a5ad9c076cfccc25584b83177b2b5d620b9",
+        "direct-client.log": "4043db996381ce7a51aea3a79549dede5d45d4689e438ca4f464c8d88f8721b5",
+        "proxy-client.log": "84ec7ce8b1c08e465d734fcfba0553178ca1eb6e389f86555b1b197d30e52488",
+        "proxy/smoke.log": "5b230f268ed3de2d88b862b5255e2ae24ee30638054f463aee10bdb94e64a6eb"
+      }
+    }
+  ]
+}

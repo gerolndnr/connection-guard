@@ -2,7 +2,8 @@
 
 Development implementation for the next release. This document specifies the provider
 contract, validated with the synthetic real Velocity addon linked below.
-Decision observers and challenge/ban adapters are separate outstanding integration work.
+Decision observers have a [separate v1 contract](DECISION_OBSERVERS_V1.md);
+actual native challenge/ban adapters remain outstanding integration work.
 
 Use `com.github.gerolndnr.connectionguard.api.v1`. Compile against Connection Guard as a
 compile-only dependency and declare your platform's dependency on the Connection Guard plugin.
@@ -101,3 +102,13 @@ Velocity 3.4.0 build 566 classloader, explicit activation, missing/closed module
 SQLite reuse, replacement, rejected drafts, budgets, 32 coalesced actual login attempts,
 deadlines and typed failures. This qualifies that platform/version and development artifact;
 it does not establish backend joins, authenticated identities or other platform compatibility.
+
+## Additive identity provenance
+
+The v1 decision observation can add enum values as new explicitly qualified
+identity sources are introduced. Consumers must handle unknown/additional values
+without converting them into account-authentication authority.
+`IdentityTrust.VERIFIED_FORWARDING` identifies a current selected native gateway
+assertion, distinct from `AUTHENTICATED` and operator-declared `FORWARDED`. It is
+not independent Mojang/Xbox ownership or a completed challenge. See
+[NATIVE_IDENTITY.md](NATIVE_IDENTITY.md) for its build, phase and key boundaries.
