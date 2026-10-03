@@ -1,0 +1,28 @@
+{
+  "status": "failed-and-superseded",
+  "attempts": [
+    {
+      "attempt": "native-ban-velocity-2026-10-03-a",
+      "reason": "Fixture expected a guard observation although actual native plugin refused before guard phase.",
+      "production_changed_to_pass": false,
+      "native_enforcement_weakened": false,
+      "runtime_started": true,
+      "stopped_console_sha256": "1ee1169140fde815e350378cb9dc5d80ba159cf6e34760273cb77807a21faea4"
+    },
+    {
+      "attempt": "native-ban-bungee-2026-10-03-a",
+      "reason": "Fixture used nonexistent BUNGEECORD platform enum. Compile failed; no proxy started.",
+      "production_changed_to_pass": false,
+      "native_enforcement_weakened": false,
+      "runtime_started": false
+    },
+    {
+      "attempt": "native-ban-bungee-2026-10-03-b",
+      "reason": "Fixture incorrectly expected Velocity prior-refusal ordering on Bungee, where a real guard observation was produced.",
+      "production_changed_to_pass": false,
+      "native_enforcement_weakened": false,
+      "runtime_started": true,
+      "stopped_console_sha256": "11ca6da973eb17e5b3e439e62495c9317896bbd747846cc3ec583ba23e103089"
+    }
+  ]
+}

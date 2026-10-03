@@ -1,0 +1,4 @@
+name: BungeeNativeBanFixture
+version: 1
+main: fixture.BungeeNativeBanFixture
+depends: [ConnectionGuard, ConnectionGuardLibertyBans, LibertyBans]

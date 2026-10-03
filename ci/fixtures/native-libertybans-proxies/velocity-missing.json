@@ -1,0 +1,16 @@
+{
+  "id": "native-ban-fixture",
+  "name": "VelocityMissingBanFixture",
+  "version": "1",
+  "main": "fixture.VelocityMissingBanFixture",
+  "dependencies": [
+    {
+      "id": "connection-guard",
+      "optional": false
+    },
+    {
+      "id": "connection-guard-libertybans",
+      "optional": false
+    }
+  ]
+}
