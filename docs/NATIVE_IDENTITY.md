@@ -10,6 +10,16 @@ current connection. Declared forwarding and global online mode retain existing
 ordinary UUID/permission exemptions but are not verified authority for future
 conditional temporary grants.
 
+For a proxy-authenticated connection, the current development adapters bind a
+proof to the same native connection's captured UUID, exact canonical name and full
+resolved client IP/port. They re-read its UUID/name/socket, per-connection online
+mode and live state after waits; a changed value or failed read removes verified
+authority. Global proxy online mode cannot substitute for that per-connection
+mode. Permission/rule work and actions use the captured canonical identity. This
+binding primitive is implemented on Velocity/Bungee; positive genuine account
+logins and Bungee runtime still require their own qualification. The synthetic
+core mutation regression is not evidence of a native mutable-account exploit.
+
 ```yaml
 identity:
   trust-forwarded-uuid: false
@@ -69,3 +79,10 @@ logins, real account-link registration, Geyser client-stack qualification, legac
 Spigot/Bungee runtime qualification, or all-version compatibility evidence.
 The five complete differentiators, challenge/ban integrations and final feature
 release remain separate required work.
+
+The [current platform-binding regressions](../ci/fixtures/authenticated-identity/README.md)
+pin a newer development JAR: 238 core tests with real Redis, nine packaging guards,
+selected native gateway regressions on Velocity/Paper/Folia, global-online with an
+actual offline connection, and absent SDKs on Velocity. The older receipts above
+are preserved with their original artifact hash. Neither package supplies a new
+Bukkit direct Java/verified-forwarding adapter or genuine account login evidence.

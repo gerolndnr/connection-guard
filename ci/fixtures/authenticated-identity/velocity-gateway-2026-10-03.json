@@ -1,0 +1,33 @@
+{
+  "artifact_sha256": "6848d238f9f98b95c954174a84bf1b3c711c25d1bfcc3e5f833709ea6d9eda83",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "native_plugins": {
+    "LuckPerms-velocity-5.5.85.jar": "dbf7090ee4ef2d0eaf054a93a89ac328dda36f7a21c4e4ab3694a00ba3d8ef44",
+    "floodgate-velocity-2.2.5-141.jar": "649835022de37ff09255fc626d4bfe7bc2a3b926d07b0dfaf1f51e12bf37001d"
+  },
+  "fixture_source_sha256": {
+    "NativeIdentityFixture.java": "351eede7a62f97bf25d472aa5fa4452c9e895796c737d16b58761e3eb76486d8",
+    "GatewayHandshakeFixture.java": "a17c243e229589543e99e267d8beefc3027154d6eab7097a2593c564898fb90e"
+  },
+  "addon_sha256": "196687016b13ef506defde40042767afae08a430904ecda981df889762000ea7",
+  "synthetic_gateway_delegation": true,
+  "actual_native_encrypted_handshake": true,
+  "sdk_player_insertion_by_fixture": false,
+  "xbox_authentication_tested": false,
+  "mojang_authentication_tested": false,
+  "real_native_account_link_tested": false,
+  "backend_join_tested": false,
+  "other_platforms_tested": false,
+  "sdk_presence_does_not_trust_ordinary_offline_login": true,
+  "actual_native_current_socket_canonical_id_and_name_exempt_real_lp_permission": true,
+  "actual_closed_native_connection_cannot_bind_new_proof": true,
+  "synthetic_linked_gateway_maps_canonical_java_identity_and_rejects_unlinked_alias": true,
+  "disabled_native_identity_does_not_exempt_encrypted_gateway_login": true,
+  "tampered_encrypted_gateway_cannot_reach_guard_login_authority": true,
+  "actual_second_handshake_replaces_native_record_and_invalidates_waiting_first_login": true,
+  "native_pending_removal_denies_even_while_original_socket_is_connected": true,
+  "native_pending_removal_observe_reports_lost_authority": true,
+  "reload_during_active_native_wait_preserves_old_identity_settings_then_quiescent_disable_applies": true,
+  "shutdown_passed": true
+}

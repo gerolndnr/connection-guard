@@ -28,8 +28,8 @@ class CGLuckPermsHelperTest {
     final AtomicInteger loads = new AtomicInteger(), cleanups = new AtomicInteger();
     User user;
     LuckPerms api;
-    @BeforeEach void setup() {
-        ConnectionGuard.configureLookup(LookupSettings.defaults());
+    @BeforeEach void setup() throws Exception {
+        resetLookupAfterQuiescence();
         CachedPermissionData data = mock(CachedPermissionData.class, (method, args) -> {
             if (method.equals("checkPermission")) return grant ? Tristate.TRUE : Tristate.FALSE;
             return null;
@@ -55,6 +55,21 @@ class CGLuckPermsHelperTest {
             return null;
         });
         api = mock(LuckPerms.class, (method, args) -> method.equals("getUserManager") ? manager : method.equals("getContextManager") ? context : null);
+    }
+    @AfterEach void cleanup() throws Exception {
+        if (loading != null && user != null) loading.complete(user);
+        resetLookupAfterQuiescence();
+    }
+    private static void resetLookupAfterQuiescence() throws InterruptedException {
+        // Result completion is not physical quiescence. Retire atomically, then wait
+        // for terminated pools before resetting this shared test fixture's limits.
+        com.github.gerolndnr.connectionguard.core.lookup.LookupRuntime runtime = ConnectionGuard.getLookupRuntime();
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (!runtime.retireIfIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        assertFalse(runtime.isOpen(), "Previous fixture left lookup work or deadlines active.");
+        while (!runtime.retireIfIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        assertTrue(runtime.retireIfIdle(), "Previous fixture's lookup pools did not terminate.");
+        ConnectionGuard.configureLookup(LookupSettings.defaults());
     }
     @SuppressWarnings("unchecked") static <T> T mock(Class<T> type, BiFunction<String, Object[], Object> handler) {
         return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, (proxy, method, args) -> handler.apply(method.getName(), args));
@@ -124,9 +139,6 @@ class CGLuckPermsHelperTest {
                         com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.Permission.known(true)).get(1, TimeUnit.SECONDS);
         assertTrue(result.isExpired()); assertFalse(result.vpnExempt()); assertEquals(1, loads.get());
         loading.complete(user); assertEquals(1, cleanups.get()); assertFalse(result.vpnExempt());
-        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
-        while (!ConnectionGuard.getLookupRuntime().isIdle() && System.nanoTime() < limit) Thread.sleep(2);
-        ConnectionGuard.configureLookup(LookupSettings.defaults());
     }
     @Test void failedUserLoadIsSafelyDenied() throws Exception {
         loaded = false; loading = new CompletableFuture<>(); loading.completeExceptionally(new IllegalStateException("sensitive database URL"));
