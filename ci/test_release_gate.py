@@ -97,7 +97,8 @@ class ArtifactRegressionTest(unittest.TestCase):
             version = json.loads(jar.read("velocity-plugin.json"))["version"]
             harmless_class = jar.read(PACKAGE.replace(".", "/") + "/api/v1/ConnectionGuardApi.class")
         with tempfile.TemporaryDirectory() as directory:
-            for name in ("org/geysermc/floodgate/api/FloodgateApi.class", "net/luckperms/api/LuckPerms.class"):
+            for name in ("org/geysermc/floodgate/api/FloodgateApi.class", "net/luckperms/api/LuckPerms.class",
+                         "space/arim/libertybans/api/LibertyBans.class", "space/arim/omnibus/Omnibus.class"):
                 for prefix in ("", PACKAGE.replace(".", "/") + "/libs/"):
                     broken = Path(directory) / "duplicate-native-api.jar"
                     with zipfile.ZipFile(artifact) as source, zipfile.ZipFile(broken, "w") as target:
@@ -106,6 +107,19 @@ class ArtifactRegressionTest(unittest.TestCase):
                         target.writestr(prefix + name, harmless_class)
                     with self.assertRaisesRegex(ValueError, "Optional native SDK"):
                         verify(broken, version)
+
+    def test_separate_agpl_addon_is_rejected(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with tempfile.TemporaryDirectory() as directory:
+            broken = Path(directory) / "bundled-addon.jar"
+            with zipfile.ZipFile(artifact) as source, zipfile.ZipFile(broken, "w") as target:
+                version = json.loads(source.read("velocity-plugin.json"))["version"]
+                for entry in source.infolist(): target.writestr(entry, source.read(entry))
+                # Harmless locally authored bytes, no upstream SDK in this fixture.
+                target.writestr(PACKAGE.replace(".", "/") + "/addons/libertybans/LibertyBansReader.class",
+                                source.read(PACKAGE.replace(".", "/") + "/api/v1/ConnectionGuardApi.class"))
+            with self.assertRaisesRegex(ValueError, "separately licensed"):
+                verify(broken, version)
 
     def test_removed_or_duplicate_bstats_class_is_rejected(self):
         artifacts = list((ROOT / "build/libs").glob("*-all.jar"))

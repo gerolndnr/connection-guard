@@ -1,0 +1,9 @@
+name: CGNativeBanFixture
+version: '1'
+main: fixture.CGNativeBanFixture
+api-version: '1.21'
+folia-supported: true
+depend: [ConnectionGuard, ConnectionGuardLibertyBans, LibertyBans]
+commands:
+  fixture-ban:
+    description: Console-only finite synthetic native ban fixture

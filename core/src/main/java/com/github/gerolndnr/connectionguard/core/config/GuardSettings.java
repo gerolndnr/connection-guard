@@ -12,6 +12,7 @@ public final class GuardSettings {
     public enum FailurePolicy { OPEN, CLOSED, OBSERVE }
     public final LookupSettings lookup;
     public final com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission;
+    public final com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings admissionHooks;
     public final boolean observe;
     public final boolean trustForwardedIdentity;
     public final boolean nativeFloodgateIdentity;
@@ -19,9 +20,10 @@ public final class GuardSettings {
     public final FailurePolicy vpnFailure;
     public final FailurePolicy geoFailure;
     public final List<String> warnings;
-    private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, boolean paperForwarding, FailurePolicy vpn,
+    private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, boolean paperForwarding, com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings hooks, FailurePolicy vpn,
                           FailurePolicy geo, List<String> warnings) {
         this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust; this.nativeFloodgateIdentity = floodgate; this.nativePaperForwardingIdentity = paperForwarding;
+        this.admissionHooks = hooks;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
@@ -94,6 +96,7 @@ public final class GuardSettings {
         boolean paperForwarding = bool(value, "identity.paper-modern-forwarding.enabled", false);
         if (paperForwarding) warnings.add("Native Paper modern forwarding selected: only qualified native pre-login profile paths supply gateway authority; protect the proxy secret and backend access. This is not independent account authentication.");
         return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust, floodgate, paperForwarding,
+                new com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings(value),
                 policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }

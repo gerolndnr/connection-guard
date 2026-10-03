@@ -4,6 +4,9 @@ package com.github.gerolndnr.connectionguard.api.v1;
 public final class ConnectionGuardApi {
     public static final int CONTRACT_VERSION = 1;
     private ConnectionGuardApi() { }
+    public static AdmissionRegistration registerAdmissionHook(String id, AdmissionHook hook) {
+        return com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.register(id, hook);
+    }
     public static ProviderRegistration registerProvider(ProviderDescriptor descriptor, DetectionProvider provider) {
         return com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.register(descriptor, provider);
     }

@@ -58,12 +58,21 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                         ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo")) : LoginChecks.Permission.known(false);
             LoginChecks.Result checks = LoginChecks.check(clientIp, decision.settings().lookup, decision.startedNanos(), decision.observe(),
-                    vpnPermission, geoPermission).join();
+                    vpnPermission, geoPermission, new com.github.gerolndnr.connectionguard.api.v1.AdmissionRequest(clientIp, identity.isVerified() ? uuid : null, identity.observationTrust(), DecisionObservation.Platform.BUKKIT, decision.startedNanos() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(decision.settings().lookup.deadlineMillis))).join();
             if (identity.requiresCurrentProof() && !identity.isCurrent()) {
                 decision.identityUnavailable();
                 if (!decision.observe()) { preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection identity verification is no longer available. Please retry."); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
                 return;
             }
+
+                LoginChecks.External external = checks.external();
+                decision.admission(external.observations);
+                if (external.isDenied()) decision.flag(DecisionObservation.Flag.EXTERNAL_POLICY);
+                if (external.shouldRefuse(decision.observe())) {
+                    String message = external.isDenied() ? "Connection denied by configured server access check." : "Server access verification is temporarily unavailable. Please retry.";
+                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, message);
+                    decision.denied(external.refusalReason()); return;
+                }
             if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
                 decision.overload();

@@ -1,0 +1,305 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Generated defaults from native LibertyBans 1.1.4; fixture-only offline identity.
+ #
+ #
+ # The main LibertyBans configuration
+ # All options here can be updated with /libertybans reload
+ #
+ #
+ # Handles how staff are permitted to specify reasons
+reasons:
+   # When entering commands, what happens if the staff member does not specify a reason?
+   # USE_EMPTY_REASON - Keep the reason blank, as specified.
+   # REQUIRE_REASON - Deny the command; send the usage message.
+   # SUBSTITUTE_DEFAULT - Substitute the default reason.
+  unspecified-reason-behavior: 'SUBSTITUTE_DEFAULT'
+   # Deprecated option kept for compatibility purposes. Ignore this.
+  permit-blank: false
+   # If unspecified-reason-behavior is SUBSTITUTE_DEFAULT, what is the default reason to use when staff do not specify a reason?
+  default-reason: 'No reason stated.'
+
+commands:
+   # What commands should be registered as aliases for LibertyBans commands?
+   # For each command listed here, '/<command>' will be equal to '/libertybans <command>'.
+   #
+   # A value with a colon changes the alias name. For example, 'ban-ip:ipban' makes '/ban-ip' become '/libertybans ipban'.
+   #
+   # This basic system is for convenience. Please use a dedicated alias plugin if you need more control.
+   # Also, please note that command aliases are disabled on Sponge, due to command API differences.
+  aliases:
+    - 'ban'
+    - 'ipban'
+    - 'ban-ip:ipban'
+    - 'mute'
+    - 'ipmute'
+    - 'warn'
+    - 'ipwarn'
+    - 'kick'
+    - 'ipkick'
+    - 'unban'
+    - 'unbanip'
+    - 'unmute'
+    - 'unmuteip'
+    - 'unwarn'
+    - 'unwarnip'
+    - 'banlist'
+    - 'mutelist'
+    - 'history'
+    - 'warns'
+    - 'blame'
+    - 'alts'
+    - 'accounthistory'
+   # If this is enabled, it will be as if relevant commands used the -both argument.
+   # Effectively, this makes punishments more strict, since moderators will end up banning UUIDs and addresses
+  use-composite-victims-by-default: false
+   # By default, /history and /warns show punishments specifically for the player requested.
+   # Enabling this option will make /history and /warn scan punishments which would apply to the player
+   #
+   # For example, an IP ban may apply to a player, but it will not be in the player's /history unless this is enabled
+  show-applicable-for-history: false
+   # Whether to enable tab completion
+  enable-tab-completion: true
+   # Other options relating to tab completion
+   # These settings require a restart (/libertybans restart) to take effect
+  tab-completion:
+     # This option is only relevant when LibertyBans is on a proxy
+     # If enabled, tab completion of online player names will exclude the names of players
+     # on different backend servers.
+    use-only-players-on-same-server: true
+     # Regards tab completing the names of players who have formerly joined
+     # This can be a bit heavy on memory for large servers, so it's disabled by default.
+     # To tune how long player names are retained for, see the retention-minutes option
+    offline-player-names:
+       # Whether to enable this feature
+      enable: false
+       # What is the period in which recently joining players' names should be completed
+       # If a player has joined in the last specified amount of minutes, his or her name is tab-completed
+      retention-minutes: 4320
+       # This feature is implemented using a cache. How often should the cache be refreshed?
+       # Shorter times mean more accurate tab completion but use slightly more performance
+      cache-refresh-seconds: 120
+
+     # Enables tab-completing punishment durations. For example, '30d' in '/ban A248 30d'
+     #
+    punishment-durations:
+       # Whether to enable this feature
+      enable: false
+       # Which duration permissions should be tab-completed?
+       # Specify all the durations which you want to tab complete.
+       #
+       # If duration permissions are enabled, only players who have permission to use a certain duration
+       # will have that duration tab-completed.
+      durations-to-supply:
+        - 'perm'
+        - '4h'
+        - '30d'
+        - '10d'
+
+
+   # By default, /blame shows only active punishments made by a staff member.
+   # If you disable this option, /blame will show all punishments, including those revoked and expired.
+   #
+   # If you use the staffrollback addon, you probably want to disable this to make /blame consistent
+   # with the staffrollback operation.
+  blame-shows-active-only: true
+
+ # Options related to punishment enforcement and alt account checking
+ #
+ # -- Alt Account Enforcement and Checking --
+ # There are multiple ways to combat alt accounts in LibertyBans.
+ #
+ # First, you can have the plugin automatically detect alt accounts and prevent them from joining,
+ # with the same ban message. This is controlled by the 'address-strictness' setting.
+ #
+ # Second, you can tell your staff members to be on the lookout for alts. They can use
+ # the /alts command to manually check players they suspect are alt accounts. Also, you can
+ # use the alts-auto-show feature which will automatically notify staff of players who may be using alts.
+ #
+ # Third, you may use 'composite punishments', a more advanced feature which is described on the wiki.
+enforcement:
+   #
+   # A list of commands muted players will not be able to execute
+   #
+   # This list supports subcommands, which will be enforced if the executed command starts with the list entry.
+   # Additionally, colons in commands, such as"pluginname:cmd", cannot be used to bypass this.
+  mute-commands:
+    - 'msg'
+    - 'r'
+    - 't'
+    - 'w'
+    - 'tell'
+    - 'me'
+    - 'whisper'
+    - 'say'
+    - 'clan chat'
+    - 'reply'
+   #
+   # How strict should IP-based punishments be?
+   # Available options are LENIENT, NORMAL, STERN, and STRICT
+   #
+   # An IP-based punishment applies to a player if:
+   # LENIENT - The player's current address matches the punished address
+   # NORMAL - Any of the player's past addresses matches the punished address
+   # STERN - Any of the player's past addresses matches any of the past addresses of the punished user
+   #
+   # STRICT is the same as STERN, but also enforces user punishments as stringently as IP-based punishments.
+   #     (Using STRICT turns all user punishments into IP-based punishments)
+  address-strictness: 'NORMAL'
+   # Runs an alt-check on newly joined players, as if by /alts,
+   # the results of which will be shown to staff members with the libertybans.alts.autoshow permission.
+  alts-auto-show:
+     # Set to true to enable this feature
+    enable: false
+     # Allows determining which alts will be shown by this alt-check
+     # (This does not affect the alts command, which will always show all alts)
+     # ALL_ALTS - shows all alts
+     # BANNED_OR_MUTED_ALTS - shows alts either banned or muted
+     # BANNED_ALTS - shows only banned alts
+    show-which-alts: 'ALL_ALTS'
+     # Whether to enable the bypass permission.
+     # If enabled, players with the libertybans.alts.bypass.autoshow permission won't trigger the check.
+    enable-bypass-permission: false
+
+   # Controls if all servers should register the IP address of the player connecting.
+  alts-registry:
+     # If you want to register the IP address of the player connecting, set this to true.
+     # If you are running a proxy and don't want to register the IP when players connect,
+     # set this to false and add the servers' names in the list above.
+    should-register-on-connection: true
+     # The server names in this list will be excluded from associating the IP address of the player connecting.
+     # Please note that the server's name in the list should be the same as the ones in your proxy configuration.
+     # This is intended to be used by LibertyBans proxy installations.
+     # If you are planning to use this feature, you MUST enable the 'enforce-server-switch' option.
+     # If you are not using LibertyBans in the proxy, you should leave this list empty.
+    servers-without-ip-registration:
+      - 'auth'
+      - 'server-name'
+
+   # Limits players connecting from the same IP address.
+   #
+   # The limiter works by counting the amount of joins from a given IP address within a recent timespan.
+   # Thus, it is not an absolute limit, but a limit on the rate of joins.
+  connection-limiter:
+     # The limit to apply
+    limit: 5
+     # The message when a player is denied from joining due to the limit
+    denial-message: 'There have been too many connections from your IP address recently'
+     # Whether to enable this feature
+    enable: false
+     # What is the duration within which recent joins are counted against the limit?
+     # The default is 30 minutes and the value is specified in seconds.
+    duration-seconds: 1800
+
+   # Controls the expiration of join history as used by manual alt detection.
+   # This allows expiring alt accounts after some time has elapsed.
+   #
+   # This setting does NOT affect enforcement of IP-based punishments.
+   # It applies only to the /alts command and the alts-auto-show feature.
+   #
+   # Note that this feature will not actually delete any data from the database.
+  alt-account-expiration:
+     # Whether to enable this feature
+    enable: false
+     # The expiration time, in days.
+    expiration-time-days: 30
+
+
+platforms:
+   # Related to proxies such as BungeeCord and Velocity
+  proxies:
+     # Server-scoped punishments will be enforced by preventing server switches for players connecting
+     # to servers on which they are banned. The server name is obtained from the proxy API
+     #
+     # This option is enabled by default for full functionality. However, it increases performance usage,
+     # so you may want to disable it if you do not use the scopes feature.
+    enforce-server-switch: true
+     # Set this to true to indicate that you are running multiple proxy instances.
+     #
+     # It will instruct LibertyBans to perform additional synchronization measures, where applicable.
+    multiple-proxy-instances: false
+
+   # Related to the Sponge platform
+  sponge:
+     # Whether to register the ban service for use by other plugins.
+     # If enabled, LibertyBans will replace the server's default banning implementation with its own.
+     #
+     # This option is somewhat technical. For advice on whether you should configure this option,
+     # please ask for support.
+     # It is highly recommended to ask for guidance if you are unsure about this option.
+     #
+     # How this affects compatibility:
+     # - If disabled, the vanilla ban service will remain. Other plugins which query for bans will be
+     #   served with information from vanilla. For example, if a player is banned through LibertyBans
+     #   but not vanilla, then other plugins will think the player is not banned.
+     # - If enabled, uses of the ban service will forward to LibertyBans. Other plugins which query for bans
+     #   will be served with accurate information from LibertyBans.
+     # - However, the LibertyBans ban service has limitations. It cannot issue bans, for example.
+     #   So, if another plugin attempts to create bans using the ban service, you will receive an error.
+     #   If you absolutely need other plugins to issue bans, you must disable this option.
+     #
+     # Note that it is impossible to import vanilla bans if you enable this option. So, if you wish to import
+     # from vanilla, first you need to disable this option. After importing, you may re-enable it.
+    register-ban-service: true
+
+   # Related to game servers such as Spigot, Paper, and Sponge
+  game-servers:
+     # This option is relevant for backend servers running within a network (BungeeCord or Velocity).
+     # It enables the use of plugin messaging, such as for:
+     #  - Kicking the player from the entire network
+     #  - Detecting the name of the backend server for use with server scopes
+     #  - Synchronizing punishments across instances, depending on the mode in the sql.yml
+     #
+     # DO NOT enable this option if you do not run a network. Otherwise, you create a security vulnerability
+     # whereby players can pretend to be coming from a proxy, evading kicks and sending sync messages.
+     # After changing this option, please perform a restart (/libertybans restart).
+    use-plugin-messaging: false
+
+
+ # What language file should be used for messages?
+ # For example, 'en' means LibertyBans will look for a file called 'messages_en.yml'
+lang-file: 'en'
+durationPermissions:
+   # If disabled, players are not checked for duration permissions.
+  enable: false
+   # Which duration permissions should a staff member be checked for?
+   # Specify all the durations which you want to explicitly grant permission for.
+  permissions-to-check:
+    - 'perm'
+    - '4h'
+    - '30d'
+    - '10d'
+
+ # Formatting of absolute dates
+date-formatting:
+   # Do you want to override the timezone? If 'default', the system default timezone is used
+   # The value must be in continent/city format, such as 'America/New_York'. Uses Java's ZoneId.of
+  timezone: 'Europe/Lisbon'
+   # How should dates be formatted? Follows Java's DateTimeFormatter.ofPattern
+  format: 'dd/MM/yyyy kk:mm'
+
+ # Options relating to finding UUIDs from names, and vice-versa
+ # LibertyBans will first check its own caches before using these resources
+player-uuid-resolution:
+   #
+   # What kind of UUIDs do your players have?
+   # Available options are ONLINE, OFFLINE, and MIXED
+   #
+   # For most servers this will be 'ONLINE'
+   # For offline servers where all players have offline UUIDs, use OFFLINE
+   # For offline servers where some players have online and some have offline UUIDs, use MIXED
+  server-type: 'ONLINE'
+   # By default, LibertyBans will automatically detect if you are running Geyser or Floodgate.
+   # The prefix will be determined using the Geyser API
+   #
+   # However, in rare cases, you may want to force LibertyBans to acknowledge the presence of Geyser usernames
+   # If so, set this option to the value of the prefix you use for Geyser/Floodgate.
+   #
+   # If you want to switch back to automatic detection, change this back to an empty string.
+   # Then, you will need a server restart for automatic detection to take effect.
+  force-geyser-prefix: ''
+   #
+   # As a last resort, when LibertyBans cannot find a uuid or name, it will use an external web API
+   # Available options are 'MOJANG', 'ASHCON', and 'MCHEADS'. They will be queried sequentially in the order specified.
+   # (If the server is not in ONLINE mode, this option is ignored)
+  web-api-resolvers:
+    - 'MOJANG'

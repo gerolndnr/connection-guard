@@ -52,6 +52,11 @@ overload:
 # Third-party providers register through the versioned API, then require explicit
 # selection and /cg reload. Missing/closed modules stay UNKNOWN. See API docs.
 integrations:
+  # Read-only pre-admission policy checks. CLEAR never bypasses guard rules.
+  admission:
+    enabled: false
+    ids: []
+    failure-policy: OPEN
   providers:
     enabled: false
     sources: []

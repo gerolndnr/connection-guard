@@ -1,0 +1,5 @@
+name: ConnectionGuardLibertyBans
+main: com.github.gerolndnr.connectionguard.addons.libertybans.BungeeAddon
+version: 0.1.0-dev
+depends: [ConnectionGuard]
+softDepends: [LibertyBans]

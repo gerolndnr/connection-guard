@@ -101,7 +101,9 @@ public class ConnectionGuard {
     private static volatile GuardSettings settings = GuardSettings.defaults();
     public static GuardSettings getSettings() { return settings; }
     public static synchronized void applySettings(GuardSettings next) {
+        com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.validateActivation();
         configureLookup(next.lookup);
+        com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;
     }
@@ -127,6 +129,7 @@ public class ConnectionGuard {
         if (coordinator.inflight() != 0) throw new IllegalStateException("Wait for active lookups before changing limits.");
         LookupRuntime previous = lookupRuntime;
         if (previous.isOpen() && previous.getSettings().equals(settings)) return;
+        com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.validateActivation();
         if (!previous.retireIfIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before changing limits.");
         lookupRuntime = new LookupRuntime(settings);
         coordinator = new LookupCoordinator(lookupRuntime);
@@ -138,7 +141,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;

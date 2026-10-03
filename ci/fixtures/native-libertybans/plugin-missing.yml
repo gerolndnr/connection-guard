@@ -1,0 +1,9 @@
+name: CGMissingBanFixture
+version: '1'
+main: fixture.CGMissingBanFixture
+api-version: '1.21'
+folia-supported: true
+depend: [ConnectionGuard, ConnectionGuardLibertyBans]
+commands:
+  fixture-ban:
+    description: Console-only absent-native-SDK fixture

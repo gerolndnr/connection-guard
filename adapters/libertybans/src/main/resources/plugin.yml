@@ -1,0 +1,7 @@
+name: ConnectionGuardLibertyBans
+main: com.github.gerolndnr.connectionguard.addons.libertybans.SpigotAddon
+version: 0.1.0-dev
+api-version: '1.13'
+folia-supported: true
+depend: [ConnectionGuard]
+softdepend: [LibertyBans]
