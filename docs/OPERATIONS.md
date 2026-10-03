@@ -4,7 +4,7 @@ Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
 Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
 Explicit addon selection: [versioned provider contract](PROVIDER_API_V1.md).
 
-Development documentation for the next release. Do not infer these features from the unchanged 0.4.10 tag.
+Development documentation for the next feature release. The published 0.4.11 hotfix remains unchanged; these features are not in that release.
 
 New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.
 
@@ -12,7 +12,7 @@ New installations use `operation.mode: OBSERVE`: classification and staff notice
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `lookup.deadline-ms` | 5000 | Total lifetime including cache access and provider queue |
+| `lookup.deadline-ms` | 5000 | Whole-login wait budget, including identity inspection, permissions, admission, cache and provider queue |
 | `lookup.http-timeout-ms` | 2500 | HTTP call deadline; cannot exceed total lifetime |
 | `lookup.workers` | 8 | Maximum transport workers |
 | `lookup.queue-capacity` | 64 | Maximum queued transport jobs |
@@ -37,9 +37,9 @@ Commands and permissions:
 
 ## Identity and permission exemptions
 
-Exemption lists accept literal addresses and UUIDs. Claimed pre-authentication player names never bypass checks. UUIDs are honored only in an authenticated online-mode phase, or with the operator's explicit `identity.trust-forwarded-uuid: true`. Enable that only after locking down backend access and verifying trusted forwarding. Unprotected offline servers cannot authenticate a UUID from a name. Missing UUID and missing/failing LuckPerms never grant an exemption or throw an exception.
+Exemption lists accept literal addresses and UUIDs. Claimed pre-authentication player names never bypass checks. Ordinary UUID/permission exemptions distinguish per-connection platform authentication, explicitly enabled current native Floodgate records, legacy Bukkit global online mode and the operator's `identity.trust-forwarded-uuid` declaration. A global flag or declaration is not verified authority for future conditional temporary grants. Enable declared trust only after locking down backend access and verifying forwarding; it is not a generic permission workaround. Missing UUID and missing/failing LuckPerms supply no permission grant. Read the [identity contract](NATIVE_IDENTITY.md) and [named permission evidence](PERMISSION_VALIDATION.md) for current socket binding, proof rechecks and incomplete platform/account coverage.
 
-Velocity performs provider/identity decisions once in LoginEvent, so pre-login client-supplied identity cannot grant a bypass and expiring rules or a reload between phases cannot skip checks. Literal network denials also reject early in PreLoginEvent. Bungee uses LoginEvent; Spigot uses AsyncPlayerPreLoginEvent. LuckPerms checks use existing users, loading only when necessary; a 750 ms deadline bounds loading. The subject context is used where available, otherwise the user's/static query options; a world context unavailable before backend join is not invented. Effective exemptions are resolved **before** provider requests. New forwarded-identity/Geyser/Floodgate compatibility must be tested for the actual installation; no blanket guarantee is made.
+Velocity performs provider/identity decisions once in LoginEvent, so pre-login client-supplied identity cannot grant a bypass and expiring rules or a reload between phases cannot skip checks. Literal network denials also reject early in PreLoginEvent. Bungee uses LoginEvent; Spigot uses AsyncPlayerPreLoginEvent. LuckPerms checks use existing users, loading only when necessary; a 750 ms helper deadline bounds loading, clipped by the remaining whole-login budget. The subject context is used where available, otherwise the user's/static query options; a world context unavailable before backend join is not invented. Effective exemptions are resolved **before** provider requests. New forwarded-identity/Geyser/Floodgate compatibility must be tested for the actual installation; no blanket guarantee is made.
 
 ## Configuration and cache upgrades
 

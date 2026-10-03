@@ -19,15 +19,26 @@ class VersionedProviderTest {
     @TempDir Path directory;
     private CacheProvider cache;
     private static final String HASH = String.join("", Collections.nCopies(64, "a"));
-    @BeforeEach void initialize() {
+    @BeforeEach void initialize() throws Exception {
+        awaitQuiescence();
         ExtensionRegistry.closeAll(); ConnectionGuard.setLogger(null);
         ConnectionGuard.applySettings(GuardSettings.defaults());
         cache = new NoCacheProvider(); ConnectionGuard.setCacheProvider(cache);
         ConnectionGuard.setVpnProviders(new ArrayList<>()); ConnectionGuard.setRequiredPositiveFlags(1);
     }
     @AfterEach void cleanup() throws Exception {
-        ExtensionRegistry.closeAll(); cache.disband().get(2, TimeUnit.SECONDS);
+        ExtensionRegistry.closeAll();
+        awaitQuiescence();
+        if (cache != null) cache.disband().get(2, TimeUnit.SECONDS);
         ConnectionGuard.setCacheProvider(new NoCacheProvider()); ConnectionGuard.setVpnProviders(new ArrayList<>());
+    }
+    private static void awaitQuiescence() throws InterruptedException {
+        // A completed result can still be unwinding callbacks on an owned worker/timer.
+        // Do not mutate shared fixture state until the physical work has left the pool.
+        LookupRuntime runtime = ConnectionGuard.getLookupRuntime();
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (!runtime.isIdle() && System.nanoTime() < limit) Thread.sleep(2);
+        assertTrue(runtime.isIdle(), "Previous fixture left lookup work or deadlines active.");
     }
     private Map<String, Object> values(String id, boolean voting) {
         Map<String, Object> config = new HashMap<>(), source = new HashMap<>();

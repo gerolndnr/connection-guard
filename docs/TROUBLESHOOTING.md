@@ -26,7 +26,9 @@ behavior:
 
 This is a partial config; edit the existing fields. A permission alone does not enable the feature. All three adapters use LuckPerms for the pre-login exemption lookup; notification permissions are checked separately through each platform. Verify permissions on the **same server/proxy where Connection Guard runs**, with the actual UUID and applicable context. A VPN exemption does not exempt a country rule.
 
-A user reported an exemption problem in 0.4.9. The 0.4.10 HTTP/cache fixtures do not establish every LuckPerms, offline-mode or Floodgate scenario, and do not prove that report fixed. If correct settings still fail, submit a reproducible case. Config exemption lists are a separate path to evaluate, subject to identity/IP checks.
+The published 0.4.11 hotfix addresses the bStats startup dependency; it does not deliver the newer identity/permission development work. A user reported an exemption problem in 0.4.9, whose exact deployment is still unknown. [Named LuckPerms/Floodgate development tests and remaining limits](PERMISSION_VALIDATION.md) now provide reproducible context, missing-SDK and native gateway cases; they do not prove that original report resolved.
+
+If correct settings still fail, submit a reproducible case. Include VPN versus geo, where LuckPerms runs, the applicable login context and whether the identity is Java, offline, forwarded or Floodgate-linked. Do not publish the player's UUID or connection address. Config exemption lists are a separate path, subject to identity/IP checks; do not broaden forwarding trust as a generic workaround.
 
 ## Limits and provider errors
 
