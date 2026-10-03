@@ -1,0 +1,39 @@
+{
+  "artifact_sha256": "6848d238f9f98b95c954174a84bf1b3c711c25d1bfcc3e5f833709ea6d9eda83",
+  "runtime": "BungeeCord 26.1-R0.1-SNAPSHOT build 2100",
+  "runtime_sha256": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-bungee-5.5.85.jar": "b5452188e89d6b9f524c20c8ab487c96967e5f854fc573633b0565ede2271abc",
+    "floodgate-bungee-2.2.5-141.jar": "ba79b19048e1255201ed886af5b437038d428e6e673d9756a8704235473c1544"
+  },
+  "addon_sha256": "d3c739ff62c6cbc5f82f290e58179b523b8c61aea6525c72993cfb27210c618a",
+  "fixture_source_sha256": {
+    "NativeBungeeFixture.java": "7caea80f63f69639872e9a7dc9ee5306520da84b069a0cd7e030a182c798deec",
+    "GatewayHandshakeFixture.java": "a17c243e229589543e99e267d8beefc3027154d6eab7097a2593c564898fb90e"
+  },
+  "synthetic_gateway_delegation": true,
+  "real_account_authentication_tested": false,
+  "real_native_account_link_tested": false,
+  "backend_join_tested": false,
+  "other_bungee_versions_tested": false,
+  "proxy_online_mode": false,
+  "deliberate_offline_override_for_synthetic_java_names": false,
+  "null_identity_cannot_grant_permission": true,
+  "actual_native_lp_server_context_is_available": true,
+  "native_sdk_presence_or_global_online_mode_does_not_exempt_actual_offline_connection": true,
+  "actual_native_lp_context_controls_declared_trust_exception": true,
+  "declared_trust_is_not_verified_forwarding_or_authenticated_identity": true,
+  "actual_encrypted_gateway_canonical_socket_uses_native_lp_grant": true,
+  "actual_linked_canonical_gateway_mapping_wrong_context_denied_and_alias_rejected": true,
+  "tampered_gateway_does_not_reach_guard_login_authority": true,
+  "disabled_native_guard_option_cannot_grant_gateway_permission": true,
+  "manual_deny_precedes_native_permission": true,
+  "current_native_retirement_while_socket_live_enforce": true,
+  "current_native_retirement_while_socket_live_observe": true,
+  "shutdown_passed": true,
+  "private_console_log_sha256": "2b7d0c71f7371222b1159fd6fec2a788198b11adb94ff05d9bda796a64f1d91d",
+  "fixture_descriptor_sha256": "40ff8fb484f203da12aef81650fec54d266afb9ae1e1a316db2cfb5395b5c280",
+  "harness_sha256": "b46bee7b115b04d2c99523e927163ffa131ae66875e9581109cee5a6c9fbbeff",
+  "automatic_ci_native_stack_tested": false
+}

@@ -42,6 +42,7 @@ Each linked receipt pins the guard, runtime, addon and native plugin hashes.
 | [Paper 1.21.11 build 132 / Folia 1.21.11 build 14 permission fixtures](../ci/fixtures/native-backend-permissions/README.md) | Matching declared-trust context joins the backend; wrong context is refused. Manual DENY takes precedence. Missing SDK gives no grant. | Real offline backend joins; declaration does not verify forwarding or authenticate the account. |
 | [Native encrypted gateway fixtures on those three runtimes](../ci/fixtures/native-identity/README.md) | Actual Floodgate handshakes create canonical socket-bound records; matching native LuckPerms context grants. Disabled native option, wrong context and absent SDK cannot supply that native exemption. Paper/Folia record actual backend joins and manual DENY precedence. | Synthetic gateway assertions, including a supplied linked mapping; no Xbox/Mojang authentication or native account-link registration. |
 | [Velocity native lifecycle cases](../ci/fixtures/native-identity/velocity-2026-10-03.json) | Record replacement and controlled native retirement during a provider wait invalidate proof; ENFORCE temporarily denies and OBSERVE reports `IDENTITY_UNAVAILABLE`. A tampered encrypted handshake cannot reach the guard's login authority. | Native retirement is a separately controlled API case; it is not a claim about every ordinary disconnect or Geyser version. |
+| [Selected BungeeCord build 2100 / Java 21](../ci/fixtures/native-bungee/README.md) | Actual LP matching/wrong contexts, canonical encrypted native gateway records, alias/wrong-port and tamper rejection, disabled native option, manual DENY and retirement during ENFORCE/OBSERVE waits. Globally online/per-connection offline and absent-SDK variants pass. | Synthetic gateway delegation; no backend, genuine account, real native account linking or verified forwarding. Other Bungee/Waterfall versions remain unqualified. |
 
 PRs [#52](https://github.com/gerolndnr/connection-guard/pull/52),
 [#53](https://github.com/gerolndnr/connection-guard/pull/53) and
@@ -58,8 +59,9 @@ tests include synthetic metadata changes; actual selected native gateway
 regressions on Velocity/Paper/Folia and a globally online Velocity proxy with a
 per-connection offline override pass on the same newer artifact. Positive genuine
 account logins, live native authenticated-object mutation and Bungee runtime are
-not established by those cases. The earlier receipts above retain their original
-hash and test counts.
+not established by those cases. The newer selected Bungee receipts linked in the
+table add gateway and negative authentication runtime boundaries on that same
+newer artifact. The earlier receipts retain their original hash and test counts.
 
 ## What remains open
 
@@ -67,9 +69,9 @@ hash and test counts.
 0.4.9 exemption failure. The reporter's stack and configuration are unknown; these
 named cases do not reproduce that exact deployment or prove that report resolved.
 True Java/backend authentication, verified proxy forwarding, real native linked
-accounts, selected Bungee/legacy Spigot cases, the separate geo-exemption runtime
-matrix and other server versions still require qualification. Conditional temporary
-grants and native challenge completion are separate unfinished features.
+accounts, legacy Spigot and other Bungee/Waterfall versions, the separate
+geo-exemption runtime matrix and other server versions still require qualification.
+Conditional temporary grants and native challenge completion are separate unfinished features.
 
 For an unresolved case, send the [sanitized issue details](TROUBLESHOOTING.md#report-a-reproducible-issue),
 including VPN versus geo, identity source, where LuckPerms runs and the context tested.

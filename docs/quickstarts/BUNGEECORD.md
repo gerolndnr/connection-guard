@@ -21,3 +21,10 @@ Configure notifications in the proxy permission system. Permission exemptions us
 ## Validation scope
 
 This guide describes published 0.4.11, based on unchanged 0.4.10 connection-check behavior. BungeeCord is built and packaged in CI; a live BungeeCord/Waterfall runtime matrix remains pending. The hotfix's Paper activation test does not qualify Bungee runtime behavior. [Newer native permission/identity evidence](../PERMISSION_VALIDATION.md) belongs to development for a future release, not the published JAR. Tests do not establish public-provider accuracy. [Release checks](../../CHANGELOG.md). Record exact platform and Java versions with deployments and support reports.
+
+The [selected Bungee development fixture](../../ci/fixtures/native-bungee/README.md)
+now qualifies build 2100 / Java 21 with native LuckPerms/Floodgate, canonical
+synthetic gateway records, context and pending-removal boundaries, global-online
+with per-connection offline input, and absent-SDK behavior. Its JAR is a newer
+development artifact. This is not a complete run of the stable quickstart or a
+backend/forwarding/account-login or other Bungee/Waterfall-version qualification.

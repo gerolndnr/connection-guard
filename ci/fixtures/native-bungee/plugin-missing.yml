@@ -1,0 +1,5 @@
+name: NativeBungeeFixture
+version: 1
+main: fixture.MissingBungeeFixture
+depends: [ConnectionGuard]
+softDepends: [LuckPerms, floodgate]

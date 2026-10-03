@@ -17,7 +17,8 @@ mode and live state after waits; a changed value or failed read removes verified
 authority. Global proxy online mode cannot substitute for that per-connection
 mode. Permission/rule work and actions use the captured canonical identity. This
 binding primitive is implemented on Velocity/Bungee; positive genuine account
-logins and Bungee runtime still require their own qualification. The synthetic
+logins still require their own qualification. Selected Bungee gateway and negative
+authentication boundaries are qualified separately below. The synthetic
 core mutation regression is not evidence of a native mutable-account exploit.
 
 ```yaml
@@ -59,8 +60,8 @@ Modern selected Paper/Folia supply their current client socket/live state throug
 `PlayerConnection`. Missing legacy connection APIs supply no native proof and keep
 ordinary checking available. A Bukkit global online flag is labelled
 `PLATFORM_ONLINE`; this package does not claim a current per-connection Mojang
-proof for that flag. True direct Java/backend authentication and the selected
-Bungee native runtime still need separate qualification.
+proof for that flag. True direct Java/backend authentication and verified
+forwarding still need separate qualification.
 
 ## Named qualification
 
@@ -86,3 +87,17 @@ selected native gateway regressions on Velocity/Paper/Folia, global-online with 
 actual offline connection, and absent SDKs on Velocity. The older receipts above
 are preserved with their original artifact hash. Neither package supplies a new
 Bukkit direct Java/verified-forwarding adapter or genuine account login evidence.
+
+## Selected native Bungee qualification
+
+[Three Bungee receipts and reproduction sources](../ci/fixtures/native-bungee/README.md)
+qualify BungeeCord 26.1-R0.1-SNAPSHOT build 2100 / Java 21 on the newer artifact
+above: real LuckPerms 5.5.85 contexts, actual encrypted Floodgate 2.2.5 build 141
+canonical records, alias/wrong-port and tamper rejection, disabled native option,
+manual DENY and native retirement while the same socket remains live. ENFORCE and
+OBSERVE recheck native authority after provider waits. A globally online proxy
+with deliberately offline synthetic ordinary connections remains untrusted; the
+absent-SDK variant creates no native proof or permission. These are synthetic
+gateway delegation and negative authentication tests. No backend joins, genuine
+accounts, real account-link registration, native authenticated-object mutation,
+verified forwarding or other Bungee/Waterfall versions are established.
