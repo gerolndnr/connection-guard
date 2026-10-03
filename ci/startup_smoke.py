@@ -8,7 +8,6 @@ and stop their owned process even when the plugin fails to enable.
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import queue
 import re
@@ -57,6 +56,8 @@ def download_runtime(platform, directory):
 
 def setup(directory, platform, artifact, runtime, accept_eula):
     require(platform != "paper" or accept_eula, "Paper requires explicit --accept-eula after a conscious EULA decision.")
+    require(shutil.disk_usage(directory).free >= 512 * 1024 * 1024,
+            "At least 512 MiB of free disk space is required for an isolated runtime fixture.")
     require(digest(runtime) == RUNTIMES[platform]["sha256"], "Runtime SHA-256 differs from the pinned official build.")
     plugins = directory / "plugins"
     plugins.mkdir()
