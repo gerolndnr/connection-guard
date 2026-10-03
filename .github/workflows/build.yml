@@ -58,7 +58,7 @@ jobs:
           EOF
 
       - name: Build all platforms
-        run: ./gradlew --no-daemon --console=plain check shadowJar
+        run: ./gradlew --no-daemon --console=plain check shadowJar :adapters:libertybans:jar
 
       - name: Retain structured test diagnostics
         if: always()
@@ -71,12 +71,14 @@ jobs:
 
       - name: Verify repeatable archive
         run: |
-          sha256sum build/libs/*-all.jar > "$RUNNER_TEMP/connection-guard-first-build.sha256"
-          ./gradlew --no-daemon --console=plain --rerun-tasks shadowJar
+          sha256sum build/libs/*-all.jar adapters/libertybans/build/libs/*.jar > "$RUNNER_TEMP/connection-guard-first-build.sha256"
+          ./gradlew --no-daemon --console=plain --rerun-tasks shadowJar :adapters:libertybans:jar
           sha256sum --check "$RUNNER_TEMP/connection-guard-first-build.sha256"
 
       - name: Verify plugin artifact
-        run: python3 ci/verify_artifact.py
+        run: |
+          python3 ci/verify_artifact.py
+          python3 ci/verify_libertybans_addon.py
 
       - name: Verify release regression guards
         run: python3 ci/test_release_gate.py
@@ -107,5 +109,13 @@ jobs:
           path: |
             build/libs/*-all.jar
             build/libs/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload separate optional addon
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: connection-guard-libertybans-ci-${{ github.sha }}
+          path: adapters/libertybans/build/libs/*.jar
           if-no-files-found: error
           retention-days: 7

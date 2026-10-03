@@ -3,7 +3,9 @@
 Development implementation for the next release. This document specifies the provider
 contract, validated with the synthetic real Velocity addon linked below.
 Decision observers have a [separate v1 contract](DECISION_OBSERVERS_V1.md);
-actual native challenge/ban adapters remain outstanding integration work.
+read-only ban checks use the separate [admission API](ADMISSION_API.md) and optional
+[LibertyBans addon](../adapters/libertybans/README.md). Actual challenge routing/completion
+and broader native qualification remain distinct unfinished work.
 
 Use `com.github.gerolndnr.connectionguard.api.v1`. Compile against Connection Guard as a
 compile-only dependency and declare your platform's dependency on the Connection Guard plugin.

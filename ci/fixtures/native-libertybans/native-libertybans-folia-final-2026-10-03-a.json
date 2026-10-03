@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "kind": "connection-guard-native-libertybans",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "artifact_sha256": "477228bdba4e54a0c3ba82d118d8bf0cb68fed682c68a8cc82062eb9c51e286c",
+  "addon_sha256": "9ca8005f41e64c946f50e6f8170e92ffce7f5ee1e753c61533856a6ae3a1bd60",
+  "native_sha256": "57303df011ff49747856af4ed818546f19b5dd84b8c627a6666431d0df962634",
+  "native_version": "1.1.4",
+  "authenticated_accounts_tested": false,
+  "uuid_probe_is_synthetic_contract_input": true,
+  "tests": [
+    "actual-native-clear",
+    "actual-native-active",
+    "actual-native-uuid",
+    "actual-native-foreign",
+    "actual-native-expired",
+    "actual-native-mute",
+    "actual-native-revoked",
+    "actual-login-CGBanClear",
+    "actual-login-CGBanVpn",
+    "actual-login-CGBanActive",
+    "actual-login-CGBanObserve",
+    "actual-login-CGBanRevoked",
+    "actual-login-CGBanCancel"
+  ],
+  "observe_is_guard_only_native_plugin_still_enforces": true,
+  "shutdown_passed": true,
+  "console_sha256": "678bcb1e58a87b77a14e8b8e77e3038ed357dceff599acc71d88825698afcd52",
+  "fixture_name": "native-libertybans-folia-final-2026-10-03-a",
+  "fixture_sources": {
+    "CGMissingBanFixture.java": "1a4c2c78a8c0cdda974da8bc5e3d9a96e2f5753df1806af308c5f0d0efde47cf",
+    "CGNativeBanFixture.java": "e9bb8634014a9cad2b641216dec2845ea0a4a6a0ebd85d6d347503840d4d8216",
+    "plugin.yml": "215d78b4da7d0885fe4d3c11bfca472110e85a7cccb7b0c44d95571c216b6dbf",
+    "plugin-missing.yml": "e36186e0110ffbc590a0349a7ea0512c372e59af23c864f198fcf6e94320020e",
+    "native-config.yml": "7fc7bb25d9e9e098069f412eb406559c19aead5bca6c589168562d1e3be29d34"
+  },
+  "fixture_original_native_config_source_sha256": "0189e4f655f752cee2d483bad6b7140ecef0630c42807d77ec6e64590035a8d4",
+  "native_config_comment_normalization_values_unchanged": true
+}

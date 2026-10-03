@@ -59,7 +59,7 @@ If the configured VPN vote threshold is not met, the connection proceeds, subjec
 
 [Open an issue](https://github.com/gerolndnr/connection-guard/issues) or use [project Discord](https://discord.gg/GekQVPqsfS). Share plugin, platform and Java versions, reproduction steps and sanitized settings. Remove keys, webhook URLs and personal connection data.
 
-Contributions and documentation improvements are welcome. [Development guide](CONTRIBUTING.md) · [MIT license](LICENSE). Stars and honest reviews are optional.
+Contributions and documentation improvements are welcome. [Development guide](CONTRIBUTING.md) · [MIT license](LICENSE). Stars and honest reviews are optional. The separately built, optional [LibertyBans addon](adapters/libertybans/README.md) and its native fixture are licensed under AGPL-3.0-or-later, as specified in their directories; they are excluded from the MIT combined plugin.
 
 ## Credits
 

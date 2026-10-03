@@ -32,6 +32,15 @@ class DecisionObserversTest {
         CompletableFuture<DecisionObservation> next = new CompletableFuture<>();
         ConnectionGuardApi.registerDecisionObserver(id, next::complete); return next;
     }
+    @Test void ordinaryPolicyCannotEraseAnUnknownNativeAdmissionFact()throws Exception {
+        CompletableFuture<DecisionObservation> next=observer("fixture");DecisionObservers.configure(settings("fixture"));
+        DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",null,IdentityTrust.UNTRUSTED);
+        capture.admission(Collections.singletonList(new AdmissionObservation("native",AdmissionResponse.unknown(AdmissionResponse.Reason.UNAVAILABLE),1)));
+        EvidencePolicy.Decision policy=EvidencePolicy.evaluate(Collections.emptyList(),"192.0.2.1",null,false,AccessRule.Scope.VPN,Collections.emptyList(),System.currentTimeMillis());
+        capture.policy(policy,policy);capture.facts(new VpnResult("192.0.2.1",false),new GeoLookup(Optional.empty(),FailureReason.NONE,false,0),true,true,System.currentTimeMillis());capture.close();
+        DecisionObservation result=next.get(2,TimeUnit.SECONDS);assertEquals(Reason.UNKNOWN_ALLOWED,result.getReason());assertEquals(Outcome.ALLOW,result.getOutcome());
+        assertEquals(AdmissionResponse.Reason.UNAVAILABLE,result.getAdmissionChecks().get(0).getResponse().getReason());assertThrows(UnsupportedOperationException.class,()->result.getAdmissionChecks().clear());
+    }
     @Test void connectionInspectionTimeBelongsToTheWholeLoginAndObservationDuration() throws Exception {
         CompletableFuture<DecisionObservation> next=observer("fixture");DecisionObservers.configure(settings("fixture"));
         long entered=System.nanoTime()-TimeUnit.MILLISECONDS.toNanos(90);

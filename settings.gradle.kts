@@ -15,3 +15,6 @@ include("core")
 include("spigot")
 include("bungeecord")
 include("velocity")
+
+// Optional AGPL addon is compiled separately and never a combined-plugin dependency.
+include("adapters:libertybans")

@@ -22,11 +22,12 @@ public final class DecisionCapture implements AutoCloseable {
     private final long generation, started;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    private List<AdmissionObservation> admissionChecks=Collections.emptyList();
     private final List<Source> sources = new ArrayList<>();
     private final List<Rule> rules = new ArrayList<>();
     private Reason denied;
     private long observedAt = System.currentTimeMillis();
-    private boolean processingError, finished, overload, unresolved, invalidObservation, identityUnavailable;
+    private boolean processingError, finished, overload, unresolved, admissionUnresolved, invalidObservation, identityUnavailable;
     private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
         this.started = startedNanos;
         this.platform = platform; this.phase = phase; this.ip = ip; this.uuid = uuid; this.identityTrust = trust;
@@ -43,6 +44,7 @@ public final class DecisionCapture implements AutoCloseable {
     public long startedNanos() { return started; }
     public boolean observe() { return settings.observe; }
     public GuardSettings settings() { return settings; }
+    public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
     public void identityUnavailable() { identityUnavailable = true; }
@@ -115,12 +117,12 @@ public final class DecisionCapture implements AutoCloseable {
         try {
             Outcome outcome = denied != null ? Outcome.DENY : processingError ? Outcome.ERROR : Outcome.ALLOW;
             Reason reason = denied != null ? denied : identityUnavailable ? Reason.IDENTITY_UNAVAILABLE : processingError ? Reason.INTERNAL_ERROR : overload ? Reason.OVERLOAD
-                    : !flags.isEmpty() ? Reason.FLAG_ALLOWED : unresolved || vpnCheck == Check.UNKNOWN || geoCheck == Check.UNKNOWN
+                    : !flags.isEmpty() ? Reason.FLAG_ALLOWED : admissionUnresolved || unresolved || vpnCheck == Check.UNKNOWN || geoCheck == Check.UNKNOWN
                     ? Reason.UNKNOWN_ALLOWED : Reason.CHECKS_COMPLETE;
             DecisionObservers.publish(new DecisionObservation(platform, phase,
                     observe() ? Mode.OBSERVE : Mode.ENFORCE, identityTrust, uuid, ip, outcome, reason, vpnCheck, geoCheck,
                     observedAt, Math.max(0, (System.nanoTime() - started) / 1000000), processingError,
-                    flags, sources, rules), generation);
+                    flags, sources, rules, admissionChecks), generation);
         } catch (RuntimeException | LinkageError invalid) {
             // No endpoint, provider payload, exception message, player object or secret is emitted.
             DecisionObservers.recordFailure();

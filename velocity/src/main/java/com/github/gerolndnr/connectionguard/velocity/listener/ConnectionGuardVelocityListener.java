@@ -90,14 +90,23 @@ public class ConnectionGuardVelocityListener {
                     ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
                         ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject)) : LoginChecks.Permission.known(false);
             return LoginChecks.check(ipAddress, decision.settings().lookup, decision.startedNanos(), decision.observe(),
-                    vpnPermission, geoPermission).thenAccept(checks -> {
+                    vpnPermission, geoPermission, new com.github.gerolndnr.connectionguard.api.v1.AdmissionRequest(ipAddress, identity.isVerified() ? uuid : null, identity.observationTrust(), DecisionObservation.Platform.VELOCITY, decision.startedNanos() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(decision.settings().lookup.deadlineMillis))).thenAccept(checks -> {
                 if (identity.requiresCurrentProof() && !identity.isCurrent()) {
                     decision.identityUnavailable();
                     if (!decision.observe()) { deny.accept(Component.text("Connection identity verification is no longer available. Please retry.")); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
                     return;
                 }
+
+                LoginChecks.External external = checks.external();
+                decision.admission(external.observations);
+                if (external.isDenied()) decision.flag(DecisionObservation.Flag.EXTERNAL_POLICY);
+                if (external.shouldRefuse(decision.observe())) {
+                    String message = external.isDenied() ? "Connection denied by configured server access check." : "Server access verification is temporarily unavailable. Please retry.";
+                    deny.accept(Component.text(message));
+                    decision.denied(external.refusalReason()); return;
+                }
                 if (checks.isCancelled()) { decision.error(); return; }
-                if (!checks.isAdmitted()) {
+            if (!checks.isAdmitted()) {
                     decision.overload();
                     if (checks.shouldDenyAdmission()) {
                         deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));

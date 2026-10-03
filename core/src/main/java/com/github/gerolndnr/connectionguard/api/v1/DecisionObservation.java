@@ -10,9 +10,9 @@ public final class DecisionObservation {
     public enum IdentityTrust { UNTRUSTED, AUTHENTICATED, FORWARDED, PLATFORM_ONLINE, FLOODGATE, VERIFIED_FORWARDING }
     public enum Outcome { ALLOW, DENY, ERROR }
     public enum Reason { CHECKS_COMPLETE, FLAG_ALLOWED, UNKNOWN_ALLOWED, ACCESS_RULE, LOOKUP_UNAVAILABLE,
-        OVERLOAD, VPN_FLAG, GEO_FLAG, INTERNAL_ERROR, IDENTITY_UNAVAILABLE }
+        OVERLOAD, VPN_FLAG, GEO_FLAG, INTERNAL_ERROR, IDENTITY_UNAVAILABLE, EXTERNAL_POLICY, EXTERNAL_UNAVAILABLE }
     public enum Check { NOT_CHECKED, EXEMPT, POSITIVE, NEGATIVE, KNOWN, UNKNOWN }
-    public enum Flag { ACCESS_POLICY, VPN, GEO }
+    public enum Flag { ACCESS_POLICY, VPN, GEO, EXTERNAL_POLICY }
     public enum Scope { VPN, GEO, ALL }
     public enum Effect { DENY, ALLOW, EXEMPT }
     public enum Match { MATCH, MISS, UNKNOWN, CONFLICT }
@@ -28,12 +28,20 @@ public final class DecisionObservation {
     private final long observedAt, durationMillis;
     private final boolean processingError;
     private final Set<Flag> flags;
+    private final List<AdmissionObservation> admissionChecks;
     private final List<Source> sources;
     private final List<Rule> rules;
     public DecisionObservation(Platform platform, Phase phase, Mode mode, IdentityTrust identityTrust,
             UUID uuid, String ip, Outcome outcome, Reason reason, Check vpnCheck, Check geoCheck,
             long observedAt, long durationMillis, boolean processingError, Set<Flag> flags,
             List<Source> sources, List<Rule> rules) {
+        this(platform,phase,mode,identityTrust,uuid,ip,outcome,reason,vpnCheck,geoCheck,observedAt,durationMillis,processingError,flags,sources,rules,Collections.emptyList());
+    }
+    public DecisionObservation(Platform platform, Phase phase, Mode mode, IdentityTrust identityTrust,
+            UUID uuid,String ip,Outcome outcome,Reason reason,Check vpnCheck,Check geoCheck,long observedAt,long durationMillis,
+            boolean processingError,Set<Flag> flags,List<Source> sources,List<Rule> rules,List<AdmissionObservation> admissionChecks){
+        if(admissionChecks.size()>4)throw new IllegalArgumentException("At most four admission observations.");
+        this.admissionChecks=copy(admissionChecks);
         this.platform = Objects.requireNonNull(platform); this.phase = Objects.requireNonNull(phase);
         this.mode = Objects.requireNonNull(mode); this.identityTrust = Objects.requireNonNull(identityTrust);
         this.trustedUuid = identityTrust == IdentityTrust.UNTRUSTED ? null : uuid;
@@ -69,6 +77,7 @@ public final class DecisionObservation {
     public long getDurationMillis() { return durationMillis; }
     public boolean hasProcessingError() { return processingError; }
     public Set<Flag> getFlags() { return flags; }
+    public List<AdmissionObservation> getAdmissionChecks(){return admissionChecks;}
     public List<Source> getSources() { return sources; }
     public List<Rule> getRules() { return rules; }
     public List<Effect> getRulePrecedence() { return Collections.unmodifiableList(Arrays.asList(Effect.DENY, Effect.ALLOW, Effect.EXEMPT)); }
