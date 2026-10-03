@@ -91,22 +91,12 @@ public class AsyncPlayerPreLoginListener implements Listener {
                                 .replace("%IP%", vpnResult.getIpAddress())
                                 .replace("%NAME%", preLoginEvent.getName())
                 );
-                int amountRecipients = ConnectionGuardSpigotPlugin.getInstance().getServer().broadcast(notifyMessage, "connectionguard.notify.vpn");
+                ConnectionGuardSpigotPlugin.getInstance().tasks().broadcast(notifyMessage, "connectionguard.notify.vpn");
             }
 
             // Check if command should be executed on flag
             if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
-                Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
-                    @Override
-                    public void run() {
-                        Bukkit.dispatchCommand(
-                                Bukkit.getConsoleSender(),
-                                ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command")
-                                        .replace("%NAME%", preLoginEvent.getName())
-                                        .replace("%IP%", ipAddress)
-                        );
-                    }
-                });
+                ConnectionGuardSpigotPlugin.getInstance().tasks().consoleCommand(ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command").replace("%NAME%", preLoginEvent.getName()).replace("%IP%", ipAddress));
             }
 
             // Check if WebHook should be executed
@@ -164,22 +154,12 @@ public class AsyncPlayerPreLoginListener implements Listener {
                                     .replace("%ISP%", geoResult.getIspName())
                                     .replace("%NAME%", preLoginEvent.getName())
                     );
-                    Bukkit.broadcast(notifyMessage, "connectionguard.notify.geo");
+                    ConnectionGuardSpigotPlugin.getInstance().tasks().broadcast(notifyMessage, "connectionguard.notify.geo");
                 }
 
                 // Check if command should be executed on flag
                 if (!ConnectionGuard.getSettings().observe && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
-                    Bukkit.getScheduler().runTask(ConnectionGuardSpigotPlugin.getInstance(), new Runnable() {
-                        @Override
-                        public void run() {
-                            Bukkit.dispatchCommand(
-                                    Bukkit.getConsoleSender(),
-                                    ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command")
-                                            .replace("%NAME%", preLoginEvent.getName())
-                                            .replace("%IP%", ipAddress)
-                            );
-                        }
-                    });
+                    ConnectionGuardSpigotPlugin.getInstance().tasks().consoleCommand(ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command").replace("%NAME%", preLoginEvent.getName()).replace("%IP%", ipAddress).replace("%COUNTRY%", geoResult.getCountryName()));
                 }
 
                 // Check if WebHook should be executed
