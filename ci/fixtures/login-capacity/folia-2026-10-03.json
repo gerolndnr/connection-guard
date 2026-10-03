@@ -1,0 +1,23 @@
+{
+  "artifact_sha256": "7862012f3cc49a4a2ff16d841d30217c6ba6229f898de01ca6295a135e748017",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "addon_sha256": "1891f9d71d473e5066070539496e576390b618dbaa9609f77d8f61e496aa4c52",
+  "fixture_source_sha256": "de2986276dea015d510d4b3ed851aa8a5d449ef60527ac97952800e7f68019ed",
+  "java": 21,
+  "authenticated_identity_tested": false,
+  "legacy_spigot_tested": false,
+  "literal_ipv6_and_consumer_failure_do_not_trigger_target_fallback": true,
+  "real_bstats_dispatcher_and_collectors_use_global_context_without_submission": true,
+  "real_offline_client_joins_backend": true,
+  "missing_geo_is_reported_as_unknown": true,
+  "entity_context_admin_target_reads_and_async_replies": true,
+  "provider_positive_denies_real_login": true,
+  "flag_command_runs_in_global_context": true,
+  "staff_notice_reaches_entity_context_client": true,
+  "actual_cached_login_reuses_facts": true,
+  "observe_permits_flag_without_command": true,
+  "retired_entity_does_not_fallback": true,
+  "shutdown_passed": true,
+  "provider_http_requests": 2
+}

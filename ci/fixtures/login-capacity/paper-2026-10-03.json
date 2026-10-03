@@ -1,0 +1,23 @@
+{
+  "artifact_sha256": "7862012f3cc49a4a2ff16d841d30217c6ba6229f898de01ca6295a135e748017",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "addon_sha256": "5c2ba9a22567f1d9353b62572cd99ee50e7b131d5a8377af47931c686711ad84",
+  "fixture_source_sha256": "de2986276dea015d510d4b3ed851aa8a5d449ef60527ac97952800e7f68019ed",
+  "java": 21,
+  "authenticated_identity_tested": false,
+  "legacy_spigot_tested": false,
+  "literal_ipv6_and_consumer_failure_do_not_trigger_target_fallback": true,
+  "real_bstats_dispatcher_and_collectors_use_global_context_without_submission": true,
+  "real_offline_client_joins_backend": true,
+  "missing_geo_is_reported_as_unknown": true,
+  "entity_context_admin_target_reads_and_async_replies": true,
+  "provider_positive_denies_real_login": true,
+  "flag_command_runs_in_global_context": true,
+  "staff_notice_reaches_entity_context_client": true,
+  "actual_cached_login_reuses_facts": true,
+  "observe_permits_flag_without_command": true,
+  "retired_entity_does_not_fallback": true,
+  "shutdown_passed": true,
+  "provider_http_requests": 2
+}

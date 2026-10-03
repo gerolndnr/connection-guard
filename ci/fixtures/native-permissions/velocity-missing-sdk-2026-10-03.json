@@ -1,10 +1,10 @@
 {
-  "artifact_sha256": "5a7038676adc7ed79cb1bbc2bfa12e0efabf21f28f25aa329089c5975942570b",
+  "artifact_sha256": "7862012f3cc49a4a2ff16d841d30217c6ba6229f898de01ca6295a135e748017",
   "proxy": "Velocity 3.4.0 build 566",
   "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
   "java": 21,
   "native_plugins": {},
-  "addon_sha256": "7b45d4125bb45429d67e4f72d7834cff292d9c1434eb0a719a3d72b8829d7182",
+  "addon_sha256": "48f0c7158b03635b4f66bd7cdbd28d6664ecac52bbe160f65a1432268860952b",
   "fixture_source_sha256": "a13f7c57be810973df7d205b764b826d270b8a28f796ff9e56a98749d6bdd4dd",
   "synthetic_permission_authority": false,
   "authenticated_identity_tested": false,
