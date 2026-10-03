@@ -110,6 +110,40 @@ class LoginChecksTest {
             assertTrue(permissionCalls.get() <= 8); assertEquals(0, LoginChecks.active());
         } finally { pending.complete(true); }
     }
+    @Test void completedCallerReleasesCapacityBeforeABlockingCompletionConsumer() throws Exception {
+        CountDownLatch callbackEntered = new CountDownLatch(1), releaseCallback = new CountDownLatch(1);
+        CompletableFuture<LoginChecks.Result> login = check(System.nanoTime(), known(false), known(true));
+        login.thenAccept(value -> {
+            callbackEntered.countDown();
+            try { releaseCallback.await(2, TimeUnit.SECONDS); }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+        });
+        try {
+            assertTrue(callbackEntered.await(1, TimeUnit.SECONDS));
+            assertTrue(login.isDone());
+            assertEquals(0, LoginChecks.active(), "A published completed caller must not retain a login slot behind its consumer.");
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.configureLookup(LookupSettings.defaults()),
+                    "Releasing a caller slot must not retire its physically blocked deadline executor.");
+        } finally { releaseCallback.countDown(); }
+    }
+    @Test void cancelledCallerReleasesCapacityBeforeABlockingCancellationConsumer() throws Exception {
+        ConnectionGuard.configureLookup(new LookupSettings(1000, 100, 2, 8, 8, 100, 100));
+        CompletableFuture<Boolean> pending = new CompletableFuture<>();
+        CountDownLatch callbackEntered = new CountDownLatch(1), releaseCallback = new CountDownLatch(1);
+        CompletableFuture<LoginChecks.Result> login = check(System.nanoTime(), LoginChecks.Permission.lookup(() -> pending), known(true));
+        login.whenComplete((value, failure) -> {
+            callbackEntered.countDown();
+            try { releaseCallback.await(2, TimeUnit.SECONDS); }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); }
+        });
+        Thread caller = new Thread(() -> login.cancel(false), "test-login-cancellation");
+        caller.start();
+        try {
+            assertTrue(callbackEntered.await(1, TimeUnit.SECONDS));
+            assertTrue(login.isCancelled()); assertEquals(0, LoginChecks.active());
+        } finally { releaseCallback.countDown(); pending.complete(false); caller.join(1000); }
+        assertFalse(caller.isAlive());
+    }
     @Test void aChangedCapturedLimitSetCannotUseAnUnrelatedRuntime() throws Exception {
         LoginChecks.Result result = LoginChecks.check("192.0.2.211", LookupSettings.defaults(), System.nanoTime(), false,
                 known(false), known(true)).get();

@@ -7,6 +7,9 @@ time. Waiting for LuckPerms cannot start another full lookup budget afterward.
 Direct administrative/provider API queries retain their own bounded lookup deadline.
 
 Each caller has a bounded session (`lookup.max-inflight`) and one completion.
+Completed/cancelled callers release their slot and timer before completion consumers
+run. A slow consumer cannot retain a completed login slot; the runtime still tracks
+physically executing workers/deadlines and cannot be replaced around them.
 Permission factories run on the existing bounded lookup workers, including a factory
 that blocks before returning a future. Timely known exemptions avoid detector work.
 An unresolved check ends as typed UNKNOWN/TIMEOUT, never a fabricated negative.
@@ -50,3 +53,11 @@ Named Paper/Folia regression receipts alongside that source exercise the changed
 listeners, actual offline backend logins, cache/UNKNOWN/OBSERVE, scheduler actions and
 shutdown. They do not exercise native LuckPerms on those backends. Native LuckPerms,
 Floodgate, authenticated forwarding and BungeeCord runtime proofs remain distinct.
+
+A blocked completion consumer reproduced a publication-order race: the result was
+done while its login slot was still reserved. The slot now releases exactly once
+before result publication or cancellation, with regressions for blocked consumers
+and physical runtime retirement. CI retains structured test reports on failure.
+
+The final repair build is requalified by the named receipts in
+[`ci/fixtures/login-capacity/`](../ci/fixtures/login-capacity/README.md).

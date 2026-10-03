@@ -7,6 +7,7 @@ import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /** One caller's permission + admission + detection budget. Never cancels shared detector work. */
@@ -69,7 +70,18 @@ public final class LoginChecks {
         private final boolean observe;
         private final LookupRuntime runtime;
         private final Permission vpnPermission, geoPermission;
-        private final CompletableFuture<Result> result = new CompletableFuture<>();
+        private final AtomicBoolean released = new AtomicBoolean();
+        private volatile ScheduledFuture<?> deadline;
+        private final CompletableFuture<Result> result = new CompletableFuture<Result>() {
+            @Override public boolean cancel(boolean interrupt) {
+                synchronized (Session.this) {
+                    if (finished || isDone()) return false;
+                    finished = true;
+                }
+                releaseResources();
+                return super.cancel(interrupt);
+            }
+        };
         private boolean vpnResolved, geoResolved, vpnExempt, geoExempt, vpnReady, geoReady, launched, finished;
         private VpnResult vpn;
         private GeoLookup geo;
@@ -80,13 +92,17 @@ public final class LoginChecks {
             vpnExempt = Boolean.TRUE.equals(vpn.known); geoExempt = Boolean.TRUE.equals(geo.known);
         }
         private CompletableFuture<Result> start() {
-            ScheduledFuture<?> deadline;
             try { deadline = runtime.schedule(() -> finish(FailureReason.TIMEOUT), Math.max(0, (due - System.nanoTime() + 999999) / 1000000)); }
             catch (RejectedExecutionException closed) {
-                active.decrementAndGet(); finish(FailureReason.CANCELLED); return result;
+                finish(FailureReason.CANCELLED); return result;
             }
-            result.whenComplete((value, failure) -> { deadline.cancel(false); active.decrementAndGet(); });
+            result.whenComplete((value, failure) -> releaseResources());
             permission(vpnPermission, true); permission(geoPermission, false); return result;
+        }
+        private void releaseResources() {
+            if (released.compareAndSet(false, true)) active.decrementAndGet();
+            ScheduledFuture<?> current = deadline;
+            if (current != null) current.cancel(false);
         }
         private boolean live() {
             synchronized (this) { return !finished && !result.isDone() && System.nanoTime() < due && runtime.isOpen(); }
@@ -168,6 +184,9 @@ public final class LoginChecks {
                 finished = true;
                 next = new Result(ip, vpn, geo, vpnExempt, geoExempt, admission, reason, elapsed(started), expired);
             }
+            // Release the slot before arbitrary completion consumers observe publication.
+            // The runtime still tracks physically executing workers/deadlines until they return.
+            releaseResources();
             result.complete(next);
         }
     }

@@ -60,6 +60,15 @@ jobs:
       - name: Build all platforms
         run: ./gradlew --no-daemon --console=plain check shadowJar
 
+      - name: Retain structured test diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: connection-guard-tests-${{ github.sha }}
+          path: core/build/test-results/test/TEST-*.xml
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Verify repeatable archive
         run: |
           sha256sum build/libs/*-all.jar > "$RUNNER_TEMP/connection-guard-first-build.sha256"
