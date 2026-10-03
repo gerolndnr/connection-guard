@@ -18,3 +18,6 @@ include("velocity")
 
 // Optional AGPL addon is compiled separately and never a combined-plugin dependency.
 include("adapters:libertybans")
+
+// Optional MIT/public-LimboAPI transport is separate from the combined plugin.
+include("adapters:limbo")

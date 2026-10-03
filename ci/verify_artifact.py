@@ -72,12 +72,13 @@ def verify(artifact, version):
             require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
                     f"Server-provided API was bundled into the plugin: {prefix}")
         library_prefix = PACKAGE.replace(".", "/") + "/libs/"
-        for sdk in ("org/geysermc/floodgate/", "net/luckperms/", "space/arim/libertybans/", "space/arim/omnibus/"):
+        for sdk in ("org/geysermc/floodgate/", "net/luckperms/", "space/arim/libertybans/", "space/arim/omnibus/", "net/elytrium/limboapi/"):
             for prefix in (sdk, library_prefix + sdk):
                 require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
                         f"Optional native SDK must be provided by its installed plugin: {prefix}")
-        require(not any("/addons/libertybans/" in name and name.endswith(".class") for name in names),
-                "The separately licensed LibertyBans addon must not enter the combined plugin.")
+        for addon in ("libertybans", "limbo"):
+            require(not any("/addons/" + addon + "/" in name and name.endswith(".class") for name in names),
+                    "The separately licensed optional addon must not enter the combined plugin.")
         for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class"):
             require(names.count(library_prefix + dependency) == 1,
                     f"Missing or duplicate bStats runtime dependency: {dependency}")

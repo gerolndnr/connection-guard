@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "main_sha256": "23d3849c0a6bdcd4b0210db6ba18724be9382634416502fd1195eba6849fd5fa",
+  "addon_sha256": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4",
+  "native_sha256": "c1e58ce5d4b38c3e1b898cfc70e28a4e0d87240a91f03ffa8adfb183f327d6ce",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "client_protocol": 760,
+  "actual_authenticated_accounts": false,
+  "backend_join_tested": false,
+  "backend_target": "owned counting loopback TCP sink, no Minecraft backend",
+  "cases": [
+    "pending and disconnected challenge: no provider or backend contact",
+    "reconnect with same username cannot replay prior session answer",
+    "three incorrect actual chat answers refuse before provider/backend",
+    "expired native session refuses without backend/provider contact",
+    "actual solved map input continues ordinary VPN refusal, no backend contact",
+    "root policy reload invalidates pending native challenge",
+    "bounded native pending capacity refuses excess and disconnect frees slots",
+    "manual DENY added during challenge still refuses correct answer before provider/backend",
+    "correct actual map/chat pass plus clear normal VPN reaches owned TCP sink",
+    "switch to OBSERVE releases pending native challenge without manufacturing pass",
+    "OBSERVE skips addon challenge and permits ordinary controlled sink route"
+  ],
+  "actual_provider_requests": 4,
+  "actual_backend_contacts": 3,
+  "all_own_processes_stopped": true,
+  "console_sha256": "cfd772ef1ba40f0a91c046c9aefb02b6902ed357c8407a0301f0c209770036f1"
+}

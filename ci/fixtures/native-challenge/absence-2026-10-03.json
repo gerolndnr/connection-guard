@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "main_sha256": "23d3849c0a6bdcd4b0210db6ba18724be9382634416502fd1195eba6849fd5fa",
+  "addon_sha256": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "client_protocol": 760,
+  "native_sdk_installed": false,
+  "actual_authenticated_accounts": false,
+  "backend_join_tested": false,
+  "cases": [
+    "enabled addon without SDK refuses clear normal provider result before backend",
+    "disabled addon without SDK retains ordinary clear provider/backend route",
+    "disabled addon without SDK retains ordinary VPN refusal",
+    "invalid addon without SDK refuses clear normal provider result before backend",
+    "duplicate addon without SDK refuses clear normal provider result before backend"
+  ],
+  "runs": [
+    {
+      "kind": "enabled",
+      "exit_code": 0,
+      "console_sha256": "a9fb304a45749cdcb7d227675c74faf3e9d2967bfb4c2628f4866af947c87c02"
+    },
+    {
+      "kind": "disabled",
+      "exit_code": 0,
+      "console_sha256": "f86fd3f0bdd8b17f70691410c9d2c7af2f31f7b391e4aa23a3c607aa78007602"
+    },
+    {
+      "kind": "invalid",
+      "exit_code": 0,
+      "console_sha256": "cc7553632e6c86f097470f2e17fff88d739558626d18ca5cff83177e23f6a0d7"
+    },
+    {
+      "kind": "duplicate",
+      "exit_code": 0,
+      "console_sha256": "05d1c953c1eaa08485dd07b82acd0af91b4c8d53b706789ce942568a5d35b702"
+    }
+  ],
+  "actual_provider_requests": 5,
+  "actual_backend_contacts": 1,
+  "all_own_processes_stopped": true
+}
