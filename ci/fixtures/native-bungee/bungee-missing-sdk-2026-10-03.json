@@ -1,0 +1,27 @@
+{
+  "artifact_sha256": "6848d238f9f98b95c954174a84bf1b3c711c25d1bfcc3e5f833709ea6d9eda83",
+  "runtime": "BungeeCord 26.1-R0.1-SNAPSHOT build 2100",
+  "runtime_sha256": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+  "java": 21,
+  "native_plugins": {},
+  "addon_sha256": "6b597682dec133f334969e980877a4be299ea1d43619de2e363184b1fe3c24ab",
+  "fixture_source_sha256": {
+    "MissingBungeeFixture.java": "aa2a7acb796f5b11b6bb0b9d0b4a45830be21a61855b19c151e9d9bdf5b4d7b6"
+  },
+  "synthetic_gateway_delegation": false,
+  "real_account_authentication_tested": false,
+  "real_native_account_link_tested": false,
+  "backend_join_tested": false,
+  "other_bungee_versions_tested": false,
+  "proxy_online_mode": false,
+  "deliberate_offline_override_for_synthetic_java_names": false,
+  "null_identity_cannot_grant_permission": true,
+  "native_sdk_presence_or_global_online_mode_does_not_exempt_actual_offline_connection": true,
+  "absent_native_sdks_cannot_invent_proof_or_permission": true,
+  "declared_trust_is_not_verified_forwarding_or_authenticated_identity": true,
+  "shutdown_passed": true,
+  "private_console_log_sha256": "c5a82d088fdaed7db32f3f1507599b473460b56a2bbf9106f5d855d6b324ca3e",
+  "fixture_descriptor_sha256": "c33947816d77f6bf4e0b43a85fea251de7eb39b6482a0dbfd6aa90b7e409286c",
+  "harness_sha256": "b46bee7b115b04d2c99523e927163ffa131ae66875e9581109cee5a6c9fbbeff",
+  "automatic_ci_native_stack_tested": false
+}

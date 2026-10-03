@@ -1,0 +1,12 @@
+{
+  "state": "failed-harness-expectation-not-successful-native-qualification",
+  "fixture": "native-bungee-2026-10-03-a",
+  "artifact_sha256": "6848d238f9f98b95c954174a84bf1b3c711c25d1bfcc3e5f833709ea6d9eda83",
+  "cause": "Driver expected Removed; actual successful guard command reports Rule removed. No production change. Corrected expectation only. Full subsequent native retirement cases not executed in this attempt.",
+  "log_sha256": "c34645c5d8f5327a80393101f2be54e48fe9060ac3cd928f2a1ab5e492617036",
+  "normal_shutdown_marker_present": true,
+  "success_receipt_created": false,
+  "transient_disk_exhaustion_observed": true,
+  "new_cost_eur": 0,
+  "initial_disk_exhausted_retry_started": false
+}
