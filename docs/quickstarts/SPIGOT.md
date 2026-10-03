@@ -20,4 +20,4 @@ Permission exemptions on Spigot use LuckPerms and also require the respective co
 
 ## Validation scope
 
-This guide is checked against 0.4.10 source/config. Spigot is built and packaged in CI; a complete live Spigot version matrix is pending. The release's real runtime fixture is on Velocity. [Release checks](../../CHANGELOG.md). Record the exact server/proxy and Java versions with your deployment and support reports.
+This guide describes published 0.4.11, based on unchanged 0.4.10 connection-check behavior. The hotfix passed Paper 1.21.11 build 132 / Java 21 activation, reload, a synthetic offline backend join and shutdown; that does not establish a complete Spigot version matrix or stable Folia support. [Newer native permission/identity evidence](../PERMISSION_VALIDATION.md) belongs to development for a future release, not the published JAR. Tests do not establish public-provider accuracy. [Release checks](../../CHANGELOG.md). Record exact platform and Java versions with deployments and support reports.

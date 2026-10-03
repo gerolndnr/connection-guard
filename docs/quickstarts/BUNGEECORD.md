@@ -20,4 +20,4 @@ Configure notifications in the proxy permission system. Permission exemptions us
 
 ## Validation scope
 
-This guide is checked against 0.4.10 source/config. BungeeCord is built and packaged in CI; a complete live BungeeCord/Waterfall runtime matrix is pending. [Release checks](../../CHANGELOG.md). Record the exact server/proxy and Java versions with your deployment and support reports.
+This guide describes published 0.4.11, based on unchanged 0.4.10 connection-check behavior. BungeeCord is built and packaged in CI; a live BungeeCord/Waterfall runtime matrix remains pending. The hotfix's Paper activation test does not qualify Bungee runtime behavior. [Newer native permission/identity evidence](../PERMISSION_VALIDATION.md) belongs to development for a future release, not the published JAR. Tests do not establish public-provider accuracy. [Release checks](../../CHANGELOG.md). Record exact platform and Java versions with deployments and support reports.
