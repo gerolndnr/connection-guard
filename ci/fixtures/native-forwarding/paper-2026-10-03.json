@@ -1,0 +1,103 @@
+{
+  "artifact_sha256": "dac5ace1612f8fe027501f8e12fc669d245305af3668db872b216f664c0c206b",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "java": 21,
+  "native_plugins": {
+    "LuckPerms-bukkit-5.5.85.jar": "dc637ce18f48d3b75a7ffd1784b85be16a627359090dfe5adf15dab6d145dc7d"
+  },
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "addon_sha256": "658b5af0f357adadaab1efc66b87ccb4e2354be5bb25b1c4b4669f207c67779e",
+  "fixture_source_sha256": "59b8b87e511aaef9d95153b7f95020118e64ac5328b9c8d9db78025e313cee1d",
+  "client_source_sha256": "0a19cb3b04b0a66ec78c430ac5a758b9294cb344a0f28c6ed8b2aa80dd1aa377",
+  "genuine_account_authentication_tested": false,
+  "gateway_secret_compromise_prevented": false,
+  "ordinary_offline_backend": false,
+  "decisions": [
+    {
+      "client": "CGFwAllowed",
+      "reason": "CHECKS_COMPLETE",
+      "vpn": "EXEMPT",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "JOIN",
+      "joined_name": "CGFwAllowed"
+    },
+    {
+      "client": "CGFwWrong",
+      "reason": "VPN_FLAG",
+      "vpn": "POSITIVE",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "VPN",
+      "joined_name": null
+    },
+    {
+      "client": "CGFwAllowed",
+      "reason": "CHECKS_COMPLETE",
+      "vpn": "EXEMPT",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "JOIN",
+      "joined_name": "CGFwAllowed"
+    },
+    {
+      "client": "CGFwWrong",
+      "reason": "VPN_FLAG",
+      "vpn": "POSITIVE",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "VPN",
+      "joined_name": null
+    },
+    {
+      "client": "CGFwAllowed",
+      "reason": "ACCESS_RULE",
+      "vpn": "NOT_CHECKED",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "access policy",
+      "joined_name": null
+    },
+    {
+      "client": "CGFwWaiting",
+      "reason": "IDENTITY_UNAVAILABLE",
+      "vpn": "NOT_CHECKED",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "no longer available",
+      "joined_name": null
+    },
+    {
+      "client": "CGFwWaiting",
+      "reason": "IDENTITY_UNAVAILABLE",
+      "vpn": "NOT_CHECKED",
+      "identity": "VERIFIED_FORWARDING",
+      "expected": "JOIN",
+      "joined_name": "CGFwChanged"
+    },
+    {
+      "client": "CGFwAllowed",
+      "reason": "VPN_FLAG",
+      "vpn": "POSITIVE",
+      "identity": "UNTRUSTED",
+      "expected": "VPN",
+      "joined_name": null
+    }
+  ],
+  "actual_velocity_native_forwarding_and_backend_join_with_native_permission": true,
+  "actual_velocity_wrong_native_permission_context_cannot_exempt": true,
+  "actual_native_mac_handoff_uses_forwarded_ip_and_canonical_profile": true,
+  "native_canonical_wrong_context_remains_denied": true,
+  "tampered_and_missing_native_mac_refused_before_guard_or_provider": true,
+  "manual_deny_preserved_despite_current_gateway_and_native_permission": true,
+  "native_event_profile_change_while_lookup_waits_invalidates_live_gateway_proof": true,
+  "observe_profile_change_allows_without_facts_or_flag_actions": true,
+  "disabled_adapter_cannot_promote_valid_native_gateway_assertion": true,
+  "shutdown_passed": true,
+  "runtime_error_check_passed": true,
+  "passed": true,
+  "logs": {
+    "server/smoke.log": "d3804f5442ebe53fb84d967c0f97fc015b5650360716e66d33187dc86f249dda",
+    "direct-client.log": "96d122d346a206a05b0f666d6f36d2b661345945af3d9bc05794a3a13ac6d6cd",
+    "proxy-client.log": "84ec7ce8b1c08e465d734fcfba0553178ca1eb6e389f86555b1b197d30e52488",
+    "proxy/smoke.log": "490a7b786c88e9aba6b036689264def87b0fcab1c94e76e054807ff25d515f51"
+  },
+  "fixture_descriptor_sha256": "2e4360e129f5bf46c0135b13de058af7483e802019a1516e63b7a00fe7fbf9f5",
+  "actual_decision_records": 8,
+  "actual_backend_joins": 3
+}

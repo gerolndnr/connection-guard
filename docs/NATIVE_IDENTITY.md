@@ -4,7 +4,8 @@ Development contract for the next feature release. Published 0.4.11 remains unch
 
 Connection Guard distinguishes a platform's per-connection Java authentication, an
 operator's declared forwarding trust, a legacy Bukkit global online-mode flag, and
-an explicitly enabled native Floodgate gateway record. UUID shape, a name prefix,
+an explicitly enabled native Floodgate gateway record, and a separately labelled
+native modern-forwarding gateway assertion on the named Paper/Folia builds. UUID shape, a name prefix,
 installed classes, `isFloodgatePlayer`, or `getPlayer` alone do not establish a
 current connection. Declared forwarding and global online mode retain existing
 ordinary UUID/permission exemptions but are not verified authority for future
@@ -25,6 +26,8 @@ core mutation regression is not evidence of a native mutable-account exploit.
 identity:
   trust-forwarded-uuid: false
   floodgate:
+    enabled: false
+  paper-modern-forwarding:
     enabled: false
 ```
 
@@ -60,8 +63,9 @@ Modern selected Paper/Folia supply their current client socket/live state throug
 `PlayerConnection`. Missing legacy connection APIs supply no native proof and keep
 ordinary checking available. A Bukkit global online flag is labelled
 `PLATFORM_ONLINE`; this package does not claim a current per-connection Mojang
-proof for that flag. True direct Java/backend authentication and verified
-forwarding still need separate qualification.
+proof for that flag. Genuine direct Java/backend account authentication still needs separate
+qualification. Selected native modern-forwarding gateway assertions are qualified
+separately below.
 
 ## Named qualification
 
@@ -101,3 +105,43 @@ absent-SDK variant creates no native proof or permission. These are synthetic
 gateway delegation and negative authentication tests. No backend joins, genuine
 accounts, real account-link registration, native authenticated-object mutation,
 verified forwarding or other Bungee/Waterfall versions are established.
+
+## Optional native modern-forwarding gateway assertion
+
+`identity.paper-modern-forwarding.enabled` defaults to false. Its native adapter
+accepts only Paper 1.21.11 build 132 / commit c5eb079 and Folia 1.21.11 build 14 /
+commit 529aabc, using public `ServerBuildInfo` and connection APIs. A missing API,
+different implementation/build or failed probe supplies no verified forwarding
+proof. Ordinary configured/global trust retains its separate legacy provenance.
+
+On these inspected native implementations, the authenticated-profile field is
+assigned **before this exact native asynchronous pre-login phase** only after
+the actual modern-forwarding MAC gate accepts the signed canonical profile and
+forwarded IP. The ordinary offline and direct-Mojang paths assign that field
+after this event. The adapter requires the qualified build, actual native login
+connection class, current native profile, matching canonical event UUID/name/IP
+and a live full connection socket. The public profile field alone on an arbitrary
+server/version or at another phase is insufficient. No private NMS fields, stack
+traces or operator configuration flags substitute for the native proof.
+
+Provenance is `VERIFIED_FORWARDING`, distinct from `AUTHENTICATED` and the
+operator-declared `FORWARDED`. It verifies the selected native gateway handoff,
+**not independent account ownership**. An offline or compromised trusted proxy
+can assert identities with its forwarding secret. Protect that key, configure
+proxy account authentication according to your policy, and prevent direct backend
+access. Enabling this guard option does not configure Velocity or a firewall.
+
+The captured canonical UUID, name and complete native client socket are re-read
+after waits, along with event-profile agreement, connection liveness and the
+active guard setting. Paper preserves the backend TCP source port while replacing
+the client IP from the signed payload; this is not proof of the original external
+player port. A changed event profile, disconnected connection or disabled setting
+removes current authority. ENFORCE refuses with `IDENTITY_UNAVAILABLE`; OBSERVE
+records that reason without lookup facts or flag actions. Manual DENY precedes
+ordinary permission exemptions. The whole-login budget includes native inspection.
+
+[Selected native forwarding sources and receipts](../ci/fixtures/native-forwarding/README.md)
+cover actual Velocity-to-Paper/Folia joins and MAC rejection, actual LuckPerms
+contexts, event-profile name mutation during lookup, disabled-option and ordinary
+offline boundaries. Genuine Mojang/Xbox accounts, other builds/forks, and native
+Floodgate combined with this new adapter remain outside these receipts.

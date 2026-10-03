@@ -30,4 +30,12 @@ class GuardSettingsTest {
         Exception failure = assertThrows(IllegalArgumentException.class, () -> GuardSettings.read(fields::get, Collections.emptyList()));
         assertFalse(failure.getMessage().contains("fake-sensitive-secret"));
     }
+    @Test void nativePaperForwardingRequiresAnExplicitBooleanChoice() {
+        assertFalse(GuardSettings.defaults().nativePaperForwardingIdentity);
+        Map<String,Object> fields=new HashMap<>();fields.put("identity.paper-modern-forwarding.enabled",true);
+        assertTrue(GuardSettings.read(fields::get,Collections.emptyList()).nativePaperForwardingIdentity);
+        fields.put("identity.paper-modern-forwarding.enabled","synthetic-private-invalid");
+        Exception invalid=assertThrows(IllegalArgumentException.class,()->GuardSettings.read(fields::get,Collections.emptyList()));
+        assertFalse(invalid.getMessage().contains("synthetic-private-invalid"));
+    }
 }

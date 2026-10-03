@@ -65,4 +65,16 @@ class ConnectionIdentityTest {
         ConnectionIdentity value=ConnectionIdentity.resolve(id,"CGIdentity",address,()->true,AuthenticatedIdentity.unavailable(),false,true,true);
         assertTrue(value.isTrusted());assertFalse(value.isVerified());assertEquals(ConnectionIdentity.Source.DECLARED_FORWARDING,value.source());
     }
+    @Test void verifiedForwardingIsGatewayAuthorityAndExpiresWithTheBoundConnection() {
+        AtomicBoolean live=new AtomicBoolean(true);ConnectionIdentity value=ConnectionIdentity.forwardedConnection(id,live::get);
+        assertEquals(ConnectionIdentity.Source.VERIFIED_FORWARDING,value.source());
+        assertEquals(DecisionObservation.IdentityTrust.VERIFIED_FORWARDING,value.observationTrust());
+        assertTrue(value.isVerified());assertTrue(value.requiresCurrentProof());live.set(false);assertFalse(value.isVerified());
+    }
+    @Test void disabledForwardingOptionCannotPromoteEvenASuppliedBoundProof() {
+        ForwardedIdentity.Probe proof=ForwardedIdentity.capture(id,"CGIdentity",address,
+                ()->new ForwardedIdentity.State(id,"CGIdentity",address,true,true));
+        ConnectionIdentity value=ConnectionIdentity.resolve(id,"CGIdentity",address,()->true,AuthenticatedIdentity.unavailable(),false,false,false,proof);
+        assertEquals(ConnectionIdentity.Source.UNTRUSTED,value.source());assertFalse(value.isVerified());
+    }
 }

@@ -10,6 +10,11 @@ identity:
     # Matches the active record, canonical UUID/name and current client IP+port.
     # Missing, retired, mismatched or unbound records grant no native exception.
     enabled: false
+  # Native verified gateway assertions on explicitly qualified Paper/Folia builds.
+  # Does not authenticate accounts or configure Velocity. See docs/NATIVE_IDENTITY.md.
+  paper-modern-forwarding:
+    enabled: false
+
 failure-policy:
   # OPEN allows UNKNOWN; CLOSED rejects temporarily without commands/bans/webhooks.
   # OBSERVE allows UNKNOWN; inspect explain/providers for the reason.
