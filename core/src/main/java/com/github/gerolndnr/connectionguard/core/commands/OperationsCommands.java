@@ -46,7 +46,7 @@ public final class OperationsCommands {
             return true;
         }
         if (args.length != 1) { reply.accept("Usage: /cg " + operation); return true; }
-        if (operation.equals("stats")) { reply.accept(ConnectionGuard.lookupStats()); reply.accept(ConnectionGuard.admissionStats()); }
+        if (operation.equals("stats")) { reply.accept(ConnectionGuard.lookupStats()); reply.accept(ConnectionGuard.admissionStats()); reply.accept(com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.describe()); }
         if (operation.equals("providers")) {
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().extensionProviders.forEach(provider -> reply.accept(provider.describe()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
@@ -70,6 +70,7 @@ public final class OperationsCommands {
         lines.add("Verify client IP forwarding with a controlled client; a public address alone does not establish correct forwarding.");
         lines.add(ConnectionGuard.lookupStats());
         lines.add(ConnectionGuard.admissionStats());
+        lines.add(com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.describe());
         return lines;
     }
 }

@@ -1,0 +1,1 @@
+{"id":"connection-guard-observer-fixture","name":"Connection Guard synthetic decision observer fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false}],"main":"fixture.DecisionObserverFixture"}

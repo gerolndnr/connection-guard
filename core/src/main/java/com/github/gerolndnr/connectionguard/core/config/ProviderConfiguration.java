@@ -23,6 +23,7 @@ public final class ProviderConfiguration {
     public final List<LocalSnapshot> localSnapshots;
     public final int localUpdateHours;
     public final List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> extensionProviders;
+    public final com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings observers;
     private final transient Function<String, Object> values;
     private final transient List<String> providerKeys;
     private final transient Path dataDirectory;
@@ -32,6 +33,7 @@ public final class ProviderConfiguration {
     public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory) {
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
         settings = GuardSettings.read(value, providerKeys);
+        observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
         localStore = local.vpnEnabled || local.geoEnabled ? new LocalDataStore(dataDirectory, local.sources) : null;

@@ -67,6 +67,7 @@ public class ConnectionGuard {
     private static volatile ProviderConfiguration activeDraft;
     public static ProviderConfiguration getActiveDraft() { return activeDraft; }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
+        com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {
             throw new IllegalArgumentException("Cache connection changes require a restart; active configuration preserved.");
         }
@@ -93,6 +94,7 @@ public class ConnectionGuard {
         }
         for (String id : days.keySet()) setProviderBudget(id, days.get(id), minutes.get(id));
         activeDraft = draft;
+        com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.configure(draft.observers);
         com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.configure(draft);
     }
     private static volatile GuardSettings settings = GuardSettings.defaults();
@@ -105,8 +107,11 @@ public class ConnectionGuard {
     private static volatile com.github.gerolndnr.connectionguard.core.admission.AdmissionController admission =
             new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(settings.admission);
     public static synchronized com.github.gerolndnr.connectionguard.core.admission.LoginAdmission admitLogin(String ip, boolean vpnExempt, boolean geoExempt) {
+        return admitLogin(ip, vpnExempt, geoExempt, settings.observe);
+    }
+    public static synchronized com.github.gerolndnr.connectionguard.core.admission.LoginAdmission admitLogin(String ip, boolean vpnExempt, boolean geoExempt, boolean observe) {
         com.github.gerolndnr.connectionguard.core.admission.AdmissionController current = admission;
-        com.github.gerolndnr.connectionguard.core.admission.LoginAdmission result = current.admit(ip, !vpnExempt || !geoExempt, settings.observe);
+        com.github.gerolndnr.connectionguard.core.admission.LoginAdmission result = current.admit(ip, !vpnExempt || !geoExempt, observe);
         if (result.shouldAlert() && logger != null) logger.warning("Lookup admission skipped: " + result.getReason()
                 + " retryMs=" + result.getRetryMillis() + "; " + current.describe());
         return result;
@@ -131,7 +136,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); }
+    public static synchronized void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
