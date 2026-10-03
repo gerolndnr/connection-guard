@@ -26,6 +26,15 @@ changes, including a different client port on the same IP and borrowing a proof
 for unrelated resolve inputs. All 238 core tests pass with real local Redis and
 zero skipped tests; nine packaging/release guards pass.
 
+The first PR CI run reproduced an existing permission-fixture reset failure after
+its expected timeout: the production replacement guard rejected a non-idle runtime.
+The [structured failure summary](permission-fixture-ci-before-fix-2026-10-03.json)
+preserves that result. Test setup/teardown now uses bounded atomic retirement and
+waits for pool termination before resetting limits; unfinished synthetic loads are
+settled during cleanup. Production guards and timeout/late-grant assertions are
+unchanged. All 238 local real-Redis cases pass afterward and the native-qualified
+JAR remains byte-identical; no runtime case is inferred from this fixture repair.
+
 ## Actual runtime regressions on this exact artifact
 
 | Receipt | Actual observed boundary |

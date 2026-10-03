@@ -1,0 +1,18 @@
+{
+  "state": "reproduced-in-exact-head-ci",
+  "run": 37132233609,
+  "job": 111229460879,
+  "source_commit": "0e3225f5356a1f43c476abe643d1bc3082709ad7",
+  "tests": 238,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "failed_test": "CGLuckPermsHelperTest.loginDeadlineClipsNativeUserLoadWaitAndIgnoresALaterGrant",
+  "exception": "Wait for lookup workers and deadlines before changing limits.",
+  "failure_location": "CGLuckPermsHelperTest.java:118",
+  "structured_xml_sha256": "5ca40d3aba364554cffb91c4c6829536acc50e0ff68315c64671c0117b52c167",
+  "observed_scope": "Fixture restored shared lookup limits after a non-atomic idle check; actual production replacement guard rejected non-idle runtime at reset. No authenticated-identity test failed.",
+  "repair": "Test-only bounded atomic retirement and termination barrier before and after each permission fixture, with unfinished synthetic native load settled in cleanup. All production guards and timeout/late-grant assertions retained.",
+  "production_code_changed_by_fixture_repair": false,
+  "recorded_at_utc": "2026-10-03T15:15:20.611810+00:00"
+}
