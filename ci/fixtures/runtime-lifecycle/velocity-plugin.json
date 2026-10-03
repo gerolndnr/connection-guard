@@ -1,0 +1,1 @@
+{"id":"connection-guard-runtime-fixture","name":"Connection Guard synthetic runtime lifecycle fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false}],"main":"fixture.RuntimeLifecycleFixture"}

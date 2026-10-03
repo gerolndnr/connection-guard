@@ -83,6 +83,37 @@ class CGLuckPermsHelperTest {
         loading.complete(user);
         assertFalse(result.get()); assertEquals(1, cleanups.get());
     }
+    @Test void unchangedLimitReloadPreservesPendingPermissionDeadline() throws Exception {
+        loaded = false; loading = new CompletableFuture<>();
+        CompletableFuture<Boolean> result = CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject);
+        ConnectionGuard.configureLookup(LookupSettings.defaults());
+        assertFalse(result.get(2, TimeUnit.SECONDS), "Reload must not cancel the only permission timeout.");
+        loading.complete(user); assertFalse(result.get()); assertEquals(1, cleanups.get());
+    }
+    @Test void changedLimitsCannotRetirePendingPermissionDeadline() throws Exception {
+        loaded = false; loading = new CompletableFuture<>();
+        CompletableFuture<Boolean> result = CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject);
+        Object previous = ConnectionGuard.getLookupRuntime();
+        try {
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.configureLookup(
+                    new LookupSettings(4000, 2000, 4, 32, 64, 3, 30000)));
+            assertSame(previous, ConnectionGuard.getLookupRuntime());
+            assertFalse(result.get(2, TimeUnit.SECONDS));
+        } finally { loading.complete(user); }
+    }
+    @Test void providerActivationCannotChangePolicyWhilePermissionDeadlineIsPending() throws Exception {
+        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft =
+                new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
+                        key -> key.equals("provider.geo.service") ? "Disabled" : null, Collections.emptyList());
+        Object previous = ConnectionGuard.getActiveDraft();
+        loaded = false; loading = new CompletableFuture<>();
+        CompletableFuture<Boolean> result = CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject);
+        try {
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.applyProviders(draft));
+            assertSame(previous, ConnectionGuard.getActiveDraft());
+            assertFalse(result.get(2, TimeUnit.SECONDS));
+        } finally { loading.complete(user); }
+    }
     @Test void failedUserLoadIsSafelyDenied() throws Exception {
         loaded = false; loading = new CompletableFuture<>(); loading.completeExceptionally(new IllegalStateException("sensitive database URL"));
         assertFalse(CGLuckPermsHelper.check(api, id, "connectionguard.exemption.vpn", subject).get());

@@ -21,9 +21,9 @@ public class CGLuckPermsHelper {
     }
     static CompletableFuture<Boolean> check(LuckPerms luckPerms, UUID uuid, String permission, Object platformSubject) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
-        ScheduledFuture<?> timeout = ConnectionGuard.getLookupRuntime().schedule(() -> result.complete(false), 750);
-        result.whenComplete((value, error) -> timeout.cancel(false));
         try {
+            ScheduledFuture<?> timeout = ConnectionGuard.getLookupRuntime().schedule(() -> result.complete(false), 750);
+            result.whenComplete((value, error) -> timeout.cancel(false));
             User loaded = luckPerms.getUserManager().getUser(uuid);
             CompletableFuture<User> user = loaded != null ? CompletableFuture.completedFuture(loaded)
                     : luckPerms.getUserManager().loadUser(uuid);

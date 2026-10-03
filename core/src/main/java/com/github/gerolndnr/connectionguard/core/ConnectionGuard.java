@@ -68,6 +68,7 @@ public class ConnectionGuard {
     public static ProviderConfiguration getActiveDraft() { return activeDraft; }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
+        if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {
             throw new IllegalArgumentException("Cache connection changes require a restart; active configuration preserved.");
         }
@@ -125,10 +126,11 @@ public class ConnectionGuard {
     public static synchronized void configureLookup(LookupSettings settings) {
         if (coordinator.inflight() != 0) throw new IllegalStateException("Wait for active lookups before changing limits.");
         LookupRuntime previous = lookupRuntime;
+        if (previous.isOpen() && previous.getSettings().equals(settings)) return;
+        if (!previous.retireIfIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before changing limits.");
         lookupRuntime = new LookupRuntime(settings);
         coordinator = new LookupCoordinator(lookupRuntime);
         ProviderHttp.configure(settings);
-        previous.close();
     }
     public static LookupRuntime getLookupRuntime() { return lookupRuntime; }
     public static String lookupStats() { return coordinator.describe(); }
