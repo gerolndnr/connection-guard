@@ -73,10 +73,11 @@ and failures. There is no delivery/order guarantee, automatic persistence or rep
 
 Reload keeps the same pool, discards queued old-generation observations and prevents
 old captures from reaching newly selected code. Closed handles suppress callbacks
-that have not started. Already executing callbacks can finish. Disable interrupts
-workers and clears registrations. A new activation is rejected until old workers
-have terminated, so repeated reloads cannot create replacement pools around blocked
-callbacks. Trusted addons share the JVM; these bounds are not a sandbox.
+that have not started. Already executing callbacks can finish. Disabling observer selection in configuration
+discards queued jobs but retains registrations and the bounded pool. Plugin shutdown
+interrupts workers and clears registrations. Activation after shutdown is rejected
+until old workers have terminated, so reinitialization cannot create replacement
+pools around blocked callbacks. Trusted addons share the JVM; these bounds are not a sandbox.
 
 An observer thread is not a platform/player/world thread. An addon must dispatch
 any platform work through that platform's supported scheduler. Do not perform
