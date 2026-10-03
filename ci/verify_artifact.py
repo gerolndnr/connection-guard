@@ -72,7 +72,12 @@ def verify(artifact, version):
             require(not any(name.startswith(prefix) and name.endswith(".class") for name in names),
                     f"Server-provided API was bundled into the plugin: {prefix}")
         library_prefix = PACKAGE.replace(".", "/") + "/libs/"
-        for notice in ("Apache-2.0.txt", "THIRD-PARTY-NOTICES.txt"):
+        for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class"):
+            require(names.count(library_prefix + dependency) == 1,
+                    f"Missing or duplicate bStats runtime dependency: {dependency}")
+        require(not any(name.startswith("org/bstats/") and name.endswith(".class") for name in names),
+                "bStats runtime dependency was not relocated.")
+        for notice in ("Apache-2.0.txt", "THIRD-PARTY-NOTICES.txt", "bStats-MIT.txt"):
             require("META-INF/connection-guard/" + notice in names, f"Missing HTTP dependency notice: {notice}")
         for dependency in ("okhttp3/OkHttpClient.class", "okio/Buffer.class", "kotlin/jvm/internal/Intrinsics.class"):
             require(library_prefix + dependency in names, f"Missing bundled HTTP dependency: {dependency}")
