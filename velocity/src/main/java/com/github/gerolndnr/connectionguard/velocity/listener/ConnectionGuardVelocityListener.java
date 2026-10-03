@@ -2,6 +2,8 @@ package com.github.gerolndnr.connectionguard.velocity.listener;
 
 import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
+import com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture;
+import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
 import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
@@ -36,7 +38,14 @@ public class ConnectionGuardVelocityListener {
         Optional<AccessRule> geo = ConnectionGuard.accessRule(ip, null, false, AccessRule.Scope.GEO);
         if ((vpn.isPresent() && vpn.get().getEffect() == AccessRule.Effect.DENY)
                 || (geo.isPresent() && geo.get().getEffect() == AccessRule.Effect.DENY)) {
-            event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Connection denied by server access policy.")));
+            try (DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY,
+                    DecisionObservation.Phase.PRE_AUTHENTICATION, ip, null, DecisionObservation.IdentityTrust.UNTRUSTED)) {
+                decision.manual(vpn, geo);
+                if (!decision.observe()) {
+                    event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Connection denied by server access policy.")));
+                    decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                }
+            }
         }
     }
     @Subscribe
@@ -45,174 +54,190 @@ public class ConnectionGuardVelocityListener {
         Player player = event.getPlayer();
         // A single stable phase: rule expiry/reload between events cannot skip the provider check.
         return EventTask.withContinuation(continuation -> checkConnection(player.getRemoteAddress().getAddress().getHostAddress(),
-                player.getUniqueId(), player.getUsername(), player.isOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity,
+                player.getUniqueId(), player.getUsername(), player.isOnlineMode() ? DecisionObservation.IdentityTrust.AUTHENTICATED
+                        : ConnectionGuard.getSettings().trustForwardedIdentity ? DecisionObservation.IdentityTrust.FORWARDED : DecisionObservation.IdentityTrust.UNTRUSTED,
                 player, message -> event.setResult(ResultedEvent.ComponentResult.denied(message)))
                 .whenComplete((ignored, error) -> continuation.resume()));
     }
-    private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, boolean trusted,
+    private CompletableFuture<Void> checkConnection(String rawIp, UUID uuid, String playerUsername, DecisionObservation.IdentityTrust identityTrust,
                                                      Object subject, Consumer<Component> deny) {
         final String ipAddress = Exemptions.normalize(rawIp);
-        Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN);
-        Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO);
-        if (!ConnectionGuard.getSettings().observe && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
-                || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
-            deny.accept(Component.text("Connection denied by server access policy.")); return CompletableFuture.completedFuture(null);
-        }
-        CompletableFuture<Boolean> vpnExempt = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
-                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
-                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject) : CompletableFuture.completedFuture(false);
-        CompletableFuture<Boolean> geoExempt = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
-                ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
-                    ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
-        CompletableFuture<LoginAdmission> admission = vpnExempt.thenCombine(geoExempt,
-                (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(ipAddress, vpnBypass, geoBypass));
-        CompletableFuture<VpnResult> vpnFuture = admission.thenCompose(entry -> entry.isAllowed()
-                ? (vpnExempt.join() ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress))
-                : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(ipAddress, FailureReason.OVERLOADED)));
-        CompletableFuture<GeoLookup> geoFuture = admission.thenCompose(entry -> entry.isAllowed()
-                ? (geoExempt.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress))
-                : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
-        return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
-            if (!admission.join().isAllowed()) {
-                if (admission.join().shouldDeny()) deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));
-                return;
+        final boolean trusted = identityTrust != DecisionObservation.IdentityTrust.UNTRUSTED;
+        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY, DecisionObservation.Phase.LOGIN, ipAddress, uuid, identityTrust);
+        try {
+            Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN);
+            Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO);
+            decision.manual(vpnAccess, geoAccess);
+            if (!decision.observe() && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
+                    || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
+                deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE); decision.close(); return CompletableFuture.completedFuture(null);
             }
-            long asOf = System.currentTimeMillis();
-            VpnResult vpnResult = LookupFreshness.vpn(vpnFuture.join(), asOf);
-            GeoLookup currentGeo = LookupFreshness.geo(geoFuture.join(), asOf);
-            Optional<GeoResult> geoResultOptional = currentGeo.getResult();
-            EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
-            EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
-            boolean vpnBypassed = vpnExempt.join() || vpnPolicy.isBypassed();
-            boolean geoBypassed = geoExempt.join() || geoPolicy.isBypassed();
-            if (!ConnectionGuard.getSettings().observe && ((!vpnExempt.join() && vpnPolicy.isDenied()) || (!geoExempt.join() && geoPolicy.isDenied()))) {
-                deny.accept(Component.text("Connection denied by server access policy."));
-                return;
-            }
-            if (!ConnectionGuard.getSettings().observe && (
-                    (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && ConnectionGuard.getSettings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                    || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && ConnectionGuard.getSettings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly."));
-                return;
-            }
-            if (vpnResult.isVpn() && !vpnBypassed) {
-                // Check if staff should be notified
-                if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
-                    Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-notify")
-                                    .replace("%IP%", vpnResult.getIpAddress())
-                                    .replace("%NAME%", playerUsername)
-                    );
-                    broadcastMessage(notifyMessage, "connectionguard.notify.vpn");
-                }
-
-                // Check if command should be executed on flag
-                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
-                    ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
-                            ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
-                            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.execute-command.command")
-                                    .replace("%NAME%", playerUsername)
-                                    .replace("%IP%", ipAddress)
-                    );
-                }
-
-                // Check if WebHook should be executed
-                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
-                    String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-webhook")
-                            .replace("%NAME%", playerUsername)
-                            .replace("%IP%", ipAddress);
-                    String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.send-webhook.url");
-
-                    CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
-                }
-
-                // Check if player should be kicked
-                if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
-                    Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-block")
-                                    .replace("%IP%", vpnResult.getIpAddress())
-                                    .replace("%NAME%", playerUsername)
-                    );
-
-                    deny.accept(kickMessage);
+            CompletableFuture<Boolean> vpnExempt = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
+                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
+                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.vpn", subject) : CompletableFuture.completedFuture(false);
+            CompletableFuture<Boolean> geoExempt = (geoAccess.isPresent() && geoAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.exemptions"), ipAddress, uuid, trusted)
+                    ? CompletableFuture.completedFuture(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.use-permission-exemption")
+                        ? CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo", subject) : CompletableFuture.completedFuture(false);
+            CompletableFuture<LoginAdmission> admission = vpnExempt.thenCombine(geoExempt,
+                    (vpnBypass, geoBypass) -> ConnectionGuard.admitLogin(ipAddress, vpnBypass, geoBypass, decision.observe()));
+            CompletableFuture<VpnResult> vpnFuture = admission.thenCompose(entry -> entry.isAllowed()
+                    ? (vpnExempt.join() ? CompletableFuture.completedFuture(new VpnResult(ipAddress, false)) : ConnectionGuard.getVpnResult(ipAddress))
+                    : CompletableFuture.completedFuture(ConnectionGuard.unknownVpn(ipAddress, FailureReason.OVERLOADED)));
+            CompletableFuture<GeoLookup> geoFuture = admission.thenCompose(entry -> entry.isAllowed()
+                    ? (geoExempt.join() ? CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0)) : ConnectionGuard.getGeoLookup(ipAddress))
+                    : CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, 0)));
+            return CompletableFuture.allOf(vpnFuture, geoFuture).thenRun(() -> {
+                if (!admission.join().isAllowed()) {
+                    decision.overload();
+                    if (admission.join().shouldDeny()) {
+                        deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));
+                        decision.denied(DecisionObservation.Reason.OVERLOAD);
+                    }
                     return;
                 }
-            }
-
-            if (geoResultOptional.isPresent() && !geoBypassed) {
-                GeoResult geoResult = geoResultOptional.get();
-                boolean isGeoFlagged = false;
-
-                switch (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.type").toLowerCase()) {
-                    case "blacklist":
-                        if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                            isGeoFlagged = true;
-                        break;
-                    case "whitelist":
-                        if (!ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                            isGeoFlagged = true;
-                        break;
-                    default:
-                        ConnectionGuard.getLogger().info("Invalid geo behavior type. Please use BLACKLIST or WHITELIST.");
-                        break;
+                long asOf = System.currentTimeMillis();
+                VpnResult vpnResult = LookupFreshness.vpn(vpnFuture.join(), asOf);
+                GeoLookup currentGeo = LookupFreshness.geo(geoFuture.join(), asOf);
+                Optional<GeoResult> geoResultOptional = currentGeo.getResult();
+                decision.facts(vpnResult, currentGeo, vpnExempt.join(), geoExempt.join(), asOf);
+                EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
+                EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
+                decision.policy(vpnPolicy, geoPolicy);
+                boolean vpnBypassed = vpnExempt.join() || vpnPolicy.isBypassed();
+                boolean geoBypassed = geoExempt.join() || geoPolicy.isBypassed();
+                if (!decision.observe() && ((!vpnExempt.join() && vpnPolicy.isDenied()) || (!geoExempt.join() && geoPolicy.isDenied()))) {
+                    deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                    return;
                 }
-
-                if (isGeoFlagged) {
+                if (!decision.observe() && (
+                        (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
+                        || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
+                    deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly.")); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
+                    return;
+                }
+                if (vpnResult.isVpn() && !vpnBypassed) {
+                    decision.flag(DecisionObservation.Flag.VPN);
                     // Check if staff should be notified
-                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.notify-staff")) {
+                    if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                         Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-notify")
-                                        .replace("%IP%", geoResult.getIpAddress())
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
-                                        .replace("%CITY%", geoResult.getCityName())
-                                        .replace("%ISP%", geoResult.getIspName())
+                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-notify")
+                                        .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", playerUsername)
                         );
-                        broadcastMessage(notifyMessage, "connectionguard.notify.geo");
+                        broadcastMessage(notifyMessage, "connectionguard.notify.vpn");
                     }
 
                     // Check if command should be executed on flag
-                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
+                    if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.execute-command.enabled")) {
                         ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
                                 ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
-                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.execute-command.command")
+                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.execute-command.command")
                                         .replace("%NAME%", playerUsername)
                                         .replace("%IP%", ipAddress)
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
                         );
                     }
 
                     // Check if WebHook should be executed
-                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
-                        String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-webhook")
+                    if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+                        String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-webhook")
                                 .replace("%NAME%", playerUsername)
-                                .replace("%IP%", ipAddress)
-                                .replace("%COUNTRY%", geoResult.getCountryName())
-                                .replace("%CITY%", geoResult.getCityName())
-                                .replace("%ISP%", geoResult.getIspName());
-                        String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.send-webhook.url");
+                                .replace("%IP%", ipAddress);
+                        String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.send-webhook.url");
 
                         CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
                     }
 
                     // Check if player should be kicked
-                    if (!ConnectionGuard.getSettings().observe && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
+                    if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
                         Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-block")
-                                        .replace("%IP%", geoResult.getIpAddress())
-                                        .replace("%COUNTRY%", geoResult.getCountryName())
-                                        .replace("%CITY%", geoResult.getCityName())
-                                        .replace("%ISP%", geoResult.getIspName())
+                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-block")
+                                        .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", playerUsername)
                         );
 
-                        deny.accept(kickMessage);
+                        deny.accept(kickMessage); decision.denied(DecisionObservation.Reason.VPN_FLAG);
                         return;
                     }
                 }
 
-            }
-        });
+                if (geoResultOptional.isPresent() && !geoBypassed) {
+                    GeoResult geoResult = geoResultOptional.get();
+                    boolean isGeoFlagged = false;
+
+                    switch (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.type").toLowerCase()) {
+                        case "blacklist":
+                            if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
+                                isGeoFlagged = true;
+                            break;
+                        case "whitelist":
+                            if (!ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
+                                isGeoFlagged = true;
+                            break;
+                        default:
+                            ConnectionGuard.getLogger().info("Invalid geo behavior type. Please use BLACKLIST or WHITELIST.");
+                            break;
+                    }
+
+                    if (isGeoFlagged) {
+                        decision.flag(DecisionObservation.Flag.GEO);
+                        // Check if staff should be notified
+                        if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.notify-staff")) {
+                            Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
+                                    ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-notify")
+                                            .replace("%IP%", geoResult.getIpAddress())
+                                            .replace("%COUNTRY%", geoResult.getCountryName())
+                                            .replace("%CITY%", geoResult.getCityName())
+                                            .replace("%ISP%", geoResult.getIspName())
+                                            .replace("%NAME%", playerUsername)
+                            );
+                            broadcastMessage(notifyMessage, "connectionguard.notify.geo");
+                        }
+
+                        // Check if command should be executed on flag
+                        if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.execute-command.enabled")) {
+                            ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getCommandManager().executeAsync(
+                                    ConnectionGuardVelocityPlugin.getInstance().getProxyServer().getConsoleCommandSource(),
+                                    ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.execute-command.command")
+                                            .replace("%NAME%", playerUsername)
+                                            .replace("%IP%", ipAddress)
+                                            .replace("%COUNTRY%", geoResult.getCountryName())
+                            );
+                        }
+
+                        // Check if WebHook should be executed
+                        if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                            String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-webhook")
+                                    .replace("%NAME%", playerUsername)
+                                    .replace("%IP%", ipAddress)
+                                    .replace("%COUNTRY%", geoResult.getCountryName())
+                                    .replace("%CITY%", geoResult.getCityName())
+                                    .replace("%ISP%", geoResult.getIspName());
+                            String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.send-webhook.url");
+
+                            CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
+                        }
+
+                        // Check if player should be kicked
+                        if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
+                            Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
+                                    ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-block")
+                                            .replace("%IP%", geoResult.getIpAddress())
+                                            .replace("%COUNTRY%", geoResult.getCountryName())
+                                            .replace("%CITY%", geoResult.getCityName())
+                                            .replace("%ISP%", geoResult.getIspName())
+                                            .replace("%NAME%", playerUsername)
+                            );
+
+                            deny.accept(kickMessage); decision.denied(DecisionObservation.Reason.GEO_FLAG);
+                            return;
+                        }
+                    }
+
+                }
+            }).whenComplete((ignored, error) -> { if (error != null) decision.error(); decision.close(); });
+        } catch (RuntimeException | LinkageError failure) {
+            decision.error(); decision.close(); throw failure;
+        }
     }
 
     private void broadcastMessage(Component message, String permission) {

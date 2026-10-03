@@ -43,6 +43,11 @@ integrations:
   providers:
     enabled: false
     sources: []
+  # Trusted addons only; callbacks receive IP/source facts and trusted UUIDs.
+  # Best effort on two workers with a finite queue; never use this as a ban/challenge authorization.
+  observers:
+    enabled: false
+    ids: []
 
 # Message config used for all messages send to the player.
 # You can add your own languages by creating a file called <language>.yml and setting the

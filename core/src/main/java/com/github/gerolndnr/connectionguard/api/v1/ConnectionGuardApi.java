@@ -7,4 +7,7 @@ public final class ConnectionGuardApi {
     public static ProviderRegistration registerProvider(ProviderDescriptor descriptor, DetectionProvider provider) {
         return com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.register(descriptor, provider);
     }
+    public static ObserverRegistration registerDecisionObserver(String id, DecisionObserver observer) {
+        return com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.register(id, observer);
+    }
 }
