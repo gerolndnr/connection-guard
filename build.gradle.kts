@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.run-paper").version("2.3.0")
 }
 
-version = "0.4.10"
+version = "0.4.11"
 
 allprojects {
     tasks.withType<AbstractArchiveTask>().configureEach {
@@ -26,6 +26,8 @@ repositories {
 }
 
 dependencies {
+    // Libby does not load the platform adapter's Maven transitives.
+    implementation("org.bstats:bstats-base:3.0.2")
     implementation(project(":core"))
     implementation(project(":spigot"))
     implementation(project(":bungeecord"))

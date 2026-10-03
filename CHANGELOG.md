@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.11 — 2026-10-03
+
+Urgent maintenance hotfix based on published 0.4.10.
+
+- Bundle and relocate bStats Base 3.0.2. Its missing `MetricsBase` class could prevent Connection Guard from enabling on Bukkit/Paper and BungeeCord.
+- Verify the bStats runtime classes in the combined JAR. Existing configuration and detection behavior are retained.
+
+Stop the server/proxy, replace the Connection Guard JAR with `connection-guard-0.4.11-all.jar`, and restart. Do not keep both JARs installed.
+
+Validation: regression tests and combined artifact verification; a controlled Paper 1.21.11 build 132 startup/enable/shutdown test qualifies the packaging fix. This hotfix adds no new platform compatibility claim.
+
 ## 0.4.10 — 2026-10-02
 
 Maintenance release for Spigot, BungeeCord and Velocity.

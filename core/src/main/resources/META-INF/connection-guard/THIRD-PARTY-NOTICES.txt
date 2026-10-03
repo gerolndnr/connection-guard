@@ -19,3 +19,7 @@ Upstream project links provide source code and component-specific attribution.
 
 Other runtime-loaded dependencies are documented in the project README and
 their own upstream distributions. Connection Guard's own code uses the MIT license.
+
+bStats Base 3.0.2 — Bastian — MIT License
+https://github.com/Bastian/bStats-Metrics
+The MIT notice is included as bStats-MIT.txt in this directory.
