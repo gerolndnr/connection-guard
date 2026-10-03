@@ -32,8 +32,14 @@ and does not invalidate cached detection facts.
 Each observation includes platform, phase, captured operation mode, actual guard
 ALLOW/DENY/ERROR outcome and a typed summary reason. It carries normalized literal
 IP, decision timestamp and elapsed guard-processing time. An untrusted offline UUID
-is withheld. AUTHENTICATED denotes the runtime's authentication choice; FORWARDED
-denotes the explicitly configured forwarding trust. This observation is not an
+is withheld. AUTHENTICATED denotes the per-connection platform authentication
+choice. FORWARDED denotes the explicitly configured forwarding declaration;
+PLATFORM_ONLINE denotes the legacy Bukkit global flag, and FLOODGATE denotes
+an explicitly enabled, current socket/canonical-record gateway proof. Declarations
+and global flags are not verified session authority. A lost current proof yields
+IDENTITY_UNAVAILABLE, also when OBSERVE allows the connection. See
+[NATIVE_IDENTITY.md](NATIVE_IDENTITY.md) for the selected native contract and named
+synthetic gateway qualification. This observation is an immutable snapshot, not an
 authorization token for a challenge grant or a ban.
 
 VPN/Geo check states distinguish NOT_CHECKED, EXEMPT and UNKNOWN. An exemption

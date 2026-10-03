@@ -29,6 +29,7 @@ public class ConnectionGuardBungeeListener implements Listener {
     @EventHandler
     public void onLogin(LoginEvent loginEvent) {
         if (loginEvent.isCancelled()) return;
+        long startedNanos = System.nanoTime();
         loginEvent.registerIntent(ConnectionGuardBungeePlugin.getInstance());
 
         String rawIp = loginEvent.getConnection().getAddress().getAddress().getHostAddress();
@@ -36,9 +37,13 @@ public class ConnectionGuardBungeeListener implements Listener {
         final String ipAddress = Exemptions.normalize(rawIp);
         final String clientIp = ipAddress;
         UUID uuid = loginEvent.getConnection().getUniqueId();
-        boolean trusted = loginEvent.getConnection().isOnlineMode() || ConnectionGuard.getSettings().trustForwardedIdentity;
-        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUNGEE, DecisionObservation.Phase.LOGIN, clientIp, uuid,
-                loginEvent.getConnection().isOnlineMode() ? DecisionObservation.IdentityTrust.AUTHENTICATED : trusted ? DecisionObservation.IdentityTrust.FORWARDED : DecisionObservation.IdentityTrust.UNTRUSTED);
+        com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity identity =
+                com.github.gerolndnr.connectionguard.core.identity.ConnectionIdentity.resolve(uuid, loginEvent.getConnection().getName(),
+                        loginEvent.getConnection().getAddress(), loginEvent.getConnection()::isConnected,
+                        loginEvent.getConnection().isOnlineMode(), false, ConnectionGuard.getSettings().trustForwardedIdentity,
+                        ConnectionGuard.getSettings().nativeFloodgateIdentity);
+        boolean trusted = identity.isTrusted();
+        DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUNGEE, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.GEO);
@@ -57,6 +62,11 @@ public class ConnectionGuardBungeeListener implements Listener {
                         ? LoginChecks.Permission.lookup(() -> CGLuckPermsHelper.hasPermission(uuid, "connectionguard.exemption.geo")) : LoginChecks.Permission.known(false);
             LoginChecks.check(clientIp, decision.settings().lookup, decision.startedNanos(), decision.observe(),
                     vpnPermission, geoPermission).thenAccept(checks -> {
+                if (identity.requiresCurrentProof() && !identity.isCurrent()) {
+                    decision.identityUnavailable();
+                    if (!decision.observe()) { loginEvent.setCancelReason(new TextComponent("Connection identity verification is no longer available. Please retry.")); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                    return;
+                }
                 if (checks.isCancelled()) { decision.error(); return; }
                 if (!checks.isAdmitted()) {
                     decision.overload();

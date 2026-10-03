@@ -1,0 +1,8 @@
+name: CGNativeIdentityFixture
+version: 1
+main: fixture.CGNativeIdentityBackendFixture
+api-version: "1.21"
+folia-supported: true
+depend: [ConnectionGuard, LuckPerms, floodgate]
+commands:
+  fixture-native: {}

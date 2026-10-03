@@ -7,10 +7,10 @@ public final class DecisionObservation {
     public enum Platform { BUKKIT, BUNGEE, VELOCITY }
     public enum Phase { PRE_AUTHENTICATION, LOGIN }
     public enum Mode { OBSERVE, ENFORCE }
-    public enum IdentityTrust { UNTRUSTED, AUTHENTICATED, FORWARDED }
+    public enum IdentityTrust { UNTRUSTED, AUTHENTICATED, FORWARDED, PLATFORM_ONLINE, FLOODGATE }
     public enum Outcome { ALLOW, DENY, ERROR }
     public enum Reason { CHECKS_COMPLETE, FLAG_ALLOWED, UNKNOWN_ALLOWED, ACCESS_RULE, LOOKUP_UNAVAILABLE,
-        OVERLOAD, VPN_FLAG, GEO_FLAG, INTERNAL_ERROR }
+        OVERLOAD, VPN_FLAG, GEO_FLAG, INTERNAL_ERROR, IDENTITY_UNAVAILABLE }
     public enum Check { NOT_CHECKED, EXEMPT, POSITIVE, NEGATIVE, KNOWN, UNKNOWN }
     public enum Flag { ACCESS_POLICY, VPN, GEO }
     public enum Scope { VPN, GEO, ALL }

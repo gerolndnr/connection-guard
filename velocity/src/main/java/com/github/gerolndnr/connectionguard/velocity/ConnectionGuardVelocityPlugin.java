@@ -34,7 +34,8 @@ import java.util.HashMap;
         name="Connection Guard",
         version="0.4.10",
         url="https://github.com/gerolndnr/connection-guard",
-        authors = {"gerolndnr"}
+        authors = {"gerolndnr"},
+        dependencies = {@com.velocitypowered.api.plugin.Dependency(id="floodgate", optional=true)}
 )
 public class ConnectionGuardVelocityPlugin {
     private final ProxyServer proxyServer;

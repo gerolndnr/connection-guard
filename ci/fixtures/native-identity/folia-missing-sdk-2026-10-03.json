@@ -1,0 +1,18 @@
+{
+  "artifact_sha256": "8254d278e67d848facffa7250f07e5446345a76069e9f3b8e408bbb6e4e22a65",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "java": 21,
+  "native_plugins": {},
+  "addon_sha256": "7b1cee364c27e84eba639def9e43614aac11e4cf69a8624ebe5ffc20a7dbbb90",
+  "fixture_source_sha256": "d2dddb579f74a13befe5049dad23aee0d20671ad74bf32fd3e40013c527b0028",
+  "synthetic_permission_authority": false,
+  "authenticated_identity_tested": false,
+  "bedrock_authentication_tested": false,
+  "legacy_spigot_tested": false,
+  "null_identity_cannot_grant_permission": true,
+  "absent_permission_sdk_reports_unavailable": true,
+  "enabled_but_absent_native_identity_sdk_cannot_invent_proof": true,
+  "missing_permission_sdk_does_not_exempt_declared_trust_login": true,
+  "shutdown_passed": true
+}
