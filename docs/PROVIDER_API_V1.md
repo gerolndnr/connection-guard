@@ -1,7 +1,7 @@
 # Versioned provider API v1
 
 Development implementation for the next release. This document specifies the provider
-contract; real-addon runtime validation is required before publishing this as delivered.
+contract, validated with the synthetic real Velocity addon linked below.
 Decision observers and challenge/ban adapters are separate outstanding integration work.
 
 Use `com.github.gerolndnr.connectionguard.api.v1`. Compile against Connection Guard as a
@@ -96,5 +96,8 @@ Contract tests cover immutable fields, invalid descriptors, explicit activation,
 input, stable attribution, bounded registry/selection, quorum, enrichment-only evidence,
 descriptor fingerprints, opaque callback serialization, real SQLite reuse and closed-cache
 invalidation, close during pending response, replacement handles and bounded reload health.
-These unit/integration cases are not yet a real platform classloader or whole-plugin
-compatibility claim. Runtime addon fixtures and the final release matrix must qualify those.
+The [synthetic addon fixture](../ci/fixtures/provider-api/README.md) also tests the real
+Velocity 3.4.0 build 566 classloader, explicit activation, missing/closed module handling,
+SQLite reuse, replacement, rejected drafts, budgets, 32 coalesced actual login attempts,
+deadlines and typed failures. This qualifies that platform/version and development artifact;
+it does not establish backend joins, authenticated identities or other platform compatibility.
