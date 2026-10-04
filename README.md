@@ -8,6 +8,8 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/GekQVPqsfS)
 
+**Latest stable release: [0.4.11](https://github.com/gerolndnr/connection-guard/releases/tag/0.4.11).** `master` builds the unpublished **0.5.0-SNAPSHOT** development version. Use the stable release for production; development features and their exact test limits are documented separately.
+
 **MIT licensed.** No Connection Guard account or GitHub star is required. External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
 ## What you can control
@@ -29,7 +31,9 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 The combined JAR is available from [GitHub](https://github.com/gerolndnr/connection-guard/releases/latest), [Spigot](https://www.spigotmc.org/resources/121509/), [Modrinth](https://modrinth.com/plugin/connectionguard) and [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Review the generated configuration before accepting live players. **The shipped 0.4.10 config enables VPN and geo kicks, with CN/RU in its country blocklist.** [Start with notifications](docs/CONFIGURATION.md) to evaluate decisions before blocking.
+Review the generated configuration before accepting live players. **The stable 0.4.11 config enables VPN and geo kicks, with CN/RU in its country blocklist.** [Start with notifications](docs/CONFIGURATION.md) to evaluate decisions before blocking.
+
+These defaults describe stable 0.4.11. Fresh development-snapshot installs start in OBSERVE with neutral country rules; review the generated settings before deliberately enabling enforcement.
 
 The default VPN provider is ProxyCheck; the default geo provider is IP-API. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment.
 
@@ -49,9 +53,9 @@ Targeted `info` and `clear` also accept an online player name or UUID. Staff not
 
 ## Reliability and compatibility
 
-0.4.10 includes 48 passing regression tests and a controlled runtime check on **Velocity 3.4.0 / Java 21** covering startup, HTTP detection, pre-login rejection, SQLite caching, provider recovery and commands. [Read the checks and limits](CHANGELOG.md).
+Stable 0.4.11 retains the 48 regression tests and controlled **Velocity 3.4.0 / Java 21** checks from 0.4.10, and fixes the missing bStats runtime dependency. Its packaging fix was also qualified by actual **Paper 1.21.11 build 132 / Java 21** startup and enablement. [Read the checks and limits](CHANGELOG.md).
 
-Core/Spigot/BungeeCord bytecode targets Java 8. The Spigot adapter builds against the 1.8.8 API. The Velocity adapter targets the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. Build targets do not prove every server version was tested; Folia support is unverified.
+Core/Spigot/BungeeCord bytecode targets Java 8. The Spigot adapter builds against the 1.8.8 API. The Velocity adapter targets the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. Build targets do not prove every server version was tested; stable 0.4.11 has no verified Folia compatibility claim. The development snapshot has separate [named platform/identity evidence](docs/PERMISSION_VALIDATION.md) and [native challenge/backend evidence](docs/NATIVE_CHALLENGE.md).
 
 If the configured VPN vote threshold is not met, the connection proceeds, subject to geo rules and other plugins. An unavailable geo lookup provides no geo verdict. See [provider failures and caching](docs/PROVIDER_FAILURES.md). Tests do not establish real-world detection accuracy. Connection Guard does not replace an anticheat, a complete antibot system or network-level DDoS protection.
 

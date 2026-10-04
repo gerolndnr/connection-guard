@@ -37,3 +37,19 @@ tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+// Generate the annotation constant from the same version used by Bukkit/Bungee descriptors.
+val generatedVersionDirectory = layout.buildDirectory.dir("generated/sources/connectionGuardVersion")
+val generateConnectionGuardVersion by tasks.registering {
+    val pluginVersion = rootProject.version.toString()
+    inputs.property("pluginVersion", pluginVersion)
+    outputs.dir(generatedVersionDirectory)
+    doLast {
+        require(Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:-SNAPSHOT)?").matches(pluginVersion))
+        val output = generatedVersionDirectory.get().file("com/github/gerolndnr/connectionguard/velocity/BuildVersion.java").asFile
+        output.parentFile.mkdirs()
+        output.writeText("package com.github.gerolndnr.connectionguard.velocity;\npublic final class BuildVersion { public static final String VERSION = \"$pluginVersion\"; private BuildVersion() {} }\n")
+    }
+}
+sourceSets.main { java.srcDir(generatedVersionDirectory) }
+tasks.compileJava { dependsOn(generateConnectionGuardVersion) }

@@ -25,12 +25,21 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(0,AdmissionHooks.inflight());assertEquals(0,LoginChecks.active());assertTrue(ConnectionGuard.getLookupRuntime().isIdle());
         ConnectionGuard.applySettings(GuardSettings.defaults());
     }
-    GuardSettings configure(boolean closed,String...ids){
-        Map<String,Object> values=new HashMap<>();values.put("operation.mode","ENFORCE");values.put("lookup.deadline-ms",200);values.put("lookup.http-timeout-ms",100);
+    GuardSettings configure(boolean closed,String...ids){return configure(closed,200,ids);}
+    GuardSettings configure(boolean closed,long budgetMillis,String...ids){
+        Map<String,Object> values=new HashMap<>();values.put("operation.mode","ENFORCE");values.put("lookup.deadline-ms",budgetMillis);values.put("lookup.http-timeout-ms",100);
         values.put("integrations.admission.enabled",ids.length>0);values.put("integrations.admission.ids",Arrays.asList(ids));values.put("integrations.admission.failure-policy",closed?"CLOSED":"OPEN");
         GuardSettings settings=GuardSettings.read(values::get,Collections.emptyList());ConnectionGuard.applySettings(settings);return settings;
     }
-    AdmissionRequest request(long started){return new AdmissionRequest("192.0.2.211",uuid,DecisionObservation.IdentityTrust.AUTHENTICATED,DecisionObservation.Platform.VELOCITY,started+TimeUnit.MILLISECONDS.toNanos(200));}
+    AdmissionRequest request(long started){return request(started,200);}
+    AdmissionRequest request(long started,long budgetMillis){return new AdmissionRequest("192.0.2.211",uuid,DecisionObservation.IdentityTrust.AUTHENTICATED,DecisionObservation.Platform.VELOCITY,started+TimeUnit.MILLISECONDS.toNanos(budgetMillis));}
+    void awaitNativeIdle()throws InterruptedException{
+        long due=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);
+        while((AdmissionHooks.inflight()!=0 || LoginChecks.active()!=0 || !ConnectionGuard.getLookupRuntime().isIdle()) && System.nanoTime()<due)Thread.sleep(2);
+        assertEquals(0,AdmissionHooks.inflight(),"Native callback completions must release their physical slots.");
+        assertEquals(0,LoginChecks.active(),"Login completion must release its caller slot.");
+        assertTrue(ConnectionGuard.getLookupRuntime().isIdle(),"Fixture workers/deadlines must stop before the next iteration.");
+    }
     LoginChecks.Result check(boolean observe,LoginChecks.Permission vpn)throws Exception{
         long start=System.nanoTime();return LoginChecks.check("192.0.2.211",ConnectionGuard.getLookupRuntime().getSettings(),start,observe,vpn,LoginChecks.Permission.known(true),request(start)).get(2,TimeUnit.SECONDS);
     }
@@ -109,8 +118,39 @@ import static org.junit.jupiter.api.Assertions.*;
             CompletableFuture<Void> a=CompletableFuture.runAsync(()->{try{go.await();clear.complete(AdmissionResponse.clear());}catch(InterruptedException e){Thread.currentThread().interrupt();throw new RuntimeException(e);}});
             CompletableFuture<Void> b=CompletableFuture.runAsync(()->{try{go.await();deny.complete(AdmissionResponse.activeBan(0));}catch(InterruptedException e){Thread.currentThread().interrupt();throw new RuntimeException(e);}});
             go.countDown();LoginChecks.Result result=work.get(1,TimeUnit.SECONDS);CompletableFuture.allOf(a,b).get(1,TimeUnit.SECONDS);
-            assertTrue(result.external().shouldRefuse(false));assertEquals(0,permissions.get());assertEquals(0,detection.get());assertEquals(0,AdmissionHooks.inflight());
+            assertTrue(result.external().shouldRefuse(false));
+            // Completing the callback's returned future need not mean its worker has returned.
+            awaitNativeIdle();
+            assertEquals(0,permissions.get(),"A concurrent native DENY must not launch permissions.");
+            assertEquals(0,detection.get(),"A concurrent native DENY must not launch detection.");
+            assertEquals(0,AdmissionHooks.inflight());
         }
+    }
+    @Test void completedNativeFutureRetainsPhysicalSlotUntilCallbackReturns()throws Exception{
+        AtomicInteger permissions=new AtomicInteger();
+        CompletableFuture<AdmissionResponse> clear=new CompletableFuture<>(),deny=new CompletableFuture<>();pending.add(clear);pending.add(deny);
+        CountDownLatch called=new CountDownLatch(2),allowReturn=new CountDownLatch(1);
+        AdmissionHooks.register("one",r->{
+            called.countDown();
+            try{if(!allowReturn.await(3,TimeUnit.SECONDS))throw new AssertionError("Native callback fixture gate timed out.");}
+            catch(InterruptedException error){Thread.currentThread().interrupt();throw new RuntimeException(error);}
+            return clear;
+        });
+        AdmissionHooks.register("two",r->{called.countDown();return deny;});configure(false,5000,"one","two");
+        long start=System.nanoTime();CompletableFuture<LoginChecks.Result> work=LoginChecks.check("192.0.2.211",ConnectionGuard.getLookupRuntime().getSettings(),start,false,
+            LoginChecks.Permission.lookup(()->{permissions.incrementAndGet();return CompletableFuture.completedFuture(false);}),LoginChecks.Permission.known(true),request(start,5000));
+        try{
+            assertTrue(called.await(1,TimeUnit.SECONDS));clear.complete(AdmissionResponse.clear());deny.complete(AdmissionResponse.activeBan(0));
+            LoginChecks.Result result=work.get(1,TimeUnit.SECONDS);
+            assertTrue(result.external().isDenied());assertTrue(result.external().shouldRefuse(false));
+            assertEquals(0,permissions.get());assertEquals(0,detection.get());assertEquals(0,LoginChecks.active());
+            assertEquals(1,AdmissionHooks.inflight(),"A completed future cannot release a still-executing native callback.");
+            assertThrows(IllegalStateException.class,()->ConnectionGuard.applySettings(GuardSettings.defaults()));
+        }finally{
+            clear.complete(AdmissionResponse.clear());deny.complete(AdmissionResponse.activeBan(0));allowReturn.countDown();
+            awaitNativeIdle();
+        }
+        assertEquals(0,permissions.get());assertEquals(0,detection.get());
     }
     @Test void cancelledGuardRuntimeStillRequiresClosedNativeRefusal()throws Exception{
         AtomicInteger nativeCalls=new AtomicInteger();AdmissionHooks.register("test",r->{nativeCalls.incrementAndGet();return CompletableFuture.completedFuture(AdmissionResponse.clear());});configure(true,"test");
