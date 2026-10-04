@@ -1,0 +1,7 @@
+{
+  "protocol": 1,
+  "platform": "VELOCITY",
+  "platform_version": "Velocity 3.4.0-SNAPSHOT",
+  "plugin_version": "0.5.0",
+  "java_version": "21.0.4"
+}

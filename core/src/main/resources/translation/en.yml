@@ -1,5 +1,3 @@
-# Message templates. Built-in locales: en, de, es. Missing keys use bundled defaults.
-# Keep placeholder names and command syntax; machine status codes remain unchanged.
 command:
   no-permission: '&cYou don''t have permissions to execute this command!'
   unknown-subcommand: '&bConnection Guard &7| &7Unknown subcommand. Enter /cg help to view all available commands.'
@@ -63,36 +61,30 @@ ops:
   rule-removed: Rule removed.
   rule-absent: Rule was already absent.
   rule-remove-failed: Rule removal failed; existing rules preserved.
-  rule-invalid: Invalid target, scope, duration or reason. Use IP/CIDR, UUID or a documented metadata selector; no player
-    names.
+  rule-invalid: Invalid target, scope, duration or reason. Use IP/CIDR, UUID or a documented metadata selector; no player names.
   rule-stored: Stored {0} {1} {2} {3}
   rule-write-failed: Rule write failed; active rules preserved.
   rule-usage: /cg {0} add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <reason>
   rule-usage-tail: /cg {0} list | remove <rule-id>; explicit deny overrides allow/exempt; UUID requires trusted identity.
   local-disabled: Local data is disabled. Configure attributed sources and choose local VPN and/or Local geo first.
-  local-usage: 'Usage: /cg local status|prepare|reload; /cg local update <source-id>; /cg local import <source-id> <inbox-file>
-    <ISO-8601-as-of>'
+  local-usage: 'Usage: /cg local status|prepare|reload; /cg local update <source-id>; /cg local import <source-id> <inbox-file> <ISO-8601-as-of>'
   local-invalid: Invalid source ID or date. Use UTC ISO-8601, e.g. 2026-10-02T09:00:00Z.
   local-prepared: Private local-data/inbox is ready inside the plugin data directory.
-  local-activated: Validated local generation activated; cache namespace changed. Inspect /cg local status for actual age
-    and readiness.
-  local-stored: Validated data stored; active generation preserved. Wait for active lookups, then /cg local reload (details
-    redacted).
+  local-activated: Validated local generation activated; cache namespace changed. Inspect /cg local status for actual age and readiness.
+  local-stored: Validated data stored; active generation preserved. Wait for active lookups, then /cg local reload (details redacted).
   local-rejected: Local data operation rejected; active generation preserved (details redacted).
   local-busy: Local data worker is busy; retry later.
   warning-0: 'No VPN provider enabled: VPN classification is UNKNOWN.'
   warning-1: Permission exemptions enabled but LuckPerms is unavailable; checks remain active.
   warning-2: IP-API free uses HTTP and is restricted to non-commercial use; check provider terms.
-  warning-3: IPQualityScore budgets count local requests and reset on restart; they are not the account monthly balance. Use
-    your own key and check current provider terms.
+  warning-3: IPQualityScore budgets count local requests and reset on restart; they are not the account monthly balance. Use your own key and check current provider terms.
   warning-4: IPQualityScore strictness 2+ increases false-positive risk; validate in OBSERVE before enforcement.
-  warning-5: 'Forwarded UUID trust enabled: restrict backend access and verify proxy/Floodgate forwarding; a public IP is
-    insufficient proof.'
-  warning-6: Overload limits skip detection on refused admissions; only overload.deny-connections may temporarily deny (OBSERVE
-    suppresses denial). Provider failure policies do not change this choice.
+  warning-5: 'Forwarded UUID trust enabled: restrict backend access and verify proxy/Floodgate forwarding; a public IP is insufficient proof.'
+  warning-6: Overload limits skip detection on refused admissions; only overload.deny-connections may temporarily deny (OBSERVE suppresses denial). Provider failure policies do not change
+    this choice.
   warning-7: Native Floodgate identity selected but the canonical API is unavailable; no native exemption is granted.
-  warning-8: 'Native Paper modern forwarding selected: only qualified native pre-login profile paths supply gateway authority;
-    protect the proxy secret and backend access. This is not independent account authentication.'
+  warning-8: 'Native Paper modern forwarding selected: only qualified native pre-login profile paths supply gateway authority; protect the proxy secret and backend access. This is not
+    independent account authentication.'
 webhook:
   title-deny: 'Connection Guard: connection denied'
   title-error: 'Connection Guard: processing error'
@@ -146,3 +138,31 @@ webhook:
   footer: 'Sources shown: {0}/{1}. Address {2}; names/UUIDs/provider text omitted. Best effort; no delivery retry.'
   not-supplied: not supplied
   source-label: '{0} source: {1}'
+cloud:
+  link: 'Link this server: {0}'
+  link-expiry: 'Link this server: {0} (valid 24 hours)'
+  off-help: Connection Guard Cloud is off. Turn it on with /cg cloud enable.
+  already-linked: This server is already linked. Manage it at https://app.connectionguard.net.
+  registering-help: Registering with the dashboard; the link appears within a minute. Run /cg cloud link again.
+  not-ready: Connection Guard is still starting; try again in a moment.
+  change-error: Could not change the cloud setting; check file permissions in the plugin folder.
+  local-error: Cloud local state is invalid; check the plugin folder (values redacted).
+  reset-none: No dashboard settings are active; config.yml applies.
+  reset-file-error: Could not change the settings file; check file permissions.
+  reset-rejected: Reload refused; dashboard settings kept. Try again in a moment (values redacted).
+  reset-done: Dashboard settings removed; config.yml applies again. The dashboard shows this after the next sync.
+  settings-local: All settings come from config.yml.
+  settings-header: 'Dashboard settings v{0} override these config.yml values:'
+  settings-reset-help: Use /cg cloud reset-settings to go back to config.yml only.
+  disabled: Connection Guard Cloud is off and stays off after restarts. Nothing is sent.
+  enabled: Connection Guard Cloud is on. The first sync happens within a minute.
+  status-off: 'Cloud: off{0}. Nothing is sent.'
+  status-on: 'Cloud: on, {0}, endpoint {1}{2}{3}.'
+  registering: registering
+  linked: linked
+  unlinked: not linked
+  no-sync: ', no sync yet'
+  last-sync: ', last sync {0}s ago'
+  last-error: ', last problem: {0}'
+  anonymous: ' (only anonymous totals are sent until linked)'
+  stays-off: 'Cloud stays off: {0}.'

@@ -1,0 +1,34 @@
+{
+  "next_sync_in": 60,
+  "live": false,
+  "claimed": true,
+  "network_name": "Example Network",
+  "link_code": null,
+  "link_url": null,
+  "accept_events": true,
+  "commands": [
+    {
+      "id": "cmd_abcdefghijkl",
+      "type": "access_rule.add",
+      "effect": "ALLOW",
+      "scope": "VPN",
+      "target": "203.0.113.24",
+      "note": "dashboard"
+    }
+  ],
+  "config": {
+    "version": 2,
+    "reset": false,
+    "values": {
+      "operation.mode": "ENFORCE",
+      "behavior.geo.list": [
+        "CN",
+        "RU"
+      ],
+      "provider.vpn.iphub.api-key": "testkey123"
+    },
+    "keep_secrets": [
+      "provider.vpn.proxycheck.api-key"
+    ]
+  }
+}

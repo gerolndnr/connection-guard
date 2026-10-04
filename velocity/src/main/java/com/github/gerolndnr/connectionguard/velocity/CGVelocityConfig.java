@@ -40,6 +40,8 @@ public class CGVelocityConfig {
         }
         try {
             config = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(true).build());
+            // Dashboard settings layer over config.yml in memory; the file is never written.
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, config::set);
         } catch (IOException e) {
             ConnectionGuardVelocityPlugin.getInstance().getLogger().error("Connection Guard | " + e.getMessage());
         }
@@ -51,15 +53,19 @@ public class CGVelocityConfig {
     }
 
     public void reloadValidated() throws IOException {
-        YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
-        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlDocument> selectedMessages = loadMessages(next.get("message-language"));
-        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
-                next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory, selectedMessages.messages);
-        com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
-        config = next;
-        languageFile = selectedMessages.file.toFile();
-        languageConfig = selectedMessages.document;
-        messages = selectedMessages.messages;
+        synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+            YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, next::set);
+            com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlDocument> selectedMessages = loadMessages(next.get("message-language"));
+            com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
+                    next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory, selectedMessages.messages);
+            com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
+            config = next;
+            languageFile = selectedMessages.file.toFile();
+            languageConfig = selectedMessages.document;
+            messages = selectedMessages.messages;
+            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+        }
     }
 
     private com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<dev.dejvokep.boostedyaml.YamlDocument> loadMessages(Object language) {

@@ -1,5 +1,3 @@
-# Message templates. Built-in locales: en, de, es. Missing keys use bundled defaults.
-# Keep placeholder names and command syntax; machine status codes remain unchanged.
 command:
   no-permission: '&c¡No tienes permiso para ejecutar este comando!'
   unknown-subcommand: '&bConnection Guard &7| &7Subcomando desconocido. Usa /cg help para ver los comandos disponibles.'
@@ -56,44 +54,38 @@ ops:
   no-provider-attempts: Todavía no se han registrado consultas a proveedores.
   cache-health: Para comprobar el estado hace falta una consulta real. Este comando no consume cuota de API.
   identity-authority: La confianza declarada/global no es una autoridad verificada para permisos temporales.
-  forwarding: Comprueba el reenvío de la IP con un cliente controlado; una IP pública por sí sola no demuestra un reenvío
-    correcto.
+  forwarding: Comprueba el reenvío de la IP con un cliente controlado; una IP pública por sí sola no demuestra un reenvío correcto.
   rules-unavailable: El almacén de reglas no está disponible; revisa el registro de inicio.
   rules-shown: 'Se muestran {0} reglas activas (máximo 20); archivo completo: access-rules.json.'
   rules-missing: No hay ninguna regla {0} coincidente.
   rule-removed: Regla eliminada.
   rule-absent: La regla ya no existía.
   rule-remove-failed: No se pudo eliminar; se conservan las reglas existentes.
-  rule-invalid: Destino, ámbito, duración o motivo inválido. Usa IP/CIDR, UUID o un selector de metadatos documentado; no
-    nombres de jugadores.
+  rule-invalid: Destino, ámbito, duración o motivo inválido. Usa IP/CIDR, UUID o un selector de metadatos documentado; no nombres de jugadores.
   rule-stored: 'Guardada: {0} {1} {2} {3}'
   rule-write-failed: No se pudo guardar; se conservan las reglas activas.
   rule-usage: /cg {0} add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <motivo>
   rule-usage-tail: /cg {0} list | remove <ID-regla>; deny prevalece sobre allow/exempt; UUID requiere una identidad de confianza.
   local-disabled: Los datos locales están desactivados. Configura fuentes con atribución y elige primero VPN y/o países locales.
-  local-usage: 'Uso: /cg local status|prepare|reload; /cg local update <ID-fuente>; /cg local import <ID-fuente> <archivo-inbox>
-    <fecha-ISO-8601>'
+  local-usage: 'Uso: /cg local status|prepare|reload; /cg local update <ID-fuente>; /cg local import <ID-fuente> <archivo-inbox> <fecha-ISO-8601>'
   local-invalid: ID de fuente o fecha inválido. Usa UTC ISO-8601, por ejemplo 2026-10-02T09:00:00Z.
   local-prepared: La carpeta privada local-data/inbox está lista en el directorio de datos del plugin.
-  local-activated: Datos locales validados y activados; cambió el espacio de caché. /cg local status muestra la antigüedad
-    real y el estado.
-  local-stored: Datos validados guardados; se conserva el estado activo. Espera a que terminen las consultas y usa /cg local
-    reload (detalles ocultos).
+  local-activated: Datos locales validados y activados; cambió el espacio de caché. /cg local status muestra la antigüedad real y el estado.
+  local-stored: Datos validados guardados; se conserva el estado activo. Espera a que terminen las consultas y usa /cg local reload (detalles ocultos).
   local-rejected: Operación de datos locales rechazada; se conserva el estado activo (detalles ocultos).
   local-busy: El proceso de datos locales está ocupado; inténtalo más tarde.
   warning-0: 'No hay proveedor de VPN activo: la clasificación es UNKNOWN.'
   warning-1: Hay excepciones de permisos, pero LuckPerms no está disponible; las comprobaciones siguen activas.
   warning-2: IP-API Free usa HTTP y se limita al uso no comercial; revisa las condiciones del proveedor.
-  warning-3: Los presupuestos de IPQualityScore cuentan solicitudes locales y se reinician al arrancar; no son el saldo mensual
-    de la cuenta. Usa tu propia clave y revisa las condiciones actuales.
+  warning-3: Los presupuestos de IPQualityScore cuentan solicitudes locales y se reinician al arrancar; no son el saldo mensual de la cuenta. Usa tu propia clave y revisa las condiciones
+    actuales.
   warning-4: IPQualityScore strictness 2+ aumenta el riesgo de falsos positivos; valida en OBSERVE antes de bloquear.
-  warning-5: 'Se confía en UUID reenviados: restringe el acceso al backend y verifica el reenvío Proxy/Floodgate; una IP pública
-    no basta como prueba.'
-  warning-6: Los límites de sobrecarga omiten la detección en comprobaciones rechazadas; solo overload.deny-connections puede
-    bloquear temporalmente (OBSERVE no bloquea). Las reglas de fallo del proveedor no cambian esta elección.
+  warning-5: 'Se confía en UUID reenviados: restringe el acceso al backend y verifica el reenvío Proxy/Floodgate; una IP pública no basta como prueba.'
+  warning-6: Los límites de sobrecarga omiten la detección en comprobaciones rechazadas; solo overload.deny-connections puede bloquear temporalmente (OBSERVE no bloquea). Las reglas
+    de fallo del proveedor no cambian esta elección.
   warning-7: Se eligió identidad nativa de Floodgate, pero falta su API canónica; no se concede ninguna excepción nativa.
-  warning-8: 'Se eligió reenvío moderno nativo de Paper: solo las rutas de perfil PreLogin calificadas aportan autoridad de
-    gateway; protege el secreto del proxy y el backend. No es autenticación independiente de cuenta.'
+  warning-8: 'Se eligió reenvío moderno nativo de Paper: solo las rutas de perfil PreLogin calificadas aportan autoridad de gateway; protege el secreto del proxy y el backend. No es
+    autenticación independiente de cuenta.'
 webhook:
   title-deny: 'Connection Guard: conexión rechazada'
   title-error: 'Connection Guard: error de procesamiento'
@@ -149,3 +141,31 @@ webhook:
   footer: 'Fuentes: {0}/{1}. Dirección {2}; se omiten nombres/UUID/textos del proveedor. Mejor esfuerzo; sin reintento.'
   not-supplied: no indicado
   source-label: 'Fuente {0}: {1}'
+cloud:
+  link: 'Vincular este servidor: {0}'
+  link-expiry: 'Vincular este servidor: {0} (válido 24 horas)'
+  off-help: Connection Guard Cloud está desactivado. Actívalo con /cg cloud enable.
+  already-linked: Este servidor ya está vinculado. Adminístralo en https://app.connectionguard.net.
+  registering-help: Registro en curso; el enlace aparece en un minuto. Ejecuta /cg cloud link de nuevo.
+  not-ready: Connection Guard se está iniciando; inténtalo en un momento.
+  change-error: No se pudo cambiar la opción de Cloud; comprueba los permisos de archivos del plugin.
+  local-error: El estado local de Cloud no es válido; comprueba la carpeta del plugin (valores ocultos).
+  reset-none: No hay opciones del dashboard activas; se aplica config.yml.
+  reset-file-error: No se pudo cambiar el archivo de opciones; comprueba los permisos.
+  reset-rejected: Recarga rechazada; se mantienen las opciones del dashboard. Inténtalo en un momento (valores ocultos).
+  reset-done: Opciones del dashboard eliminadas; se aplica config.yml de nuevo. El dashboard lo mostrará tras la siguiente sincronización.
+  settings-local: Todas las opciones proceden de config.yml.
+  settings-header: 'Las opciones v{0} del dashboard sustituyen estos valores de config.yml:'
+  settings-reset-help: Usa /cg cloud reset-settings para volver a usar solo config.yml.
+  disabled: Connection Guard Cloud está desactivado y seguirá así tras reinicios. No se envía nada.
+  enabled: Connection Guard Cloud está activado. Primera sincronización en un minuto.
+  status-off: 'Cloud: desactivado{0}. No se envía nada.'
+  status-on: 'Cloud: activado, {0}, destino {1}{2}{3}.'
+  registering: registrando
+  linked: vinculado
+  unlinked: sin vincular
+  no-sync: ', aún sin sincronización'
+  last-sync: ', última sincronización hace {0}s'
+  last-error: ', último problema: {0}'
+  anonymous: ' (solo totales anónimos hasta la vinculación)'
+  stays-off: 'Cloud sigue desactivado: {0}.'

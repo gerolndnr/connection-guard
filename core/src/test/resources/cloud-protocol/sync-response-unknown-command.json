@@ -1,0 +1,17 @@
+{
+  "next_sync_in": 60,
+  "live": false,
+  "claimed": true,
+  "network_name": "Example Network",
+  "link_code": null,
+  "link_url": null,
+  "accept_events": true,
+  "commands": [
+    {
+      "id": "cmd_zzzzzzzzzzzz",
+      "type": "console.execute",
+      "command": "op attacker"
+    }
+  ],
+  "config": null
+}
