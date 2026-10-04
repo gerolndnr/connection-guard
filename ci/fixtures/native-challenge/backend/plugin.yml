@@ -1,0 +1,9 @@
+name: CGChallengeBackendFixture
+version: 0.1.0-fixture
+main: fixture.CGChallengeBackendFixture
+api-version: "1.21"
+folia-supported: true
+depend: [ConnectionGuard]
+commands:
+  fixture-challenge-presence:
+    description: Owned backend-event presence probe

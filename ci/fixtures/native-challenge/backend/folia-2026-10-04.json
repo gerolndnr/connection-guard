@@ -1,0 +1,57 @@
+{
+  "status": "passed",
+  "platform": "folia",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "java": 21,
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "main_sha256": "23d3849c0a6bdcd4b0210db6ba18724be9382634416502fd1195eba6849fd5fa",
+  "addon_sha256": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4",
+  "native_sha256": "c1e58ce5d4b38c3e1b898cfc70e28a4e0d87240a91f03ffa8adfb183f327d6ce",
+  "backend_events_addon_sha256": "448ea6dca3daf15505e30f2b23d3bfe03b1b8bed493062f772151e7b313e96f7",
+  "backend_events_source_sha256": "7d3a38b6e289f5ef2b0f839b237a061f4a3c688c7938e7287d29b8f0300557f5",
+  "client_source_sha256": "88c4f4eef7ddf4ea91da78052d8c1aa7ab5702d7b8e004531e28cc48465bba9f",
+  "client_version": "1.21.11",
+  "actual_authenticated_accounts": false,
+  "backend_join_tested": true,
+  "modern_forwarding": "fresh owned synthetic gateway MAC; not account authentication",
+  "timeout_seconds": 6,
+  "maximum_sessions": 1,
+  "cases": [
+    "actual pending modern client never reaches backend or provider",
+    "actual wrong chat responses refuse before backend",
+    "actual pending expiry refuses before backend",
+    "solved actual challenge still retains normal VPN refusal before backend",
+    "actual solved challenge reaches genuine backend PlayerJoinEvent with native forwarded synthetic UUID",
+    "real backend admission consumes pending capacity while earlier player remains connected",
+    "both genuinely joined clients remain online past challenge deadline without delayed kick",
+    "same-name reconnect needs its new actual challenge and cannot reuse previous admitted receipt",
+    "policy reload rejects pending challenge without removing already admitted backend players",
+    "OBSERVE bypasses optional challenge enforcement and actually joins backend"
+  ],
+  "actual_provider_requests": 5,
+  "actual_backend_joins": 4,
+  "expired_admitted_receipt_never_kicked": true,
+  "maximum_sessions_consumed_on_join": true,
+  "all_own_processes_stopped": true,
+  "exit_codes": {
+    "clients": 0,
+    "proxy": 0,
+    "backend": 0
+  },
+  "logs": {
+    "client.log": "8924b009469689d5283bead3df54b21b57048904cf8475df1e0fa3e7812b57c0",
+    "proxy/smoke.log": "58049e09e058b8e6ce930a38230bfea2413124d750aae51edfb59b17ff5a934a",
+    "server/smoke.log": "d21b9bca2c77c7cfce7441a875e9bee99da6a6d188b2a15b6ac3243012d7ffb6"
+  },
+  "backend_runtime_error_check_passed": true,
+  "client_protocol": 774,
+  "operational_driver_sha256": "fd5e9153f0dc5659805fdbe528e331f453a3e19a8df747e78ef8f1089e618f48",
+  "operational_helper_hashes": {
+    "tools/backend_fixture.py": "1f238c5631710b95f6f671a067fd30cafe6a488af30d91aa8e03365475ac7fb1",
+    "tools/release_redis_velocity_test.py": "e9b5be82e328f4a3339ae74fcf05a445512f77eca98cfa972a8e1ba3311f3262",
+    "tools/release_native_challenge_test.py": "355b1dfe29777284d9e907bffeb9a8e3351b598ebb6e4e0fafe01b0ca38bca98",
+    "tools/release_velocity_test.py": "e66864e6aa98739b962657ec97d32ad8f522ef0e4e5579851bffb3d1faf6fbfb"
+  },
+  "private_run": "native-challenge-folia-2026-10-04-a"
+}

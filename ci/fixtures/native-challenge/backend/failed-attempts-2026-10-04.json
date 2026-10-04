@@ -1,0 +1,26 @@
+{
+  "failed_attempts": [
+    {
+      "run": "native-challenge-paper-2026-10-04-a",
+      "status": "failed",
+      "stage": "Fixture compile before runtime launch",
+      "actual_backend_challenge_joins": 0,
+      "all_own_processes_stopped": true,
+      "private_result_sha256": "66cd9b75d77aa17aedc1f7df9ee7755a6adcfb500546f4d79b1f7a03b1b6c14f",
+      "correction": "Console-only presence reporting moved from overloaded CommandSender to plugin logger",
+      "production_code_changed": false,
+      "assertions_removed": false
+    },
+    {
+      "run": "native-challenge-paper-2026-10-04-b",
+      "status": "failed",
+      "stage": "Actual backend started; proxy preparation stopped before process launch",
+      "actual_backend_challenge_joins": 0,
+      "all_own_processes_stopped": true,
+      "private_result_sha256": "26a78a312f995baaf056765f66e566c5e8affc2977dfa1826e9d35b8108b957e",
+      "correction": "Handle the pinned upstream uppercase NONE spelling with a strict single replacement",
+      "production_code_changed": false,
+      "assertions_removed": false
+    }
+  ]
+}
