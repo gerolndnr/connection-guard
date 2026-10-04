@@ -88,6 +88,13 @@ behavior:
     send-webhook:
       enabled: false
       url: ''
+      # EMBED uses actual completed decision facts; missing setting keeps legacy TEXT.
+      format: EMBED
+      # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
+      include-ip: false
+      events: [FLAG, DENY, ERROR]
+      # Optional UNKNOWN event also reports allowed incomplete checks.
+      cooldown-ms: 1000
 
     # If you want some players or ip addresses to be exempted from the vpn check,
     # you can add them here.
@@ -110,6 +117,13 @@ behavior:
     send-webhook:
       enabled: false
       url: ''
+      # EMBED uses actual completed decision facts; missing setting keeps legacy TEXT.
+      format: EMBED
+      # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
+      include-ip: false
+      events: [FLAG, DENY, ERROR]
+      # Optional UNKNOWN event also reports allowed incomplete checks.
+      cooldown-ms: 1000
 
     # Define how restrictive you want to be with geo-blocking.
     # Available options:

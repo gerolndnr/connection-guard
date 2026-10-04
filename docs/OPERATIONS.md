@@ -8,7 +8,7 @@ Development documentation for the next feature release. The published 0.4.11 hot
 
 New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.
 
-`failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or webhooks. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
+`failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or legacy TEXT webhooks. Explicit [rich decision webhooks](WEBHOOKS.md) can report that actual denial when DENY is selected. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |

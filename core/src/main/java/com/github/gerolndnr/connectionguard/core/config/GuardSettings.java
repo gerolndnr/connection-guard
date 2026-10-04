@@ -11,6 +11,7 @@ import java.util.function.Function;
 public final class GuardSettings {
     public enum FailurePolicy { OPEN, CLOSED, OBSERVE }
     public final LookupSettings lookup;
+    public final com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks;
     public final com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission;
     public final com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings admissionHooks;
     public final boolean observe;
@@ -21,7 +22,8 @@ public final class GuardSettings {
     public final FailurePolicy geoFailure;
     public final List<String> warnings;
     private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, boolean paperForwarding, com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings hooks, FailurePolicy vpn,
-                          FailurePolicy geo, List<String> warnings) {
+                          FailurePolicy geo, List<String> warnings, com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks) {
+        this.webhooks = webhooks;
         this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust; this.nativeFloodgateIdentity = floodgate; this.nativePaperForwardingIdentity = paperForwarding;
         this.admissionHooks = hooks;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
@@ -80,12 +82,7 @@ public final class GuardSettings {
         if (service.equalsIgnoreCase("IP-API") || bool(value, "provider.vpn.ip-api.enabled", false)) {
             warnings.add("IP-API free uses HTTP and is restricted to non-commercial use; check provider terms.");
         }
-        for (String scope : new String[]{"vpn", "geo"}) {
-            if (bool(value, "behavior." + scope + ".send-webhook.enabled", false)) {
-                String url = string(value, "behavior." + scope + ".send-webhook.url", "");
-                if (!url.startsWith("https://")) throw new IllegalArgumentException("Enabled webhook requires an HTTPS URL (value redacted).");
-            }
-        }
+        com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks = new com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings(value);
         if (bool(value, "provider.vpn.ipqualityscore.enabled", false)) {
             warnings.add("IPQualityScore budgets count local requests and reset on restart; they are not the account monthly balance. Use your own key and check current provider terms.");
             if (integer(value, "provider.vpn.ipqualityscore.strictness", 0) >= 2)
@@ -102,7 +99,7 @@ public final class GuardSettings {
         if (paperForwarding) warnings.add("Native Paper modern forwarding selected: only qualified native pre-login profile paths supply gateway authority; protect the proxy secret and backend access. This is not independent account authentication.");
         return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust, floodgate, paperForwarding,
                 new com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings(value),
-                policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings);
+                policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings, webhooks);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }
     private static FailurePolicy policy(Function<String, Object> value, String path) {

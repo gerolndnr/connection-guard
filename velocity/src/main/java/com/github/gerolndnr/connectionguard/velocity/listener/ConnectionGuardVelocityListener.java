@@ -157,13 +157,11 @@ public class ConnectionGuardVelocityListener {
                     }
 
                     // Check if WebHook should be executed
-                    if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+                    if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
                         String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-webhook")
                                 .replace("%NAME%", playerUsername)
                                 .replace("%IP%", ipAddress);
-                        String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.vpn.send-webhook.url");
-
-                        CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
+                        CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
                     }
 
                     // Check if player should be kicked
@@ -224,16 +222,14 @@ public class ConnectionGuardVelocityListener {
                         }
 
                         // Check if WebHook should be executed
-                        if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                        if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
                             String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-webhook")
                                     .replace("%NAME%", playerUsername)
                                     .replace("%IP%", ipAddress)
                                     .replace("%COUNTRY%", geoResult.getCountryName())
                                     .replace("%CITY%", geoResult.getCityName())
                                     .replace("%ISP%", geoResult.getIspName());
-                            String webhookUrl = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.send-webhook.url");
-
-                            CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
+                            CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.GEO, webhookMessage);
                         }
 
                         // Check if player should be kicked
