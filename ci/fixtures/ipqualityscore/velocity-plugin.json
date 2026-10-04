@@ -1,0 +1,1 @@
+{"id":"connection-guard-contract-fixture","name":"Connection Guard synthetic native IPQS fixture","version":"1","authors":["gerolndnr"],"dependencies":[{"id":"connection-guard","optional":false}],"main":"fixture.NativeIpqsFixture"}

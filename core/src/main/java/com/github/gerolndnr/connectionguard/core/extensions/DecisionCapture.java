@@ -106,8 +106,8 @@ public final class DecisionCapture implements AutoCloseable {
     private static DetectionMetadata metadata(DetectionDetails details) {
         Map<DetectionMetadata.Type, Boolean> values = new EnumMap<>(DetectionMetadata.Type.class);
         details.getClassifications().forEach((type, flag) -> values.put(DetectionMetadata.Type.valueOf(type.name()), flag));
-        return new DetectionMetadata(values, details.getAsn(), details.getIsp(), details.getOperator(),
-                details.getCountry(), details.getRisk(), details.getConfidence());
+        return DetectionMetadata.withExactRisk(values, details.getAsn(), details.getIsp(), details.getOperator(),
+                details.getCountry(), details.getExactRisk(), details.getConfidence());
     }
     @Override public synchronized void close() {
         if (finished) return;

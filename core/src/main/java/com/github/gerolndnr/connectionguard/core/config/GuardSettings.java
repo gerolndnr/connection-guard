@@ -40,7 +40,7 @@ public final class GuardSettings {
             if (key.equals("local")) continue;
             enabled++;
             if (enabled > 16) throw new IllegalArgumentException("At most 16 VPN providers may be enabled.");
-            if ((key.equals("iphub") || key.equals("vpnapi")) && string(value, "provider.vpn." + key + ".api-key", "").trim().isEmpty()) {
+            if ((key.equals("iphub") || key.equals("vpnapi") || key.equals("ipqualityscore")) && string(value, "provider.vpn." + key + ".api-key", "").trim().isEmpty()) {
                 throw new IllegalArgumentException("Enabled " + key + " requires an API key.");
             }
         }
@@ -85,6 +85,11 @@ public final class GuardSettings {
                 String url = string(value, "behavior." + scope + ".send-webhook.url", "");
                 if (!url.startsWith("https://")) throw new IllegalArgumentException("Enabled webhook requires an HTTPS URL (value redacted).");
             }
+        }
+        if (bool(value, "provider.vpn.ipqualityscore.enabled", false)) {
+            warnings.add("IPQualityScore budgets count local requests and reset on restart; they are not the account monthly balance. Use your own key and check current provider terms.");
+            if (integer(value, "provider.vpn.ipqualityscore.strictness", 0) >= 2)
+                warnings.add("IPQualityScore strictness 2+ increases false-positive risk; validate in OBSERVE before enforcement.");
         }
         boolean trust = bool(value, "identity.trust-forwarded-uuid", false);
         if (trust) warnings.add("Forwarded UUID trust enabled: restrict backend access and verify proxy/Floodgate forwarding; a public IP is insufficient proof.");

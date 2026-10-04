@@ -163,6 +163,19 @@ provider:
       enabled: false
       api-key: ''
 
+    # Optional native IPQualityScore (operator-owned key; disabled by default).
+    # Review current account terms/credits. Local limits reset on restart and are not a monthly account balance.
+    ipqualityscore:
+      enabled: false
+      api-key: ''
+      # 0..3; higher strictness may increase false positives. Start in OBSERVE.
+      strictness: 0
+      allow-public-access-points: true
+      # Skips some slower forensic checks; no invented browser/mobile context is sent.
+      fast: true
+      daily-budget: 30
+      minute-budget: 5
+
     # Positive-only local lists and optional MMDB metadata. Missing/stale data stays UNKNOWN.
     local:
       enabled: false

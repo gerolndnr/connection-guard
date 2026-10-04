@@ -81,6 +81,13 @@ NO_EVIDENCE may retain actual enrichment metadata; missing classifications, ASN,
 risk and confidence remain absent. Risk/confidence are source-reported 0..100 values, not
 calibrated abuse probabilities. Hosting/country/ASN alone does not imply generic VPN abuse.
 
+The additive `DetectionMetadata.withExactRisk(..., BigDecimal risk, Integer confidence)`
+factory and `getExactRisk()` preserve decimal source risk. Existing integer constructors
+and `getRisk()` remain available: the latter returns null for fractional values, never a
+rounded/truncated score. Legacy integer observations/caches retain their exact value.
+Risk must be 0..100, with bounded precision/exponent; confidence retains its integer contract.
+Use `getExactRisk()` for source risk comparisons and in observers. No missing value becomes zero.
+
 `DetectionMetadata` copies its type map, validates fields and exposes an unmodifiable view.
 IPv4-mapped IPv6 is normalized to IPv4; no DNS lookup is performed for provider input.
 An observation may include `validUntil` (absolute UTC epoch milliseconds) and an actual

@@ -65,6 +65,10 @@ public final class ProviderConfiguration {
                 case "ip-api": provider = new IpApiVpnProvider(); break;
                 case "iphub": provider = new IpHubVpnProvider(apiKey); break;
                 case "vpnapi": provider = new VpnApiVpnProvider(apiKey); break;
+                case "ipqualityscore":
+                    provider = new IpQualityScoreVpnProvider(apiKey, GuardSettings.integer(value, base + "strictness", 0),
+                            GuardSettings.bool(value, base + "allow-public-access-points", true), GuardSettings.bool(value, base + "fast", true));
+                    break;
                 default:
                     String method = GuardSettings.string(value, base + "request-type", "GET");
                     if (!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("POST")) throw new IllegalArgumentException("Custom request-type must be GET or POST.");
@@ -101,8 +105,8 @@ public final class ProviderConfiguration {
             }
             keys.add(key); providers.add(provider);
             String id = provider.getClass().getSimpleName() + "#" + (providers.size() - 1);
-            int day = GuardSettings.integer(value, base + "daily-budget", key.equals("proxycheck") ? apiKey.isEmpty() ? 100 : 1000 : 0);
-            int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : 0);
+            int day = GuardSettings.integer(value, base + "daily-budget", key.equals("proxycheck") ? apiKey.isEmpty() ? 100 : 1000 : key.equals("ipqualityscore") ? 30 : 0);
+            int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5 : 0);
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
             dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         }

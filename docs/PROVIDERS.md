@@ -10,6 +10,7 @@ Reviewed 2 October 2026. Check the linked official information before deployment
 | IP-API | VPN/proxy and geo; default geo provider | [JSON documentation](https://ip-api.com/docs/api:json) |
 | IPHub | VPN/proxy; API key configured in the plugin | [API documentation](https://iphub.info/api) |
 | VPNAPI | VPN/proxy; API key configured in the plugin | [Official site](https://vpnapi.io/) |
+| IPQualityScore | Optional native adapter in unreleased 0.5.0-SNAPSHOT; [configuration and exact risk](IPQUALITYSCORE.md) | [API](https://www.ipqualityscore.com/documentation/proxy-detection-api/overview) and [terms](https://www.ipqualityscore.com/terms-of-service) |
 | Custom provider | Configurable GET/POST API and response fields | Your provider's official documentation |
 
 ProxyCheck currently advertises **1,000 daily queries** for its registered free plan. This is a query allowance, not a count of unique Minecraft players. Check your account's actual allowance.
