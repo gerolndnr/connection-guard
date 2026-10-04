@@ -182,7 +182,7 @@ class ArtifactRegressionTest(unittest.TestCase):
             version = json.loads(jar.read("velocity-plugin.json"))["version"]
         verify(artifact, version)
         with tempfile.TemporaryDirectory() as directory:
-            for dependency in ("MetricsBase", "json/JsonObjectBuilder"):
+            for dependency in ("MetricsBase", "json/JsonObjectBuilder", "velocity/Metrics", "velocity/Metrics$Factory"):
                 name = PACKAGE.replace(".", "/") + "/libs/org/bstats/" + dependency + ".class"
                 for duplicate in (False, True):
                     broken = Path(directory) / "broken.jar"

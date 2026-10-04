@@ -23,6 +23,8 @@ After installation:
 
 [Optional Cloud dashboard](CLOUD.md), [managed access rules](ACCESS_RULES.md), [source-specific rules](RICH_RULES.md), [local lists and MMDB](LOCAL_DATA.md), [provider operations](OPERATIONS.md), [IPQualityScore](IPQUALITYSCORE.md), [German and Spanish messages](LANGUAGES.md) and [rich webhooks](WEBHOOKS.md) are part of this release. Optional admission/provider/observer integrations and separate addons retain their documented selection and licensing requirements.
 
+[bStats platform statistics and opt-out](BSTATS.md) explains the separate reporting settings and the Velocity initialization correction after 0.5.0.
+
 ## Validation scope
 
 [Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.

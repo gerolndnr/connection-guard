@@ -73,7 +73,7 @@ def setup(directory, platform, artifact, runtime, accept_eula):
         config = config.replace("force-key-authentication = true", "force-key-authentication = false")
         config = config.replace('player-info-forwarding-mode = "modern"', 'player-info-forwarding-mode = "none"')
         (directory / "velocity.toml").write_text(config)
-        (plugins / "bStats/config.txt").write_text("enabled=false\n")
+        (plugins / "bStats/config.txt").write_text("enabled=false\nserver-uuid=00000000-0000-4000-8000-000000000001\n")
     else:
         with socket.socket() as reserve:
             reserve.bind(("127.0.0.1", 0))

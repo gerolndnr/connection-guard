@@ -92,7 +92,8 @@ def verify(artifact, version):
                 require(names.count(entry) == 1, f"Missing or duplicate Cloud JSON runtime dependency: {dependency}")
             require(not any(name.startswith("com/google/gson/") and name.endswith(".class") for name in names),
                     "Cloud JSON runtime dependency was not relocated.")
-        for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class"):
+        for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class",
+                           "org/bstats/velocity/Metrics.class", "org/bstats/velocity/Metrics$Factory.class"):
             require(names.count(library_prefix + dependency) == 1,
                     f"Missing or duplicate bStats runtime dependency: {dependency}")
         require(not any(name.startswith("org/bstats/") and name.endswith(".class") for name in names),
