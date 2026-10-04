@@ -21,11 +21,12 @@ import java.util.concurrent.CompletableFuture;
 public class ConnectionGuardVelocityCommand implements SimpleCommand {
     @Override
     public void execute(Invocation invocation) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         CommandSource commandSender = invocation.source();
         String[] args = invocation.arguments();
 
         Component noPermissionMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.no-permission")
+                messages.getString("command.no-permission")
         );
 
         if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(Component.text(text)))) return;
@@ -91,9 +92,10 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
     }
 
     private void sendUnknownSubcommandMessage(CommandSource commandSender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         commandSender.sendMessage(
                 LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.unknown-subcommand")
+                        messages.getString("command.unknown-subcommand")
                 )
         );
 
@@ -101,6 +103,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
     }
 
     private boolean sendInformationMessage(CommandSource commandSender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         CompletableFuture.runAsync(() -> {
             String ipAddress;
             String queriedInput;
@@ -121,7 +124,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
                     } catch (UnknownHostException ex) {
                         commandSender.sendMessage(
                                 LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                        ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.invalid-argument")
+                                        messages.getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -133,15 +136,15 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             com.github.gerolndnr.connectionguard.core.commands.LookupInformation info = com.github.gerolndnr.connectionguard.core.commands.LookupInformation.asOf(
                     vpnResult, ConnectionGuard.getGeoLookup(ipAddress).join(), System.currentTimeMillis());
 
-            String isVpn = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.info.not-vpn");
+            String isVpn = messages.getString("messages.info.not-vpn");
 
             if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE) {
-                isVpn = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.info.is-vpn");
+                isVpn = messages.getString("messages.info.is-vpn");
             }
 
             if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN) isVpn = "UNKNOWN";
 
-            for (String line : ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getStringList("messages.info.text")) {
+            for (String line : messages.getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         LegacyComponentSerializer.legacyAmpersand().deserialize(
                                 line.replace("%INPUT%", queriedInput)
@@ -159,6 +162,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
     }
 
     private boolean clearCache(CommandSource commandSender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         // Async, because InetAddress.getByName could affect the main thread (used to determine, if it is a valid hostname/ip address)
         CompletableFuture.runAsync(() -> {
             String ipAddress;
@@ -180,7 +184,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
                     } catch (UnknownHostException ex) {
                         commandSender.sendMessage(
                                 LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                        ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.invalid-argument")
+                                        messages.getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -192,7 +196,7 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             ConnectionGuard.getCacheProvider().removeVpnResult(ipAddress);
             commandSender.sendMessage(
                     LegacyComponentSerializer.legacyAmpersand().deserialize(
-                            ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.clear.clear-specific")
+                            messages.getString("command.clear.clear-specific")
                                     .replace("%ENTRY%", queriedInput)
                     )
             );
@@ -202,16 +206,18 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
     }
 
     private boolean clearCache(CommandSource commandSender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         ConnectionGuard.getCacheProvider().removeAllVpnResults();
         ConnectionGuard.getCacheProvider().removeAllGeoResults();
         commandSender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(
-                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.clear.clear-all")
+                messages.getString("command.clear.clear-all")
         ));
         return true;
     }
 
     private boolean sendHelpMessage(CommandSource commandSender) {
-        for (String line : ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getStringList("messages.help")) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
+        for (String line : messages.getStringList("messages.help")) {
             commandSender.sendMessage(
                     LegacyComponentSerializer.legacyAmpersand().deserialize(line)
             );
@@ -224,13 +230,13 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
         try {
             ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().reloadValidated();
         } catch (IOException | IllegalArgumentException | IllegalStateException rejected) {
-            commandSender.sendMessage(Component.text("Reload rejected; active settings preserved. Check config.yml and /cg doctor."));
+            commandSender.sendMessage(Component.text(ConnectionGuard.getMessages().getString("command.reload-rejected")));
             return true;
         }
 
         commandSender.sendMessage(
                 LegacyComponentSerializer.legacyAmpersand().deserialize(
-                        ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("command.config-reload")
+                        ConnectionGuard.getMessages().getString("command.config-reload")
                                 .replace("&", "§")
                 )
         );

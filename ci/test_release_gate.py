@@ -89,6 +89,24 @@ class RuntimeEvidenceTest(unittest.TestCase):
 
 
 class ArtifactRegressionTest(unittest.TestCase):
+    def test_missing_bundled_locale_fails_before_runtime(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        catalog = PACKAGE.replace(".", "/") + "/core/messages/MessageCatalog.class"
+        self.assertIn(catalog, resources)
+        with tempfile.TemporaryDirectory() as directory:
+            for omitted in ("translation/de.yml", "translation/es.yml", "translation/catalog/en.properties",
+                            "translation/catalog/de.properties", "translation/catalog/es.properties"):
+                broken = Path(directory) / "missing-locale.jar"
+                with zipfile.ZipFile(broken, "w") as output:
+                    for name, data in resources.items():
+                        if name != omitted:
+                            output.writestr(name, data)
+                with self.assertRaisesRegex(ValueError, "bundled message resource"):
+                    verify(broken, version)
+
     def test_optional_native_sdk_copies_are_rejected(self):
         artifacts = list((ROOT / "build/libs").glob("*-all.jar"))
         self.assertEqual(1, len(artifacts))

@@ -1,0 +1,73 @@
+{
+  "velocity": {
+    "status": "passed",
+    "artifact_sha256": "09b5cd7fa69ffefd3fba8212a3eed47dc51368549977103f48121ad4cd9b7864",
+    "addon_sha256": "c1f0fedcae5604678c7d703cba7de735b022540c0cb0ef51aaab6c812eb44a07",
+    "driver_sha256": "a0d83ad051df29f5a1fff2032570b9a5d17bb546abe74221722c8f6997d3b8ac",
+    "proxy_driver_sha256": "f12a924bae9429ece0c2bd571b9a163c3544a2ef6923a10deb7b417e50722fb9",
+    "fixture_source_sha256": "f89094bed073149d75b4dc28b3562b7c6d3e1227f82d74809ca9ff8583f3a07c",
+    "proxy": "Velocity 3.4.0 build 566",
+    "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+    "java": 21,
+    "minecraft_protocol": 760,
+    "real_discord_tested": false,
+    "live_upstream_tested": false,
+    "account_authentication_tested": false,
+    "backend_join_tested": false,
+    "new_cost_eur": 0,
+    "cases": [
+      "actual-english-startup-help-and-positive-denial",
+      "actual-german-copy-selection-help-operations-and-denial",
+      "actual-spanish-selection-unicode-help-and-denial",
+      "existing-partial-operator-file-preserved-with-spanish-fallback",
+      "unsafe-selection-rejected-keeps-active-language-and-denial",
+      "invalid-template-type-rejects-whole-mode-and-language-draft",
+      "oversized-file-rejected-keeps-active-security-and-custom-template",
+      "unknown-custom-locale-preserved-with-explicit-english-fallback",
+      "symlink-selected-file-rejected-without-reading-or-overwriting-target",
+      "valid-language-with-invalid-policy-does-not-activate-either-draft",
+      "valid-german-reselection-recovers-after-rejected-drafts"
+    ],
+    "guard_idle_at_end": true,
+    "proxy_stopped": true,
+    "proxy_exit_code": 0,
+    "reserved_backend_socket_closed": true,
+    "console_sha256": "a3e6ff873a0b606b2a3a85949241e0a4d2219c059994046a4ca9dbf811805be5"
+  },
+  "native_parsers": {
+    "status": "passed",
+    "artifact_sha256": "09b5cd7fa69ffefd3fba8212a3eed47dc51368549977103f48121ad4cd9b7864",
+    "source_sha256": "125aaa404b081bda7c8e3fb1612f35abb33bafec9c7aca9e85bd7a703945a948",
+    "java": 21,
+    "cases": 12,
+    "native_parsers": [
+      "Paper API 1.21.11-R0.1-SNAPSHOT Bukkit YAML",
+      "BungeeCord 2100 YAML"
+    ],
+    "dependencies": {
+      ".runtime/gradle/caches/modules-2/files-2.1/org.yaml/snakeyaml/2.2/3af797a25458550a16bf89acc8e4ab2b7f2bfce0/snakeyaml-2.2.jar": "1467931448a0817696ae2805b7b8b20bfb082652bf9c4efaed528930dc49389b",
+      ".runtime/gradle/caches/modules-2/files-2.1/com.google.guava/guava/32.1.2-jre/5e64ec7e056456bef3a4bc4c6fdaef71e8ab6318/guava-32.1.2-jre.jar": "bc65dea7cfd9e4dacf8419d8af0e741655857d27885bb35d943d7187fc3a8fce",
+      ".runtime/backend-fixture/compile-libraries/paper-api-1.21.11-R0.1-SNAPSHOT.jar": "c577b181c11a8674310e56c92a91e31c010b7f04c9bd10b91c3be18374401070",
+      ".runtime/native-integration-fixture/BungeeCord-2100.jar": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+      ".runtime/backend-fixture/compile-libraries/adventure-api-4.26.1.jar": "551e536b9ea868f30e72c7900a309b35124ee7d4889fa3b3aed0910299751a26",
+      ".runtime/backend-fixture/compile-libraries/adventure-key-4.26.1.jar": "eec172d63db77b40eb7abeeb25f65eedea89bd30264d057b68b12fecb731be5e",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-logger-slf4j-4.26.1.jar": "009a99518d9b4f0ec54665f209724813bf98a2c1ff020aeabcf34a3699fd1dfa",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-minimessage-4.26.1.jar": "1d43451e9af473252dc8af3e8084238d5ce68ad43af0e3b7383eb3d4b63fff9f",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-ansi-4.26.1.jar": "79507c36685932166689423be279ea796db42b95d96da2a794cf9624280cb145",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-commons-4.26.1.jar": "66527fef559da4d91cda692491034f903d5b01e835de1b091edfbb6b51cee5a2",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-gson-4.26.1.jar": "e4a908dedc4acb4305083d916d362ddc2b21ecf452d577a0be665280bddae9fc",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-json-4.26.1.jar": "55c64b4333d5d2968a0125b8f29dae7cfba15392d5f99f78dbaea711cb0d4dc2",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-legacy-4.26.1.jar": "721107bc213572454df1bfbe438dba630e30457550c750b7a154b35dc3264aa8",
+      ".runtime/backend-fixture/compile-libraries/adventure-text-serializer-plain-4.26.1.jar": "39b9bfe5790f645605ff5464382c0e062476f48f9bfb2548801f275f12faf405",
+      ".runtime/backend-fixture/compile-libraries/error_prone_annotations-2.41.0.jar": "a56e782b5b50811ac204073a355a21d915a2107fce13ec711331ad036f660fcc",
+      ".runtime/backend-fixture/compile-libraries/examination-api-1.3.0.jar": "c9237ffecb05428f6eff86216246ac70ce0b47b04c08ea7ca35020fde57f8492",
+      ".runtime/backend-fixture/compile-libraries/examination-string-1.3.0.jar": "7d01fc25a4bb3af0e1662685455f4541fbf4626216ea5846e455c1491e156b8c",
+      ".runtime/backend-fixture/compile-libraries/j2objc-annotations-3.1.jar": "84d3a150518485f8140ea99b8a985656749629f6433c92b80c75b36aba3b099b"
+    },
+    "console_sha256": "7a2e69153e03f97fdddc1050f380d1ca0923bc2b67059b83a26ebbe2b3a04b2a",
+    "exit_code": 0,
+    "actual_servers_started": false,
+    "network_requests": 0,
+    "new_cost_eur": 0
+  }
+}

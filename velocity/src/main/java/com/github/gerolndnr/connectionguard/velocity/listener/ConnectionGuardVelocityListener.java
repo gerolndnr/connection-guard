@@ -43,7 +43,7 @@ public class ConnectionGuardVelocityListener {
                     DecisionObservation.Phase.PRE_AUTHENTICATION, ip, null, DecisionObservation.IdentityTrust.UNTRUSTED)) {
                 decision.manual(vpn, geo);
                 if (!decision.observe()) {
-                    event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text("Connection denied by server access policy.")));
+                    event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text(decision.messages().getString("messages.access-denied"))));
                     decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                 }
             }
@@ -81,7 +81,7 @@ public class ConnectionGuardVelocityListener {
             decision.manual(vpnAccess, geoAccess);
             if (!decision.observe() && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
                     || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
-                deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE); decision.close(); return CompletableFuture.completedFuture(null);
+                deny.accept(Component.text(decision.messages().getString("messages.access-denied"))); decision.denied(DecisionObservation.Reason.ACCESS_RULE); decision.close(); return CompletableFuture.completedFuture(null);
             }
             LoginChecks.Permission vpnPermission = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.vpn.exemptions"), ipAddress, uuid, trusted)
                     ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
@@ -93,7 +93,7 @@ public class ConnectionGuardVelocityListener {
                     vpnPermission, geoPermission, new com.github.gerolndnr.connectionguard.api.v1.AdmissionRequest(ipAddress, identity.isVerified() ? uuid : null, identity.observationTrust(), DecisionObservation.Platform.VELOCITY, decision.startedNanos() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(decision.settings().lookup.deadlineMillis))).thenAccept(checks -> {
                 if (identity.requiresCurrentProof() && !identity.isCurrent()) {
                     decision.identityUnavailable();
-                    if (!decision.observe()) { deny.accept(Component.text("Connection identity verification is no longer available. Please retry.")); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                    if (!decision.observe()) { deny.accept(Component.text(decision.messages().getString("messages.identity-unavailable"))); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
                     return;
                 }
 
@@ -101,7 +101,7 @@ public class ConnectionGuardVelocityListener {
                 decision.admission(external.observations);
                 if (external.isDenied()) decision.flag(DecisionObservation.Flag.EXTERNAL_POLICY);
                 if (external.shouldRefuse(decision.observe())) {
-                    String message = external.isDenied() ? "Connection denied by configured server access check." : "Server access verification is temporarily unavailable. Please retry.";
+                    String message = external.isDenied() ? decision.messages().getString("messages.external-denied") : decision.messages().getString("messages.external-unavailable");
                     deny.accept(Component.text(message));
                     decision.denied(external.refusalReason()); return;
                 }
@@ -109,7 +109,7 @@ public class ConnectionGuardVelocityListener {
             if (!checks.isAdmitted()) {
                     decision.overload();
                     if (checks.shouldDenyAdmission()) {
-                        deny.accept(Component.text("Connection checks are temporarily busy. Please retry shortly."));
+                        deny.accept(Component.text(decision.messages().getString("messages.busy")));
                         decision.denied(DecisionObservation.Reason.OVERLOAD);
                     }
                     return;
@@ -125,13 +125,13 @@ public class ConnectionGuardVelocityListener {
                 boolean vpnBypassed = checks.vpnExempt() || vpnPolicy.isBypassed();
                 boolean geoBypassed = checks.geoExempt() || geoPolicy.isBypassed();
                 if (!decision.observe() && ((!checks.vpnExempt() && vpnPolicy.isDenied()) || (!checks.geoExempt() && geoPolicy.isDenied()))) {
-                    deny.accept(Component.text("Connection denied by server access policy.")); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                    deny.accept(Component.text(decision.messages().getString("messages.access-denied"))); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                     return;
                 }
                 if (!decision.observe() && (
                         (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
                         || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                    deny.accept(Component.text("Connection verification is temporarily unavailable. Please retry shortly.")); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
+                    deny.accept(Component.text(decision.messages().getString("messages.lookup-unavailable"))); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
                     return;
                 }
                 if (vpnResult.isVpn() && !vpnBypassed) {
@@ -139,7 +139,7 @@ public class ConnectionGuardVelocityListener {
                     // Check if staff should be notified
                     if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                         Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-notify")
+                                decision.messages().getString("messages.vpn-notify")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", playerUsername)
                         );
@@ -158,7 +158,7 @@ public class ConnectionGuardVelocityListener {
 
                     // Check if WebHook should be executed
                     if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                        String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-webhook")
+                        String webhookMessage = decision.messages().getString("messages.vpn-webhook")
                                 .replace("%NAME%", playerUsername)
                                 .replace("%IP%", ipAddress);
                         CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
@@ -167,7 +167,7 @@ public class ConnectionGuardVelocityListener {
                     // Check if player should be kicked
                     if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
                         Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.vpn-block")
+                                decision.messages().getString("messages.vpn-block")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", playerUsername)
                         );
@@ -200,7 +200,7 @@ public class ConnectionGuardVelocityListener {
                         // Check if staff should be notified
                         if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.notify-staff")) {
                             Component notifyMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                    ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-notify")
+                                    decision.messages().getString("messages.geo-notify")
                                             .replace("%IP%", geoResult.getIpAddress())
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())
@@ -223,7 +223,7 @@ public class ConnectionGuardVelocityListener {
 
                         // Check if WebHook should be executed
                         if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                            String webhookMessage = ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-webhook")
+                            String webhookMessage = decision.messages().getString("messages.geo-webhook")
                                     .replace("%NAME%", playerUsername)
                                     .replace("%IP%", ipAddress)
                                     .replace("%COUNTRY%", geoResult.getCountryName())
@@ -235,7 +235,7 @@ public class ConnectionGuardVelocityListener {
                         // Check if player should be kicked
                         if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
                             Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                    ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getLanguageConfig().getString("messages.geo-block")
+                                    decision.messages().getString("messages.geo-block")
                                             .replace("%IP%", geoResult.getIpAddress())
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())

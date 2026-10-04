@@ -39,9 +39,13 @@ public final class CGWebHookHelper {
         catch (RuntimeException | LinkageError failure) { recordInvalid(); return CompletableFuture.completedFuture(null); }
     }
     public static void sendDecision(DecisionObservation event, WebhookSettings settings, int threshold) {
+        sendDecision(event, settings, threshold, com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en"));
+    }
+    public static void sendDecision(DecisionObservation event, WebhookSettings settings, int threshold,
+                                    com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
         for (Notification notification : plan(event, settings)) {
             try {
-                send(notification.destination.endpoint(), CGWebHookRequest.embedded(event, notification.scopes, notification.includeIp, threshold),
+                send(notification.destination.endpoint(), CGWebHookRequest.embedded(event, notification.scopes, notification.includeIp, threshold, messages),
                         notification.cooldown, () -> settings == selectedSettings);
             } catch (RuntimeException | LinkageError failure) { recordInvalid(); }
         }

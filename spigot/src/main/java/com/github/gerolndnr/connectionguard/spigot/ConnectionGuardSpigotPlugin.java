@@ -46,12 +46,9 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
 
-        String selectedLanguageFileName = getConfig().getString("message-language") + ".yml";
-        if (!new File(getDataFolder(), "translation").exists()) {
-            saveResource("translation" + File.separator + "en.yml", false);
-        }
-        languageFile = new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName);
-        languageConfig = YamlConfiguration.loadConfiguration(languageFile);
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(activeConfig.get("message-language"));
+        languageFile = selectedMessages.file.toFile();
+        languageConfig = selectedMessages.document;
 
         ConnectionGuard.setLogger(getLogger());
 
@@ -105,7 +102,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath());
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
@@ -140,10 +137,23 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         YamlConfiguration next = new YamlConfiguration();
         try { next.load(new File(getDataFolder(), "config.yml")); }
         catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
-        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath());
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(next.get("message-language"));
+        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
         ConnectionGuard.applyProviders(draft);
         activeConfig = next;
-        languageConfig = YamlConfiguration.loadConfiguration(languageFile);
+        languageFile = selectedMessages.file.toFile();
+        languageConfig = selectedMessages.document;
+    }
+
+    private com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<org.bukkit.configuration.file.YamlConfiguration> loadMessages(Object language) {
+        return com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.load(getDataFolder().toPath(), language, new com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Parser<org.bukkit.configuration.file.YamlConfiguration>() {
+            public org.bukkit.configuration.file.YamlConfiguration parse(java.nio.file.Path file) throws Exception {
+                org.bukkit.configuration.file.YamlConfiguration document = new org.bukkit.configuration.file.YamlConfiguration();
+                try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(file, java.nio.charset.StandardCharsets.UTF_8)) { document.load(reader); }
+                return document;
+            }
+            public Object value(org.bukkit.configuration.file.YamlConfiguration document, String key) { return document.get(key, null); }
+        });
     }
 
     public static ConnectionGuardSpigotPlugin getInstance() {

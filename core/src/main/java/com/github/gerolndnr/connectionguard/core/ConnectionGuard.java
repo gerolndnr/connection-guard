@@ -66,6 +66,11 @@ public class ConnectionGuard {
     private static String activeCacheSignature;
     private static volatile ProviderConfiguration activeDraft;
     public static ProviderConfiguration getActiveDraft() { return activeDraft; }
+    private static final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog INITIAL_MESSAGES = com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en");
+    public static com.github.gerolndnr.connectionguard.core.messages.MessageCatalog getMessages() {
+        ProviderConfiguration selected = activeDraft;
+        return selected == null ? INITIAL_MESSAGES : selected.messages;
+    }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");

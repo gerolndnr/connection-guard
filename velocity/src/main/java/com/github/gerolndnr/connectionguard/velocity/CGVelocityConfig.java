@@ -13,9 +13,11 @@ import java.nio.file.Paths;
 public class CGVelocityConfig {
     private File configFile;
     private File languageFile;
-    private YamlDocument config;
-    private YamlDocument languageConfig;
+    private volatile YamlDocument config;
+    private volatile YamlDocument languageConfig;
     private Path dataDirectory;
+    private com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
+    public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog getMessages() { return messages; }
 
     public CGVelocityConfig(Path dataDirectory) {
         this.dataDirectory = dataDirectory;
@@ -42,34 +44,34 @@ public class CGVelocityConfig {
             ConnectionGuardVelocityPlugin.getInstance().getLogger().error("Connection Guard | " + e.getMessage());
         }
 
-        String selectedLanguageFileName = config.getString("message-language") + ".yml";
-        languageFile = new File(dataDirectory.resolve("translation").toFile(), selectedLanguageFileName);
-        if (!languageFile.exists()) {
-            try {
-                InputStream in = ConnectionGuardVelocityPlugin.class.getResourceAsStream("/translation/en.yml");
-
-                Files.copy(in, languageFile.toPath());
-            } catch (IOException e) {
-                ConnectionGuardVelocityPlugin.getInstance().getLogger().error("Connection Guard | " + e.getMessage());
-                return;
-            }
-        }
-        try {
-            languageConfig = YamlDocument.create(languageFile, GeneralSettings.builder().setUseDefaults(true).build());
-        } catch (IOException e) {
-            ConnectionGuardVelocityPlugin.getInstance().getLogger().error("Connection Guard | " + e.getMessage());
-            return;
-        }
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlDocument> selectedMessages = loadMessages(config.get("message-language"));
+        languageFile = selectedMessages.file.toFile();
+        languageConfig = selectedMessages.document;
+        messages = selectedMessages.messages;
     }
 
     public void reloadValidated() throws IOException {
         YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlDocument> selectedMessages = loadMessages(next.get("message-language"));
         com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
-                next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory);
+                next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory, selectedMessages.messages);
         com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
         config = next;
-        languageConfig.reload();
+        languageFile = selectedMessages.file.toFile();
+        languageConfig = selectedMessages.document;
+        messages = selectedMessages.messages;
     }
+
+    private com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<dev.dejvokep.boostedyaml.YamlDocument> loadMessages(Object language) {
+        return com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.load(dataDirectory, language, new com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Parser<dev.dejvokep.boostedyaml.YamlDocument>() {
+            public dev.dejvokep.boostedyaml.YamlDocument parse(java.nio.file.Path file) throws Exception {
+                return dev.dejvokep.boostedyaml.YamlDocument.create(file.toFile(),
+                        dev.dejvokep.boostedyaml.settings.general.GeneralSettings.builder().setUseDefaults(false).build());
+            }
+            public Object value(dev.dejvokep.boostedyaml.YamlDocument document, String key) { return document.get(key); }
+        });
+    }
+
     public YamlDocument getLanguageConfig() {
         return languageConfig;
     }

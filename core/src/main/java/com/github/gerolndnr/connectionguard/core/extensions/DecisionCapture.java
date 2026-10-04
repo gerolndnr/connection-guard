@@ -19,6 +19,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final UUID uuid;
     private final IdentityTrust identityTrust;
     private final GuardSettings settings;
+    private final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
     private final long generation, started;
     private final boolean captureEnabled;
     private final int positiveThreshold;
@@ -33,7 +34,7 @@ public final class DecisionCapture implements AutoCloseable {
     private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
         this.started = startedNanos;
         this.platform = platform; this.phase = phase; this.ip = ip; this.uuid = uuid; this.identityTrust = trust;
-        settings = ConnectionGuard.getSettings(); generation = DecisionObservers.captureGeneration();
+        settings = ConnectionGuard.getSettings(); messages = ConnectionGuard.getMessages(); generation = DecisionObservers.captureGeneration();
         captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
         geoSource = "geo." + (ConnectionGuard.getGeoProvider() == null ? "none" : ConnectionGuard.getGeoProvider().getClass().getSimpleName());
@@ -48,6 +49,7 @@ public final class DecisionCapture implements AutoCloseable {
     public long startedNanos() { return started; }
     public boolean observe() { return settings.observe; }
     public GuardSettings settings() { return settings; }
+    public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages() { return messages; }
     public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
@@ -134,7 +136,7 @@ public final class DecisionCapture implements AutoCloseable {
             com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid();
             return;
         }
-        try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold); }
+        try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold,messages); }
         catch (RuntimeException | LinkageError invalid) { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid(); }
         // A notification failure must not prevent a separately selected observer from receiving facts.
         if (generation >= 0) DecisionObservers.publish(event,generation);

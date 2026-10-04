@@ -2,6 +2,8 @@
 
 ## 0.5.0-SNAPSHOT — unreleased development
 
+- Bundle German and Spanish player/operator/rich-webhook messages with actual locale selection and reload; preserve custom files and selected-language fallback, reject invalid drafts before activation. Keep stable machine codes, privacy and legacy placeholders unchanged.
+
 - Add optional rich security-decision webhooks with actual allow/deny reasons, rules, bounded source/cache/exact-risk facts and private defaults; preserve legacy TEXT selection.
 - Bound webhook delivery independently of logins, suppress mentions, combine identical rich recipients conservatively, respect rate limits and retire queued old settings on reload without ambiguous retries.
 

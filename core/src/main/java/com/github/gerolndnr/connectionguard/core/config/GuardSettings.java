@@ -29,6 +29,7 @@ public final class GuardSettings {
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));
         List<String> warnings = new ArrayList<>();
         LookupSettings defaults = LookupSettings.defaults();
         LookupSettings limits = new LookupSettings(integer(value, "lookup.deadline-ms", (int) defaults.deadlineMillis),
