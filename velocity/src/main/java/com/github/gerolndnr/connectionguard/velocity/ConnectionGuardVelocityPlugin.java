@@ -23,6 +23,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.slf4j.Logger;
+import org.bstats.velocity.Metrics;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -41,16 +42,19 @@ public class ConnectionGuardVelocityPlugin {
     private final ProxyServer proxyServer;
     private final Logger logger;
     private final Path dataDirectory;
+    private final Metrics.Factory metricsFactory;
+    private Metrics metrics;
     // Config has to be in an external class, because the YAML library is loaded at runtime.
     private CGVelocityConfig cgVelocityConfig;
     private static ConnectionGuardVelocityPlugin connectionGuardVelocityPlugin;
     private HashMap<String, VpnProvider> vpnProviderMap;
 
     @Inject
-    public ConnectionGuardVelocityPlugin(ProxyServer proxyServer, Logger logger, @DataDirectory Path dataDirectory) {
+    public ConnectionGuardVelocityPlugin(ProxyServer proxyServer, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
         this.proxyServer = proxyServer;
         this.logger = logger;
         this.dataDirectory = dataDirectory;
+        this.metricsFactory = metricsFactory;
         this.vpnProviderMap = new HashMap<>();
 
         connectionGuardVelocityPlugin = this;
@@ -69,19 +73,8 @@ public class ConnectionGuardVelocityPlugin {
                 .version("1.3.6")
                 .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
-        Library bstatsLibrary = Library.builder()
-                // Weird replaceAll is necessary, because the gradle shadow relocate method will
-                // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
-                // here; the literal is kept separate from the package relocation.
-                .groupId("org#bstats".replaceAll("#", "."))
-                .artifactId("bstats-velocity")
-                .version("3.0.2")
-                .relocate("org{}bstats", "com{}github{}gerolndnr{}connectionguard{}libs{}org{}bstats")
-                .build();
-
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(boostedYamlLibrary);
-        libraryManager.loadLibrary(bstatsLibrary);
 
         // 3. Create and load configs
         cgVelocityConfig = new CGVelocityConfig(dataDirectory);
@@ -147,10 +140,19 @@ public class ConnectionGuardVelocityPlugin {
                 .build();
         SimpleCommand simpleCommand = new ConnectionGuardVelocityCommand();
         proxyServer.getCommandManager().register(commandMeta, simpleCommand);
+        // Platform-standard bStats opt-out applies; no player identities or custom data are added.
+        try { metrics = metricsFactory.make(this, 22913); }
+        catch (RuntimeException | LinkageError unavailable) {
+            logger.warn("bStats initialization failed; connection checks remain active.");
+        }
     }
 
     @Subscribe
     public void onProxyShutdown(com.velocitypowered.api.event.proxy.ProxyShutdownEvent event) {
+        if (metrics != null) {
+            try { metrics.shutdown(); }
+            catch (RuntimeException | LinkageError unavailable) { logger.warn("bStats shutdown failed; continuing plugin shutdown."); }
+        }
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
         if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();

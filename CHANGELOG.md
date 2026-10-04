@@ -4,6 +4,7 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 
 ## Unreleased — 0.5.1-SNAPSHOT
 
+- Initialize Velocity bStats with the verified project ID 22913, bundle its injected factory and stop its Metrics instance on shutdown. Statistics errors keep connection checks active; global bStats opt-out remains available.
 - Link the plugin descriptors and documentation to the canonical Connection Guard website.
 - Replace the README cartoon logo and remove obsolete listing graphics with unverified protection/performance claims.
 

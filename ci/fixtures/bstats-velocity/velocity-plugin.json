@@ -1,0 +1,1 @@
+{"id":"velocity-metrics-fixture","name":"Velocity Metrics Fixture","version":"1","main":"fixture.VelocityMetricsFixture","dependencies":[{"id":"connection-guard","optional":false}]}

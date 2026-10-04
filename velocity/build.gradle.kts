@@ -23,6 +23,8 @@ dependencies {
     shadow("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
     shadow("dev.dejvokep:boosted-yaml:1.3.5")
     implementation("net.byteflux:libby-velocity:1.3.1")
+    // The factory is injected before plugin initialization, so it must already be in the JAR.
+    implementation("org.bstats:bstats-velocity:3.0.2")
     annotationProcessor("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
 }
 
