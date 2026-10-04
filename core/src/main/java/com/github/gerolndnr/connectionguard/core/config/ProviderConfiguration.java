@@ -15,6 +15,7 @@ public final class ProviderConfiguration {
     public final List<String> keys = new ArrayList<>();
     public final Map<String, Integer> dayBudgets = new HashMap<>(), minuteBudgets = new HashMap<>();
     public final GuardSettings settings;
+    public final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
     public final GeoProvider geo;
     public final int threshold, vpnTtl, geoTtl;
     public final String cacheSignature;
@@ -31,6 +32,13 @@ public final class ProviderConfiguration {
         this(value, providerKeys, null);
     }
     public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory) {
+        this(value, providerKeys, dataDirectory, null);
+    }
+    public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory,
+                                 com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
+        String language = com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));
+        this.messages = messages == null ? com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults(language) : messages;
+        if (!this.messages.language().equals(language)) throw new IllegalArgumentException("Message draft does not match selected language (value redacted).");
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
         settings = GuardSettings.read(value, providerKeys);
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
@@ -139,5 +147,5 @@ public final class ProviderConfiguration {
         } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable."); }
     }
     /** Read a complete new local generation from the already active configuration, without editing YAML. */
-    public ProviderConfiguration refreshLocal() { return new ProviderConfiguration(values, providerKeys, dataDirectory); }
+    public ProviderConfiguration refreshLocal() { return new ProviderConfiguration(values, providerKeys, dataDirectory, messages); }
 }

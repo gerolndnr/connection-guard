@@ -25,9 +25,10 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
 
     @Override
     public void execute(CommandSender commandSender, String[] args) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.no-permission")
+                messages.getString("command.no-permission")
         );
 
         if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(new TextComponent(text)))) return;
@@ -93,10 +94,11 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     }
 
     private void sendUnknownSubcommandMessage(CommandSender commandSender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.unknown-subcommand")
+                        messages.getString("command.unknown-subcommand")
                 )
         );
 
@@ -104,6 +106,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     }
 
     private boolean sendInformationMessage(CommandSender commandSender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         CompletableFuture.runAsync(() -> {
             String ipAddress;
             String queriedInput;
@@ -125,7 +128,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                         commandSender.sendMessage(
                                 ChatColor.translateAlternateColorCodes(
                                         '&',
-                                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                        messages.getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -139,18 +142,18 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
 
             String isVpn = ChatColor.translateAlternateColorCodes(
                     '&',
-                    ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.not-vpn")
+                    messages.getString("messages.info.not-vpn")
             );
             if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE) {
                 isVpn = ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.info.is-vpn")
+                        messages.getString("messages.info.is-vpn")
                 );
             }
 
             if (info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN) isVpn = "UNKNOWN";
 
-            for (String line : ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) {
+            for (String line : messages.getStringList("messages.info.text")) {
                 commandSender.sendMessage(
                         ChatColor.translateAlternateColorCodes(
                                 '&',
@@ -169,6 +172,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     }
 
     private boolean clearCache(CommandSender commandSender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         // Async, because InetAddress.getByName could affect the main thread (used to determine, if it is a valid hostname/ip address)
         CompletableFuture.runAsync(() -> {
             String ipAddress;
@@ -191,7 +195,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                         commandSender.sendMessage(
                                 ChatColor.translateAlternateColorCodes(
                                         '&',
-                                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.invalid-argument")
+                                        messages.getString("messages.invalid-argument")
                                 )
                         );
                         return;
@@ -204,7 +208,7 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific")
+                            messages.getString("command.clear.clear-specific")
                                     .replace("%ENTRY%", queriedInput)
                     )
             );
@@ -214,17 +218,19 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     }
 
     private boolean clearCache(CommandSender commandSender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         ConnectionGuard.getCacheProvider().removeAllVpnResults();
         ConnectionGuard.getCacheProvider().removeAllGeoResults();
         commandSender.sendMessage(ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.clear.clear-all")
+                messages.getString("command.clear.clear-all")
         ));
         return true;
     }
 
     private boolean sendHelpMessage(CommandSender commandSender) {
-        for (String line : ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getStringList("messages.help")) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
+        for (String line : messages.getStringList("messages.help")) {
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes('&', line)
             );
@@ -236,12 +242,12 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     private boolean reloadPlugin(CommandSender commandSender) {
         try { ConnectionGuardBungeePlugin.getInstance().reloadAllConfigs(); }
         catch (IllegalArgumentException | IllegalStateException rejected) {
-            commandSender.sendMessage(new TextComponent("Reload rejected: " + rejected.getMessage())); return true;
+            commandSender.sendMessage(new TextComponent(ConnectionGuard.getMessages().getString("command.reload-rejected"))); return true;
         }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("command.config-reload")
+                        ConnectionGuard.getMessages().getString("command.config-reload")
                 )
         );
         return true;

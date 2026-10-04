@@ -49,7 +49,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             decision.manual(vpnAccess, geoAccess);
             if (!decision.observe() && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
                     || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
-                preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection denied by server access policy."); decision.denied(DecisionObservation.Reason.ACCESS_RULE); return;
+                preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.access-denied")); decision.denied(DecisionObservation.Reason.ACCESS_RULE); return;
             }
             LoginChecks.Permission vpnPermission = (vpnAccess.isPresent() && vpnAccess.get().getEffect() != AccessRule.Effect.DENY) || Exemptions.matches(ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.vpn.exemptions"), clientIp, uuid, trusted)
                     ? LoginChecks.Permission.known(true) : trusted && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.use-permission-exemption")
@@ -61,7 +61,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     vpnPermission, geoPermission, new com.github.gerolndnr.connectionguard.api.v1.AdmissionRequest(clientIp, identity.isVerified() ? uuid : null, identity.observationTrust(), DecisionObservation.Platform.BUKKIT, decision.startedNanos() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(decision.settings().lookup.deadlineMillis))).join();
             if (identity.requiresCurrentProof() && !identity.isCurrent()) {
                 decision.identityUnavailable();
-                if (!decision.observe()) { preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection identity verification is no longer available. Please retry."); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                if (!decision.observe()) { preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.identity-unavailable")); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
                 return;
             }
 
@@ -69,7 +69,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 decision.admission(external.observations);
                 if (external.isDenied()) decision.flag(DecisionObservation.Flag.EXTERNAL_POLICY);
                 if (external.shouldRefuse(decision.observe())) {
-                    String message = external.isDenied() ? "Connection denied by configured server access check." : "Server access verification is temporarily unavailable. Please retry.";
+                    String message = external.isDenied() ? decision.messages().getString("messages.external-denied") : decision.messages().getString("messages.external-unavailable");
                     preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, message);
                     decision.denied(external.refusalReason()); return;
                 }
@@ -77,7 +77,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
             if (!checks.isAdmitted()) {
                 decision.overload();
                 if (checks.shouldDenyAdmission()) {
-                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection checks are temporarily busy. Please retry shortly.");
+                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.busy"));
                     decision.denied(DecisionObservation.Reason.OVERLOAD);
                 }
                 return;
@@ -96,13 +96,13 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 boolean vpnBypassed = hasVpnExemptionPermission || vpnPolicy.isBypassed();
                 boolean geoBypassed = hasGeoExemptionPermission || geoPolicy.isBypassed();
                 if (!decision.observe() && ((!hasVpnExemptionPermission && vpnPolicy.isDenied()) || (!hasGeoExemptionPermission && geoPolicy.isDenied()))) {
-                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection denied by server access policy."); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.access-denied")); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                     return;
                 }
                 if (!decision.observe() && (
                         (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
                         || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "Connection verification is temporarily unavailable. Please retry shortly."); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
+                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.lookup-unavailable")); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
                     return;
                 }
             if (vpnResult.isVpn() && !vpnBypassed) {
@@ -111,7 +111,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                     String notifyMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
+                            decision.messages().getString("messages.vpn-notify")
                                     .replace("%IP%", vpnResult.getIpAddress())
                                     .replace("%NAME%", preLoginEvent.getName())
                     );
@@ -125,7 +125,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
 
                 // Check if WebHook should be executed
                 if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                    String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
+                    String webhookMessage = decision.messages().getString("messages.vpn-webhook")
                             .replace("%NAME%", preLoginEvent.getName())
                             .replace("%IP%", ipAddress);
                     CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
@@ -135,7 +135,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
+                            decision.messages().getString("messages.vpn-block")
                                     .replace("%IP%", vpnResult.getIpAddress())
                                     .replace("%NAME%", preLoginEvent.getName())
                     );
@@ -170,7 +170,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.notify-staff")) {
                         String notifyMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-notify")
+                                decision.messages().getString("messages.geo-notify")
                                         .replace("%IP%", geoResult.getIpAddress())
                                         .replace("%COUNTRY%", geoResult.getCountryName())
                                         .replace("%CITY%", geoResult.getCityName())
@@ -187,7 +187,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
 
                     // Check if WebHook should be executed
                     if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                        String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
+                        String webhookMessage = decision.messages().getString("messages.geo-webhook")
                                 .replace("%NAME%", preLoginEvent.getName())
                                 .replace("%IP%", ipAddress)
                                 .replace("%COUNTRY%", geoResult.getCountryName())
@@ -200,7 +200,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
+                                decision.messages().getString("messages.geo-block")
                                         .replace("%IP%", geoResult.getIpAddress())
                                         .replace("%COUNTRY%", geoResult.getCountryName())
                                         .replace("%CITY%", geoResult.getCityName())

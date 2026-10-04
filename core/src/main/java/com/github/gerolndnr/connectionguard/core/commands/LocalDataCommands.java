@@ -57,10 +57,11 @@ public final class LocalDataCommands {
     }
     private LocalDataCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         if (args.length == 0 || !args[0].equalsIgnoreCase("local")) return false;
-        if (!permission.test("connectionguard.command.local")) { reply.accept("You do not have permission for this command."); return true; }
+        if (!permission.test("connectionguard.command.local")) { reply.accept(messages.getString("ops.permission")); return true; }
         ProviderConfiguration current = ConnectionGuard.getActiveDraft();
-        if (current == null || current.localStore == null) { reply.accept("Local data is disabled. Configure attributed sources and choose local VPN and/or Local geo first."); return true; }
+        if (current == null || current.localStore == null) { reply.accept(messages.getString("ops.local-disabled")); return true; }
         if (args.length == 1 || args.length == 2 && args[1].equalsIgnoreCase("status")) {
             for (LocalSnapshot snapshot : current.localSnapshots) reply.accept(snapshot.describe(System.currentTimeMillis()));
             return true;
@@ -70,29 +71,29 @@ public final class LocalDataCommands {
         boolean update = args.length == 3 && args[1].equalsIgnoreCase("update");
         boolean importing = args.length == 5 && args[1].equalsIgnoreCase("import");
         if (!prepare && !reload && !update && !importing) {
-            reply.accept("Usage: /cg local status|prepare|reload; /cg local update <source-id>; /cg local import <source-id> <inbox-file> <ISO-8601-as-of>"); return true;
+            reply.accept(messages.getString("ops.local-usage")); return true;
         }
         final long asOf;
         try {
             if (update || importing) current.localStore.source(args[2]);
             asOf = importing ? Instant.parse(args[4]).toEpochMilli() : 0;
-        } catch (RuntimeException invalid) { reply.accept("Invalid source ID or date. Use UTC ISO-8601, e.g. 2026-10-02T09:00:00Z."); return true; }
+        } catch (RuntimeException invalid) { reply.accept(messages.getString("ops.local-invalid")); return true; }
         try {
             WORKER.execute(() -> {
                 boolean stored = false;
                 try {
                     if (ConnectionGuard.getActiveDraft() != current) throw new IllegalStateException("Configuration changed.");
-                    if (prepare) { current.localStore.prepareInbox(); reply.accept("Private local-data/inbox is ready inside the plugin data directory."); return; }
+                    if (prepare) { current.localStore.prepareInbox(); reply.accept(messages.getString("ops.local-prepared")); return; }
                     if (update) { LocalListDownloader.update(current.localStore, args[2]); stored = true; }
                     if (importing) { current.localStore.importFile(args[2], args[3], asOf, System.currentTimeMillis()); stored = true; }
                     activate(current);
-                    reply.accept("Validated local generation activated; cache namespace changed. Inspect /cg local status for actual age and readiness.");
+                    reply.accept(messages.getString("ops.local-activated"));
                 } catch (Exception invalid) {
-                    reply.accept(stored ? "Validated data stored; active generation preserved. Wait for active lookups, then /cg local reload (details redacted)."
-                            : "Local data operation rejected; active generation preserved (details redacted).");
+                    reply.accept(stored ? messages.getString("ops.local-stored")
+                            : messages.getString("ops.local-rejected"));
                 }
             });
-        } catch (RejectedExecutionException busy) { reply.accept("Local data worker is busy; retry later."); }
+        } catch (RejectedExecutionException busy) { reply.accept(messages.getString("ops.local-busy")); }
         return true;
     }
     public static void shutdown() { TIMER.shutdownNow(); WORKER.shutdownNow(); }

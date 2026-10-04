@@ -66,7 +66,9 @@ integrations:
     enabled: false
     ids: []
 
-# Message config used for all messages send to the player.
+# Player/operator messages and rich webhook labels: built-in en, de, es.
+# /cg reload selects the new locale; invalid message files preserve active settings.
+# Existing files are never overwritten; missing keys use the bundled locale defaults.
 # You can add your own languages by creating a file called <language>.yml and setting the
 # entry below to the file name without the .yml extension.
 message-language: 'en'

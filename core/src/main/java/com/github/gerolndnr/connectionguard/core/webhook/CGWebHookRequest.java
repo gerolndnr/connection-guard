@@ -17,19 +17,22 @@ public class CGWebHookRequest {
     private CGWebHookRequest(Embed embed) { content=null; embeds=Collections.singletonList(embed); }
     public String getContent() { return content; }
     static CGWebHookRequest embedded(DecisionObservation event, Set<Scope> scopes, boolean includeIp, int threshold) {
+        return embedded(event, scopes, includeIp, threshold, com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en"));
+    }
+    static CGWebHookRequest embedded(DecisionObservation event, Set<Scope> scopes, boolean includeIp, int threshold,
+                                           com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
         if (threshold<1 || threshold>16) throw new IllegalArgumentException("Invalid captured VPN minimum.");
-        String title = event.getOutcome()==Outcome.DENY ? "Connection Guard: connection denied"
-                : event.getOutcome()==Outcome.ERROR ? "Connection Guard: processing error" : "Connection Guard: connection allowed";
+        String title = messages.getString(event.getOutcome()==Outcome.DENY ? "webhook.title-deny" : event.getOutcome()==Outcome.ERROR ? "webhook.title-error" : "webhook.title-allow");
         int color=event.getOutcome()==Outcome.DENY ? 0xD94B4B : event.getOutcome()==Outcome.ERROR ? 0xE3A328 : 0x3886C7;
-        Embed embed=new Embed(title,"Guard decision at this phase; other plugins and account authentication remain separate.",color,event.getObservedAt());
-        embed.add("Decision", "Outcome: "+event.getOutcome()+"\nReason: "+event.getReason()+"\nPlatform / phase: "+event.getPlatform()+" / "+event.getPhase()+"\nMode: "+event.getMode()+"\nProcessing error: "+event.hasProcessingError()+"\nNotification scope: "+scopes);
-        embed.add("Checks", "VPN: "+event.getVpnCheck()+" (configured minimum: "+threshold+")\nGeo: "+event.getGeoCheck()+"\nIdentity authority: "+event.getIdentityTrust()+"\nDuration: "+event.getDurationMillis()+" ms");
-        if (includeIp) embed.add("Connection address (explicit opt-in)",event.getIp());
+        Embed embed=new Embed(title,messages.getString("webhook.description"),color,event.getObservedAt());
+        embed.add(messages.getString("webhook.field.decision"), messages.text("webhook.decision",event.getOutcome(),event.getReason(),event.getPlatform(),event.getPhase(),event.getMode(),event.hasProcessingError(),scopes));
+        embed.add(messages.getString("webhook.field.checks"), messages.text("webhook.checks",event.getVpnCheck(),threshold,event.getGeoCheck(),event.getIdentityTrust(),event.getDurationMillis()));
+        if (includeIp) embed.add(messages.getString("webhook.field.address"),event.getIp());
         int positive=0,negative=0,unknown=0;
         for(Source source:event.getSources()) if(source.isVoting()) {
             switch(source.getObservation().getStatus()) { case POSITIVE:positive++;break;case NEGATIVE:negative++;break;case UNKNOWN:unknown++;break;default:break; }
         }
-        embed.add("Observed voting sources", "Positive: "+positive+" / negative: "+negative+" / unknown: "+unknown+"\nFlags: "+event.getFlags()+"\nMissing data is not a negative result; risk alone is not VPN proof.");
+        embed.add(messages.getString("webhook.field.votes"), messages.text("webhook.votes",positive,negative,unknown,event.getFlags()));
         Map<String,Rule> byRule=new LinkedHashMap<>();
         for(Rule rule:event.getRules()) if(rule.isSelected() || rule.getMatch()==Match.UNKNOWN || rule.getMatch()==Match.CONFLICT) {
             String key=rule.getEvaluatedScope()+":"+rule.getId();
@@ -39,29 +42,30 @@ public class CGWebHookRequest {
         relevant.sort(Comparator.comparing(Rule::isSelected).reversed());
         StringBuilder rules=new StringBuilder(); int shownRules=0;
         for(Rule rule:relevant) {
-            String line=rule.getId()+": "+rule.getEffect()+" / "+rule.getEvaluatedScope()+" / "+rule.getMatch()+(rule.isSelected()?" (selected)":"")+"\n";
+            String line=rule.getId()+": "+rule.getEffect()+" / "+rule.getEvaluatedScope()+" / "+rule.getMatch()+(rule.isSelected()?messages.getString("webhook.selected"):"")+"\n";
             if(shownRules==8 || rules.length()+line.length()>900) break;
             rules.append(line); shownRules++;
         }
-        if(!relevant.isEmpty()) embed.add("Selected / unresolved rules",rules.toString()+"Shown: "+shownRules+"/"+relevant.size()+" relevant rules.");
+        if(!relevant.isEmpty()) embed.add(messages.getString("webhook.field.rules"),rules.toString()+messages.text("webhook.rules-shown",shownRules,relevant.size()));
         if(!event.getAdmissionChecks().isEmpty()) {
             StringBuilder admission=new StringBuilder();
             for(AdmissionObservation check:event.getAdmissionChecks()) admission.append(check.getId()).append(": ").append(check.getResponse().getStatus())
                 .append(" / ").append(check.getResponse().getReason()).append(" / ").append(check.getDurationMillis()).append(" ms\n");
-            embed.add("External admission checks",admission.toString());
+            embed.add(messages.getString("webhook.field.admission"),admission.toString());
         }
         int shownSources=0;
         for(Source source:event.getSources()) {
             if(shownSources==8) break;
             DetectionObservation observation=source.getObservation(); DetectionMetadata details=observation.getMetadata();
-            String value="Status: "+observation.getStatus()+" / "+observation.getReason()+"\nVoting: "+source.isVoting()+" / cached: "+source.isFromCache()+" / duration: "+source.getDurationMillis()+" ms"
-                +"\nTypes: "+(details.getTypes().isEmpty()?"UNKNOWN":details.getTypes())+"\nRisk (source value): "+known(details.getExactRisk())+" / confidence: "+known(details.getConfidence())
-                +"\nASN: "+known(details.getAsn())+" / country: "+known(details.getCountry())
-                +"\nSource expiry: "+(observation.getValidUntil()==0?"not supplied":Long.toString(observation.getValidUntil()));
-            if(!embed.add(source.getScope()+" source: "+source.getId(),value)) break;
+            String value=messages.text("webhook.source",observation.getStatus(),observation.getReason(),source.isVoting(),source.isFromCache(),source.getDurationMillis(),
+                    details.getTypes().isEmpty()?"UNKNOWN":details.getTypes(),known(details.getExactRisk()),known(details.getConfidence()),known(details.getAsn()),known(details.getCountry()),
+                    observation.getValidUntil()==0?messages.getString("webhook.not-supplied"):Long.toString(observation.getValidUntil()));
+            if(!embed.add(messages.text("webhook.source-label",source.getScope(),source.getId()),value)) break;
             shownSources++;
         }
-        embed.footer=new Footer("Sources shown: "+shownSources+"/"+event.getSources().size()+". Address "+(includeIp?"included by opt-in":"redacted")+"; names/UUIDs/provider text omitted. Best effort; no delivery retry.");
+        embed.footer=new Footer(messages.text("webhook.footer",shownSources,event.getSources().size(),
+                messages.getString(includeIp?"webhook.address-included":"webhook.address-redacted")));
+
         return new CGWebHookRequest(embed);
     }
     private static String known(Object value) { return value==null?"UNKNOWN":value.toString(); }

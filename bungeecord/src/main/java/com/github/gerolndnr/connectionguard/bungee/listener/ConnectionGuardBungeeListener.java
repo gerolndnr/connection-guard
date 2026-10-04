@@ -57,7 +57,7 @@ public class ConnectionGuardBungeeListener implements Listener {
             decision.manual(vpnAccess, geoAccess);
             if (!decision.observe() && ((vpnAccess.isPresent() && vpnAccess.get().getEffect() == AccessRule.Effect.DENY)
                     || (geoAccess.isPresent() && geoAccess.get().getEffect() == AccessRule.Effect.DENY))) {
-                loginEvent.setCancelReason(new TextComponent("Connection denied by server access policy.")); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.access-denied"))); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                 decision.close();
                 loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance()); return;
             }
@@ -71,7 +71,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     vpnPermission, geoPermission, new com.github.gerolndnr.connectionguard.api.v1.AdmissionRequest(clientIp, identity.isVerified() ? uuid : null, identity.observationTrust(), DecisionObservation.Platform.BUNGEE, decision.startedNanos() + java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(decision.settings().lookup.deadlineMillis))).thenAccept(checks -> {
                 if (identity.requiresCurrentProof() && !identity.isCurrent()) {
                     decision.identityUnavailable();
-                    if (!decision.observe()) { loginEvent.setCancelReason(new TextComponent("Connection identity verification is no longer available. Please retry.")); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
+                    if (!decision.observe()) { loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.identity-unavailable"))); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.IDENTITY_UNAVAILABLE); }
                     return;
                 }
 
@@ -79,7 +79,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 decision.admission(external.observations);
                 if (external.isDenied()) decision.flag(DecisionObservation.Flag.EXTERNAL_POLICY);
                 if (external.shouldRefuse(decision.observe())) {
-                    String message = external.isDenied() ? "Connection denied by configured server access check." : "Server access verification is temporarily unavailable. Please retry.";
+                    String message = external.isDenied() ? decision.messages().getString("messages.external-denied") : decision.messages().getString("messages.external-unavailable");
                     loginEvent.setCancelReason(new TextComponent(message)); loginEvent.setCancelled(true);
                     decision.denied(external.refusalReason()); return;
                 }
@@ -87,7 +87,7 @@ public class ConnectionGuardBungeeListener implements Listener {
             if (!checks.isAdmitted()) {
                     decision.overload();
                     if (checks.shouldDenyAdmission()) {
-                        loginEvent.setCancelReason(new TextComponent("Connection checks are temporarily busy. Please retry shortly."));
+                        loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.busy")));
                         loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.OVERLOAD);
                     }
                     return;
@@ -106,13 +106,13 @@ public class ConnectionGuardBungeeListener implements Listener {
                 boolean vpnBypassed = hasVpnExemption || vpnPolicy.isBypassed();
                 boolean geoBypassed = hasGeoExemption || geoPolicy.isBypassed();
                 if (!decision.observe() && ((!hasVpnExemption && vpnPolicy.isDenied()) || (!hasGeoExemption && geoPolicy.isDenied()))) {
-                    loginEvent.setCancelReason(new TextComponent("Connection denied by server access policy.")); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
+                    loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.access-denied"))); loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
                     return;
                 }
                 if (!decision.observe() && (
                         (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
                         || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                    loginEvent.setCancelReason(new TextComponent("Connection verification is temporarily unavailable. Please retry shortly."));
+                    loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.lookup-unavailable")));
                     loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
                     return;
                 }
@@ -122,7 +122,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
                         String notifyMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-notify")
+                                decision.messages().getString("messages.vpn-notify")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", identityName)
                         );
@@ -140,7 +140,7 @@ public class ConnectionGuardBungeeListener implements Listener {
 
                     // Check if WebHook should be executed
                     if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                        String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
+                        String webhookMessage = decision.messages().getString("messages.vpn-webhook")
                                 .replace("%NAME%", identityName)
                                 .replace("%IP%", ipAddress);
                         CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
@@ -150,7 +150,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     if (!decision.observe() && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.vpn-block")
+                                decision.messages().getString("messages.vpn-block")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", identityName)
                         );
@@ -187,7 +187,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                         if (ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.notify-staff")) {
                             String notifyMessage = ChatColor.translateAlternateColorCodes(
                                     '&',
-                                    ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-notify")
+                                    decision.messages().getString("messages.geo-notify")
                                             .replace("%IP%", geoResult.getIpAddress())
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())
@@ -208,7 +208,7 @@ public class ConnectionGuardBungeeListener implements Listener {
 
                         // Check if WebHook should be executed
                         if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                            String webhookMessage = ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
+                            String webhookMessage = decision.messages().getString("messages.geo-webhook")
                                     .replace("%NAME%", identityName)
                                     .replace("%IP%", ipAddress)
                                     .replace("%COUNTRY%", geoResult.getCountryName())
@@ -221,7 +221,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                         if (!decision.observe() && ConnectionGuardBungeePlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
                             String kickMessage = ChatColor.translateAlternateColorCodes(
                                     '&',
-                                    ConnectionGuardBungeePlugin.getInstance().getLanguageConfig().getString("messages.geo-block")
+                                    decision.messages().getString("messages.geo-block")
                                             .replace("%IP%", geoResult.getIpAddress())
                                             .replace("%COUNTRY%", geoResult.getCountryName())
                                             .replace("%CITY%", geoResult.getCityName())

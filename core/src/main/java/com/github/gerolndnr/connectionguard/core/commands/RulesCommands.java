@@ -11,11 +11,12 @@ public final class RulesCommands {
     public static final List<String> NAMES = Arrays.asList("allow", "deny", "exempt");
     private RulesCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
         String name = args[0].toLowerCase(Locale.ROOT);
-        if (!permission.test("connectionguard.command." + name)) { reply.accept("You do not have permission for this command."); return true; }
+        if (!permission.test("connectionguard.command." + name)) { reply.accept(messages.getString("ops.permission")); return true; }
         AccessRuleStore store = ConnectionGuard.getRuleStore();
-        if (store == null) { reply.accept("Rule store unavailable; check server startup logs."); return true; }
+        if (store == null) { reply.accept(messages.getString("ops.rules-unavailable")); return true; }
         AccessRule.Effect effect = name.equals("allow") ? AccessRule.Effect.ALLOW : name.equals("deny") ? AccessRule.Effect.DENY : AccessRule.Effect.EXEMPT;
         if (args.length == 2 && args[1].equalsIgnoreCase("list")) {
             int displayed = 0;
@@ -23,14 +24,14 @@ public final class RulesCommands {
                 reply.accept(rule.getId() + " " + rule.getTarget() + " " + rule.getScope() + " expires=" + (rule.getExpiresAt() == 0 ? "permanent" : rule.getExpiresAt()) + " reason=" + rule.getReason());
                 if (++displayed >= 20) break;
             }
-            reply.accept("Displayed " + displayed + " active rules (maximum 20); complete file: access-rules.json."); return true;
+            reply.accept(messages.text("ops.rules-shown", displayed)); return true;
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("remove")) {
-            if (store.snapshot().stream().noneMatch(rule -> rule.getId().equals(args[2]) && rule.getEffect() == effect)) { reply.accept("No matching " + name + " rule."); return true; }
+            if (store.snapshot().stream().noneMatch(rule -> rule.getId().equals(args[2]) && rule.getEffect() == effect)) { reply.accept(messages.text("ops.rules-missing", name)); return true; }
             ConnectionGuard.getLookupRuntime().submit(() -> {
                 try { return store.remove(args[2]); } catch (java.io.IOException failure) { throw new IllegalStateException("Rule removal failed (details redacted)."); }
-            }).thenAccept(removed -> reply.accept(removed ? "Rule removed." : "Rule was already absent."))
-                    .exceptionally(error -> { reply.accept("Rule removal failed; existing rules preserved."); return null; }); return true;
+            }).thenAccept(removed -> reply.accept(removed ? messages.getString("ops.rule-removed") : messages.getString("ops.rule-absent")))
+                    .exceptionally(error -> { reply.accept(messages.getString("ops.rule-remove-failed")); return null; }); return true;
         }
         if (args.length >= 6 && args[1].equalsIgnoreCase("add")) {
             final AccessRule.Scope scope; final long expiry; final String reason; final String target;
@@ -46,15 +47,15 @@ public final class RulesCommands {
                 reason = String.join(" ", Arrays.copyOfRange(args, boundary+2, args.length));
                 // Validate before scheduling any write.
                 new AccessRule("validation", effect, scope, target, expiry, reason);
-            } catch (IllegalArgumentException | ArithmeticException invalid) { reply.accept("Invalid target, scope, duration or reason. Use IP/CIDR, UUID or a documented metadata selector; no player names."); return true; }
+            } catch (IllegalArgumentException | ArithmeticException invalid) { reply.accept(messages.getString("ops.rule-invalid")); return true; }
             ConnectionGuard.getLookupRuntime().submit(() -> {
                 try { return store.add(effect, scope, target, expiry, reason); }
                 catch (java.io.IOException failure) { throw new IllegalStateException("Rule write failed (details redacted)."); }
-            }).thenAccept(rule -> reply.accept("Stored " + rule.getId() + " " + rule.getEffect() + " " + rule.getTarget() + " " + rule.getScope()))
-                    .exceptionally(error -> { reply.accept("Rule write failed; active rules preserved."); return null; }); return true;
+            }).thenAccept(rule -> reply.accept(messages.text("ops.rule-stored", rule.getId(), rule.getEffect(), rule.getTarget(), rule.getScope())))
+                    .exceptionally(error -> { reply.accept(messages.getString("ops.rule-write-failed")); return null; }); return true;
         }
-        reply.accept("/cg " + name + " add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <reason>");
-        reply.accept("/cg " + name + " list | remove <rule-id>; explicit deny overrides allow/exempt; UUID requires trusted identity.");
+        reply.accept(messages.text("ops.rule-usage", name));
+        reply.accept(messages.text("ops.rule-usage-tail", name));
         return true;
     }
     static long expiry(String text) {

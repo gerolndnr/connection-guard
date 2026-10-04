@@ -16,9 +16,10 @@ import java.util.List;
 public class ConnectionGuardSpigotCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',
-                ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.no-permission")
+                messages.getString("command.no-permission")
         );
 
         if (OperationsCommands.handle(args, commandSender::hasPermission,
@@ -77,10 +78,11 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     }
 
     private boolean sendUnknownSubcommandMessage(CommandSender commandSender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.unknown-subcommand")
+                        messages.getString("command.unknown-subcommand")
                 )
         );
 
@@ -91,43 +93,48 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
         ConnectionGuardSpigotPlugin.getInstance().tasks().reply(sender, text);
     }
     private void target(CommandSender sender, String entry, java.util.function.Consumer<com.github.gerolndnr.connectionguard.spigot.PlatformTasks.Target> action) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         ConnectionGuardSpigotPlugin.getInstance().tasks().target(entry, action,
-            () -> reply(sender, "Use a literal IP or the name/UUID of an online player."));
+            () -> reply(sender, messages.getString("command.target-invalid")));
     }
     private boolean sendInformationMessage(CommandSender sender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         target(sender, entry, selected -> ConnectionGuard.getVpnResult(selected.ip).thenCombine(ConnectionGuard.getGeoLookup(selected.ip), (rawVpn, rawGeo) -> {
             com.github.gerolndnr.connectionguard.core.commands.LookupInformation info = com.github.gerolndnr.connectionguard.core.commands.LookupInformation.asOf(rawVpn, rawGeo, System.currentTimeMillis());
-            String flag = info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN ? "UNKNOWN"
-                    : ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString(info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE ? "messages.info.is-vpn" : "messages.info.not-vpn"));
-            for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.info.text")) reply(sender,
+            String flag = info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.UNKNOWN ? messages.getString("messages.info.unknown")
+                    : ChatColor.translateAlternateColorCodes('&', messages.getString(info.getVpnStatus() == com.github.gerolndnr.connectionguard.core.lookup.ProviderVote.Status.POSITIVE ? "messages.info.is-vpn" : "messages.info.not-vpn"));
+            for (String line : messages.getStringList("messages.info.text")) reply(sender,
                     ChatColor.translateAlternateColorCodes('&', line.replace("%INPUT%", selected.display).replace("%COUNTRY%", info.getCountry())
                     .replace("%CITY%", info.getCity()).replace("%ISP%", info.getIsp()).replace("%IS_VPN%", flag).replace("%IP%", selected.ip)));
             return null;
-        }).exceptionally(error -> { reply(sender, "Information unavailable (details redacted)."); return null; }));
+        }).exceptionally(error -> { reply(sender, messages.getString("command.info-unavailable")); return null; }));
         return true;
     }
     private boolean clearCache(CommandSender sender, String entry) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         target(sender, entry, selected -> ConnectionGuard.getCacheProvider().removeGeoResult(selected.ip)
             .thenCombine(ConnectionGuard.getCacheProvider().removeVpnResult(selected.ip), (geo, vpn) -> {
                 reply(sender, Boolean.TRUE.equals(geo) && Boolean.TRUE.equals(vpn)
-                    ? ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-specific").replace("%ENTRY%", selected.display))
-                    : "Cache clear unavailable (details redacted).");
+                    ? ChatColor.translateAlternateColorCodes('&', messages.getString("command.clear.clear-specific").replace("%ENTRY%", selected.display))
+                    : messages.getString("command.clear-unavailable"));
                 return null;
-            }).exceptionally(error -> { reply(sender, "Cache clear unavailable (details redacted)."); return null; }));
+            }).exceptionally(error -> { reply(sender, messages.getString("command.clear-unavailable")); return null; }));
         return true;
     }
     private boolean clearCache(CommandSender sender) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         ConnectionGuard.getCacheProvider().removeAllVpnResults().thenCombine(ConnectionGuard.getCacheProvider().removeAllGeoResults(), (vpn, geo) -> {
             reply(sender, Boolean.TRUE.equals(vpn) && Boolean.TRUE.equals(geo)
-                ? ChatColor.translateAlternateColorCodes('&', ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.clear.clear-all"))
-                : "Cache clear unavailable (details redacted).");
+                ? ChatColor.translateAlternateColorCodes('&', messages.getString("command.clear.clear-all"))
+                : messages.getString("command.clear-unavailable"));
             return null;
-        }).exceptionally(error -> { reply(sender, "Cache clear unavailable (details redacted)."); return null; });
+        }).exceptionally(error -> { reply(sender, messages.getString("command.clear-unavailable")); return null; });
         return true;
     }
 
     private boolean sendHelpMessage(CommandSender commandSender) {
-        for (String line : ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getStringList("messages.help")) {
+        final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
+        for (String line : messages.getStringList("messages.help")) {
             commandSender.sendMessage(
                     ChatColor.translateAlternateColorCodes('&', line)
             );
@@ -139,12 +146,12 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     private boolean reloadPlugin(CommandSender commandSender) {
         try { ConnectionGuardSpigotPlugin.getInstance().reloadAllConfigs(); }
         catch (IllegalArgumentException | IllegalStateException rejected) {
-            commandSender.sendMessage("Reload rejected: " + rejected.getMessage()); return true;
+            commandSender.sendMessage(ConnectionGuard.getMessages().getString("command.reload-rejected")); return true;
         }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
                         '&',
-                        ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("command.config-reload")
+                        ConnectionGuard.getMessages().getString("command.config-reload")
                 )
         );
         return true;

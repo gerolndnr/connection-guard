@@ -31,8 +31,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     private static ConnectionGuardBungeePlugin connectionGuardBungeePlugin;
     private File configFile;
     private File languageFile;
-    private Configuration config;
-    private Configuration languageConfig;
+    private volatile Configuration config;
+    private volatile Configuration languageConfig;
 
     private HashMap<String, VpnProvider> vpnProviderMap;
 
@@ -65,24 +65,9 @@ public class ConnectionGuardBungeePlugin extends Plugin {
             getLogger().info("Connection Guard | " + e.getMessage());
         }
 
-        String selectedLanguageFileName = config.getString("message-language") + ".yml";
-        languageFile = new File(getDataFolder().toPath().resolve("translation").toFile(), selectedLanguageFileName);
-        if (!languageFile.exists()) {
-            try {
-                InputStream in = ConnectionGuardBungeePlugin.class.getResourceAsStream("/translation/en.yml");
-                Files.copy(in, languageFile.toPath());
-            } catch (IOException e) {
-                getLogger().info("Connection Guard | " + e.getMessage());
-                return;
-            }
-        }
-        try {
-            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
-        } catch (IOException e) {
-            getLogger().info("Connection Guard | " + e.getMessage());
-            return;
-        }
-
+        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<Configuration> selectedMessages = loadMessages(config.get("message-language", null));
+        languageFile = selectedMessages.file.toFile();
+        languageConfig = selectedMessages.document;
 
         // 3. Download libraries used for vpn and geo checks
         BungeeLibraryManager libraryManager = new BungeeLibraryManager(this);
@@ -143,7 +128,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()), getDataFolder().toPath());
+        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
@@ -171,15 +156,28 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     public void reloadAllConfigs() {
         try {
             Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath());
+            com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<Configuration> selectedMessages = loadMessages(next.get("message-language", null));
+            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
             ConnectionGuard.applyProviders(draft);
             config = next;
-            languageConfig = ConfigurationProvider.getProvider(YamlConfiguration.class).load(languageFile);
+            languageFile = selectedMessages.file.toFile();
+            languageConfig = selectedMessages.document;
         } catch (IOException invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
     }
 
     public Configuration getLanguageConfig() {
         return languageConfig;
+    }
+
+    private com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<net.md_5.bungee.config.Configuration> loadMessages(Object language) {
+        return com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.load(getDataFolder().toPath(), language, new com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Parser<net.md_5.bungee.config.Configuration>() {
+            public net.md_5.bungee.config.Configuration parse(java.nio.file.Path file) throws Exception {
+                try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(file, java.nio.charset.StandardCharsets.UTF_8)) {
+                    return net.md_5.bungee.config.ConfigurationProvider.getProvider(net.md_5.bungee.config.YamlConfiguration.class).load(reader);
+                }
+            }
+            public Object value(net.md_5.bungee.config.Configuration document, String key) { return document.get(key, null); }
+        });
     }
 
     public static ConnectionGuardBungeePlugin getInstance() {

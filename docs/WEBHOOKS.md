@@ -2,6 +2,8 @@
 
 Development documentation for 0.5.0-SNAPSHOT; these rich notifications are not in the stable 0.4.11 download. Webhooks are disabled by default. Global `operation.mode: OBSERVE` suppresses both TEXT and EMBED output, including manual rules and provider failures. Rich notifications do not require a selected addon decision observer.
 
+Rich human labels follow `message-language` (`en`, `de`, `es` or your own file); typed decision/source codes stay unchanged. See [languages](LANGUAGES.md).
+
 ## Enable a private notification channel
 
 Create a webhook for the channel you control and store its full HTTPS URL in your server's private configuration. The URL authorizes sending to that channel; keep it out of shared settings and screenshots. Merge the following fields into your existing configuration, preserving your chosen connection policy:

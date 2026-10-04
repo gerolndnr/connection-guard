@@ -39,6 +39,12 @@ def verify(artifact, version):
         for name in ("plugin.yml", "bungee.yml", "velocity-plugin.json", "config.yml", "translation/en.yml"):
             require(name in names and jar.read(name).strip(), f"Missing or empty resource: {name}")
             require(names.count(name) == 1, f"Duplicate plugin resource: {name}")
+        if PACKAGE.replace(".", "/") + "/core/messages/MessageCatalog.class" in names:
+            for locale in ("en", "de", "es"):
+                for name in ("translation/" + locale + ".yml", "translation/catalog/" + locale + ".properties"):
+                    require(names.count(name) == 1 and 0 < len(jar.read(name)) <= 65536,
+                            f"Missing, duplicate or oversized bundled message resource: {name}")
+                    jar.read(name).decode("utf-8")
         for platform, main in ENTRYPOINTS.items():
             require(main.replace(".", "/") + ".class" in names, f"Missing {platform} entrypoint: {main}")
         for descriptor, platform in (("plugin.yml", "spigot"), ("bungee.yml", "bungee")):
