@@ -103,3 +103,5 @@ addon/runtime hashes and results are stored beside its source. Its acceptance is
 limited to its named version, offline synthetic clients and tested paths. Bukkit/
 Bungee adapters compile against their APIs; authenticated identities and other
 platform runtimes require their own proofs.
+
+Rich built-in [decision webhooks](WEBHOOKS.md) use an independent sender and do not require addon observer selection. Their rendering/transport failures cannot prevent a separately selected observer from receiving the original immutable decision. OBSERVE keeps addon observation active while suppressing built-in webhook output.

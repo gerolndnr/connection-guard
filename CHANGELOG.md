@@ -2,6 +2,9 @@
 
 ## 0.5.0-SNAPSHOT — unreleased development
 
+- Add optional rich security-decision webhooks with actual allow/deny reasons, rules, bounded source/cache/exact-risk facts and private defaults; preserve legacy TEXT selection.
+- Bound webhook delivery independently of logins, suppress mentions, combine identical rich recipients conservatively, respect rate limits and retire queued old settings on reload without ambiguous retries.
+
 - Add an optional, disabled-by-default native IPQualityScore adapter with header authentication, explicit request options, finite local request defaults and typed credit-exhaustion handling.
 - Preserve decimal source risk across policy, cache, explain and the additive provider/observer API without rounding or changing the existing integer accessors.
 - Reconcile the published 0.4.11 hotfix into development history, preserving all subsequent development changes.

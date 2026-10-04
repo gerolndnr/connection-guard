@@ -20,6 +20,8 @@ public final class DecisionCapture implements AutoCloseable {
     private final IdentityTrust identityTrust;
     private final GuardSettings settings;
     private final long generation, started;
+    private final boolean captureEnabled;
+    private final int positiveThreshold;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     private List<AdmissionObservation> admissionChecks=Collections.emptyList();
@@ -32,6 +34,8 @@ public final class DecisionCapture implements AutoCloseable {
         this.started = startedNanos;
         this.platform = platform; this.phase = phase; this.ip = ip; this.uuid = uuid; this.identityTrust = trust;
         settings = ConnectionGuard.getSettings(); generation = DecisionObservers.captureGeneration();
+        captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
+        positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
         geoSource = "geo." + (ConnectionGuard.getGeoProvider() == null ? "none" : ConnectionGuard.getGeoProvider().getClass().getSimpleName());
     }
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
@@ -49,7 +53,7 @@ public final class DecisionCapture implements AutoCloseable {
     public void error() { processingError = true; }
     public void identityUnavailable() { identityUnavailable = true; }
     public void overload() { overload = true; }
-    public void flag(Flag flag) { if (generation >= 0) flags.add(flag); }
+    public void flag(Flag flag) { if (captureEnabled) flags.add(flag); }
     public void manual(Optional<AccessRule> vpn, Optional<AccessRule> geo) {
         record(() -> { rules.clear(); vpn.ifPresent(rule -> selected(rule, Scope.VPN)); geo.ifPresent(rule -> selected(rule, Scope.GEO)); });
     }
@@ -99,9 +103,10 @@ public final class DecisionCapture implements AutoCloseable {
         });
     }
     private void record(Runnable work) {
-        if (generation < 0 || invalidObservation) return;
+        if (!captureEnabled || invalidObservation) return;
         try { work.run(); }
-        catch (RuntimeException | LinkageError invalid) { invalidObservation = true; DecisionObservers.recordFailure(); }
+        catch (RuntimeException | LinkageError invalid) { invalidObservation = true; if(generation>=0)DecisionObservers.recordFailure();
+            com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid(); }
     }
     private static DetectionMetadata metadata(DetectionDetails details) {
         Map<DetectionMetadata.Type, Boolean> values = new EnumMap<>(DetectionMetadata.Type.class);
@@ -112,20 +117,26 @@ public final class DecisionCapture implements AutoCloseable {
     @Override public synchronized void close() {
         if (finished) return;
         finished = true;
-        if (generation < 0 || invalidObservation) return;
+        if (!captureEnabled || invalidObservation) return;
         // Observation construction must never change admission or retain exception details.
+        DecisionObservation event;
         try {
             Outcome outcome = denied != null ? Outcome.DENY : processingError ? Outcome.ERROR : Outcome.ALLOW;
             Reason reason = denied != null ? denied : identityUnavailable ? Reason.IDENTITY_UNAVAILABLE : processingError ? Reason.INTERNAL_ERROR : overload ? Reason.OVERLOAD
                     : !flags.isEmpty() ? Reason.FLAG_ALLOWED : admissionUnresolved || unresolved || vpnCheck == Check.UNKNOWN || geoCheck == Check.UNKNOWN
                     ? Reason.UNKNOWN_ALLOWED : Reason.CHECKS_COMPLETE;
-            DecisionObservers.publish(new DecisionObservation(platform, phase,
+            event = new DecisionObservation(platform, phase,
                     observe() ? Mode.OBSERVE : Mode.ENFORCE, identityTrust, uuid, ip, outcome, reason, vpnCheck, geoCheck,
                     observedAt, Math.max(0, (System.nanoTime() - started) / 1000000), processingError,
-                    flags, sources, rules, admissionChecks), generation);
+                    flags, sources, rules, admissionChecks);
         } catch (RuntimeException | LinkageError invalid) {
-            // No endpoint, provider payload, exception message, player object or secret is emitted.
-            DecisionObservers.recordFailure();
+            if (generation >= 0) DecisionObservers.recordFailure();
+            com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid();
+            return;
         }
+        try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold); }
+        catch (RuntimeException | LinkageError invalid) { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid(); }
+        // A notification failure must not prevent a separately selected observer from receiving facts.
+        if (generation >= 0) DecisionObservers.publish(event,generation);
     }
 }

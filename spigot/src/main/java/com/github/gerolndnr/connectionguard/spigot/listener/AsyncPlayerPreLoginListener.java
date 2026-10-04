@@ -124,13 +124,11 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
 
                 // Check if WebHook should be executed
-                if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.send-webhook.enabled")) {
+                if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
                     String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.vpn-webhook")
                             .replace("%NAME%", preLoginEvent.getName())
                             .replace("%IP%", ipAddress);
-                    String webhookUrl = ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.send-webhook.url");
-
-                    CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
+                    CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
                 }
 
                 // Check if player should be kicked
@@ -188,16 +186,14 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     }
 
                     // Check if WebHook should be executed
-                    if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.send-webhook.enabled")) {
+                    if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
                         String webhookMessage = ConnectionGuardSpigotPlugin.getInstance().getLanguageConfig().getString("messages.geo-webhook")
                                 .replace("%NAME%", preLoginEvent.getName())
                                 .replace("%IP%", ipAddress)
                                 .replace("%COUNTRY%", geoResult.getCountryName())
                                 .replace("%CITY%", geoResult.getCityName())
                                 .replace("%ISP%", geoResult.getIspName());
-                        String webhookUrl = ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.send-webhook.url");
-
-                        CGWebHookHelper.sendWebHook(webhookUrl, webhookMessage);
+                        CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.GEO, webhookMessage);
                     }
 
                     // Check if player should be kicked

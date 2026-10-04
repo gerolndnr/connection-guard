@@ -1,0 +1,13 @@
+# Owned HTTPS webhook qualification
+
+`driver.py` is a standalone local runner using Python 3.10+, PyYAML, OpenSSL and an installed Java 21 JDK. It does not import private project operation tools. Supply the combined development JAR/hash, an existing officially checked Velocity 3.4.0 build 566 JAR and a fresh work directory. The runner checks the pinned proxy hash, compiles only this synthetic addon, creates a one-day self-signed loopback certificate, reserves a nonlistening backend socket, starts a 256 MiB offline proxy and an owned HTTPS receiver, and stops both before writing a success receipt.
+
+```sh
+python3 ci/fixtures/webhooks/driver.py --artifact build/libs/connection-guard-0.5.0-SNAPSHOT-all.jar --sha256 <SHA256> --proxy /absolute/path/to/velocity-3.4.0-566.jar --java /absolute/path/to/jdk21/bin/java --work-dir /absolute/path/to/fresh-fixture
+```
+
+The fixture first verifies default production TLS refuses its untrusted certificate before a POST. A console-only command then checks the exact generated certificate's SHA-256/validity/self-signature and binds the private sender client to trust only that certificate. Default hostname verification, call bound, no redirects and no retries remain enforced; a fixture interceptor additionally permits only HTTPS `127.0.0.1`, the owned receiver port and `/fixture/`. This controlled internal-field reflection does not modify the plugin archive or expose a production testing API. No trust-all TLS, operator key, Discord endpoint or message is used.
+
+The synthetic versioned provider supplies controlled flags/exact risk or explicit UNKNOWN. Real offline Minecraft login packets exercise shared end-of-decision notifications without a selected addon observer, allow/deny distinction, cache facts, opt-in UNKNOWN, strict failures, OBSERVE silence, manual pre-lookup rules, merged/separate recipients and privacy, cooldown, old queued destination retirement, HTTP failure/observer isolation, timeout without retry and JSON/global 429. LOGIN_SUCCESS means passing the guard at this phase; the reserved backend cannot accept a join. No genuine Java/Bedrock authentication, live detection accuracy or real Discord persistence is qualified. The portable driver is optional and is not run by default CI; CI retains the independent clean Velocity startup proof. Full server/version qualification remains a separate release obligation.
+
+The private generated key and receiver data stay in the supplied local fixture directory and must never be published. Only the bounded success receipt is retained here after all owned services stop. See [the operator guide](../../../docs/WEBHOOKS.md) for the operator behavior and limits.

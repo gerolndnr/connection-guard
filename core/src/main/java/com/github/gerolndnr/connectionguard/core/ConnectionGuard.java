@@ -106,6 +106,7 @@ public class ConnectionGuard {
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;
+        com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.configure(next.webhooks);
     }
     private static volatile com.github.gerolndnr.connectionguard.core.admission.AdmissionController admission =
             new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(settings.admission);
