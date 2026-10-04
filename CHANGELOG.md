@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0-SNAPSHOT — unreleased development
+
+- Reconcile the published 0.4.11 hotfix into development history, preserving all subsequent development changes.
+- Derive all platform descriptor versions from the Gradle project version; reject missing latest-release ancestry and reused/older versions in CI.
+- This development version is not a replacement publication of 0.4.11. The full feature changelog, migration and final runtime qualification remain required before a feature release.
+
 ## 0.4.11 — 2026-10-03
 
 Urgent maintenance hotfix based on published 0.4.10.

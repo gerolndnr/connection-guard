@@ -32,6 +32,12 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
+          fetch-depth: 0
+
+      - name: Verify release ancestry and version
+        run: |
+          python3 ci/verify_version.py
+          python3 ci/test_version_policy.py
 
       - name: Verify Gradle wrapper
         run: |
