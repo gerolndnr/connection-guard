@@ -4,6 +4,7 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 
 ## 0.5.1 — 2026-10-05
 
+- Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.
 - Initialize Velocity bStats with the verified project ID 22913, bundle its injected factory and stop its Metrics instance on shutdown. Statistics errors keep connection checks active; global bStats opt-out remains available.
 - Pin the unchanged MIT LimboAPI 1.1.26 compilation archive and verify its SHA-256, so clean addon builds do not depend on the unavailable upstream Maven path. It remains compile-only and is excluded from all runtime JARs.
 - Link the plugin descriptors and documentation to the canonical Connection Guard website.

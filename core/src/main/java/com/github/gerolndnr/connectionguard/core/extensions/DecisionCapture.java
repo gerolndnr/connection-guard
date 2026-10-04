@@ -37,7 +37,8 @@ public final class DecisionCapture implements AutoCloseable {
         settings = ConnectionGuard.getSettings(); messages = ConnectionGuard.getMessages(); generation = DecisionObservers.captureGeneration();
         captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
-        geoSource = "geo." + (ConnectionGuard.getGeoProvider() == null ? "none" : ConnectionGuard.getGeoProvider().getClass().getSimpleName());
+        String selectedGeo = ConnectionGuard.policyGeoSource();
+        geoSource = selectedGeo == null ? "geo.none" : selectedGeo;
     }
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
         return begin(platform, phase, ip, uuid, trust, System.nanoTime());
@@ -49,6 +50,7 @@ public final class DecisionCapture implements AutoCloseable {
     public long startedNanos() { return started; }
     public boolean observe() { return settings.observe; }
     public GuardSettings settings() { return settings; }
+    public String policyGeoSource() { return geoSource.equals("geo.none") ? null : geoSource; }
     public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages() { return messages; }
     public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
     public void denied(Reason reason) { denied = reason; }

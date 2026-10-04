@@ -27,6 +27,7 @@ Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `
 Commands and permissions:
 
 - `/cg doctor` — configuration/mode/limits/cache selection/forwarding warnings, no external request; `connectionguard.command.doctor`.
+- `/cg policy test [cases-name] [candidate-name]` — [offline synthetic-case replay](POLICY_REPLAY.md), no provider calls or player actions; `connectionguard.command.policy`.
 - `/cg providers` — sanitized health, attempts and local budgets; `connectionguard.command.providers`.
 - `/cg local status|prepare|reload|import|update` — optional attributed local data, freshness and atomic activation;
   `connectionguard.command.local`. See [local data setup and limits](LOCAL_DATA.md).

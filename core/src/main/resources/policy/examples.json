@@ -1,0 +1,371 @@
+{
+  "schema": 1,
+  "kind": "synthetic",
+  "captured_at": 0,
+  "cases": [
+    {
+      "id": "negative",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "NEGATIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "vpn_positive",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "POSITIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": true
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "provider_timeout",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "UNKNOWN",
+            "reason": "TIMEOUT",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {}
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "geo_timeout",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "NEGATIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": null,
+        "isp": null,
+        "asn": null,
+        "reason": "TIMEOUT",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "vpn_exempt",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": true,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "POSITIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "expired_source",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "POSITIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 1,
+            "source_version": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "quorum_two",
+      "ip": "192.0.2.10",
+      "uuid": null,
+      "trusted": false,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 2,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "POSITIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          },
+          {
+            "source": "fixture.b",
+            "status": "UNKNOWN",
+            "reason": "HTTP_ERROR",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {}
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    },
+    {
+      "id": "ipv6_verified",
+      "ip": "2001:db8::10",
+      "uuid": "00000000-0000-4000-8000-000000000001",
+      "trusted": true,
+      "vpn_exempt": false,
+      "geo_exempt": false,
+      "vpn": {
+        "threshold": 1,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null,
+        "votes": [
+          {
+            "source": "fixture.a",
+            "status": "NEGATIVE",
+            "reason": "NONE",
+            "duration_ms": 12,
+            "valid_until": 0,
+            "source_version": null,
+            "voting": true,
+            "details": {
+              "types": {
+                "VPN": false
+              },
+              "asn": 64500,
+              "country": "DE"
+            }
+          }
+        ]
+      },
+      "geo": {
+        "source": "geo.fixture",
+        "country": "DE",
+        "isp": "Fixture ISP",
+        "asn": 64500,
+        "reason": "NONE",
+        "duration_ms": 8,
+        "cached_at": 0,
+        "from_cache": false,
+        "valid_until": 0,
+        "source_version": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "mode": "ENFORCE",
+  "vpn_failure": "CLOSED",
+  "geo_failure": "OPEN",
+  "kick_vpn": true,
+  "kick_geo": true,
+  "geo_type": "BLACKLIST",
+  "countries": [
+    "DE"
+  ],
+  "rules": [
+    {
+      "id": "example-allow",
+      "effect": "ALLOW",
+      "scope": "ALL",
+      "target": "2001:db8::/32",
+      "expires_at": 0,
+      "reason": "Synthetic documentation example"
+    }
+  ]
+}

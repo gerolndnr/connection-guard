@@ -1,6 +1,6 @@
 package com.github.gerolndnr.connectionguard.spigot.listener;
 
-import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
+import com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture;
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
@@ -22,7 +22,6 @@ import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
 import com.github.gerolndnr.connectionguard.core.identity.AuthenticatedIdentity;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
-import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class AsyncPlayerPreLoginListener implements Listener {
@@ -83,29 +82,18 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 return;
             }
             long asOf = System.currentTimeMillis();
-                VpnResult vpnResult = LookupFreshness.vpn(checks.vpn(), asOf);
-                GeoLookup currentGeo = LookupFreshness.geo(checks.geo(), asOf);
-            Boolean hasVpnExemptionPermission = checks.vpnExempt();
-            Boolean hasGeoExemptionPermission = checks.geoExempt();
-            decision.facts(vpnResult, currentGeo, hasVpnExemptionPermission, hasGeoExemptionPermission, asOf);
-
-
-                EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
-                EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(clientIp, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
-                decision.policy(vpnPolicy, geoPolicy);
-                boolean vpnBypassed = hasVpnExemptionPermission || vpnPolicy.isBypassed();
-                boolean geoBypassed = hasGeoExemptionPermission || geoPolicy.isBypassed();
-                if (!decision.observe() && ((!hasVpnExemptionPermission && vpnPolicy.isDenied()) || (!hasGeoExemptionPermission && geoPolicy.isDenied()))) {
-                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.access-denied")); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
-                    return;
-                }
-                if (!decision.observe() && (
-                        (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                        || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                    preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.lookup-unavailable")); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
-                    return;
-                }
-            if (vpnResult.isVpn() && !vpnBypassed) {
+            ConnectionPolicy.Evaluation policy = ConnectionGuard.evaluatePolicy(decision.settings(), clientIp, uuid, trusted,
+                    checks.vpnExempt(), checks.geoExempt(), checks.vpn(), checks.geo(), decision.policyGeoSource(), asOf);
+            VpnResult vpnResult = policy.vpn;
+            GeoLookup currentGeo = policy.geo;
+            decision.facts(vpnResult, currentGeo, checks.vpnExempt(), checks.geoExempt(), asOf);
+            decision.policy(policy.vpnRule, policy.geoRule);
+            if (policy.earlyDenial != null) {
+                String key = policy.earlyDenial == DecisionObservation.Reason.ACCESS_RULE ? "messages.access-denied" : "messages.lookup-unavailable";
+                preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString(key));
+                decision.denied(policy.earlyDenial); return;
+            }
+            if (policy.vpnFlag) {
                     decision.flag(DecisionObservation.Flag.VPN);
                 // Check if staff should be notified
                 if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.notify-staff")) {
@@ -132,7 +120,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
 
                 // Check if player should be kicked
-                if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
+                if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
                             decision.messages().getString("messages.vpn-block")
@@ -146,23 +134,9 @@ public class AsyncPlayerPreLoginListener implements Listener {
             }
 
             Optional<GeoResult> geoResultOptional = currentGeo.getResult();
-            if (geoResultOptional.isPresent() && !geoBypassed) {
+            if (policy.geoFlag) {
                 GeoResult geoResult = geoResultOptional.get();
-                boolean isGeoFlagged = false;
-
-                switch (ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.type").toLowerCase()) {
-                    case "blacklist":
-                        if (ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                            isGeoFlagged = true;
-                        break;
-                    case "whitelist":
-                        if (!ConnectionGuardSpigotPlugin.getInstance().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                            isGeoFlagged = true;
-                        break;
-                    default:
-                        ConnectionGuard.getLogger().info("Invalid geo behavior type. Please use BLACKLIST or WHITELIST.");
-                        break;
-                }
+                boolean isGeoFlagged = policy.geoFlag;
 
                 if (isGeoFlagged) {
                         decision.flag(DecisionObservation.Flag.GEO);
@@ -197,7 +171,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     }
 
                     // Check if player should be kicked
-                    if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.geo.kick-player")) {
+                    if (policy.denial == DecisionObservation.Reason.GEO_FLAG) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
                                 decision.messages().getString("messages.geo-block")

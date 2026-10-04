@@ -1,0 +1,1 @@
+{"id":"policy-fixture-addon","name":"PolicyFixture","version":"1","main":"fixture.PolicyVelocityFixture","dependencies":[{"id":"connection-guard","optional":false}]}
