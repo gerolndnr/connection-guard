@@ -1,5 +1,12 @@
 # Changelog
 
+Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
+
+## Unreleased — 0.5.1-SNAPSHOT
+
+- Link the plugin descriptors and documentation to the canonical Connection Guard website.
+- Replace the README cartoon logo and remove obsolete listing graphics with unverified protection/performance claims.
+
 ## 0.5.0 — 2026-10-04
 
 ### Rules, providers and reliability

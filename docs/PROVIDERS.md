@@ -1,5 +1,7 @@
 # Free anti-VPN software: understand provider quotas
 
+Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
+
 Connection Guard is MIT-licensed software. It uses external IP intelligence providers, each with its own accuracy, availability, terms and quotas. No Connection Guard account is required. A selected provider's API key is a separate credential.
 
 Reviewed 2 October 2026. Check the linked official information before deployment; limits and terms can change.

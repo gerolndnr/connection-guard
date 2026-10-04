@@ -33,7 +33,7 @@ import java.util.HashMap;
         id="connection-guard",
         name="Connection Guard",
         version=BuildVersion.VERSION,
-        url="https://github.com/gerolndnr/connection-guard",
+        url="https://connectionguard.net",
         authors = {"gerolndnr"},
         dependencies = {@com.velocitypowered.api.plugin.Dependency(id="floodgate", optional=true)}
 )

@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="240"></p>
+<p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
 # Connection Guard
 
@@ -6,7 +6,9 @@
 
 Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord and Velocity. Choose your detection providers and what happens when a rule matches.
 
-[Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
+[Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
+
+**Development builds: 0.5.1-SNAPSHOT.**
 
 **Latest stable release: [0.5.0](https://github.com/gerolndnr/connection-guard/releases/tag/0.5.0).** [Changes and upgrade guide](CHANGELOG.md).
 
@@ -30,15 +32,15 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 | Your setup | Guide |
 | --- | --- |
-| Standalone Spigot or compatible server | [Spigot quickstart](docs/quickstarts/SPIGOT.md) |
-| BungeeCord proxy network | [BungeeCord quickstart](docs/quickstarts/BUNGEECORD.md) |
-| Velocity proxy network | [Velocity quickstart](docs/quickstarts/VELOCITY.md) |
+| Standalone Spigot or compatible server | [Spigot quickstart](docs/quickstarts/SPIGOT.md) · [Anti-VPN for Paper and Spigot](https://connectionguard.net/paper-anti-vpn) |
+| BungeeCord proxy network | [BungeeCord quickstart](docs/quickstarts/BUNGEECORD.md) · [Anti-VPN for BungeeCord](https://connectionguard.net/bungeecord-anti-vpn) |
+| Velocity proxy network | [Velocity quickstart](docs/quickstarts/VELOCITY.md) · [Anti-VPN for Velocity](https://connectionguard.net/velocity-anti-vpn) |
 
 The combined JAR is available from [GitHub](https://github.com/gerolndnr/connection-guard/releases/latest), [Spigot](https://www.spigotmc.org/resources/121509/), [Modrinth](https://modrinth.com/plugin/connectionguard) and [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Review the generated configuration before accepting live players. **New 0.5.0 installations start in OBSERVE with an empty country blocklist.** Inspect decisions, then deliberately enable ENFORCE. Existing configurations without `operation.mode` keep their previous ENFORCE behavior. [Choose your policy](docs/CONFIGURATION.md).
 
-The default VPN provider is ProxyCheck; the default geo provider is IP-API. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment.
+The default VPN provider is ProxyCheck; the default geo provider is IP-API. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment. Website guides: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries on a Minecraft server](https://connectionguard.net/guides/block-countries-minecraft-server).
 
 ## Commands and permissions
 
@@ -58,7 +60,7 @@ Targeted `info` and `clear` also accept an online player name or UUID. Staff not
 
 The 0.5.0 release combines the tested rule, provider, identity, scheduler and cloud work since 0.4.11. Its exact combined JAR is checked through reproducible builds, packaging guards and controlled native startup/login/reload/shutdown fixtures. [Release checks and limits](docs/RELEASE_0_5_0.md).
 
-Core/Spigot/BungeeCord bytecode targets Java 8. The Spigot adapter builds against the 1.8.8 API. The Velocity adapter targets the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. Build targets do not prove every server version was tested; selected Paper 1.21.11, Folia 1.21.11, Bungee build 2100 and Velocity 3.4.0 fixtures have separate [named platform/identity evidence](docs/PERMISSION_VALIDATION.md) and [native challenge/backend evidence](docs/NATIVE_CHALLENGE.md).
+Core/Spigot/BungeeCord bytecode targets Java 8. The Spigot adapter builds against the 1.8.8 API. The Velocity adapter targets the 3.3 API and requires Java 17 or newer. Follow your server software's Java requirements. Build targets do not prove every server version was tested; additional startup, command, reload and shutdown checks passed on Paper 26.3-151, Folia 26.2-7, Velocity 4.2.0-30 and 4.2.1-SNAPSHOT-36 with Java 25. Selected Paper 1.21.11, Folia 1.21.11, Bungee build 2100 and Velocity 3.4.0 fixtures have separate [named platform/identity evidence](docs/PERMISSION_VALIDATION.md) and [native challenge/backend evidence](docs/NATIVE_CHALLENGE.md).
 
 Incomplete lookups are UNKNOWN; your scoped OPEN/OBSERVE/CLOSED failure policy decides how they affect access. Global OBSERVE suppresses enforcement. Explicit rules, geo policy and other plugins also apply. See [provider failures and caching](docs/PROVIDER_FAILURES.md). Tests do not establish real-world detection accuracy. Connection Guard does not replace an anticheat, a complete antibot system or network-level DDoS protection.
 

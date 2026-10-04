@@ -1,5 +1,7 @@
 # A legitimate player is flagged: what to check
 
+Website guides: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries on a Minecraft server](https://connectionguard.net/guides/block-countries-minecraft-server).
+
 A positive provider result is not proof that a player is malicious. Identify the rule, the data and the actual client IP before changing policy.
 
 ## Identify the decision

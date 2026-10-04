@@ -1,7 +1,7 @@
 name: ConnectionGuard
 version: '${version}'
 author: gerolndnr
-website: https://github.com/gerolndnr
+website: https://connectionguard.net
 main: com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin
 api-version: 1.13
 folia-supported: true

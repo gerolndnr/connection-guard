@@ -1,5 +1,7 @@
 # Set up Connection Guard
 
+[Connection Guard website](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
+
 Choose the software that receives the player's connection:
 
 | Setup | Start here |
