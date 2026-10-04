@@ -92,7 +92,7 @@ jobs:
 
       - name: Start the combined JAR on a clean Velocity proxy
         run: |
-          python3 ci/startup_smoke.py --platform velocity --artifact build/libs/*-all.jar \
+          CONNECTIONGUARD_CLOUD=false python3 ci/startup_smoke.py --platform velocity --artifact build/libs/*-all.jar \
             --java "$JAVA_HOME_21_X64/bin/java" --work-dir "$RUNNER_TEMP/connection-guard-velocity"
 
       - name: Retain runtime qualification logs

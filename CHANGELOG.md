@@ -1,26 +1,44 @@
 # Changelog
 
-## 0.5.0-SNAPSHOT — unreleased development
+## 0.5.0 — 2026-10-04
 
-- Bundle German and Spanish player/operator/rich-webhook messages with actual locale selection and reload; preserve custom files and selected-language fallback, reject invalid drafts before activation. Keep stable machine codes, privacy and legacy placeholders unchanged.
+### Rules, providers and reliability
 
-- Add optional rich security-decision webhooks with actual allow/deny reasons, rules, bounded source/cache/exact-risk facts and private defaults; preserve legacy TEXT selection.
-- Bound webhook delivery independently of logins, suppress mentions, combine identical rich recipients conservatively, respect rate limits and retire queued old settings on reload without ambiguous retries.
+- New scoped allow/deny/exempt rules for IPv4/IPv6, CIDR and trusted UUIDs, with persistent time limits. Explicit DENY retains priority over ALLOW; an expired rule never grants access.
+- Source-specific country, ASN, ISP/operator, classification, risk and confidence selectors; explain output keeps missing and conflicting evidence separate.
+- Attributed local address lists and optional Geo/ASN MMDB sources with bounded imports and freshness checks.
+- Optional native IPQualityScore (off by default), ProxyCheck v2/v3 selection and exact decimal risk in local decisions, caches and API observations.
+- Whole-login deadlines, bounded transport/cache queues, shared lookups, circuit pauses and local provider request budgets. UNKNOWN is explicit and follows the scoped OPEN/OBSERVE/CLOSED policy.
+- Optional login admission/cooldown limits; SQLite/Redis namespaced rich-fact storage and Redis TLS selection.
+- Validated whole-draft reloads preserve active settings on rejection, account for native permissions/current connection identity and run Bukkit/Folia work on the correct platform scheduler.
+- Versioned provider, observer and read-only admission APIs. Separate optional LibertyBans and native challenge adapters retain their explicit selection, licensing and documented test limits.
+- German and Spanish messages alongside English; custom files remain intact. Rich decision webhooks use actual completed facts, bounded delivery, mention suppression and private defaults.
+- Bundle and relocate Gson and the bStats runtime; keep the 0.4.11 hotfix in actual source history. All platform versions derive from the same build value.
 
-- Add an optional, disabled-by-default native IPQualityScore adapter with header authentication, explicit request options, finite local request defaults and typed credit-exhaustion handling.
-- Preserve decimal source risk across policy, cache, explain and the additive provider/observer API without rounding or changing the existing integer accessors.
-- Reconcile the published 0.4.11 hotfix into development history, preserving all subsequent development changes.
-- Derive all platform descriptor versions from the Gradle project version; reject missing latest-release ancestry and reused/older versions in CI.
-- This development version is not a replacement publication of 0.4.11. The full feature changelog, migration and final runtime qualification remain required before a feature release.
+### Optional Cloud dashboard
 
-### Connection Guard Cloud (optional dashboard)
+- Free dashboard at https://app.connectionguard.net for decisions, provider health, quotas, network rules and supported configuration.
+- **Cloud is on by default.** Until linked, it sends anonymous installation/platform information, health and aggregate counters; no player IPs or UUIDs. After linking and accepting processing terms, it sends individual decisions with IPs and trusted UUIDs. [Full privacy disclosure](https://connectionguard.net/privacy#plugin) and [plugin controls](docs/CLOUD.md).
+- Turn it off with `cloud.enabled: false`, `/cg cloud disable` (persistent) or `CONNECTIONGUARD_CLOUD=false`. Logins never wait on Cloud; bounded background sync handles outages.
+- Remote settings are validated atomically and layered over local config without rewriting `config.yml`. Rejected drafts keep the old configuration. Remote console-command execution is unavailable.
+- Time-limited dashboard rules report `rule_expiry`, preserve absolute deadlines locally and stop matching offline. Already-expired commands are acknowledged without creating a rule.
+- Advanced IPQualityScore/rich-webhook settings remain local; protocol v1 uses the legacy integer risk display. Exact local policy risk remains unchanged.
 
-- New: optional free dashboard at app.connectionguard.net. It is **on by default** and sends only anonymous totals until you link the server; turn it off with `cloud.enabled: false`, `/cg cloud disable` or `CONNECTIONGUARD_CLOUD=false`. Details and the full list of transmitted data: `docs/CLOUD.md`.
-- New: configure the plugin from the dashboard (mode, providers and API keys, country rules, actions on a hit, failure policy, exemptions, cache). Dashboard values are layered over `config.yml` in memory and never written to it. They are validated like `/cg reload`, and rejected changes keep the previous settings. Console commands, cache connection, identity and lookup tuning stay `config.yml`-only.
-- New: `/cg cloud status|link|settings|reset-settings|enable|disable` (permission `connectionguard.command.cloud`); `/cg doctor` shows the cloud state.
-- Logins never wait on the cloud; failures only reschedule the background sync.
-- Gson is bundled and relocated before native startup; no adapter downloads or relies on a server-provided JSON library. Packaging guards reject missing/duplicate Cloud JSON classes.
-- Velocity now reports usage through the cloud link (it never sent bStats data).
+### Upgrade and rollback
+
+Back up the plugin directory and stop the server/proxy. Replace the old JAR with `connection-guard-0.5.0-all.jar`; keep only one main JAR. Restart and inspect `/cg doctor` and `/cg cloud status`.
+
+**New installs start in OBSERVE with an empty country blocklist.** Existing files without `operation.mode` retain ENFORCE. Existing translations, provider keys and actions are preserved. Compare new options with the bundled template; do not replace your config blindly. Native IPQualityScore, local data and optional integrations are disabled until selected.
+
+New rich-fact cache namespaces intentionally do not reuse older Boolean-only entries; expect provider lookups while the new cache warms. Provider budgets are process-local estimates, not account-wide remaining quota. Review provider terms before use.
+
+To roll back, stop the server/proxy, restore the backed-up 0.4.11 plugin directory and its JAR, and restart. 0.4.11 does not understand Cloud, managed access rules or the new native integrations; restore its configuration and remove optional 0.5 addons. Disable Cloud before downgrade if desired.
+
+### Qualification
+
+Reproducible builds, structured regression reports, package/version-history gates and selected native runtime tests qualify the exact release artifact. [Final release scope](docs/RELEASE_0_5_0.md) records the tests and limits. Synthetic login fixtures do not prove authenticated Java/Bedrock account support, every Minecraft version, provider accuracy or production pilot outcomes.
+
+Verified identity-bound challenge grants, complete replay/shadow/rollback and persistent account-wide API budgets are future work; this release does not claim those full differentiation contracts.
 
 ## 0.4.11 — 2026-10-03
 

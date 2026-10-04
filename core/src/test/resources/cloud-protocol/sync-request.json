@@ -43,7 +43,10 @@
       "version": 1,
       "ok": true,
       "message": null
-    }
+    },
+    "capabilities": [
+      "rule_expiry"
+    ]
   },
   "counters": {
     "window_start": 1791099940000,

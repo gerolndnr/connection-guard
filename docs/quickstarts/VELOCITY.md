@@ -8,7 +8,7 @@ For a network, install on the Velocity proxy receiving player connections. Verif
 2. [Download the latest combined JAR](https://github.com/gerolndnr/connection-guard/releases/latest). Back up existing settings, stop the test proxy, place the JAR in the **proxy's** `plugins/` directory and remove an older Connection Guard JAR there when upgrading.
 3. Start the test proxy, confirm successful plugin initialization and inspect the generated `config.yml` in the plugin data directory before accepting live players.
 4. [Review providers, quotas and terms](../PROVIDERS.md). The default geo provider's free IP-API endpoint is for non-commercial use. Select a suitable provider before connection tests.
-5. [Apply the notification profile](../CONFIGURATION.md). The shipped config enables VPN and geo kicks and contains CN/RU in its geo blocklist. Provider/cache changes require a restart.
+5. [Review observation mode](../CONFIGURATION.md). New 0.5.0 installs start in OBSERVE with neutral country rules. Existing settings are retained. Cache connection changes require a restart; provider drafts are validated on reload.
 
 ## Confirm the setup
 
@@ -20,4 +20,4 @@ Configure notifications through the proxy permission system. Configured pre-logi
 
 ## Validation scope
 
-This guide describes published 0.4.11, based on unchanged 0.4.10 connection-check behavior. The 0.4.10 fixture on the stated stack covers startup, local HTTP detection, pre-login rejection, SQLite reuse, provider recovery and commands. Full backend joins, Redis and native permissions are outside that release fixture. [Newer native permission/identity evidence](../PERMISSION_VALIDATION.md) belongs to development for a future release, not the published JAR. Tests do not establish public-provider accuracy. [Release checks](../../CHANGELOG.md). Record exact platform and Java versions with deployments and support reports.
+This guide describes 0.5.0. The exact release JAR has controlled native checks on Paper 1.21.11 build 132, Folia 1.21.11 build 14, BungeeCord build 2100 and Velocity 3.4.0 build 566 / Java 21. See [release qualification](../RELEASE_0_5_0.md) for tested flows and limits. Separate [permission/identity evidence](../PERMISSION_VALIDATION.md) names its original artifact and fixture. These tests use synthetic clients; they do not establish every Minecraft version, authenticated Java/Bedrock accounts or public-provider detection accuracy. Record exact platform and Java versions with support reports.

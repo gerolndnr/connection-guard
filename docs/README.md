@@ -17,11 +17,13 @@ After installation:
 - [Investigate flagged players and permission exemptions](TROUBLESHOOTING.md).
 - [Understand provider outages and caching](PROVIDER_FAILURES.md).
 
+## New in 0.5.0
+
+[Optional Cloud dashboard](CLOUD.md), [managed access rules](ACCESS_RULES.md), [source-specific rules](RICH_RULES.md), [local lists and MMDB](LOCAL_DATA.md), [provider operations](OPERATIONS.md), [IPQualityScore](IPQUALITYSCORE.md), [German and Spanish messages](LANGUAGES.md) and [rich webhooks](WEBHOOKS.md) are part of this release. Optional admission/provider/observer integrations and separate addons retain their documented selection and licensing requirements.
+
 ## Validation scope
 
-The quickstart steps describe the published 0.4.11 hotfix and its unchanged 0.4.10 connection-check behavior. The 0.4.10 fixture used Velocity 3.4.0 build 566 / Java 21 for startup, controlled HTTP detection, pre-login rejection, SQLite caching, provider recovery and commands. It did not include a complete backend join. The 0.4.11 hotfix separately passed controlled Paper 1.21.11 build 132 / Java 21 activation, reload, an offline synthetic backend join and shutdown. Neither release fixture establishes every server version or LuckPerms/Floodgate scenario.
-
-Development work on `master` has separate [permission/identity evidence](PERMISSION_VALIDATION.md), [native identity rules](NATIVE_IDENTITY.md) and [operating controls](OPERATIONS.md), [read-only admission API](ADMISSION_API.md) and the separate [LibertyBans addon](../adapters/libertybans/README.md). Selected [message languages](LANGUAGES.md) and [rich decision webhooks](WEBHOOKS.md) have a separate bounded privacy/delivery contract. These newer features and native Paper/Folia/Velocity results are for a future feature release; they do not describe the downloadable 0.4.11 JAR. Selected [native Bungee/Velocity ban evidence](../ci/fixtures/native-libertybans-proxies/README.md) is also available. A separate default-disabled [native challenge addon](NATIVE_CHALLENGE.md) has controlled map/chat and missing-SDK evidence; verified temporary grants remain unfinished. Full Bungee/legacy Spigot version coverage and authenticated Java/Bedrock coverage remain incomplete. [Release notes](../CHANGELOG.md) record published behavior.
+[Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.
 
 ## Help
 

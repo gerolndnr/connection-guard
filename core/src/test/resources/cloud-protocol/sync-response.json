@@ -14,6 +14,15 @@
       "scope": "VPN",
       "target": "203.0.113.24",
       "note": "dashboard"
+    },
+    {
+      "id": "cmd_mnopqrstuvwx",
+      "type": "access_rule.add",
+      "effect": "ALLOW",
+      "scope": "ALL",
+      "target": "069a79f4-44e9-4726-a5be-fca90e38aaf5",
+      "note": "dashboard: from decision",
+      "expires_at": 1791129600000
     }
   ],
   "config": {

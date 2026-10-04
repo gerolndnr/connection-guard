@@ -57,4 +57,20 @@ class AccessRuleStoreTest {
         assertThrows(IllegalArgumentException.class, () -> store.add(Effect.DENY, Scope.ALL, "192.0.2.1", 0, "Reason\nforged line"));
         assertTrue(store.snapshot().isEmpty());
     }
+    @Test void backgroundPrunePersistsOnlyExpiredRulesAndLeavesFutureAndPermanentRules() throws Exception {
+        AccessRuleStore store = new AccessRuleStore(directory);
+        long now = System.currentTimeMillis();
+        store.add(Effect.ALLOW, Scope.VPN, "192.0.2.1", now, "Expired fixture");
+        AccessRule permanent = store.add(Effect.DENY, Scope.ALL, "192.0.2.2", 0, "Permanent fixture");
+        AccessRule future = store.add(Effect.EXEMPT, Scope.GEO, "192.0.2.3", now + 60000, "Future fixture");
+        assertEquals(1, store.pruneExpired(now));
+        AccessRuleStore reloaded = new AccessRuleStore(directory);
+        assertEquals(2, reloaded.snapshot().size());
+        assertEquals(permanent.getId(), reloaded.snapshot().get(0).getId());
+        assertEquals(future.getId(), reloaded.snapshot().get(1).getId());
+        byte[] unchanged = Files.readAllBytes(directory.resolve("access-rules.json"));
+        assertEquals(0, store.pruneExpired(now));
+        assertArrayEquals(unchanged, Files.readAllBytes(directory.resolve("access-rules.json")));
+    }
+
 }
