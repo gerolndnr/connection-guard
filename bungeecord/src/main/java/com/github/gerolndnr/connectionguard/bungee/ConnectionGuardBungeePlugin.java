@@ -61,6 +61,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         }
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), config::set);
         } catch (IOException e) {
             getLogger().info("Connection Guard | " + e.getMessage());
         }
@@ -72,16 +73,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         // 3. Download libraries used for vpn and geo checks
         BungeeLibraryManager libraryManager = new BungeeLibraryManager(this);
 
-        Library gsonLibrary = Library.builder()
-                .groupId("com.google.code.gson")
-                .artifactId("gson")
-                .version("2.11.0")
-                .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
-                .build();
         Library bstatsLibrary = Library.builder()
                 // Weird replaceAll is necessary, because the gradle shadow relocate method will
                 // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
-                // here, but not for libraries like gson.
+                // here; the literal is kept separate from the package relocation.
                 .groupId("org#bstats".replaceAll("#", "."))
                 .artifactId("bstats-bungeecord")
                 .version("3.0.2")
@@ -89,7 +84,6 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 .build();
 
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(gsonLibrary);
         libraryManager.loadLibrary(bstatsLibrary);
 
         // 4. Register specified cache provider
@@ -132,6 +126,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        // Optional dashboard link: background only, never on the login path.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUNGEE,
+                getProxy().getName() + " " + getProxy().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 7. Register bungeecord listener and commands
@@ -154,15 +152,22 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     }
 
     public void reloadAllConfigs() {
-        try {
-            Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-            com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<Configuration> selectedMessages = loadMessages(next.get("message-language", null));
-            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
-            ConnectionGuard.applyProviders(draft);
-            config = next;
-            languageFile = selectedMessages.file.toFile();
-            languageConfig = selectedMessages.document;
-        } catch (IOException invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
+        synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
+            try {
+                Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+                com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), next::set);
+                com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<Configuration> selectedMessages = loadMessages(next.get("message-language", null));
+                ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
+                synchronized (ConnectionGuard.class) {
+                    com.github.gerolndnr.connectionguard.core.cloud.CloudSync.validateReloadActivation();
+                    ConnectionGuard.applyProviders(draft);
+                    config = next;
+                    languageFile = selectedMessages.file.toFile();
+                    languageConfig = selectedMessages.document;
+                }
+            } catch (IOException invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
+            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+        }
     }
 
     public Configuration getLanguageConfig() {

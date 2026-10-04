@@ -147,7 +147,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;

@@ -45,6 +45,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 1. Save Default Config & set logger
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
+        // Dashboard settings layer over config.yml in memory; the file is never written.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), activeConfig::set);
 
         com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(activeConfig.get("message-language"));
         languageFile = selectedMessages.file.toFile();
@@ -55,15 +57,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 2. Download libraries used for vpn and geo checks
         BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
 
-        Library gsonLibrary = Library.builder()
-                .groupId("com.google.code.gson")
-                .artifactId("gson")
-                .version("2.11.0")
-                .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
-                .build();
 
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(gsonLibrary);
 
         // 3. Download libraries used for specified cache provider and register cache provider afterward
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -106,6 +101,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        // Optional dashboard link: background only, never on the login path.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUKKIT,
+                getServer().getName() + " " + getServer().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 6. Register bukkit listener
@@ -134,15 +133,22 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override public org.bukkit.configuration.file.FileConfiguration getConfig() { return activeConfig != null ? activeConfig : super.getConfig(); }
     public void reloadAllConfigs() {
-        YamlConfiguration next = new YamlConfiguration();
-        try { next.load(new File(getDataFolder(), "config.yml")); }
-        catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
-        com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(next.get("message-language"));
-        ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
-        ConnectionGuard.applyProviders(draft);
-        activeConfig = next;
-        languageFile = selectedMessages.file.toFile();
-        languageConfig = selectedMessages.document;
+        synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
+            YamlConfiguration next = new YamlConfiguration();
+            try { next.load(new File(getDataFolder(), "config.yml")); }
+            catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), next::set);
+            com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(next.get("message-language"));
+            ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
+            synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.validateReloadActivation();
+                ConnectionGuard.applyProviders(draft);
+                activeConfig = next;
+                languageFile = selectedMessages.file.toFile();
+                languageConfig = selectedMessages.document;
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+            }
+        }
     }
 
     private com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<org.bukkit.configuration.file.YamlConfiguration> loadMessages(Object language) {

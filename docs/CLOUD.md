@@ -1,0 +1,76 @@
+# Connection Guard Cloud (optional dashboard)
+
+> Development feature for the next release. Not in 0.4.11.
+
+Connection Guard Cloud is a free, optional web dashboard at **https://app.connectionguard.net**. It shows what Connection Guard checked, who it refused and why, provider health and quota, and totals over 24 hours to 90 days.
+
+The plugin works fully without it. No account is required to use Connection Guard.
+
+## How it behaves
+
+- **Logins never wait on the cloud.** The link runs on one background thread. If the cloud is unreachable, players join exactly as before. Entries are buffered (at most 5,000), and older ones are dropped with a counter.
+- **On by default, off in one line.** Any of these turns it off completely, so no request goes to connectionguard.net:
+  - `cloud.enabled: false` in `config.yml`
+  - `/cg cloud disable` (remembered across restarts; `/cg cloud enable` undoes it)
+  - environment variable `CONNECTIONGUARD_CLOUD=false` or JVM flag `-Dconnectionguard.cloud=false` (for hosts and CI)
+- **Linking.** On first start the console prints a one-time notice and a link like `https://app.connectionguard.net/link/7KQM-4P2X`. It is valid for 24 hours and works once. `/cg cloud link` shows it again. Open it, sign in with Discord, name your network and accept the data processing terms. A short setup assistant follows (what to keep out, a free ProxyCheck key, watch first or protect right away), then asks you to join your own server once to see your first check arrive. It steps aside on servers that already have their own settings in `config.yml`.
+- **Fleets.** For networks or hosting panels, create a network token in the dashboard and set `cloud.network-token`. New servers then join the network without a link.
+
+## What is sent
+
+| State | Sent to `api.connectionguard.net` | Never sent |
+| --- | --- | --- |
+| Off | Nothing | — |
+| On, not linked (default) | Anonymous install ID, platform and version, plugin and Java version, mode (OBSERVE/ENFORCE), totals per interval (checks, admitted, refused, VPN found, cache hits, latency p50/p95, counts per country and reason), provider health (attempts, answers, local daily usage; no keys) | Player IPs, UUIDs, names, API keys, webhook URLs, console commands |
+| Linked, terms accepted | Additionally, one entry per check: time, IP, verified UUID, verdict and reason, what each provider said (country, ASN, ISP, risk), matched rules | API keys, player names, console commands |
+
+The exact wire format is open source: `packages/protocol` in `gerolndnr/connection-guard-cloud`.
+
+- **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
+- **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard.
+
+## Configuring the plugin from the dashboard
+
+Most everyday settings can be changed in the dashboard under **Settings**, in plain language instead of YAML:
+
+- protection mode (OBSERVE or ENFORCE)
+- VPN providers, with their API keys and the number of votes needed
+- country rules (off, block selected, allow only selected) and the country lookup service
+- what happens on a hit: refuse, notify staff, post to a Discord webhook
+- what happens when a lookup fails
+- exemptions (player names or IPs)
+- cache durations
+
+How it works:
+
+- **Dashboard values take priority over `config.yml`.** They are stored in `plugins/<plugin>/cloud/managed-config.json` (owner-readable only) and layered over `config.yml` in memory on every load and reload. **`config.yml` itself is never written**, and every setting you did not change in the dashboard still comes from it.
+- **Same validation as `/cg reload`.** A change is applied without a restart through the normal reload. If the server rejects it (for example, more required votes than enabled providers), the previous settings stay active and the dashboard shows the reason.
+- **API keys and webhook URLs** are sent once, encrypted at rest in the cloud until the server confirms them, and then deleted from the cloud. Afterwards the dashboard only shows whether a key is set and its last four characters.
+- **Never configurable remotely:** console commands on a hit (`execute-command`), the cache type and Redis connection, identity and forwarding, lookup tuning, overload limits, integrations, local lists and custom providers. These stay in `config.yml` only.
+- **Back to `config.yml`:** use "Reset to config.yml" in the dashboard, or `/cg cloud reset-settings` on the server (works even with the cloud off). `/cg cloud settings` lists which values come from the dashboard; `/cg doctor` shows the cloud state.
+
+## What else the dashboard can do on your server
+
+Besides settings, only a fixed set of actions is enforced by the plugin itself:
+
+- add or remove an allow, deny or exempt access rule
+- clear cache entries
+- unlink
+
+Anything outside this set is refused and reported as failed.
+
+## Self-hosting
+
+The backend is open source (AGPL-3.0). Point `cloud.endpoint` at your own deployment (HTTPS required; plain HTTP only for `localhost`).
+
+## Commands and permission
+
+`/cg cloud status | link | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
+
+## Current development coverage
+
+The integrated bridge currently matches the original protocol-1 settings: ProxyCheck, IP-API, IPHub and VPNAPI, country settings, basic webhook routing, exemptions, mode and cache duration. IPQualityScore, local/custom/addon sources and richer webhook options remain available through `config.yml`; the dashboard must gain compatible fields before it can manage them. Fractional risk values are retained by the native decision engine; the older Cloud event schema can represent only integer risk values.
+
+This bridge does not yet report the newer `rule_expiry` capability, so a compatible dashboard must keep its time-limited rule controls unavailable for this build. Existing generic dashboard access rules are separate from the planned verified identity/challenge-specific temporary exemptions.
+
+Versioned local qualification drivers and their limits are in `ci/fixtures/cloud/README.md`. Native Paper, Folia and Bungee tests exercise complete accepted/rejected configuration drafts, custom-language retention, reset, persisted switch-off, real synthetic logins and shutdown during a deliberately hanging Cloud request. The separate browser fixture uses the existing setup/settings UI and an immutable **3e8771ee8ba19de0d59ec7f8f20764b05082a2e7** Cloud source copy on loopback; its hard-coded protocol fixture label refers to that source. No production Cloud, Discord OAuth or real operator onboarding is claimed by these tests.

@@ -1,4 +1,4 @@
-Connection Guard bundles and relocates the following HTTP dependencies:
+Connection Guard bundles and relocates the following runtime dependencies:
 
 OkHttp 4.12.0 — Square, Inc. — Apache License 2.0
 https://github.com/square/okhttp
@@ -23,3 +23,7 @@ their own upstream distributions. Connection Guard's own code uses the MIT licen
 bStats Base 3.0.2 — Bastian — MIT License
 https://github.com/Bastian/bStats-Metrics
 The MIT notice is included as bStats-MIT.txt in this directory.
+
+Gson 2.11.0 — Google Inc. — Apache License 2.0
+https://github.com/google/gson/blob/gson-parent-2.11.0/LICENSE
+The Apache License 2.0 is included as Apache-2.0.txt in this directory.

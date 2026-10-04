@@ -85,6 +85,13 @@ def verify(artifact, version):
         for addon in ("libertybans", "limbo"):
             require(not any("/addons/" + addon + "/" in name and name.endswith(".class") for name in names),
                     "The separately licensed optional addon must not enter the combined plugin.")
+        if PACKAGE.replace(".", "/") + "/core/cloud/CloudSync.class" in names:
+            for dependency in ("Gson", "GsonBuilder", "JsonElement", "JsonObject", "JsonArray", "JsonPrimitive", "JsonNull",
+                               "JsonParser", "internal/LinkedTreeMap", "reflect/TypeToken", "stream/JsonReader", "stream/JsonWriter"):
+                entry = library_prefix + "com/google/gson/" + dependency + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate Cloud JSON runtime dependency: {dependency}")
+            require(not any(name.startswith("com/google/gson/") and name.endswith(".class") for name in names),
+                    "Cloud JSON runtime dependency was not relocated.")
         for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class"):
             require(names.count(library_prefix + dependency) == 1,
                     f"Missing or duplicate bStats runtime dependency: {dependency}")

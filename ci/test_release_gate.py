@@ -152,6 +152,28 @@ class ArtifactRegressionTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "separately licensed"):
                 verify(broken, version)
 
+    def test_removed_or_duplicate_cloud_json_class_is_rejected(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            self.assertIn(PACKAGE.replace(".", "/") + "/core/cloud/CloudSync.class", jar.namelist())
+        verify(artifact, version)
+        with tempfile.TemporaryDirectory() as directory:
+            for dependency in ("Gson", "JsonElement", "stream/JsonReader"):
+                name = PACKAGE.replace(".", "/") + "/libs/com/google/gson/" + dependency + ".class"
+                for duplicate in (False, True):
+                    broken = Path(directory) / "broken-cloud-json.jar"
+                    with zipfile.ZipFile(artifact) as source, zipfile.ZipFile(broken, "w") as target:
+                        for entry in source.infolist():
+                            if duplicate or entry.filename != name:
+                                target.writestr(entry, source.read(entry))
+                        if duplicate:
+                            with warnings.catch_warnings():
+                                warnings.simplefilter("ignore", UserWarning)
+                                target.writestr(name, source.read(name))
+                    with self.assertRaisesRegex(ValueError, "Cloud JSON runtime dependency"):
+                        verify(broken, version)
+
     def test_removed_or_duplicate_bstats_class_is_rejected(self):
         artifacts = list((ROOT / "build/libs").glob("*-all.jar"))
         self.assertEqual(1, len(artifacts), "Build the combined JAR before running artifact regression tests.")

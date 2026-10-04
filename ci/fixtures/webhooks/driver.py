@@ -49,7 +49,7 @@ class Proxy:
         config,count=re.subn(r'^player-info-forwarding-mode = "(?:NONE|none|MODERN|modern)"$','player-info-forwarding-mode = "none"',config,flags=re.M);assert count==1
         config,count=re.subn(r'^(lobby|factions|minigames) = "[^\"]+"$',lambda m:m.group(1)+' = "127.0.0.1:'+str(backend)+'"',config,flags=re.M);assert count==3
         (directory/'velocity.toml').write_text(config);self.write(settings)
-        self.process=subprocess.Popen([str(java),'-Xms64m','-Xmx256m','-Dio.netty.eventLoopThreads=2','-Dterminal.jline=false','-Dterminal.ansi=false','-jar',str(proxy)],cwd=directory,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1)
+        self.process=subprocess.Popen([str(java),'-Xms64m','-Xmx256m','-Dio.netty.eventLoopThreads=2','-Dconnectionguard.cloud=false','-Dterminal.jline=false','-Dterminal.ansi=false','-jar',str(proxy)],cwd=directory,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1)
         def consume():
             for line in self.process.stdout:
                 line=re.sub(r'\x1b\[[0-9;]*[A-Za-z]','',line);self.transcript.append(line);self.lines.put(line)

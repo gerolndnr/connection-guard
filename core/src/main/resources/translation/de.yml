@@ -1,5 +1,3 @@
-# Message templates. Built-in locales: en, de, es. Missing keys use bundled defaults.
-# Keep placeholder names and command syntax; machine status codes remain unchanged.
 command:
   no-permission: '&cDu hast keine Berechtigung für diesen Befehl!'
   unknown-subcommand: '&bConnection Guard &7| &7Unbekannter Unterbefehl. /cg help zeigt die verfügbaren Befehle.'
@@ -7,8 +5,7 @@ command:
   clear:
     clear-all: '&bConnection Guard &7| &7Gesamten Cache geleert.'
     clear-specific: '&bConnection Guard &7| &7Cache-Einträge für &f%ENTRY% &7gelöscht.'
-  invalid-argument: '&bConnection Guard &7| &7Gib den Namen oder die UUID eines verbundenen Spielers oder eine IP-Adresse
-    an.'
+  invalid-argument: '&bConnection Guard &7| &7Gib den Namen oder die UUID eines verbundenen Spielers oder eine IP-Adresse an.'
   reload-rejected: Neuladen abgelehnt; aktive Einstellungen bleiben erhalten. Prüfe config.yml und /cg doctor.
   info-unavailable: Informationen nicht verfügbar (Details ausgeblendet).
   clear-unavailable: Cache kann nicht geleert werden (Details ausgeblendet).
@@ -40,8 +37,7 @@ messages:
   - ' &7- /cg &fexplain &7<IP> (Quellen und Regeln erklären)'
   - ' &7- /cg &fallow &7| &fdeny &7| &fexempt &7(Regeln mit Geltung und Ablauf)'
   - ' &7- /cg &flocal status &7(lokalen Datenstand prüfen)'
-  invalid-argument: '&bConnection Guard &7| &7Gib den Namen oder die UUID eines verbundenen Spielers oder eine IP-Adresse
-    an.'
+  invalid-argument: '&bConnection Guard &7| &7Gib den Namen oder die UUID eines verbundenen Spielers oder eine IP-Adresse an.'
   access-denied: Verbindung durch die Zugangsregeln des Servers abgelehnt.
   external-denied: Verbindung durch die konfigurierte Zugangsprüfung abgelehnt.
   external-unavailable: Die Zugangsprüfung ist vorübergehend nicht verfügbar. Bitte versuche es erneut.
@@ -58,46 +54,38 @@ ops:
   no-provider-attempts: Noch keine Anbieterabfragen aufgezeichnet.
   cache-health: Der Zustand muss mit einer tatsächlichen Abfrage geprüft werden. Dieser Befehl verbraucht kein API-Kontingent.
   identity-authority: Deklariertes/globales Vertrauen ist kein verifizierter Nachweis für temporäre Freigaben.
-  forwarding: Prüfe die Weiterleitung der Client-IP mit einem kontrollierten Client; eine öffentliche IP allein beweist keine
-    korrekte Weiterleitung.
+  forwarding: Prüfe die Weiterleitung der Client-IP mit einem kontrollierten Client; eine öffentliche IP allein beweist keine korrekte Weiterleitung.
   rules-unavailable: Regelspeicher nicht verfügbar; prüfe das Startprotokoll des Servers.
   rules-shown: '{0} aktive Regeln angezeigt (höchstens 20); vollständige Datei: access-rules.json.'
   rules-missing: Keine passende {0}-Regel.
   rule-removed: Regel entfernt.
   rule-absent: Regel war bereits entfernt.
   rule-remove-failed: Entfernen fehlgeschlagen; bestehende Regeln bleiben erhalten.
-  rule-invalid: Ungültiges Ziel, Geltungsbereich, Dauer oder Grund. Verwende IP/CIDR, UUID oder einen dokumentierten Metadaten-Selektor;
-    keine Spielernamen.
+  rule-invalid: Ungültiges Ziel, Geltungsbereich, Dauer oder Grund. Verwende IP/CIDR, UUID oder einen dokumentierten Metadaten-Selektor; keine Spielernamen.
   rule-stored: 'Gespeichert: {0} {1} {2} {3}'
   rule-write-failed: Speichern fehlgeschlagen; aktive Regeln bleiben erhalten.
   rule-usage: /cg {0} add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <Grund>
-  rule-usage-tail: /cg {0} list | remove <Regel-ID>; deny hat Vorrang vor allow/exempt; UUID erfordert eine vertrauenswürdige
-    Identität.
-  local-disabled: Lokale Daten sind deaktiviert. Konfiguriere Quellen mit Herkunftsangabe und wähle zuerst lokale VPN- und/oder
-    Länderdaten.
-  local-usage: 'Verwendung: /cg local status|prepare|reload; /cg local update <Quellen-ID>; /cg local import <Quellen-ID>
-    <Inbox-Datei> <ISO-8601-Datenzeitpunkt>'
+  rule-usage-tail: /cg {0} list | remove <Regel-ID>; deny hat Vorrang vor allow/exempt; UUID erfordert eine vertrauenswürdige Identität.
+  local-disabled: Lokale Daten sind deaktiviert. Konfiguriere Quellen mit Herkunftsangabe und wähle zuerst lokale VPN- und/oder Länderdaten.
+  local-usage: 'Verwendung: /cg local status|prepare|reload; /cg local update <Quellen-ID>; /cg local import <Quellen-ID> <Inbox-Datei> <ISO-8601-Datenzeitpunkt>'
   local-invalid: Ungültige Quellen-ID oder Zeitangabe. Verwende UTC ISO-8601, etwa 2026-10-02T09:00:00Z.
   local-prepared: Das private Verzeichnis local-data/inbox ist im Plugin-Datenordner bereit.
-  local-activated: Geprüfter lokaler Datenstand aktiviert; Cache-Namensraum geändert. /cg local status zeigt das tatsächliche
-    Alter und die Bereitschaft.
-  local-stored: Geprüfte Daten gespeichert; aktiver Stand bleibt erhalten. Warte laufende Abfragen ab, dann /cg local reload
-    (Details ausgeblendet).
+  local-activated: Geprüfter lokaler Datenstand aktiviert; Cache-Namensraum geändert. /cg local status zeigt das tatsächliche Alter und die Bereitschaft.
+  local-stored: Geprüfte Daten gespeichert; aktiver Stand bleibt erhalten. Warte laufende Abfragen ab, dann /cg local reload (Details ausgeblendet).
   local-rejected: Lokale Datenoperation abgelehnt; aktiver Stand bleibt erhalten (Details ausgeblendet).
   local-busy: Lokaler Datenworker ausgelastet; versuche es später erneut.
   warning-0: 'Kein VPN-Anbieter aktiviert: VPN-Einstufung ist UNKNOWN.'
   warning-1: Berechtigungsausnahmen aktiviert, aber LuckPerms fehlt; Prüfungen bleiben aktiv.
   warning-2: IP-API Free nutzt HTTP und ist auf nichtkommerzielle Nutzung beschränkt; prüfe die Anbieterbedingungen.
-  warning-3: IPQualityScore-Budgets zählen lokale Anfragen und beginnen nach Neustart neu; sie sind kein monatlicher Kontostand.
-    Verwende deinen eigenen Schlüssel und prüfe die aktuellen Bedingungen.
+  warning-3: IPQualityScore-Budgets zählen lokale Anfragen und beginnen nach Neustart neu; sie sind kein monatlicher Kontostand. Verwende deinen eigenen Schlüssel und prüfe die aktuellen
+    Bedingungen.
   warning-4: IPQualityScore strictness 2+ erhöht das Risiko falscher Treffer; prüfe in OBSERVE, bevor du sperrst.
-  warning-5: 'Vertrauen in weitergeleitete UUID aktiviert: beschränke Backend-Zugriff und prüfe Proxy-/Floodgate-Weiterleitung;
-    eine öffentliche IP reicht als Nachweis nicht aus.'
-  warning-6: Überlastlimits überspringen die Erkennung für abgewiesene Prüfungen; nur overload.deny-connections kann zeitweise
-    sperren (OBSERVE unterdrückt Sperren). Anbieter-Ausfallregeln ändern diese Wahl nicht.
+  warning-5: 'Vertrauen in weitergeleitete UUID aktiviert: beschränke Backend-Zugriff und prüfe Proxy-/Floodgate-Weiterleitung; eine öffentliche IP reicht als Nachweis nicht aus.'
+  warning-6: Überlastlimits überspringen die Erkennung für abgewiesene Prüfungen; nur overload.deny-connections kann zeitweise sperren (OBSERVE unterdrückt Sperren). Anbieter-Ausfallregeln
+    ändern diese Wahl nicht.
   warning-7: Native Floodgate-Identität gewählt, aber die kanonische API fehlt; keine native Ausnahme wird gewährt.
-  warning-8: 'Native Paper-Weiterleitung gewählt: nur qualifizierte native PreLogin-Profilpfade liefern Gatewayautorität;
-    schütze Proxy-Schlüssel und Backend-Zugriff. Das ist keine unabhängige Accountauthentifizierung.'
+  warning-8: 'Native Paper-Weiterleitung gewählt: nur qualifizierte native PreLogin-Profilpfade liefern Gatewayautorität; schütze Proxy-Schlüssel und Backend-Zugriff. Das ist keine unabhängige
+    Accountauthentifizierung.'
 webhook:
   title-deny: 'Connection Guard: Verbindung abgelehnt'
   title-error: 'Connection Guard: Verarbeitungsfehler'
@@ -153,3 +141,31 @@ webhook:
   footer: 'Quellen: {0}/{1}. Adresse {2}; Namen/UUIDs/Providertexte ausgelassen. Bestmöglicher Versand; keine Wiederholung.'
   not-supplied: nicht angegeben
   source-label: '{0}-Quelle: {1}'
+cloud:
+  link: 'Diesen Server verknüpfen: {0}'
+  link-expiry: 'Diesen Server verknüpfen: {0} (24 Stunden gültig)'
+  off-help: Connection Guard Cloud ist aus. Mit /cg cloud enable einschalten.
+  already-linked: 'Dieser Server ist bereits verknüpft. Verwaltung: https://app.connectionguard.net.'
+  registering-help: Dashboard-Registrierung läuft; der Link erscheint innerhalb einer Minute. /cg cloud link erneut ausführen.
+  not-ready: Connection Guard startet noch; gleich erneut versuchen.
+  change-error: Cloud-Einstellung konnte nicht geändert werden; Dateirechte im Pluginordner prüfen.
+  local-error: Lokaler Cloud-Zustand ist ungültig; Pluginordner prüfen (Werte verborgen).
+  reset-none: Keine Dashboard-Einstellungen aktiv; config.yml gilt.
+  reset-file-error: Einstellungsdatei konnte nicht geändert werden; Dateirechte prüfen.
+  reset-rejected: Reload abgelehnt; Dashboard-Einstellungen erhalten. Gleich erneut versuchen (Werte verborgen).
+  reset-done: Dashboard-Einstellungen entfernt; config.yml gilt wieder. Nach dem nächsten Sync im Dashboard sichtbar.
+  settings-local: Alle Einstellungen stammen aus config.yml.
+  settings-header: 'Dashboard-Einstellungen v{0} überschreiben diese config.yml-Werte:'
+  settings-reset-help: Mit /cg cloud reset-settings wieder nur config.yml verwenden.
+  disabled: Connection Guard Cloud ist aus und bleibt nach Neustarts aus. Es wird nichts gesendet.
+  enabled: Connection Guard Cloud ist an. Erster Sync innerhalb einer Minute.
+  status-off: 'Cloud: aus{0}. Es wird nichts gesendet.'
+  status-on: 'Cloud: an, {0}, Endpunkt {1}{2}{3}.'
+  registering: Registrierung läuft
+  linked: verknüpft
+  unlinked: nicht verknüpft
+  no-sync: ', noch kein Sync'
+  last-sync: ', letzter Sync vor {0}s'
+  last-error: ', letztes Problem: {0}'
+  anonymous: ' (bis zur Verknüpfung nur anonyme Zähler)'
+  stays-off: 'Cloud bleibt aus: {0}.'

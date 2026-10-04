@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class DecisionObservers {
     private static final Map<String, Entry> entries = new HashMap<>();
     private static volatile List<Entry> selected = Collections.emptyList();
+    /** Built-in observer (the cloud link). Not an addon: no ID, no slot, not selected through config. */
+    private static volatile Entry internal;
     private static volatile long generation;
     private static volatile ThreadPoolExecutor workers;
     private static final AtomicLong dropped = new AtomicLong(), failed = new AtomicLong(), delivered = new AtomicLong();
@@ -24,18 +26,30 @@ public final class DecisionObservers {
         validateActivation(settings);
         List<Entry> next = new ArrayList<>();
         for (String id : settings.ids) { Entry entry = entries.get(id); if (entry != null) next.add(entry); }
-        if (!next.isEmpty() && (workers == null || workers.isTerminated())) {
-            java.util.concurrent.atomic.AtomicInteger serial = new java.util.concurrent.atomic.AtomicInteger();
-            workers = new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(64), work -> {
-                Thread thread = new Thread(work, "ConnectionGuard-observer-" + serial.incrementAndGet()); thread.setDaemon(true); return thread;
-            }, new ThreadPoolExecutor.AbortPolicy());
-            workers.allowCoreThreadTimeOut(true);
-        }
+        if (!next.isEmpty() && (workers == null || workers.isTerminated())) workers = newWorkers();
         generation++; selected = Collections.unmodifiableList(next);
         if (workers != null) workers.getQueue().clear();
     }
-    public static boolean isActive() { return !selected.isEmpty(); }
-    public static synchronized long captureGeneration() { return selected.isEmpty() ? -1 : generation; }
+    /** Installs or removes (null) the built-in observer. Shares the bounded best-effort workers. */
+    public static synchronized void setInternal(DecisionObserver observer) {
+        if (observer != null && workers != null && workers.isShutdown() && !workers.isTerminated())
+            throw new IllegalStateException("Previous observer callbacks have not terminated; activation rejected.");
+        if (internal != null) internal.close();
+        internal = observer == null ? null : new Entry("internal", observer, false);
+        if (internal != null && (workers == null || workers.isTerminated())) workers = newWorkers();
+        if (workers != null) workers.getQueue().clear();
+        generation++;
+    }
+    private static ThreadPoolExecutor newWorkers() {
+        java.util.concurrent.atomic.AtomicInteger serial = new java.util.concurrent.atomic.AtomicInteger();
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(64), work -> {
+            Thread thread = new Thread(work, "ConnectionGuard-observer-" + serial.incrementAndGet()); thread.setDaemon(true); return thread;
+        }, new ThreadPoolExecutor.AbortPolicy());
+        pool.allowCoreThreadTimeOut(true);
+        return pool;
+    }
+    public static boolean isActive() { return !selected.isEmpty() || internal != null; }
+    public static synchronized long captureGeneration() { return selected.isEmpty() && internal == null ? -1 : generation; }
     public static void publish(DecisionObservation observation) {
         publish(observation, captureGeneration());
     }
@@ -43,7 +57,11 @@ public final class DecisionObservers {
         ThreadPoolExecutor pool;
         List<Entry> receivers;
         long capturedGeneration;
-        synchronized (DecisionObservers.class) { pool = workers; receivers = selected; capturedGeneration = generation; }
+        synchronized (DecisionObservers.class) {
+            pool = workers; capturedGeneration = generation;
+            if (internal == null) receivers = selected;
+            else { receivers = new ArrayList<>(selected); receivers.add(internal); }
+        }
         if (pool == null || receivers.isEmpty() || expectedGeneration != capturedGeneration) return;
         for (Entry entry : receivers) {
             try {
@@ -64,7 +82,7 @@ public final class DecisionObservers {
             throw new IllegalStateException("Previous observer callbacks have not terminated; activation rejected.");
     }
     public static synchronized void closeAll() {
-        generation++; selected = Collections.emptyList();
+        generation++; selected = Collections.emptyList(); internal = null;
         for (Entry entry : new ArrayList<>(entries.values())) entry.close();
         if (workers != null) workers.getQueue().clear();
     }
@@ -82,11 +100,13 @@ public final class DecisionObservers {
         private final String id;
         private final DecisionObserver callback;
         private volatile boolean registered = true;
-        private Entry(String id, DecisionObserver callback) { this.id = id; this.callback = callback; }
+        private final boolean counted;
+        private Entry(String id, DecisionObserver callback) { this(id, callback, true); }
+        private Entry(String id, DecisionObserver callback, boolean counted) { this.id = id; this.callback = callback; this.counted = counted; }
         @Override public String getId() { return id; }
         @Override public boolean isRegistered() { return registered; }
         @Override public void close() {
-            synchronized (DecisionObservers.class) { registered = false; entries.remove(id, this); }
+            synchronized (DecisionObservers.class) { registered = false; if (counted) entries.remove(id, this); }
         }
     }
 }

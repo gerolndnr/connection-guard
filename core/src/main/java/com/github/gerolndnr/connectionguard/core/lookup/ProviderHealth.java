@@ -50,6 +50,20 @@ public final class ProviderHealth {
             pausedUntil = System.currentTimeMillis() + Math.min(3600000, pause);
         }
     }
+    /** Immutable view for status reporting (cloud dashboard). Local estimates, like describe(). */
+    public synchronized Snapshot snapshot() {
+        return new Snapshot(attempts, successes, dayRequests, dailyBudget, System.currentTimeMillis() < pausedUntil, lastReason);
+    }
+    public static final class Snapshot {
+        public final long attempts, successes, dailyUsed;
+        public final int dailyBudget;
+        public final boolean paused;
+        public final FailureReason lastReason;
+        Snapshot(long attempts, long successes, long dailyUsed, int dailyBudget, boolean paused, FailureReason lastReason) {
+            this.attempts = attempts; this.successes = successes; this.dailyUsed = dailyUsed; this.dailyBudget = dailyBudget;
+            this.paused = paused; this.lastReason = lastReason;
+        }
+    }
     public synchronized String describe() {
         return "attempts=" + attempts + " successes=" + successes + " last=" + lastReason
                 + " pauseMs=" + Math.max(0, pausedUntil - System.currentTimeMillis())
