@@ -4,7 +4,7 @@ Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
 Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
 Explicit addon selection: [versioned provider contract](PROVIDER_API_V1.md).
 
-Development documentation for the next feature release. The published 0.4.11 hotfix remains unchanged; these features are not in that release.
+Available in Connection Guard 0.5.0.
 
 New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.
 

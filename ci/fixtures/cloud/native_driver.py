@@ -44,7 +44,7 @@ def main():
     assert not work.exists()
     work.mkdir(parents=True, mode=0o700)
     records = collections.deque(maxlen=256)
-    state = {'desired': None, 'blocked': False, 'installs': 0, 'provider_calls': 0}
+    state = {'desired': None, 'blocked': False, 'installs': 0, 'provider_calls': 0, 'commands': []}
     lock = threading.Lock()
     entered, release = threading.Event(), threading.Event()
     fixture_id = 'ins_' + 'A' * 24
@@ -89,12 +89,13 @@ def main():
                 records.append(body)
                 desired = state['desired']
                 blocked = state['blocked']
+                commands = list(state['commands'])
             if blocked:
                 entered.set()
                 release.wait(15)
             self.send_json(200, {'claimed': True, 'network_name': 'Owned fixture', 'link_code': None,
                 'link_url': None, 'accept_events': True, 'next_sync_in': 5, 'live': False,
-                'commands': [], 'config': desired})
+                'commands': commands, 'config': desired})
 
         def log_message(self, *unused):
             pass
@@ -225,6 +226,47 @@ def main():
         deny('CGCloudRejected')
         assert digest(config) == local_hash and digest(language) == language_hash
         record('invalid-whole-draft-keeps-effective-enforce-overlay-and-language')
+        assert 'rule_expiry' in report['status']['capabilities']
+        deadline = int(time.time() * 1000) + 20000
+        temporary = {'id': 'cmd_' + 'T' * 20, 'type': 'access_rule.add', 'effect': 'ALLOW',
+            'scope': 'VPN', 'target': '127.0.0.1', 'note': 'Owned synthetic expiry', 'expires_at': deadline}
+        with lock:
+            state['commands'] = [temporary]
+        def acknowledged(command_id):
+            for body in reversed(request_snapshot()):
+                for value in body['command_results']:
+                    if value['id'] == command_id:
+                        return value
+            return None
+        ack = until(lambda: acknowledged(temporary['id']), 'native temporary rule acknowledgement')
+        assert ack['ok'] is True
+        rules_file = data_dir / 'access-rules.json'
+        stored = json.loads(rules_file.read_text())
+        assert any(rule['expiresAt'] == deadline for rule in stored), stored
+        admit('CGCloudGranted')
+        record('absolute-cloud-rule-persists-and-allows-before-deadline')
+        # Cloud is deliberately unavailable through the actual deadline. Local policy must still end the grant.
+        with lock:
+            state['commands'] = []
+            state['blocked'] = True
+        until(entered.is_set, 'blocked sync during independent local expiry')
+        until(lambda: int(time.time() * 1000) > deadline + 100, 'absolute expiry boundary', 25)
+        deny('CGCloudExpired')
+        record('expired-cloud-grant-denies-without-cloud-contact')
+        with lock:
+            state['blocked'] = False
+        release.set()
+        until(lambda: not json.loads(rules_file.read_text()), 'background expired-rule cleanup', 25)
+        release.clear(); entered.clear()
+        expired = dict(temporary, id='cmd_' + 'E' * 20, expires_at=1)
+        with lock:
+            state['commands'] = [expired]
+        ack = until(lambda: acknowledged(expired['id']), 'already-expired acknowledgement')
+        assert ack['ok'] is True and ack['message'] == 'Already expired'
+        assert json.loads(rules_file.read_text()) == []
+        with lock:
+            state['commands'] = []
+        record('delayed-expired-command-is-acknowledged-without-permanent-rule')
         desired(3, {}, True)
         report = until(lambda: applied(3, True), 'remote reset')
         assert report['status']['mode'] == 'OBSERVE'

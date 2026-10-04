@@ -4,11 +4,11 @@ For a standalone Spigot or compatible server. For a proxy network, begin with th
 
 ## Install and configure
 
-1. The adapter builds against the Spigot 1.8.8 API; Spigot/core bytecode targets Java 8. Follow your server software's Java requirements. Build targets do not establish every Minecraft version or Folia support.
+1. The adapter builds against the Spigot 1.8.8 API; Spigot/core bytecode targets Java 8. Follow your server software's Java requirements. Build targets do not establish every Minecraft version.
 2. [Download the latest combined JAR](https://github.com/gerolndnr/connection-guard/releases/latest). Back up existing settings, stop the test server, place the JAR in the **server's** `plugins/` directory and remove an older Connection Guard JAR there when upgrading.
 3. Start the test server, confirm successful plugin initialization and inspect the generated `config.yml` in the plugin data directory before accepting live players.
 4. [Review providers, quotas and terms](../PROVIDERS.md). The default geo provider's free IP-API endpoint is for non-commercial use. Select a suitable provider before connection tests.
-5. [Apply the notification profile](../CONFIGURATION.md). The shipped config enables VPN and geo kicks and contains CN/RU in its geo blocklist. Provider/cache changes require a restart.
+5. [Review observation mode](../CONFIGURATION.md). New 0.5.0 installs start in OBSERVE with neutral country rules. Existing settings are retained. Cache connection changes require a restart; provider drafts are validated on reload.
 
 ## Confirm the setup
 
@@ -20,4 +20,4 @@ Permission exemptions on Spigot use LuckPerms and also require the respective co
 
 ## Validation scope
 
-This guide describes published 0.4.11, based on unchanged 0.4.10 connection-check behavior. The hotfix passed Paper 1.21.11 build 132 / Java 21 activation, reload, a synthetic offline backend join and shutdown; that does not establish a complete Spigot version matrix or stable Folia support. [Newer native permission/identity evidence](../PERMISSION_VALIDATION.md) belongs to development for a future release, not the published JAR. Tests do not establish public-provider accuracy. [Release checks](../../CHANGELOG.md). Record exact platform and Java versions with deployments and support reports.
+This guide describes 0.5.0. The exact release JAR has controlled native checks on Paper 1.21.11 build 132, Folia 1.21.11 build 14, BungeeCord build 2100 and Velocity 3.4.0 build 566 / Java 21. See [release qualification](../RELEASE_0_5_0.md) for tested flows and limits. Separate [permission/identity evidence](../PERMISSION_VALIDATION.md) names its original artifact and fixture. These tests use synthetic clients; they do not establish every Minecraft version, authenticated Java/Bedrock accounts or public-provider detection accuracy. Record exact platform and Java versions with support reports.

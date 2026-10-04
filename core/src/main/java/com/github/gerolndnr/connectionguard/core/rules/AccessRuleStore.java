@@ -39,6 +39,17 @@ public final class AccessRuleStore {
         AccessRule rule = new AccessRule("rule-" + UUID.randomUUID(), effect, scope, target, expires, reason);
         List<AccessRule> draft = new ArrayList<>(active); draft.add(rule); save(draft); return rule;
     }
+    /** Background/administrative cleanup; decisions already ignore expired rules without any I/O. */
+    public synchronized int pruneExpired(long now) throws IOException {
+        if (now < 0) throw new IllegalArgumentException("Invalid clock.");
+        List<AccessRule> draft = new ArrayList<>(active);
+        int before = draft.size();
+        draft.removeIf(rule -> rule.getExpiresAt() != 0 && now >= rule.getExpiresAt());
+        int removed = before - draft.size();
+        if (removed > 0) save(draft);
+        return removed;
+    }
+
     public synchronized boolean remove(String id) throws IOException {
         List<AccessRule> draft = new ArrayList<>(active);
         if (!draft.removeIf(rule -> rule.getId().equals(id))) return false;

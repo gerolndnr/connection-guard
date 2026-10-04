@@ -1,6 +1,6 @@
 # Source evidence and metadata rules
 
-Development features for the next release. The published 0.4.10 JAR does not contain them.
+Available in Connection Guard 0.5.0.
 
 Each source retains its generic verdict and its actually reported VPN, PROXY, TOR, RELAY and HOSTING observations. Missing fields remain unknown. Hosting, ASN or country alone is not evidence of abuse. The generic positive-vote threshold stays in force; additional metadata rules are explicit operator choices. No hosting, ASN or risk ban is enabled by default.
 

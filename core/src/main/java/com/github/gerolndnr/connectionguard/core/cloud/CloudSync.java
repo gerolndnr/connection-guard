@@ -65,6 +65,8 @@ public final class CloudSync {
     private volatile String networkName, linkCode, linkUrl, lastError;
     private volatile long lastSyncAt;
     private JsonObject pending;
+    private boolean legacyStatus;
+    private boolean cleanupWarned;
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
     private JsonObject configResult;
@@ -179,6 +181,14 @@ public final class CloudSync {
         if (!active()) return;
         long next;
         try {
+            com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore rules = ConnectionGuard.getRuleStore();
+            if (rules != null) {
+                try { rules.pruneExpired(System.currentTimeMillis()); cleanupWarned = false; }
+                catch (IOException cleanupFailed) {
+                    if (!cleanupWarned) log.warning("Connection Guard Cloud: expired rules could not be removed from local storage; expired rules still never permit access (values redacted).");
+                    cleanupWarned = true;
+                }
+            }
             next = credentials == null ? install() : sync();
             if (active() && lastError == null) failures = 0;
         } catch (IOException | RuntimeException failure) {
@@ -242,6 +252,14 @@ public final class CloudSync {
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
+        if (reply.status == 400 && !legacyStatus && pending.getAsJsonObject("status").has("capabilities")) {
+            // Older protocol-1 APIs reject unknown status fields. Retry the SAME decision batch
+            // and sequence without capabilities, rather than draining/dropping or recounting it.
+            legacyStatus = true;
+            pending.getAsJsonObject("status").remove("capabilities");
+            lastError = "using older cloud status format";
+            return MIN_DELAY;
+        }
         if (reply.status == 400 || reply.status == 413) { pending = null; lastError = "server rejected a sync"; return backoff(-1); }
         if (!reply.ok()) { failures++; lastError = "cloud request refused"; return backoff(reply.retryIn()); }
         lastError = null;
@@ -328,6 +346,10 @@ public final class CloudSync {
             providers.add(p);
         }
         s.add("providers", providers);
+        if (!legacyStatus) {
+            JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry");
+            s.add("capabilities", capabilities);
+        }
         JsonArray warnings = new JsonArray();
         if (observe) warnings.add("mode.observe");
         if (ConnectionGuard.getVpnProviders() == null || ConnectionGuard.getVpnProviders().isEmpty()) warnings.add("provider.none");
@@ -444,9 +466,9 @@ public final class CloudSync {
     // ---- dashboard commands (closed set) --------------------------------------------------
 
     private void execute(JsonObject command) {
-        String id = command.has("id") ? command.get("id").getAsString() : "";
+        String id = command.has("id") && command.get("id").isJsonPrimitive() && command.get("id").getAsJsonPrimitive().isString() ? command.get("id").getAsString() : "";
         if (!id.matches("cmd_[A-Za-z0-9]{12,32}") || !executedCommands.add(id)) return;
-        String type = command.has("type") ? command.get("type").getAsString() : "";
+        String type = command.has("type") && command.get("type").isJsonPrimitive() && command.get("type").getAsJsonPrimitive().isString() ? command.get("type").getAsString() : "";
         String message = null;
         boolean ok;
         try {

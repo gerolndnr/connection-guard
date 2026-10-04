@@ -145,7 +145,10 @@ class CloudSyncTest {
         JsonObject body = syncs.poll(5, TimeUnit.SECONDS);
         JsonObject expected = new Gson().fromJson(fixture("sync-request.json"), JsonObject.class);
         assertEquals(expected.keySet(), body.keySet());
+        JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry");
+        expected.getAsJsonObject("status").add("capabilities", capabilities);
         assertEquals(expected.getAsJsonObject("status").keySet(), body.getAsJsonObject("status").keySet());
+        assertEquals(capabilities, body.getAsJsonObject("status").get("capabilities"));
         assertEquals(expected.getAsJsonObject("counters").keySet(), body.getAsJsonObject("counters").keySet());
         JsonObject event = body.getAsJsonArray("events").get(0).getAsJsonObject();
         JsonObject expectedEvent = expected.getAsJsonArray("events").get(0).getAsJsonObject();
@@ -383,6 +386,43 @@ class CloudSyncTest {
             assertEquals(0, activated.get()); assertTrue(CloudManagedConfig.load(dir).values.isEmpty());
             assertFalse(CloudSync.isRunning());
         } finally { release.countDown(); threads.shutdownNow(); assertTrue(threads.awaitTermination(3, TimeUnit.SECONDS)); }
+    }
+
+    @Test void oldStrictApiFallbackRetainsTheSameSequenceEventsCountersAndQueuedNewEvents() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN));
+        awaitDelivered(before + 1);
+        syncStatus = 400; CloudSync.runOnceForTest();
+        JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
+        assertNotNull(first); assertTrue(first.getAsJsonObject("status").has("capabilities"));
+        assertEquals(1, first.getAsJsonArray("events").size());
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
+        syncStatus = 200; CloudSync.runOnceForTest();
+        JsonObject retried = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retried);
+        JsonObject expected = first.deepCopy(); expected.getAsJsonObject("status").remove("capabilities");
+        assertEquals(expected, retried, "Only unsupported metadata changes: the exact batch and seq are retained");
+        CloudSync.runOnceForTest();
+        JsonObject next = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(next);
+        assertFalse(next.getAsJsonObject("status").has("capabilities"));
+        assertTrue(next.get("seq").getAsLong() > first.get("seq").getAsLong());
+        assertEquals(1, next.getAsJsonArray("events").size());
+        assertEquals(1, next.getAsJsonObject("counters").get("allowed").getAsInt());
+    }
+
+    @Test void malformedTypedCommandGetsRedactedFailureAndDoesNotPreventFollowingCommand() throws Exception {
+        ConnectionGuard.initializeRules(dir.resolve("rules"));
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("null").replace("\"commands\":[]", "\"commands\":[{\"id\":\"cmd_AAAAAAAAAAAAAAAA\",\"type\":true},{\"id\":\"cmd_BBBBBBBBBBBBBBBB\",\"type\":\"access_rule.remove\",\"effect\":\"ALLOW\",\"target\":\"192.0.2.12\"}]");
+        CloudSync.runOnceForTest(); syncs.clear(); syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        JsonArray results = body.getAsJsonArray("command_results"); assertEquals(2, results.size());
+        assertFalse(results.get(0).getAsJsonObject().get("ok").getAsBoolean());
+        assertEquals("Command refused (values redacted).", results.get(0).getAsJsonObject().get("message").getAsString());
+        assertEquals("cmd_BBBBBBBBBBBBBBBB", results.get(1).getAsJsonObject().get("id").getAsString());
+        assertTrue(results.get(1).getAsJsonObject().get("ok").getAsBoolean());
     }
 
 }

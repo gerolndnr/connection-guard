@@ -1,8 +1,8 @@
 # Evaluate rules before blocking players
 
-The shipped 0.4.10 config enables VPN and geo kicks, with `CN` and `RU` in its country blocklist. Choose rules deliberately before accepting live players. A country match is an access-policy decision, not proof of an attack.
+New 0.5.0 installations start with `operation.mode: OBSERVE` and an empty country blocklist. Observation suppresses kicks, commands and webhooks. Existing configurations without that setting retain ENFORCE; upgrades never overwrite existing choices. Choose rules deliberately before accepting live players. A country match is an access-policy decision, not proof of an attack.
 
-## Start with notifications
+## Observe before enforcing
 
 Edit these existing fields in the generated `config.yml`. This is a **partial example**, not a replacement for the complete config:
 
@@ -28,11 +28,11 @@ behavior:
 
 Preserve other generated settings and required values. Disabling kicks alone does not disable a command/webhook you previously enabled; this example disables those actions too. Staff need `connectionguard.notify.vpn` and `connectionguard.notify.geo`. With an empty country blocklist no geo-match notification is expected. Provider lookups still happen and consume quota.
 
-Use `/cg reload` for supported settings/messages. Restart after changing providers or cache settings. Check successful initialization, then evaluate an ordinary connection and a controlled flagged case in an authorized test environment. `/cg info <IP>` inspects returned data; it is not an accuracy benchmark.
+Use `/cg reload` for supported settings/messages. Provider drafts are validated during reload. Restart after changing cache connection settings. Check successful initialization, then evaluate an ordinary connection and a controlled flagged case in an authorized test environment. `/cg info <IP>` inspects returned data; it is not an accuracy benchmark.
 
 ## Choose your policy
 
-After reviewing decisions, set `behavior.vpn.kick-player: true` if your policy rejects flagged VPN/proxy connections. Choose the corresponding geo field and country list for country rules. `BLACKLIST` matches listed countries; `WHITELIST` matches countries outside the list. An empty whitelist is restrictive; do not reuse the empty blacklist example as a whitelist.
+After reviewing decisions, set `operation.mode: ENFORCE` and `behavior.vpn.kick-player: true` if your policy rejects flagged VPN/proxy connections. Choose the corresponding geo field and country list for country rules. `BLACKLIST` matches listed countries; `WHITELIST` matches countries outside the list. An empty whitelist is restrictive; do not reuse the empty blacklist example as a whitelist.
 
 Keep `required-positive-flags` between 1 and the number of enabled VPN providers. Raising it reduces which sets of votes cause a flag, including possible true detections; it does not guarantee fewer false positives. [Missing responses do not count as positive votes](PROVIDER_FAILURES.md).
 

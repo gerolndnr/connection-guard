@@ -1,6 +1,6 @@
 # Connection Guard Cloud (optional dashboard)
 
-> Development feature for the next release. Not in 0.4.11.
+Available in Connection Guard 0.5.0.
 
 Connection Guard Cloud is a free, optional web dashboard at **https://app.connectionguard.net**. It shows what Connection Guard checked, who it refused and why, provider health and quota, and totals over 24 hours to 90 days.
 
@@ -74,3 +74,9 @@ The integrated bridge currently matches the original protocol-1 settings: ProxyC
 This bridge does not yet report the newer `rule_expiry` capability, so a compatible dashboard must keep its time-limited rule controls unavailable for this build. Existing generic dashboard access rules are separate from the planned verified identity/challenge-specific temporary exemptions.
 
 Versioned local qualification drivers and their limits are in `ci/fixtures/cloud/README.md`. Native Paper, Folia and Bungee tests exercise complete accepted/rejected configuration drafts, custom-language retention, reset, persisted switch-off, real synthetic logins and shutdown during a deliberately hanging Cloud request. The separate browser fixture uses the existing setup/settings UI and an immutable **3e8771ee8ba19de0d59ec7f8f20764b05082a2e7** Cloud source copy on loopback; its hard-coded protocol fixture label refers to that source. No production Cloud, Discord OAuth or real operator onboarding is claimed by these tests.
+
+## Dashboard access rules and compatibility
+
+IP/CIDR rules can be permanent or time limited. Version 0.5.0 reports `rule_expiry`: UTC deadlines persist locally, expired rules never permit access, and background sync removes expired records. An invalid or already expired deadline rejects the command. These are operator access rules; they are not automatic identity-bound challenge grants.
+
+The current dashboard settings expose the original four VPN services and custom REST provider. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
