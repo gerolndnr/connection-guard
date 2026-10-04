@@ -69,16 +69,10 @@ public class ConnectionGuardVelocityPlugin {
                 .version("1.3.6")
                 .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
-        Library gsonLibrary = Library.builder()
-                .groupId("com.google.code.gson")
-                .artifactId("gson")
-                .version("2.11.0")
-                .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
-                .build();
         Library bstatsLibrary = Library.builder()
                 // Weird replaceAll is necessary, because the gradle shadow relocate method will
                 // rewrite org.bstats to com.github.gerolndnr.connectionguard.libs.org.bstats
-                // here, but not for libraries like gson.
+                // here; the literal is kept separate from the package relocation.
                 .groupId("org#bstats".replaceAll("#", "."))
                 .artifactId("bstats-velocity")
                 .version("3.0.2")
@@ -87,7 +81,6 @@ public class ConnectionGuardVelocityPlugin {
 
         libraryManager.addMavenCentral();
         libraryManager.loadLibrary(boostedYamlLibrary);
-        libraryManager.loadLibrary(gsonLibrary);
         libraryManager.loadLibrary(bstatsLibrary);
 
         // 3. Create and load configs

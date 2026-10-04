@@ -35,6 +35,12 @@ public final class CloudSync {
     private static Logger lastLog;
     /** The platform's own reload (/cg reload): re-reads config.yml, layers the managed values, validates, swaps. */
     private static volatile Runnable reloadHook;
+    private static final ThreadLocal<CloudSync> applying = new ThreadLocal<>();
+    /** Called by each native adapter under its short atomic activation lock, after draft preparation. */
+    public static void validateReloadActivation() {
+        CloudSync owner = applying.get();
+        if (owner != null && !owner.active()) throw new IllegalStateException("Cloud reload retired; active settings preserved.");
+    }
 
     /** Platforms register their reload so dashboard settings can be applied with the same validation as /cg reload. */
     public static void setReloadHook(Runnable hook) { reloadHook = hook; }
@@ -245,12 +251,19 @@ public final class CloudSync {
         JsonObject r = reply.body;
         applyLink(r);
         recorder.acceptEvents(claimed && r.get("accept_events").getAsBoolean());
-        JsonElement commands = r.get("commands");
-        if (commands != null && commands.isJsonArray()) for (JsonElement c : commands.getAsJsonArray()) execute(c.getAsJsonObject());
-        JsonElement config = r.get("config");
-        if (claimed && credentials != null && config != null && config.isJsonObject() && applyConfig(config.getAsJsonObject())) return MIN_DELAY; // report the result quickly
-        return r.get("next_sync_in").getAsLong();
         }
+        JsonObject r = reply.body;
+        JsonElement commands = r.get("commands");
+        if (commands != null && commands.isJsonArray()) {
+            if (commands.getAsJsonArray().size() > 64) throw new IllegalArgumentException("Too many cloud commands.");
+            for (JsonElement c : commands.getAsJsonArray()) { if (!active()) return MAX_DELAY; execute(c.getAsJsonObject()); }
+        }
+        JsonElement config = r.get("config");
+        synchronized (CloudManagedConfig.reloadLock()) {
+            if (!active()) return MAX_DELAY;
+            if (claimed && credentials != null && config != null && config.isJsonObject() && applyConfig(config.getAsJsonObject())) return MIN_DELAY;
+        }
+        return r.get("next_sync_in").getAsLong();
     }
 
     private void applyLink(JsonObject r) {
@@ -345,14 +358,15 @@ public final class CloudSync {
      * the previous overlay file is restored. Returns true when a result should be reported soon.
      */
     private boolean applyConfig(JsonObject desired) {
-        int version = desired.get("version").getAsInt();
+        final int version;
+        try { version = CloudManagedConfig.desiredVersion(desired); }
+        catch (IllegalArgumentException invalid) { lastError = "malformed settings response"; return false; }
         if (version <= managed.version) return false;
         Runnable hook = reloadHook;
         if (hook == null) { configResult = result(version, false, "This server cannot apply dashboard settings."); return true; }
         final CloudManagedConfig next;
         try {
-            next = CloudManagedConfig.next(managed, version, desired.has("reset") && desired.get("reset").getAsBoolean(),
-                    desired.getAsJsonObject("values"), desired.has("keep_secrets") ? desired.getAsJsonArray("keep_secrets") : null);
+            next = CloudManagedConfig.desired(managed, desired);
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException | UnsupportedOperationException invalid) {
             configResult = result(version, false, "Malformed or unsupported settings; values redacted.");
             log.warning("Connection Guard Cloud: refused dashboard settings v" + version + ": " + configResult.get("message").getAsString());
@@ -363,7 +377,9 @@ public final class CloudSync {
         try { previous = CloudManagedConfig.write(dataDir, next); }
         catch (IOException failure) { configResult = result(version, false, "Could not write the settings file on the server."); return true; }
         try {
-            hook.run();
+            applying.set(this);
+            try { hook.run(); } finally { applying.remove(); }
+            if (!active()) throw new IllegalStateException("Cloud reload retired.");
             managed = next;
             configResult = result(version, true, null);
             log.info("Connection Guard Cloud: applied dashboard settings v" + version + (next.values.isEmpty() ? " (config.yml only)." : "."));
@@ -393,7 +409,7 @@ public final class CloudSync {
 
     /** Local escape hatch: drop every dashboard value and use config.yml only. Works with the cloud off, too. */
     public static String resetSettingsLocally() {
-        synchronized (ConnectionGuard.class) {
+        synchronized (CloudManagedConfig.reloadLock()) {
         if (dataDirectory == null) throw new IllegalStateException("Not initialised yet.");
         CloudManagedConfig current = CloudManagedConfig.load(dataDirectory);
         if (current.values.isEmpty()) return "No dashboard settings are active; config.yml applies.";

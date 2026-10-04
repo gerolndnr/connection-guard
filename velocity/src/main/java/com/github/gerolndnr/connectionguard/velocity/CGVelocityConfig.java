@@ -53,18 +53,21 @@ public class CGVelocityConfig {
     }
 
     public void reloadValidated() throws IOException {
-        synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+        synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
             YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, next::set);
             com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlDocument> selectedMessages = loadMessages(next.get("message-language"));
             com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(
                     next::get, next.getSection("provider.vpn").getKeys().stream().map(Object::toString).collect(java.util.stream.Collectors.toList()), dataDirectory, selectedMessages.messages);
-            com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
-            config = next;
-            languageFile = selectedMessages.file.toFile();
-            languageConfig = selectedMessages.document;
-            messages = selectedMessages.messages;
-            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+            synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.validateReloadActivation();
+                com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
+                config = next;
+                languageFile = selectedMessages.file.toFile();
+                languageConfig = selectedMessages.document;
+                messages = selectedMessages.messages;
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+            }
         }
     }
 

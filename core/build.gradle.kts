@@ -18,7 +18,8 @@ repositories {
 
 dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    shadow("com.google.code.gson:gson:2.11.0")
+    // Cloud uses Gson on every native adapter; include it instead of relying on a server copy.
+    implementation("com.google.code.gson:gson:2.11.0")
     shadow("org.xerial:sqlite-jdbc:3.46.0.0")
     shadow("redis.clients:jedis:5.0.0")
     shadow("net.luckperms:api:5.4")

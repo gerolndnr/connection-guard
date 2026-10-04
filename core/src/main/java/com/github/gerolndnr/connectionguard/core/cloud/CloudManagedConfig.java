@@ -58,6 +58,8 @@ public final class CloudManagedConfig {
 
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
     private static final Object LOCK = new Object();
+    /** Native local/remote preparation is serialized here, independently of admission. */
+    public static Object reloadLock() { return LOCK; }
 
     final int version;
     /** Typed values ready for a YAML document: Boolean, Integer, String or List<String>. */
@@ -146,9 +148,29 @@ public final class CloudManagedConfig {
         }
     }
 
+    /** Strict protocol-v1 envelope, independently enforced even for a compromised backend. */
+    static int desiredVersion(JsonObject desired) {
+        JsonElement version = desired.get("version");
+        if (version == null || !version.isJsonPrimitive() || !version.getAsJsonPrimitive().isNumber()) throw malformed();
+        try {
+            int value = version.getAsBigDecimal().intValueExact();
+            if (value < 1) throw malformed();
+            return value;
+        } catch (ArithmeticException | NumberFormatException invalid) { throw malformed(); }
+    }
+    static CloudManagedConfig desired(CloudManagedConfig current, JsonObject desired) {
+        if (!desired.keySet().equals(new HashSet<>(Arrays.asList("version", "reset", "values", "keep_secrets")))) throw malformed();
+        int version = desiredVersion(desired);
+        JsonElement reset = desired.get("reset"), values = desired.get("values"), keep = desired.get("keep_secrets");
+        if (!reset.isJsonPrimitive() || !reset.getAsJsonPrimitive().isBoolean() || !values.isJsonObject() || !keep.isJsonArray()) throw malformed();
+        return next(current, version, reset.getAsBoolean(), values.getAsJsonObject(), keep.getAsJsonArray());
+    }
+    private static IllegalArgumentException malformed() { return new IllegalArgumentException("Malformed settings (values redacted)."); }
+
     /** Builds the next overlay from a desired config, carrying over secrets the plugin already holds. */
     static CloudManagedConfig next(CloudManagedConfig current, int version, boolean reset, JsonObject values, JsonArray keepSecrets) {
         Map<String, Object> parsed = parse(values);
+        if (keepSecrets != null && keepSecrets.size() > FIELDS.size()) throw malformed();
         if (keepSecrets != null) for (JsonElement keep : keepSecrets) {
             if (!keep.isJsonPrimitive() || !keep.getAsJsonPrimitive().isString() || !isSecret(keep.getAsString()))
                 throw new IllegalArgumentException("Invalid secret selection (values redacted).");

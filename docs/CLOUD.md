@@ -66,3 +66,11 @@ The backend is open source (AGPL-3.0). Point `cloud.endpoint` at your own deploy
 ## Commands and permission
 
 `/cg cloud status | link | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
+
+## Current development coverage
+
+The integrated bridge currently matches the original protocol-1 settings: ProxyCheck, IP-API, IPHub and VPNAPI, country settings, basic webhook routing, exemptions, mode and cache duration. IPQualityScore, local/custom/addon sources and richer webhook options remain available through `config.yml`; the dashboard must gain compatible fields before it can manage them. Fractional risk values are retained by the native decision engine; the older Cloud event schema can represent only integer risk values.
+
+This bridge does not yet report the newer `rule_expiry` capability, so a compatible dashboard must keep its time-limited rule controls unavailable for this build. Existing generic dashboard access rules are separate from the planned verified identity/challenge-specific temporary exemptions.
+
+Versioned local qualification drivers and their limits are in `ci/fixtures/cloud/README.md`. Native Paper, Folia and Bungee tests exercise complete accepted/rejected configuration drafts, custom-language retention, reset, persisted switch-off, real synthetic logins and shutdown during a deliberately hanging Cloud request. The separate browser fixture uses the existing setup/settings UI and an immutable **3e8771ee8ba19de0d59ec7f8f20764b05082a2e7** Cloud source copy on loopback; its hard-coded protocol fixture label refers to that source. No production Cloud, Discord OAuth or real operator onboarding is claimed by these tests.

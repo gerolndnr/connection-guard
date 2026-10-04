@@ -1,0 +1,219 @@
+{
+  "status": "local-runtime-passed-ci-and-integration-pending",
+  "artifact_sha256": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+  "version": "0.5.0-SNAPSHOT",
+  "local_core_tests": {
+    "tests": 423,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "packaging_regression_guards": 13,
+  "version_history_guards": 6,
+  "native": [
+    {
+      "status": "passed",
+      "artifact_sha256": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+      "platform": "paper",
+      "driver_sha256": "de188651d2da54d857d6e1fe9cba9334f47052a996366f51eed9cd1814c07ee5",
+      "java": 21,
+      "cases": [
+        "real-native-cloud-claim-and-sync-in-observe",
+        "positive-provider-observe-allows-real-offline-login",
+        "remote-enforce-applies-and-real-denial-preserves-custom-language",
+        "invalid-whole-draft-keeps-effective-enforce-overlay-and-language",
+        "remote-reset-restores-local-config-and-real-observe-login",
+        "persisted-command-off-survives-reload-and-stops-sync",
+        "hanging-cloud-request-does-not-delay-real-native-reload-or-denial",
+        "clean-native-shutdown-cancels-live-cloud-request"
+      ],
+      "real_account_authentication_tested": false,
+      "real_operator_pilot": false,
+      "live_cloud_or_provider_tested": false,
+      "new_cost_eur": 0,
+      "helper_sources": {
+        "backend_fixture.py": "1f238c5631710b95f6f671a067fd30cafe6a488af30d91aa8e03365475ac7fb1",
+        "release_backend_test.py": "fcf6b18052d1051c4a5913044dcef01da3a69bb697232464f0ffde626788900e",
+        "release_native_bungee_test.py": "b46bee7b115b04d2c99523e927163ffa131ae66875e9581109cee5a6c9fbbeff",
+        "release_velocity_test.py": "e66864e6aa98739b962657ec97d32ad8f522ef0e4e5579851bffb3d1faf6fbfb",
+        "backend_client.cjs": "d274e3201a1963cbad17b22bb0e6f5fb9095770c8c8b54509e6e1870914dcf55"
+      },
+      "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+      "runtime": "paper-1.21.11-132.jar",
+      "addon_sha256": "4665d8cff3e45aefdd2ae5b563c444bdf72bf5582e9d59fd9ae64d05bda6862b",
+      "fixture_source_sha256": "de2986276dea015d510d4b3ed851aa8a5d449ef60527ac97952800e7f68019ed",
+      "one_hanging_cloud_login_ms": 103,
+      "sync_count": 9,
+      "sync_sequences_strictly_increase": true,
+      "shutdown_duration_ms": 768,
+      "native_exit_code": 0,
+      "console_sha256": "d4dca7776db413681f5340e1cc8fac268d3a01e4446242f363fee659d791ae54",
+      "local_result_sha256": "ec56f12a205025b65ce0e8a1120ea6c91096c56711330f2f20bf4b6853b4d8d6"
+    },
+    {
+      "status": "passed",
+      "artifact_sha256": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+      "platform": "folia",
+      "driver_sha256": "de188651d2da54d857d6e1fe9cba9334f47052a996366f51eed9cd1814c07ee5",
+      "java": 21,
+      "cases": [
+        "real-native-cloud-claim-and-sync-in-observe",
+        "positive-provider-observe-allows-real-offline-login",
+        "remote-enforce-applies-and-real-denial-preserves-custom-language",
+        "invalid-whole-draft-keeps-effective-enforce-overlay-and-language",
+        "remote-reset-restores-local-config-and-real-observe-login",
+        "persisted-command-off-survives-reload-and-stops-sync",
+        "hanging-cloud-request-does-not-delay-real-native-reload-or-denial",
+        "clean-native-shutdown-cancels-live-cloud-request"
+      ],
+      "real_account_authentication_tested": false,
+      "real_operator_pilot": false,
+      "live_cloud_or_provider_tested": false,
+      "new_cost_eur": 0,
+      "helper_sources": {
+        "backend_fixture.py": "1f238c5631710b95f6f671a067fd30cafe6a488af30d91aa8e03365475ac7fb1",
+        "release_backend_test.py": "fcf6b18052d1051c4a5913044dcef01da3a69bb697232464f0ffde626788900e",
+        "release_native_bungee_test.py": "b46bee7b115b04d2c99523e927163ffa131ae66875e9581109cee5a6c9fbbeff",
+        "release_velocity_test.py": "e66864e6aa98739b962657ec97d32ad8f522ef0e4e5579851bffb3d1faf6fbfb",
+        "backend_client.cjs": "d274e3201a1963cbad17b22bb0e6f5fb9095770c8c8b54509e6e1870914dcf55"
+      },
+      "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+      "runtime": "folia-1.21.11-14.jar",
+      "addon_sha256": "b0d157a456177d1e1289a8ad235b1a25169fd35011484d697bcb121cec133631",
+      "fixture_source_sha256": "de2986276dea015d510d4b3ed851aa8a5d449ef60527ac97952800e7f68019ed",
+      "one_hanging_cloud_login_ms": 109,
+      "sync_count": 9,
+      "sync_sequences_strictly_increase": true,
+      "shutdown_duration_ms": 710,
+      "native_exit_code": 0,
+      "console_sha256": "cfb81ab9a960308e6157f3481345e770bce42c3b23cfd35fb31c581ee9d44448",
+      "local_result_sha256": "64b9ac192625cc7754a9a3cce51b44c7f393995556d4f677790a2054b5f04fbf"
+    },
+    {
+      "status": "passed",
+      "artifact_sha256": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+      "platform": "bungee",
+      "driver_sha256": "de188651d2da54d857d6e1fe9cba9334f47052a996366f51eed9cd1814c07ee5",
+      "java": 21,
+      "cases": [
+        "real-native-cloud-claim-and-sync-in-observe",
+        "positive-provider-observe-allows-real-offline-login",
+        "remote-enforce-applies-and-real-denial-preserves-custom-language",
+        "invalid-whole-draft-keeps-effective-enforce-overlay-and-language",
+        "remote-reset-restores-local-config-and-real-observe-login",
+        "persisted-command-off-survives-reload-and-stops-sync",
+        "hanging-cloud-request-does-not-delay-real-native-reload-or-denial",
+        "clean-native-shutdown-cancels-live-cloud-request"
+      ],
+      "real_account_authentication_tested": false,
+      "real_operator_pilot": false,
+      "live_cloud_or_provider_tested": false,
+      "new_cost_eur": 0,
+      "helper_sources": {
+        "backend_fixture.py": "1f238c5631710b95f6f671a067fd30cafe6a488af30d91aa8e03365475ac7fb1",
+        "release_backend_test.py": "fcf6b18052d1051c4a5913044dcef01da3a69bb697232464f0ffde626788900e",
+        "release_native_bungee_test.py": "b46bee7b115b04d2c99523e927163ffa131ae66875e9581109cee5a6c9fbbeff",
+        "release_velocity_test.py": "e66864e6aa98739b962657ec97d32ad8f522ef0e4e5579851bffb3d1faf6fbfb",
+        "backend_client.cjs": "d274e3201a1963cbad17b22bb0e6f5fb9095770c8c8b54509e6e1870914dcf55"
+      },
+      "runtime_sha256": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+      "runtime": "BungeeCord build 2100",
+      "addon_sha256": "a0d4abbee9cb1c27b77e60acc85de661ed35524a6c566e3fb05a443213983f85",
+      "fixture_source_sha256": "aa2a7acb796f5b11b6bb0b9d0b4a45830be21a61855b19c151e9d9bdf5b4d7b6",
+      "one_hanging_cloud_login_ms": 256,
+      "sync_count": 9,
+      "sync_sequences_strictly_increase": true,
+      "shutdown_duration_ms": 2485,
+      "native_exit_code": 0,
+      "console_sha256": "4990b7a5ab76037a738323754f1056e78d4189004562f38f379dc82e41d8c496",
+      "local_result_sha256": "fe79efcaaea719e2900c74b600f4bcff6a550aecdab54d808fbb9fd45c561015"
+    }
+  ],
+  "dashboard": {
+    "status": "passed",
+    "artifact_sha256": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+    "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+    "addon_sha256": "8e122857604fc280ee8846c4071e7458fdabbf22c41edc2434abf6d093a9d2fe",
+    "driver_sha256": "0457770dc39a0425963b3b53ec844b77f952f011809dc9042aa5edff11ca4c77",
+    "prepare_source_sha256": "414f23c07881179760d14cd313a66fd6b84361272386b7d662a6875be9b9368c",
+    "cloud_source": "3e8771ee8ba19de0d59ec7f8f20764b05082a2e7",
+    "cases": [
+      {
+        "name": "actual-unlinked-gzip-sync-has-no-personal-events-config-or-secret",
+        "elapsed_seconds": 39
+      },
+      {
+        "name": "browser-link-with-local-dev-session-and-fixture-terms-enters-existing-setup",
+        "elapsed_seconds": 44
+      },
+      {
+        "name": "wizard-observe-settings-apply-through-real-native-reload-with-files-preserved",
+        "elapsed_seconds": 63
+      },
+      {
+        "name": "actual-offline-login-cloud-decision-reaches-wizard-with-only-owned-detector",
+        "elapsed_seconds": 96
+      },
+      {
+        "name": "browser-enforce-apply-produces-real-localized-denial-and-keeps-custom-language",
+        "elapsed_seconds": 116
+      },
+      {
+        "name": "invalid-whole-draft-rejected-and-old-enforce-policy-language-overlay-retained",
+        "elapsed_seconds": 136
+      },
+      {
+        "name": "remote-reset-restores-local-observe-config-without-writing-config-or-language",
+        "elapsed_seconds": 156
+      },
+      {
+        "name": "command-disable-stops-cloud-requests-and-leaves-actual-login-behavior",
+        "elapsed_seconds": 163
+      },
+      {
+        "name": "cloud-outage-does-not-change-denial-or-wait-for-cloud-http-timeout",
+        "elapsed_seconds": 182
+      }
+    ],
+    "proxy_exit_code": 0,
+    "console_sha256": "02a3719b01d703d41bd6e2ae0a615b205a136f32a44216747c702509e67dfd0a",
+    "screenshots": [
+      {
+        "name": "setup-goals.png",
+        "sha256": "d6d488b0a4b2d5800094b5aa1fadcb777714c0a5314502a2d23b2000f93cf1bf"
+      },
+      {
+        "name": "setup-observe.png",
+        "sha256": "70d41e383ddf7fbbb127c6e5d09c14bfda0fd92afff865843bbefd94ef894295"
+      },
+      {
+        "name": "setup-native-observation.png",
+        "sha256": "b36e2f09a48cee683089df6f08fddd43f979bdc03197f17e353c96309479194f"
+      },
+      {
+        "name": "settings-waiting.png",
+        "sha256": "d2495218491b28b5a1447f1054ad0a393331ce883387e74830ee1cb9aef935a7"
+      },
+      {
+        "name": "settings-applied.png",
+        "sha256": "919d93b32de16df0ff96982d0ae628559a177b761f9ed13c8f05c118d7f0a056"
+      }
+    ],
+    "browser_verified": true,
+    "browser_external_requests": []
+  },
+  "immutable_cloud_source_verified": {
+    "commit": "3e8771ee8ba19de0d59ec7f8f20764b05082a2e7",
+    "archive_sha256": "5a5cff3c4440ea4876f4c3ba633cd64b8e0eb2ed6a91706687ea00f785349e8b",
+    "archived_files_matched": 180
+  },
+  "three_product_archives_reproduced": {
+    "build/libs/connection-guard-0.5.0-SNAPSHOT-all.jar": "26e8a414df0ac5c9aa6c4a934177890620e0d13aed66edc3fc0c42b9682e0940",
+    "adapters/libertybans/build/libs/connection-guard-libertybans-0.1.0-dev.jar": "9ca8005f41e64c946f50e6f8170e92ffce7f5ee1e753c61533856a6ae3a1bd60",
+    "adapters/limbo/build/libs/connection-guard-limbo-0.1.0-dev.jar": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4"
+  },
+  "real_account_or_operator_pilot_claimed": false,
+  "production_cloud_or_provider_claimed": false,
+  "all_differentiators_complete": false,
+  "stable_release_changed": false
+}

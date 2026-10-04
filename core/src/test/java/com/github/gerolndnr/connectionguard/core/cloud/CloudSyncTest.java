@@ -357,4 +357,32 @@ class CloudSyncTest {
         assertEquals(second.get("seq").getAsLong(), CloudCredentials.load(dir.resolve("cloud/credentials.json")).sequence);
     }
 
+    @Test void slowDraftPreparationDoesNotHoldAdmissionAndRetiredDraftCannotActivate() throws Exception {
+        CountDownLatch preparing = new CountDownLatch(1), release = new CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicInteger activated = new java.util.concurrent.atomic.AtomicInteger();
+        CloudSync.setReloadHook(() -> {
+            preparing.countDown();
+            try { assertTrue(release.await(5, TimeUnit.SECONDS)); }
+            catch (InterruptedException interrupted) { Thread.currentThread().interrupt(); throw new IllegalStateException(); }
+            synchronized (ConnectionGuard.class) { CloudSync.validateReloadActivation(); activated.incrementAndGet(); }
+        });
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("{\"version\":2,\"values\":{\"operation.mode\":\"ENFORCE\"},\"reset\":false,\"keep_secrets\":[]}");
+        ExecutorService threads = Executors.newFixedThreadPool(2);
+        try {
+            Future<?> remote = threads.submit(CloudSync::runOnceForTest);
+            assertTrue(preparing.await(3, TimeUnit.SECONDS));
+            Future<?> admission = threads.submit(() -> {
+                try (com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture capture =
+                             com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture.begin(Platform.VELOCITY, Phase.LOGIN,
+                                     "203.0.113.24", null, IdentityTrust.UNTRUSTED)) { assertFalse(capture.observe()); }
+                CloudSync.stop();
+            });
+            admission.get(1, TimeUnit.SECONDS);
+            release.countDown(); remote.get(2, TimeUnit.SECONDS);
+            assertEquals(0, activated.get()); assertTrue(CloudManagedConfig.load(dir).values.isEmpty());
+            assertFalse(CloudSync.isRunning());
+        } finally { release.countDown(); threads.shutdownNow(); assertTrue(threads.awaitTermination(3, TimeUnit.SECONDS)); }
+    }
+
 }

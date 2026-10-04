@@ -105,4 +105,20 @@ class CloudManagedConfigTest {
         }
     }
 
+    @Test void independentlyRejectsMalformedDesiredEnvelopeEvenOnReset() {
+        for (String bad : new String[]{
+                "{\"version\":\"2\",\"reset\":true,\"values\":{},\"keep_secrets\":[]}",
+                "{\"version\":1.5,\"reset\":true,\"values\":{},\"keep_secrets\":[]}",
+                "{\"version\":2147483648,\"reset\":true,\"values\":{},\"keep_secrets\":[]}",
+                "{\"version\":2,\"reset\":\"true\",\"values\":{},\"keep_secrets\":[]}",
+                "{\"version\":2,\"reset\":true,\"values\":{\"identity.trust-forwarded-uuid\":true},\"keep_secrets\":[]}",
+                "{\"version\":2,\"reset\":true,\"values\":{},\"keep_secrets\":[\"operation.mode\"]}",
+                "{\"version\":2,\"reset\":true,\"values\":{},\"keep_secrets\":[],\"console.execute\":\"op x\"}",
+                "{\"version\":2,\"reset\":true,\"values\":{}}"})
+            assertThrows(IllegalArgumentException.class, () -> CloudManagedConfig.desired(CloudManagedConfig.EMPTY, json(bad)));
+        CloudManagedConfig valid = CloudManagedConfig.desired(CloudManagedConfig.EMPTY,
+                json("{\"version\":2,\"reset\":false,\"values\":{\"operation.mode\":\"ENFORCE\"},\"keep_secrets\":[]}"));
+        assertEquals(2, valid.version); assertEquals("ENFORCE", valid.values.get("operation.mode"));
+    }
+
 }

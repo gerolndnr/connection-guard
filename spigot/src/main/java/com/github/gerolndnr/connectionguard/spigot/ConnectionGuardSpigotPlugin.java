@@ -57,15 +57,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 2. Download libraries used for vpn and geo checks
         BukkitLibraryManager libraryManager = new BukkitLibraryManager(this);
 
-        Library gsonLibrary = Library.builder()
-                .groupId("com.google.code.gson")
-                .artifactId("gson")
-                .version("2.11.0")
-                .relocate("com{}google{}gson", "com{}github{}gerolndnr{}connectionguard{}libs{}com{}google{}gson")
-                .build();
 
         libraryManager.addMavenCentral();
-        libraryManager.loadLibrary(gsonLibrary);
 
         // 3. Download libraries used for specified cache provider and register cache provider afterward
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -140,18 +133,21 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override public org.bukkit.configuration.file.FileConfiguration getConfig() { return activeConfig != null ? activeConfig : super.getConfig(); }
     public void reloadAllConfigs() {
-        synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+        synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
             YamlConfiguration next = new YamlConfiguration();
             try { next.load(new File(getDataFolder(), "config.yml")); }
             catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), next::set);
             com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.Loaded<YamlConfiguration> selectedMessages = loadMessages(next.get("message-language"));
             ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
-            ConnectionGuard.applyProviders(draft);
-            activeConfig = next;
-            languageFile = selectedMessages.file.toFile();
-            languageConfig = selectedMessages.document;
-            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+            synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.validateReloadActivation();
+                ConnectionGuard.applyProviders(draft);
+                activeConfig = next;
+                languageFile = selectedMessages.file.toFile();
+                languageConfig = selectedMessages.document;
+                com.github.gerolndnr.connectionguard.core.cloud.CloudSync.refresh();
+            }
         }
     }
 
