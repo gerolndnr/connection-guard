@@ -69,6 +69,7 @@ public final class CacheCodec {
         com.google.gson.JsonObject object = element.getAsJsonObject();
         com.github.gerolndnr.connectionguard.core.http.DetectionFields.score(object, "risk");
         com.github.gerolndnr.connectionguard.core.http.DetectionFields.score(object, "confidence");
+        com.github.gerolndnr.connectionguard.core.http.DetectionFields.decimalScore(object, "exactRisk");
         if (object.has("classifications")) {
             com.google.gson.JsonObject types = object.getAsJsonObject("classifications");
             for (java.util.Map.Entry<String, com.google.gson.JsonElement> entry : types.entrySet()) {

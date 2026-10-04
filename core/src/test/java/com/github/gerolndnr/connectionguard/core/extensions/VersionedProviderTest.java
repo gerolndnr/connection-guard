@@ -83,6 +83,13 @@ class VersionedProviderTest {
         assertEquals(Boolean.TRUE, result.getVotes().get(0).getDetails().get(DetectionDetails.Type.TOR));
         assertEquals(Long.valueOf(15169), result.getVotes().get(0).getDetails().getAsn());
     }
+    @Test void decimalProviderMetadataSurvivesTheSelectedApiAdapterWithoutRounding() throws Exception {
+        ConnectionGuardApi.registerProvider(new ProviderDescriptor("fraction", "1", HASH, true), ip -> CompletableFuture.completedFuture(
+                DetectionObservation.negative(DetectionMetadata.withExactRisk(null, null, null, null, null, new java.math.BigDecimal("79.999"), null))));
+        select(draft("fraction", true)); VpnResult result = query("192.0.2.1");
+        assertEquals(new java.math.BigDecimal("79.999"), result.getVotes().get(0).getDetails().getExactRisk());
+        assertNull(result.getVotes().get(0).getDetails().getRisk());
+    }
     @Test void closedProviderCannotReuseCachedNegativeAndOldHandleCannotRemoveReplacement() throws Exception {
         cache = new SQLiteCacheProvider(directory.resolve("cache.db").toString()); ConnectionGuard.setCacheProvider(cache); assertTrue(cache.setup().get());
         AtomicInteger calls = new AtomicInteger();

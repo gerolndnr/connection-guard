@@ -35,12 +35,15 @@ public final class DetectionFields {
         return field.getAsBoolean();
     }
     public static Integer score(JsonObject parent, String key) {
+        BigDecimal value = decimalScore(parent, key);
+        return value == null ? null : value.intValueExact();
+    }
+    public static BigDecimal decimalScore(JsonObject parent, String key) {
         JsonElement field = parent == null ? null : parent.get(key);
         if (field == null || field.isJsonNull()) return null;
-        if (!field.isJsonPrimitive() || !field.getAsJsonPrimitive().isNumber()) throw new IllegalArgumentException("Invalid score field.");
-        int score = new BigDecimal(field.getAsString()).intValueExact();
-        if (score < 0 || score > 100) throw new IllegalArgumentException("Invalid score field.");
-        return score;
+        if (!field.isJsonPrimitive() || !field.getAsJsonPrimitive().isNumber() || field.getAsString().length() > 256)
+            throw new IllegalArgumentException("Invalid decimal score field.");
+        return DetectionDetails.normalizeRisk(new BigDecimal(field.getAsString()));
     }
     public static Long asn(JsonObject parent, String key, boolean organizationSuffix) {
         JsonElement field = parent == null ? null : parent.get(key);

@@ -32,6 +32,16 @@ class DecisionObserversTest {
         CompletableFuture<DecisionObservation> next = new CompletableFuture<>();
         ConnectionGuardApi.registerDecisionObserver(id, next::complete); return next;
     }
+    @Test void observerReceivesSourceDecimalRiskAndLegacyAccessorStaysUnknown() throws Exception {
+        CompletableFuture<DecisionObservation> next=observer("fixture"); DecisionObservers.configure(settings("fixture"));
+        DetectionDetails details=DetectionDetails.withExactRisk(null,null,null,null,null,new java.math.BigDecimal("79.999"),null);
+        VpnResult vpn=new VpnResult("192.0.2.1",false);
+        vpn.setVotes(Collections.singletonList(new ProviderVote("source",ProviderVote.Status.NEGATIVE,FailureReason.NONE,1,details)));
+        DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",null,IdentityTrust.UNTRUSTED);
+        capture.facts(vpn,new GeoLookup(Optional.empty(),FailureReason.NONE,false,0),false,true,System.currentTimeMillis()); capture.close();
+        DetectionMetadata observed=next.get(2,TimeUnit.SECONDS).getSources().get(0).getObservation().getMetadata();
+        assertEquals(new java.math.BigDecimal("79.999"),observed.getExactRisk()); assertNull(observed.getRisk());
+    }
     @Test void ordinaryPolicyCannotEraseAnUnknownNativeAdmissionFact()throws Exception {
         CompletableFuture<DecisionObservation> next=observer("fixture");DecisionObservers.configure(settings("fixture"));
         DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",null,IdentityTrust.UNTRUSTED);

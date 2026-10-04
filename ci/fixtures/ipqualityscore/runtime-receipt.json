@@ -1,0 +1,31 @@
+{
+  "artifact_sha256": "aece1d7039c6b00e9dd9e6a0a76ad8822d473ec044835fabb9ba84bce786a4e8",
+  "addon_sha256": "c19cc9bf4ec269a285043bd7a84c64f5f64823d635d420c7aba161f71be48e11",
+  "fixture_source_sha256": "9dbeb6ab0b76cdb8dd659f348cc25711bf430cd2bf1d77da56b4bc0d9421cfaa",
+  "driver_sha256": "32787995ef4b9bf799a1df841736e620b7d4bc70087ae551916ec560d8ca030c",
+  "proxy": "Velocity 3.4.0 build 566",
+  "proxy_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "backend_join_tested": false,
+  "authenticated_identity_tested": false,
+  "live_ipqs_tested": false,
+  "http_fixture_endpoint_only": true,
+  "cost_eur": 0,
+  "cases": [
+    "native-header-options-real-login",
+    "positive-cache-and-decimal-observer",
+    "cached-explain-native-source-facts",
+    "negative-cache-retains-decimal-facts",
+    "actual-admission-source-decimal-rule-boundary",
+    "high-risk-alone-never-invents-vpn-vote",
+    "local-budget-retained-through-real-reload",
+    "http-and-schema-failures-never-negative",
+    "unknown-not-cached-and-explicit-zero-preserved",
+    "http-200-credit-exhaustion-pauses-native-lookups"
+  ],
+  "http_requests": 10,
+  "header_or_options_invalid": false,
+  "shutdown_passed": true,
+  "owned_http_stopped": true,
+  "console_sha256": "31110c2fec885a155811cbd547c647eba4edea9343929fed8801de39abc090b5"
+}

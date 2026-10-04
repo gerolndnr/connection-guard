@@ -2,6 +2,8 @@
 
 ## 0.5.0-SNAPSHOT — unreleased development
 
+- Add an optional, disabled-by-default native IPQualityScore adapter with header authentication, explicit request options, finite local request defaults and typed credit-exhaustion handling.
+- Preserve decimal source risk across policy, cache, explain and the additive provider/observer API without rounding or changing the existing integer accessors.
 - Reconcile the published 0.4.11 hotfix into development history, preserving all subsequent development changes.
 - Derive all platform descriptor versions from the Gradle project version; reject missing latest-release ancestry and reused/older versions in CI.
 - This development version is not a replacement publication of 0.4.11. The full feature changelog, migration and final runtime qualification remain required before a feature release.

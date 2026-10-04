@@ -69,9 +69,11 @@ public final class EvidencePolicy {
             case OPERATOR: return details.getOperator() == null ? null : details.getOperator().equalsIgnoreCase(value);
             case COUNTRY: return details.getCountry() == null ? null : details.getCountry().equals(value);
             case TYPE: return details.get(DetectionDetails.Type.valueOf(value.toUpperCase(Locale.ROOT)));
-            case RISK: case CONFIDENCE:
-                Integer number = rule.getType() == AccessRule.Target.RISK ? details.getRisk() : details.getConfidence();
-                return number == null ? null : number >= Integer.parseInt(value.substring(value.lastIndexOf(':') + 1));
+            case RISK:
+                return details.getExactRisk() == null ? null : details.getExactRisk().compareTo(
+                        java.math.BigDecimal.valueOf(Integer.parseInt(value.substring(value.lastIndexOf(':') + 1)))) >= 0;
+            case CONFIDENCE:
+                return details.getConfidence() == null ? null : details.getConfidence() >= Integer.parseInt(value.substring(value.lastIndexOf(':') + 1));
             default: throw new IllegalArgumentException("Not a metadata selector.");
         }
     }

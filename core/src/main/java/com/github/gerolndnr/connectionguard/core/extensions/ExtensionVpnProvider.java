@@ -34,8 +34,8 @@ public final class ExtensionVpnProvider implements VpnProvider {
             DetectionMetadata metadata = observation.getMetadata();
             Map<DetectionDetails.Type, Boolean> types = new EnumMap<>(DetectionDetails.Type.class);
             metadata.getTypes().forEach((type, flag) -> types.put(DetectionDetails.Type.valueOf(type.name()), flag));
-            result.setDetails(new DetectionDetails(types, metadata.getAsn(), metadata.getIsp(), metadata.getOperator(),
-                    metadata.getCountry(), metadata.getRisk(), metadata.getConfidence()));
+            result.setDetails(DetectionDetails.withExactRisk(types, metadata.getAsn(), metadata.getIsp(), metadata.getOperator(),
+                    metadata.getCountry(), metadata.getExactRisk(), metadata.getConfidence()));
             result.setStatus(ProviderVote.Status.valueOf(observation.getStatus().name()));
             if (observation.getStatus() == DetectionObservation.Status.UNKNOWN) result.setUnknown(reason);
             result.setValidUntil(observation.getValidUntil()); result.setSourceVersion(observation.getSourceVersion());
