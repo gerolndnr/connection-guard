@@ -134,6 +134,15 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(dataDirectory);
+        // Optional dashboard link: background only, never on the login path.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(() -> {
+            try { getCgVelocityConfig().reloadValidated(); }
+            catch (java.io.IOException unreadable) { throw new IllegalArgumentException("config.yml could not be read; active settings preserved."); }
+        });
+        String pluginVersion = proxyServer.getPluginManager().fromInstance(this)
+                .flatMap(container -> container.getDescription().getVersion()).orElse("unknown");
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(dataDirectory, path -> getCgVelocityConfig().getConfig().get(path), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.VELOCITY,
+                proxyServer.getVersion().getName() + " " + proxyServer.getVersion().getVersion(), pluginVersion, ConnectionGuard.getLogger());
 
 
         // 7. Register velocity listener and commands

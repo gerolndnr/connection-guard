@@ -14,9 +14,10 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        if (CloudCommands.handle(args, permission, reply)) return true;
         if (LocalDataCommands.handle(args, permission, reply)) return true;
         if (RulesCommands.handle(args, permission, reply)) return true;
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
@@ -75,6 +76,7 @@ public final class OperationsCommands {
         lines.add(ConnectionGuard.admissionStats());
         lines.add(com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.describe());
         lines.add(com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.describe());
+        lines.addAll(com.github.gerolndnr.connectionguard.core.cloud.CloudSync.describeLines());
         return lines;
     }
 }

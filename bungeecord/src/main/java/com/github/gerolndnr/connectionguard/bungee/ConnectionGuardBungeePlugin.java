@@ -61,6 +61,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         }
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), config::set);
         } catch (IOException e) {
             getLogger().info("Connection Guard | " + e.getMessage());
         }
@@ -147,6 +148,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        // Optional dashboard link: background only, never on the login path.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUNGEE,
+                getProxy().getName() + " " + getProxy().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 7. Register bungeecord listener and commands
@@ -171,6 +176,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     public void reloadAllConfigs() {
         try {
             Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), next::set);
             ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getSection("provider.vpn").getKeys()), getDataFolder().toPath());
             ConnectionGuard.applyProviders(draft);
             config = next;

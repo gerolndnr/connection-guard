@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Connection Guard Cloud (optional dashboard)
+
+- New: optional free dashboard at app.connectionguard.net. It is **on by default** and sends only anonymous totals until you link the server; turn it off with `cloud.enabled: false`, `/cg cloud disable` or `CONNECTIONGUARD_CLOUD=false`. Details and the full list of transmitted data: `docs/CLOUD.md`.
+- New: configure the plugin from the dashboard (mode, providers and API keys, country rules, actions on a hit, failure policy, exemptions, cache). Dashboard values are layered over `config.yml` in memory and never written to it. They are validated like `/cg reload`, and rejected changes keep the previous settings. Console commands, cache connection, identity and lookup tuning stay `config.yml`-only.
+- New: `/cg cloud status|link|settings|reset-settings|enable|disable` (permission `connectionguard.command.cloud`); `/cg doctor` shows the cloud state.
+- Logins never wait on the cloud; failures only reschedule the background sync.
+- Velocity now reports usage through the cloud link (it never sent bStats data).
+
 ## 0.4.11 — 2026-10-03
 
 Urgent maintenance hotfix based on published 0.4.10.

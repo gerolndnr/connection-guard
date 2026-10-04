@@ -2,6 +2,15 @@
 # Review /cg doctor and provider terms, then deliberately choose ENFORCE.
 operation:
   mode: OBSERVE
+cloud:
+  # Optional free dashboard at https://app.connectionguard.net. Logins never wait on it.
+  # Until you link this server (link printed in the console, or /cg cloud link), only
+  # anonymous totals are sent: no IPs, no player data. After linking and accepting the
+  # data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
+  # Turn off here, with /cg cloud disable, or with the environment CONNECTIONGUARD_CLOUD=false.
+  enabled: true
+  # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
+  network-token: ""
 identity:
   # Only enable after protecting the backend and verifying proxy/Floodgate forwarding.
   trust-forwarded-uuid: false

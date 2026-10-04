@@ -45,6 +45,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 1. Save Default Config & set logger
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
+        // Dashboard settings layer over config.yml in memory; the file is never written.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), activeConfig::set);
 
         String selectedLanguageFileName = getConfig().getString("message-language") + ".yml";
         if (!new File(getDataFolder(), "translation").exists()) {
@@ -109,6 +111,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        // Optional dashboard link: background only, never on the login path.
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUKKIT,
+                getServer().getName() + " " + getServer().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 6. Register bukkit listener
@@ -140,6 +146,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         YamlConfiguration next = new YamlConfiguration();
         try { next.load(new File(getDataFolder(), "config.yml")); }
         catch (Exception invalid) { throw new IllegalArgumentException("Configuration file is invalid; active settings preserved."); }
+        com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), next::set);
         ProviderConfiguration draft = new ProviderConfiguration(path -> next.get(path, null), new ArrayList<>(next.getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath());
         ConnectionGuard.applyProviders(draft);
         activeConfig = next;

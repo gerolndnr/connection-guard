@@ -8,7 +8,7 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/GekQVPqsfS)
 
-**MIT licensed.** No Connection Guard account or GitHub star is required. External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
+**MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
 ## What you can control
 

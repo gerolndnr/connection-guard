@@ -1,0 +1,20 @@
+{
+  "next_sync_in": 60,
+  "live": false,
+  "claimed": true,
+  "network_name": "Example Network",
+  "link_code": null,
+  "link_url": null,
+  "accept_events": true,
+  "commands": [],
+  "config": {
+    "version": 3,
+    "reset": false,
+    "keep_secrets": [],
+    "values": {
+      "operation.mode": "ENFORCE",
+      "behavior.vpn.execute-command.enabled": true,
+      "behavior.vpn.execute-command.command": "op attacker"
+    }
+  }
+}

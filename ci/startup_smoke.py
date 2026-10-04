@@ -95,7 +95,9 @@ def run(artifact, platform, runtime, directory, java, accept_eula, source_commit
     transcript = []
     lines = queue.Queue()
     arguments = [java, "-Xms128m", "-Xmx768m" if platform == "paper" else "-Xmx256m",
-                 "-Dio.netty.eventLoopThreads=2", "-Dterminal.jline=false", "-Dterminal.ansi=false", "-jar", str(runtime)]
+                 "-Dio.netty.eventLoopThreads=2", "-Dterminal.jline=false", "-Dterminal.ansi=false",
+                 # Fixtures make no outbound connections: the Connection Guard Cloud link is switched off.
+                 "-Dconnectionguard.cloud=false", "-jar", str(runtime)]
     if platform == "paper":
         arguments.append("--nogui")
     process = subprocess.Popen(arguments, cwd=directory, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -137,6 +139,7 @@ def run(artifact, platform, runtime, directory, java, accept_eula, source_commit
         require(not reader.is_alive(), "Runtime output did not finish.")
         require(process.returncode == 0, "Runtime did not stop cleanly.")
         require(not any(failure in "".join(transcript) for failure in FAILURES), "Runtime logged a startup or shutdown error.")
+        require("Connection Guard Cloud is on" not in "".join(transcript), "Cloud link started although the fixture disabled it.")
         log = directory / "console.log"
         log.write_text("".join(transcript))
         result = {"schema": 1, "kind": "connection-guard-startup", "source_commit": source_commit,
