@@ -6,7 +6,7 @@
 
 Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord and Velocity. Choose your detection providers and what happens when a rule matches.
 
-[Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/GekQVPqsfS)
+[Download](https://github.com/gerolndnr/connection-guard/releases/latest) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
 **MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
@@ -57,7 +57,7 @@ If the configured VPN vote threshold is not met, the connection proceeds, subjec
 
 ## Help and contribution
 
-[Open an issue](https://github.com/gerolndnr/connection-guard/issues) or use [project Discord](https://discord.gg/GekQVPqsfS). Share plugin, platform and Java versions, reproduction steps and sanitized settings. Remove keys, webhook URLs and personal connection data.
+[Open an issue](https://github.com/gerolndnr/connection-guard/issues) or use [project Discord](https://discord.gg/8q4HFCh2RK). Share plugin, platform and Java versions, reproduction steps and sanitized settings. Remove keys, webhook URLs and personal connection data.
 
 Contributions and documentation improvements are welcome. [Development guide](CONTRIBUTING.md) · [MIT license](LICENSE). Stars and honest reviews are optional. The separately built, optional [LibertyBans addon](adapters/libertybans/README.md) and its native fixture are licensed under AGPL-3.0-or-later, as specified in their directories; they are excluded from the MIT combined plugin.
 

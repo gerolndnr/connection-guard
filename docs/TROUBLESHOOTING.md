@@ -36,4 +36,4 @@ If correct settings still fail, submit a reproducible case. Include VPN versus g
 
 ## Report a reproducible issue
 
-Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Discord](https://discord.gg/GekQVPqsfS). Include versions, proxy/backend arrangement, relevant sanitized settings, expected/actual behavior and steps. For exceptions include the config switch, platform holding permissions and node tested. Remove keys, webhook URLs, player IPs/UUIDs and unrelated private logs.
+Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Discord](https://discord.gg/8q4HFCh2RK). Include versions, proxy/backend arrangement, relevant sanitized settings, expected/actual behavior and steps. For exceptions include the config switch, platform holding permissions and node tested. Remove keys, webhook URLs, player IPs/UUIDs and unrelated private logs.
