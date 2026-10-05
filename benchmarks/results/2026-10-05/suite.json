@@ -1,0 +1,249 @@
+{
+  "schema": 1,
+  "kind": "controlled",
+  "description": "Controlled subject literals delivered only through a loopback PROXY-v2 header; no public endpoint probes or real VPN labels",
+  "cases": [
+    {
+      "id": "vpn_positive_v4",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "vpn_negative_v4",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "negative",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "NEGATIVE"
+    },
+    {
+      "id": "vpn_positive_v6",
+      "track": "provider",
+      "ip": "2001:218::",
+      "fixture": "positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "vpn_negative_v6",
+      "track": "provider",
+      "ip": "2001:218::",
+      "fixture": "negative",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "NEGATIVE"
+    },
+    {
+      "id": "vpn_mapped_v4",
+      "track": "provider",
+      "ip": "::ffff:81.2.69.142",
+      "fixture": "positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "provider_503_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "503_open",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_503_closed",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "503_closed",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_429_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "429_open",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_timeout_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "timeout_open",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_timeout_closed",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "timeout_closed",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_malformed_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "malformed_open",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_missing_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "missing_open",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "UNKNOWN"
+    },
+    {
+      "id": "provider_slow_positive",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "slow_positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "rules_manual_deny",
+      "track": "rules",
+      "ip": "81.2.69.142",
+      "fixture": "manual_deny",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "rules_manual_allow",
+      "track": "rules",
+      "ip": "81.2.69.142",
+      "fixture": "manual_allow",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "rules_deny_allow_conflict",
+      "track": "rules",
+      "ip": "81.2.69.142",
+      "fixture": "deny_allow_conflict",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "rules_expiry",
+      "track": "rules",
+      "ip": "81.2.69.142",
+      "fixture": "expiry",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "geo_fixture_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_gb",
+      "expected": "GB",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "GB"
+    },
+    {
+      "id": "geo_block_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_block_gb",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "geo_allow_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_allow_gb",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "geo_empty_whitelist",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_empty_whitelist",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "cache_disabled",
+      "track": "cache",
+      "ip": "81.2.69.142",
+      "fixture": "no_cache",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "cache_warm",
+      "track": "cache",
+      "ip": "81.2.69.142",
+      "fixture": "warm_cache",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "same_ip_16",
+      "track": "concurrency",
+      "ip": "81.2.69.142",
+      "fixture": "shared_positive",
+      "expected": "DENY",
+      "concurrency": 16,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "unique_ip_16",
+      "track": "concurrency",
+      "ip": "81.2.69.142",
+      "fixture": "unique_positive",
+      "expected": "DENY",
+      "concurrency": 16,
+      "request_limit": 16,
+      "expected_core": "POSITIVE"
+    }
+  ]
+}

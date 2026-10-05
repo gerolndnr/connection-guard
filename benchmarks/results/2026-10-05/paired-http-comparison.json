@@ -1,0 +1,194 @@
+{
+  "comparable": true,
+  "reasons": [],
+  "rows": [
+    {
+      "case_id": "cache_disabled",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.7193891666666666,
+      "paired_round_bootstrap_95": [
+        -1.010771,
+        -0.5211045
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "cache_warm",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.641653,
+      "paired_round_bootstrap_95": [
+        -0.8230005,
+        -0.484438
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "geo_allow_gb",
+      "paired_rounds": 0,
+      "mean_paired_round_median_delta_ms": null,
+      "paired_round_bootstrap_95": null,
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "geo_block_gb",
+      "paired_rounds": 0,
+      "mean_paired_round_median_delta_ms": null,
+      "paired_round_bootstrap_95": null,
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "geo_empty_whitelist",
+      "paired_rounds": 0,
+      "mean_paired_round_median_delta_ms": null,
+      "paired_round_bootstrap_95": null,
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_429_open",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": 0.30119466666666667,
+      "paired_round_bootstrap_95": [
+        -0.0010625,
+        0.4731255
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_503_closed",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.3425553333333333,
+      "paired_round_bootstrap_95": [
+        -0.5710625,
+        -0.175874
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_503_open",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.6358815,
+      "paired_round_bootstrap_95": [
+        -0.925708,
+        -0.308791
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_malformed_open",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.46102766666666667,
+      "paired_round_bootstrap_95": [
+        -0.5978335,
+        -0.382896
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_missing_open",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.4474995,
+      "paired_round_bootstrap_95": [
+        -0.571041,
+        -0.227916
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_slow_positive",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.5579585,
+      "paired_round_bootstrap_95": [
+        -2.567042,
+        1.737
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_timeout_closed",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -4.432034333333333,
+      "paired_round_bootstrap_95": [
+        -6.1768125,
+        -2.7340825
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "provider_timeout_open",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -3.1776526666666665,
+      "paired_round_bootstrap_95": [
+        -4.6824375,
+        -1.636
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "same_ip_16",
+      "paired_rounds": 0,
+      "mean_paired_round_median_delta_ms": null,
+      "paired_round_bootstrap_95": null,
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "unique_ip_16",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": 1.241507,
+      "paired_round_bootstrap_95": [
+        -1.6283755,
+        3.350167
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "vpn_mapped_v4",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.3859935,
+      "paired_round_bootstrap_95": [
+        -0.535167,
+        -0.2865835
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "vpn_negative_v4",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.4654931666666667,
+      "paired_round_bootstrap_95": [
+        -0.4880625,
+        -0.45125
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "vpn_negative_v6",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.5368888333333334,
+      "paired_round_bootstrap_95": [
+        -0.7525415,
+        -0.289729
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "vpn_positive_v4",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.8978821666666666,
+      "paired_round_bootstrap_95": [
+        -1.135396,
+        -0.5691875
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    },
+    {
+      "case_id": "vpn_positive_v6",
+      "paired_rounds": 3,
+      "mean_paired_round_median_delta_ms": -0.8500346666666666,
+      "paired_round_bootstrap_95": [
+        -1.1184375,
+        -0.3494795
+      ],
+      "interpretation": "Exploratory local timing; rounds are the resampling unit. No universal product ranking."
+    }
+  ]
+}

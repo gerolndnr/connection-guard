@@ -1,0 +1,17 @@
+[
+  [
+    "connection-guard",
+    "georestrict",
+    "sqidgeon-antivpn"
+  ],
+  [
+    "georestrict",
+    "sqidgeon-antivpn",
+    "connection-guard"
+  ],
+  [
+    "sqidgeon-antivpn",
+    "connection-guard",
+    "georestrict"
+  ]
+]
