@@ -1,7 +1,7 @@
 import argparse
 import json
 from pathlib import Path
-from . import analysis, artifacts, core, native, matrix, export
+from . import analysis, artifacts, core, native, matrix, export, study
 from .model import fingerprint, read, require, validate_suite, write
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,11 +27,15 @@ def main():
     p = commands.add_parser('report'); p.add_argument('receipt', type=Path); p.add_argument('--suite', type=Path, default=ROOT / 'datasets/controlled-v1.json')
     p = commands.add_parser('compare'); p.add_argument('left', type=Path); p.add_argument('right', type=Path); p.add_argument('--suite', type=Path, required=True)
     p = commands.add_parser('run-matrix'); p.add_argument('--manifest', type=Path, required=True); p.add_argument('--work', type=Path, required=True)
+    p = commands.add_parser('plan-study'); p.add_argument('--manifest', type=Path, required=True); p.add_argument('--work', type=Path, required=True)
     p = commands.add_parser('export'); p.add_argument('receipts', nargs='+', type=Path); p.add_argument('--suite', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
     p = commands.add_parser('accuracy'); p.add_argument('--observations', type=Path, required=True)
     p = commands.add_parser('fetch-modrinth'); p.add_argument('slug'); p.add_argument('--game-version', default='1.21.11'); p.add_argument('--destination', type=Path, required=True)
     p = commands.add_parser('plan'); p.add_argument('--suite', type=Path, default=ROOT / 'datasets/controlled-v1.json')
     args = parser.parse_args()
+    if args.command == 'plan-study':
+        print(json.dumps(study.preflight(read(args.manifest), args.work), indent=2))
+        return
     if args.command == 'run-matrix':
         with matrix.exclusive_run():
             receipts, suite = matrix.run(read(args.manifest), args.work)

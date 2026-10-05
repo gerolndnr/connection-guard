@@ -48,3 +48,15 @@ A failure must first exercise the owned source. The four measured login batches 
 429 responses explicitly carry `Retry-After: 2`. After the measured failure batches, the source becomes positive; three immediate logins within the advertised window must retain the original OPEN/CLOSED outcome and make zero source requests. After that window plus a small scheduling margin, positive recovery and cache replay are checked. A fixture that misses the window is an error, not evidence against the plugin. This checks this adapter/configuration's response to this header; it is not a provider-account quota guarantee.
 
 Core measurements remain separate: six typed failure cases must be UNKNOWN with RATE_LIMIT (or CIRCUIT_OPEN on a paused repeated lookup) or INVALID_RESPONSE as declared. This uses owned typed futures and a disabled cache; actual parsing/storage/recovery is qualified only by native receipts. Recovery and pause probes are recorded in `recovery_proofs`, outside the measured timing sample; product-contract failures and incomplete proofs disqualify a case from latency comparisons. No general timing claim is made from this small functional study.
+
+
+## Preregistered timing scope
+
+[Latency v1](studies/LATENCY_V1.md) fixes the p95 endpoint and acceptance rule before
+measurement. Six rounds, thirty measured and twenty warmup batches per case/product,
+with a full independent replication, are required. A start-load preflight and frozen
+plan are enforced for matrices marked `study`; they do not prove continuous idle
+conditions or automatically approve an optimization. The existing `compare` output
+is exploratory round-median timing. Stable/candidate share the CG adapter and dependency
+cache. The comparator remains descriptive. Dataset/artifact/host mismatches fail
+before proxy creation; partial/failing runs and unchanged baselines are preserved.

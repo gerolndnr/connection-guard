@@ -4,7 +4,7 @@ import fcntl
 import os
 from pathlib import Path
 import tempfile
-from . import analysis, native
+from . import analysis, native, study
 from .model import fingerprint, read, require, validate_suite, write
 
 
@@ -26,6 +26,8 @@ def exclusive_run():
 
 def run(manifest, work):
     require(manifest.get('schema') == 1, 'Invalid matrix manifest')
+    # Complete this before creating output or starting any native process.
+    study_plan = study.preflight(manifest, work) if 'study' in manifest else None
     suite = validate_suite(read(manifest['suite']))
     products = manifest.get('products')
     require(isinstance(products, list) and 1 <= len(products) <= 8, 'Bounded product set required')
@@ -37,6 +39,8 @@ def run(manifest, work):
     require(rounds * (samples + warmups) * sum(c.get('concurrency', 1) for c in suite['cases']) <= 40000, 'Matrix receipt row budget exceeded')
     work = Path(work).resolve(); require(not work.exists(), 'Preserve prior matrix'); work.mkdir(parents=True, mode=0o700)
     write(work / 'manifest.json', manifest); write(work / 'suite.json', suite)
+    if study_plan is not None:
+        write(work / 'study-plan.json', study_plan)
     schedule = [identifiers[n % len(products):] + identifiers[:n % len(products)] for n in range(rounds)]
     write(work / 'schedule.json', schedule)
     receipts = {}
@@ -47,6 +51,15 @@ def run(manifest, work):
             value = native.run(suite, Path(p['artifact']).resolve(), Path(manifest['java']).resolve(),
                                Path(manifest['runtime']).resolve(), work / f'round-{number}-{identifier}',
                                1, samples, p['adapter'], *optional, warmups, number)
+            if study_plan is not None:
+                require(value['artifact_sha256'] == study_plan['artifact_sha256'][identifier], 'Study artifact changed after preflight')
+                if identifier in study_plan['dependency_sha256']:
+                    require(value.get('asset_sha256') == study_plan['dependency_sha256'][identifier], 'Study dependencies changed after preflight')
+                require(value.get('environment', {}).get('runtime_sha256') == study_plan['protocol']['runtime_sha256'], 'Study runtime changed after preflight')
+                require(all(value.get('input_sha256', {}).get('cgbench/' + name) == digest for name, digest in study_plan['runner_input_sha256'].items())
+                        and value.get('input_sha256', {}).get('java/LoopbackSecurityManager.java') == study_plan['transport_guard_sha256'],
+                        'Study runner changed after preflight')
+                value['study_plan_sha256'] = fingerprint(study_plan)
             value['sampling']['rounds'] = rounds
             if identifier not in receipts:
                 receipts[identifier] = value

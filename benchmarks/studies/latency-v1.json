@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "kind": "native_latency_study",
+  "id": "cg-latency-v1",
+  "suite_sha256": "5c1e6fcf40272e744bfb4781fc9a770999cf31ee05cae10dfe068ef2f8725172",
+  "primary_case": "vpn_positive_v4",
+  "sampling": {
+    "rounds": 6,
+    "samples": 30,
+    "warmups": 20
+  },
+  "products": [
+    {
+      "id": "cg-stable",
+      "adapter": "connection-guard",
+      "artifact_sha256": "172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503"
+    },
+    {
+      "id": "cg-candidate",
+      "adapter": "connection-guard",
+      "artifact_sha256": null
+    },
+    {
+      "id": "georestrict",
+      "adapter": "georestrict",
+      "artifact_sha256": "4907800be78f298616b0be0656c7e4b91ed91bc1eb04990d454acfe9886a9196"
+    }
+  ],
+  "runtime_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "host": {
+    "min_free_bytes": 6442450944,
+    "max_load_per_logical_cpu": 0.25
+  },
+  "acceptance": {
+    "primary_metric": "round_p95_client_login_ms",
+    "minimum_primary_reduction_fraction": 0.2,
+    "minimum_improved_rounds": 5,
+    "secondary_max_regression_fraction": 0.1,
+    "replicate_entire_study": true,
+    "all_functional_and_budget_gates_pass": true,
+    "bootstrap_unit": "round",
+    "bootstrap_seed": 20261005
+  },
+  "scope": "Owned loopback Velocity/JDK21 fixtures only; cold lookup cache, not cold JVM. No real-account, backend-join, live-provider, accuracy or market-ranking claim. Start-load preflight is not continuous idle-host verification."
+}

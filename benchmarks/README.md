@@ -53,6 +53,15 @@ Use the same matrix manifest, with `suite` set to the absolute path of `datasets
 
 CI additionally checks six typed UNKNOWN/source-reason cases on the actual built CG JAR. Typed-source CI does not qualify the native HTTP parser, SQLite or a competitor. See [completed recovery study](results/2026-10-05-failure-recovery/README.md) and [measurement contract](METHODOLOGY.md) for the exact interpretation.
 
+## Preregistered latency study
+
+The [v1 protocol and execution preflight](studies/LATENCY_V1.md) freeze four cases,
+the primary p95 endpoint, stable/candidate/comparator artifacts and 6/30/20 sampling
+before native work. `plan-study` checks without starting a proxy; a matrix with
+`study` repeats those gates and preserves a hash-bound plan before execution.
+The timing study has **not been run**. Host-idle monitoring and p95 acceptance
+review remain separate work; existing exploratory median reports are not this study.
+
 ## Outputs and extension
 
 Each run produces a hash-bound receipt and coverage summary. A matrix also writes its schedule and Markdown/CSV export. Export a completed receipt again without running a server:
