@@ -1,0 +1,295 @@
+{
+  "cases": [
+    {
+      "case_id": "failure_429_open",
+      "track": "provider",
+      "verdict": "fail",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [
+        "retry_after_pause_not_preserved"
+      ],
+      "latency_qualified": false,
+      "outcomes": {
+        "ALLOW": 12
+      },
+      "p50_ms": 2.622875,
+      "p95_ms": 9.759010599999996,
+      "p99_ms": 12.543202120000004,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 163610624
+    },
+    {
+      "case_id": "failure_429_closed",
+      "track": "provider",
+      "verdict": "fail",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [
+        "retry_after_pause_not_preserved"
+      ],
+      "latency_qualified": false,
+      "outcomes": {
+        "DENY": 12
+      },
+      "p50_ms": 2.7183545000000002,
+      "p95_ms": 3.9010502999999987,
+      "p99_ms": 4.587377260000001,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 173309952
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "track": "provider",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "ALLOW": 12
+      },
+      "p50_ms": 2.7664790000000004,
+      "p95_ms": 5.072246049999997,
+      "p99_ms": 6.617415610000002,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 169590784
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "track": "provider",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "DENY": 12
+      },
+      "p50_ms": 3.702417,
+      "p95_ms": 9.524552149999995,
+      "p99_ms": 13.310843230000005,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 170655744
+    },
+    {
+      "case_id": "failure_missing_open",
+      "track": "provider",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "ALLOW": 12
+      },
+      "p50_ms": 4.136146,
+      "p95_ms": 6.466273099999999,
+      "p99_ms": 7.0536546200000005,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 158990336
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "track": "provider",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "DENY": 12
+      },
+      "p50_ms": 3.6327295,
+      "p95_ms": 6.418551899999997,
+      "p99_ms": 8.447410380000003,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 166592512
+    },
+    {
+      "case_id": "positive_cache_control",
+      "track": "cache",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "DENY": 12
+      },
+      "p50_ms": 1.927625,
+      "p95_ms": 2.8141792,
+      "p99_ms": 2.90280224,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 157384704
+    },
+    {
+      "case_id": "negative_cache_control",
+      "track": "cache",
+      "verdict": "pass",
+      "samples": 12,
+      "expected_samples": 12,
+      "complete": true,
+      "qualification_errors": [],
+      "contract_failures": [],
+      "latency_qualified": true,
+      "outcomes": {
+        "ALLOW": 12
+      },
+      "p50_ms": 2.043,
+      "p95_ms": 4.821270649999997,
+      "p99_ms": 6.584754130000002,
+      "timed_out": 0,
+      "protocol_errors": 0,
+      "batch_requests": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "request_limit_passed": true,
+      "observed_proxy_rss_max_bytes": 151683072
+    }
+  ],
+  "coverage": {
+    "fail": 2,
+    "pass": 6
+  },
+  "production_detection_accuracy": null,
+  "false_positive_rate": null,
+  "accuracy_note": "Controlled fixture oracles are not independent live VPN labels. No production accuracy estimate."
+}

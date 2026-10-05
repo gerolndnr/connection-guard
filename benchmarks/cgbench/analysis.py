@@ -29,6 +29,8 @@ def wilson(successes, total):
 def summarize(result, suite):
     validate_result(result)
     expected = {case['id']: case for case in suite['cases']}
+    for proof in result.get('recovery_proofs', []):
+        require(result['layer'] == 'native_velocity_login_gate' and proof['case_id'] in expected and expected[proof['case_id']].get('cache_recovery'), 'Recovery proof outside the measured suite/layer')
     groups = collections.defaultdict(list)
     for row in result['rows']:
         require(row['case_id'] in expected, 'Receipt has an unknown case')
@@ -64,11 +66,36 @@ def summarize(result, suite):
         problems += [r['reason'] for r in result.get('environment_errors', []) if r['case_id'] == name]
         if problems or measured and not complete:
             verdict = 'error'
+        contract_failures = []
+        if measured and result['layer'] == 'core_lookup' and definition.get('expected_source_reason'):
+            allowed = {definition['expected_source_reason']}
+            if definition['fixture'].startswith('429'): allowed.add('CIRCUIT_OPEN')
+            if any(not r.get('source_reasons') or not set(r['source_reasons']) <= allowed for r in measured):
+                contract_failures.append('unknown_source_reason_mismatch')
+        if measured and result['layer'] == 'native_velocity_login_gate' and definition.get('cache_recovery'):
+            proofs = [p for p in result.get('recovery_proofs', []) if p['case_id'] == name]
+            if {p['round'] for p in proofs} != set(range(result['sampling']['rounds'])):
+                problems.append('missing_retained_cache_recovery_proof'); verdict = 'error'
+            for proof in proofs:
+                if proof['initial_source_calls'] < 1:
+                    problems.append('failure_source_not_exercised'); verdict = 'error'
+                if proof['recovered']['outcome'] != 'DENY' or proof['positive_source_calls'] < 1:
+                    contract_failures.append('source_recovery_hidden_by_cached_negative_or_unresolved_failure')
+                if proof['cached_replay']['outcome'] != 'DENY' or proof['cached_replay']['requests'] != 0:
+                    contract_failures.append('positive_recovery_not_reused_from_cache')
+                if definition.get('retry_after_seconds'):
+                    if len(proof['paused']) != 3:
+                        problems.append('missing_retry_pause_proof'); verdict = 'error'
+                    elif any(p['requests'] != 0 or p['outcome'] != definition['expected'] for p in proof['paused']):
+                        contract_failures.append('retry_after_pause_not_preserved')
+                elif proof['paused']:
+                    problems.append('unexpected_retry_pause_proof'); verdict = 'error'
+        if contract_failures and verdict != 'error': verdict = 'fail'
         latency_qualified = verdict == 'pass' and complete
         resources = [r.get('resource_after', {}) for r in measured]
         rss = [r['rss_bytes'] for r in resources if r.get('rss_bytes') is not None]
         cases.append(dict(case_id=name, track=definition['track'], verdict=verdict, samples=len(measured),
-                          expected_samples=required, complete=complete, qualification_errors=sorted(set(problems)), latency_qualified=latency_qualified,
+                          expected_samples=required, complete=complete, qualification_errors=sorted(set(problems)), contract_failures=sorted(set(contract_failures)), latency_qualified=latency_qualified,
                           outcomes=dict(actual), p50_ms=quantile(timing, .5), p95_ms=quantile(timing, .95), p99_ms=quantile(timing, .99),
                           timed_out=actual['TIMEOUT'], protocol_errors=actual['PROTOCOL_ERROR'],
                           batch_requests=list(batches.values()), request_limit_passed=request_verdict,

@@ -9,11 +9,15 @@ from cgbench.analysis import summarize
 from cgbench.model import fingerprint, read, require, validate_suite
 
 if __name__ == '__main__':
+    require(len(sys.argv) in {2, 3}, 'Expected receipt and an optional approved dataset name')
+    name = sys.argv[2] if len(sys.argv) == 3 else 'controlled-v1.json'
+    require(name in {'controlled-v1.json', 'failure-recovery-v1.json'}, 'Unapproved benchmark gate dataset')
     result = read(sys.argv[1])
-    suite = validate_suite(read(ROOT / 'benchmarks/datasets/controlled-v1.json'))
+    suite = validate_suite(read(ROOT / 'benchmarks/datasets' / name))
     require(result['product'] == 'connection-guard' and result['layer'] == 'core_lookup', 'Wrong benchmark gate layer/product')
     require(result['suite_sha256'] == fingerprint(suite), 'Wrong benchmark dataset')
     cases = {c['case_id']: c for c in summarize(result, suite)['cases']}
     mandatory = [c['id'] for c in suite['cases'] if 'expected_core' in c]
+    require(bool(mandatory), 'No mandatory core cases')
     require(all(cases[name]['verdict'] == 'pass' and cases[name]['complete'] for name in mandatory), 'Controlled CG core contract failed; inspect receipt')
     print(f'{len(mandatory)} complete controlled core cases passed; no native/production accuracy claim.')

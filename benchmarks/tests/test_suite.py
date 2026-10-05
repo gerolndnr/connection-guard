@@ -217,4 +217,93 @@ class WireTest(unittest.TestCase):
                 cwd=work, text=True, capture_output=True, timeout=10)
             self.assertEqual(0, outcome.returncode, outcome.stderr); self.assertIn('Guard contract passed', outcome.stdout)
 
+class FailureRecoveryTest(unittest.TestCase):
+    def setUp(self):
+        self.suite = model.validate_suite(model.read(ROOT / 'datasets/failure-recovery-v1.json'))
+        self.case = self.suite['cases'][3]  # malformed / CLOSED
+        self.value = result([row('DENY', case_id=self.case['id'])])
+        self.value['suite_sha256'] = model.fingerprint(self.suite)
+        self.value['recovery_proofs'] = [dict(case_id=self.case['id'], round=0, cache_retained=True,
+            initial_source_calls=2, positive_source_calls=1, recovery_wait_ms=20, paused=[],
+            recovered=dict(outcome='DENY', requests=1, duration_ns=1000),
+            cached_replay=dict(outcome='DENY', requests=0, duration_ns=1000))]
+    def verdict(self):
+        return next(c for c in analysis.summarize(self.value, self.suite)['cases'] if c['case_id'] == self.case['id'])
+    def test_all_three_closed_gaps_have_paired_open_unknown_oracles(self):
+        failures = self.suite['cases'][:6]
+        self.assertEqual({'429_open', '429_closed', 'malformed_open', 'malformed_closed', 'missing_open', 'missing_closed'}, {c['fixture'] for c in failures})
+        for c in failures:
+            self.assertEqual('UNKNOWN', c['expected_core'])
+            self.assertEqual('DENY' if c['fixture'].endswith('closed') else 'ALLOW', c['expected'])
+    def test_closed_denial_requires_successful_retained_cache_recovery(self):
+        self.assertEqual('pass', self.verdict()['verdict'])
+        self.value['recovery_proofs'][0]['positive_source_calls'] = 0
+        self.assertEqual('fail', self.verdict()['verdict'])
+        self.assertFalse(self.verdict()['latency_qualified'])
+    def test_missing_recovery_proof_cannot_pass_from_denials_alone(self):
+        self.value['recovery_proofs'] = []
+        self.assertEqual('error', self.verdict()['verdict'])
+    def test_cached_negative_or_recovery_without_cache_reuse_is_a_failure(self):
+        for key in ['recovered', 'cached_replay']:
+            value = copy.deepcopy(self.value)
+            self.value['recovery_proofs'][0][key]['outcome'] = 'ALLOW'
+            self.assertEqual('fail', self.verdict()['verdict'])
+            self.value = value
+        self.value['recovery_proofs'][0]['cached_replay']['requests'] = 1
+        self.assertEqual('fail', self.verdict()['verdict'])
+    def test_429_must_preserve_the_declared_pause_and_policy(self):
+        self.case = self.suite['cases'][1]
+        self.value['rows'][0]['case_id'] = self.case['id']
+        proof = self.value['recovery_proofs'][0]; proof['case_id'] = self.case['id']
+        proof['paused'] = [dict(outcome='DENY', requests=0, duration_ns=1000) for _ in range(3)]
+        self.assertEqual('pass', self.verdict()['verdict'])
+        proof['paused'][0]['requests'] = 1
+        self.assertEqual('fail', self.verdict()['verdict'])
+    def test_unknown_with_a_negative_or_wrong_reason_does_not_pass(self):
+        self.value['layer'] = 'core_lookup'
+        self.value['recovery_proofs'] = []
+        self.value['rows'][0].update(outcome='UNKNOWN', source_reasons=['INVALID_RESPONSE'])
+        self.assertEqual('pass', self.verdict()['verdict'])
+        self.value['rows'][0]['source_reasons'] = ['NONE']
+        self.assertEqual('fail', self.verdict()['verdict'])
+        self.value['rows'][0].update(outcome='NEGATIVE', source_reasons=['INVALID_RESPONSE'])
+        self.assertEqual('fail', self.verdict()['verdict'])
+    def test_recovery_proofs_cannot_reference_an_unmeasured_suite_case(self):
+        self.value['recovery_proofs'][0]['case_id'] = 'invented_case'
+        with self.assertRaises(model.Invalid): self.verdict()
+    def test_duplicate_recovery_or_non_retained_cache_is_invalid_evidence(self):
+        self.value['recovery_proofs'] *= 2
+        with self.assertRaises(model.Invalid): model.validate_result(self.value)
+        self.value['recovery_proofs'] = self.value['recovery_proofs'][:1]
+        self.value['recovery_proofs'][0]['cache_retained'] = False
+        with self.assertRaises(model.Invalid): model.validate_result(self.value)
+    def test_recovery_cases_enable_actual_sqlite_without_other_sources(self):
+        import zipfile, yaml
+        with tempfile.TemporaryDirectory() as directory:
+            jar = Path(directory) / 'fixture.jar'
+            with zipfile.ZipFile(jar, 'w') as archive:
+                archive.write(ROOT.parent / 'core/src/main/resources/config.yml', 'config.yml')
+                archive.write(ROOT.parent / 'core/src/main/resources/translation/en.yml', 'translation/en.yml')
+            for case in self.suite['cases'][:6]:
+                config = yaml.safe_load(native.cg_config(jar, case['fixture'], 'http://127.0.0.1:12345', cache_recovery=True)['config.yml'])
+                self.assertEqual('SQLite', config['provider']['cache']['type'])
+                self.assertFalse(config['cloud']['enabled'])
+                self.assertEqual(['custom'], [k for k,v in config['provider']['vpn'].items() if v['enabled']])
+    def test_http_fixture_retains_the_counter_when_switching_to_positive(self):
+        import urllib.request
+        fixture = native.ProviderFixture('429_closed', 2)
+        try:
+            endpoint = 'http://127.0.0.1:' + str(fixture.server.server_port)
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with self.assertRaises(urllib.error.HTTPError) as failure:
+                opener.open(endpoint, timeout=2)
+            self.assertEqual('2', failure.exception.headers['Retry-After'])
+            failure.exception.close()
+            fixture.set_behavior('positive')
+            with opener.open(endpoint, timeout=2) as response:
+                self.assertTrue(json.load(response)['data']['isVpn'])
+            self.assertEqual(2, fixture.calls)
+            self.assertIsNotNone(fixture.last_rate_limit_ns)
+        finally: fixture.close()
+
 if __name__ == '__main__': unittest.main()
