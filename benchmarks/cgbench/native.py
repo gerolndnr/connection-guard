@@ -56,7 +56,10 @@ def hardware():
 
 
 class ProviderFixture:
-    def __init__(self, behavior):
+    def __init__(self, behavior, retry_after_seconds=None):
+        self.behavior = behavior
+        self.retry_after_seconds = retry_after_seconds
+        self.last_rate_limit_ns = None
         self.calls = 0
         self.lock = threading.Lock()
         fixture = self
@@ -64,7 +67,9 @@ class ProviderFixture:
             def do_GET(self):
                 with fixture.lock:
                     fixture.calls += 1
-                positive = behavior not in {'negative', 'manual_deny', 'expiry'}
+                    behavior = fixture.behavior
+                    if behavior.startswith('429'): fixture.last_rate_limit_ns = time.monotonic_ns()
+                positive = behavior not in {'negative', 'warm_negative_cache', 'manual_deny', 'expiry'}
                 status = 503 if behavior.startswith('503') else 429 if behavior.startswith('429') else 200
                 if behavior.startswith('timeout'):
                     time.sleep(.8)
@@ -78,6 +83,8 @@ class ProviderFixture:
                 elif behavior.startswith('missing'):
                     body = b'{"data":{}}'
                 self.send_response(status)
+                if status == 429 and fixture.retry_after_seconds is not None:
+                    self.send_header('Retry-After', str(fixture.retry_after_seconds))
                 self.send_header('Content-Length', str(len(body)))
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
@@ -91,11 +98,15 @@ class ProviderFixture:
         self.server.daemon_threads = True
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
+    def set_behavior(self, behavior):
+        with self.lock:
+            self.behavior = behavior
+
     def close(self):
         self.server.shutdown(); self.server.server_close(); self.thread.join(timeout=2)
 
 
-def cg_config(jar, fixture, endpoint, geo_db=None):
+def cg_config(jar, fixture, endpoint, geo_db=None, cache_recovery=False):
     import yaml
     with zipfile.ZipFile(jar) as archive:
         config = yaml.safe_load(archive.read('config.yml'))
@@ -104,7 +115,7 @@ def cg_config(jar, fixture, endpoint, geo_db=None):
         provider['enabled'] = False
     config['provider']['vpn']['custom'].update(enabled=True, **{'request-url': endpoint + '/%IP%', 'request-header': []})
     config['provider']['geo']['service'] = 'Disabled'
-    config['provider']['cache']['type'] = 'SQLite' if fixture == 'warm_cache' else 'Disabled'
+    config['provider']['cache']['type'] = 'SQLite' if fixture in {'warm_cache', 'warm_negative_cache'} or cache_recovery else 'Disabled'
     config['cloud']['enabled'] = False
     config['operation']['mode'] = 'ENFORCE'
     config['failure-policy'] = {'vpn': 'CLOSED' if fixture.endswith('closed') else 'OPEN', 'geo': 'OPEN'}
@@ -296,6 +307,35 @@ class Runtime:
             (self.directory / 'console.log').write_text(''.join(self.transcript))
 
 
+def recovery_probe(owned, http, case, round_number):
+    """Retain actual native storage; switch only the owned source from failure to positive."""
+    initial = http.calls
+    retry = case.get('retry_after_seconds')
+    require(not retry or http.last_rate_limit_ns is not None, 'Rate-limit source was not exercised')
+    deadline = http.last_rate_limit_ns + retry * 1_000_000_000 if retry else None
+    http.set_behavior('positive')
+    before_positive = http.calls
+    def observe(label):
+        before = http.calls
+        value = login(owned.port, case['ip'], 'BR' + str(round_number) + label)
+        value['requests'] = http.calls - before
+        return value
+    paused = []
+    if deadline is not None:
+        require(time.monotonic_ns() + 200_000_000 < deadline, 'Fixture retry window elapsed before its proof')
+        paused = [observe('P' + str(index)) for index in range(3)]
+    remaining = max(0, (deadline - time.monotonic_ns()) / 1e9) + .1 if deadline else .02
+    start = time.monotonic_ns()
+    time.sleep(remaining)
+    waited = (time.monotonic_ns() - start) // 1_000_000
+    recovered = observe('Recovered')
+    time.sleep(.02)
+    replay = observe('Replay')
+    return dict(case_id=case['id'], round=round_number, cache_retained=True,
+                initial_source_calls=initial, positive_source_calls=http.calls - before_positive,
+                recovery_wait_ms=waited, paused=paused, recovered=recovered, cached_replay=replay)
+
+
 def run(suite, plugin, java, runtime, work, rounds=3, samples=10, adapter='connection-guard', assets=None, geo_db=None, sqlite=None, warmups=2, round_offset=0):
     require(sha(runtime) == RUNTIME_SHA, 'Runtime must match the pinned Velocity 3.4.0 build 566')
     version = subprocess.run([str(java), '-version'], capture_output=True, text=True, timeout=10, check=True).stderr
@@ -326,11 +366,11 @@ def run(suite, plugin, java, runtime, work, rounds=3, samples=10, adapter='conne
                   suite_sha256=fingerprint(suite), adapter_sha256=fingerprint(inputs), input_sha256=inputs, artifact_sha256=sha(plugin),
                   environment_sha256=fingerprint(environment), environment=environment, asset_sha256=asset_hashes,
                   layer='native_velocity_login_gate', profile='controlled_enforce', cache_policy='declared_per_case',
-                  sampling=dict(rounds=rounds, samples=samples, warmups=warmups), rows=[], logs=[], config_sha256=[], environment_errors=[], live_accuracy_tested=False,
+                  sampling=dict(rounds=rounds, samples=samples, warmups=warmups), rows=[], logs=[], config_sha256=[], environment_errors=[], recovery_proofs=[], live_accuracy_tested=False,
                   backend_join_tested=False, real_account_authentication_tested=False)
     result['sampling_purpose'] = 'functional_qualification_with_exploratory_timing'
     result['case_conditions'] = {c['id']: dict(source=('local_mmdb' if c['track'] == 'geo' and adapter == 'connection-guard' else 'local_cidr' if adapter == 'sqidgeon-antivpn' else 'owned_http'),
-        cache='warm' if c['fixture'] == 'warm_cache' else 'cold', concurrency=c.get('concurrency', 1)) for c in suite['cases']}
+        cache='retained_failure_recovery' if c.get('cache_recovery') else 'warm' if c['fixture'] in {'warm_cache', 'warm_negative_cache'} else 'cold', concurrency=c.get('concurrency', 1)) for c in suite['cases']}
     result['host_load_average_at_start'] = list(os.getloadavg())
     result['resource_scope'] = 'Whole proxy RSS observed before/after batches, not peak RSS or plugin-only memory. Coarse ps CPU time.'
     if geo_db: result['geo_database_sha256'] = sha(geo_db)
@@ -354,9 +394,9 @@ def run(suite, plugin, java, runtime, work, rounds=3, samples=10, adapter='conne
             http = owned = None
             directory = work / (str(round_number) + '-' + case['id'])
             try:
-                http = ProviderFixture(fixture_name)
+                http = ProviderFixture(fixture_name, case.get('retry_after_seconds'))
                 if adapter == 'connection-guard':
-                    files = cg_config(plugin, fixture_name, 'http://127.0.0.1:' + str(http.server.server_port), geo_db)
+                    files = cg_config(plugin, fixture_name, 'http://127.0.0.1:' + str(http.server.server_port), geo_db, case.get('cache_recovery', False))
                 elif adapter == 'georestrict':
                     files = georestrict_config(fixture_name, 'http://127.0.0.1:' + str(http.server.server_port))
                 else:
@@ -388,7 +428,7 @@ def run(suite, plugin, java, runtime, work, rounds=3, samples=10, adapter='conne
                         time.sleep(1.1)
                 for phase, count in [('warmup', warmups), ('measure', samples)]:
                     for sample in range(count):
-                        if adapter == 'georestrict' and fixture_name != 'warm_cache':
+                        if adapter == 'georestrict' and fixture_name not in {'warm_cache', 'warm_negative_cache'} and not case.get('cache_recovery'):
                             owned.command('georestrict purgecache', 'cache purged successfully')
                         time.sleep(.02)  # Drain completed login callbacks outside the timed region.
                         before = http.calls
@@ -410,6 +450,8 @@ def run(suite, plugin, java, runtime, work, rounds=3, samples=10, adapter='conne
                                 batch_id=str(round_number) + '-' + case['id'] + '-' + phase + '-' + str(sample),
                                 batch_requests=requests, batch_elapsed_ns=elapsed, resource_before=resource_before, resource_after=resource_after)
                             result['rows'].append(observation)
+                if case.get('cache_recovery'):
+                    result['recovery_proofs'].append(recovery_probe(owned, http, case, round_number))
                 # Native 429 backoff legitimately suppresses later retries. Prove the owned
                 # source was exercised at least once across warmup/measurement, not per retry.
                 if adapter != 'sqidgeon-antivpn' and case['track'] not in {'rules', 'geo'} and http.calls == 0:

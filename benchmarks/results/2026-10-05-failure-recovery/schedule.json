@@ -1,0 +1,14 @@
+[
+  [
+    "connection-guard",
+    "georestrict"
+  ],
+  [
+    "georestrict",
+    "connection-guard"
+  ],
+  [
+    "connection-guard",
+    "georestrict"
+  ]
+]

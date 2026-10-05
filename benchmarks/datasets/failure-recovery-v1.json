@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "kind": "controlled",
+  "description": "Additive failure-policy and retained-cache recovery probes; no live VPN accuracy labels",
+  "cases": [
+    {
+      "id": "failure_429_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "429_open",
+      "expected": "ALLOW",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "RATE_LIMIT",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true,
+      "retry_after_seconds": 2
+    },
+    {
+      "id": "failure_429_closed",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "429_closed",
+      "expected": "DENY",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "RATE_LIMIT",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true,
+      "retry_after_seconds": 2
+    },
+    {
+      "id": "failure_malformed_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "malformed_open",
+      "expected": "ALLOW",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "INVALID_RESPONSE",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true
+    },
+    {
+      "id": "failure_malformed_closed",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "malformed_closed",
+      "expected": "DENY",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "INVALID_RESPONSE",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true
+    },
+    {
+      "id": "failure_missing_open",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "missing_open",
+      "expected": "ALLOW",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "INVALID_RESPONSE",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true
+    },
+    {
+      "id": "failure_missing_closed",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "missing_closed",
+      "expected": "DENY",
+      "expected_core": "UNKNOWN",
+      "expected_source_reason": "INVALID_RESPONSE",
+      "concurrency": 1,
+      "request_limit": 1,
+      "cache_recovery": true
+    },
+    {
+      "id": "positive_cache_control",
+      "track": "cache",
+      "ip": "81.2.69.142",
+      "fixture": "warm_cache",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "negative_cache_control",
+      "track": "cache",
+      "ip": "81.2.69.142",
+      "fixture": "warm_negative_cache",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 0
+    }
+  ]
+}

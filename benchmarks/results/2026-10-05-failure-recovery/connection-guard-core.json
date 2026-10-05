@@ -1,0 +1,1703 @@
+{
+  "schema": 1,
+  "kind": "measured",
+  "product": "connection-guard",
+  "version": "0.5.0",
+  "suite_sha256": "9f78f0c1d1f84ac90ba04ceab10791bc8dc4b4404c30f44d844f88a9ec3eea26",
+  "adapter_sha256": "120647d94e7c72eb66f2cafb2dca3b0f5a0075cd50071abd9f346d409babcfad",
+  "artifact_sha256": "172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503",
+  "environment_sha256": "9b03834e874cfd5f61ce41f02ec51ee469a5b862c3bb062ee61bc830d55690f6",
+  "environment": {
+    "java": "openjdk version \"21.0.9\" 2025-10-21\nOpenJDK Runtime Environment Homebrew (build 21.0.9)\nOpenJDK 64-Bit Server VM Homebrew (build 21.0.9, mixed mode, sharing)\n",
+    "os": "macOS-26.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cores": 8,
+    "heap": "64m/256m",
+    "sources": "owned_typed_futures",
+    "lookup": "350/200/4/32/64",
+    "fixture_delay_ms": 50
+  },
+  "layer": "core_lookup",
+  "profile": "controlled_typed_source",
+  "cache_policy": "disabled",
+  "sampling": {
+    "rounds": 3,
+    "samples": 4,
+    "warmups": 1
+  },
+  "rows": [
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 11587625,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 21187083,
+      "batch_process_cpu_ns": 24799000,
+      "heap_used_after_batch_bytes": 23101776
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 402208,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_429_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 432667,
+      "batch_process_cpu_ns": 1313000,
+      "heap_used_after_batch_bytes": 23101776
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 239333,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_429_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 464833,
+      "batch_process_cpu_ns": 1045000,
+      "heap_used_after_batch_bytes": 23101776
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 249250,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_429_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 292667,
+      "batch_process_cpu_ns": 776000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 210333,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_429_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 255250,
+      "batch_process_cpu_ns": 1178000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 167542,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 195791,
+      "batch_process_cpu_ns": 360000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 175416,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_429_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 203333,
+      "batch_process_cpu_ns": 249000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 155958,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_429_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 182166,
+      "batch_process_cpu_ns": 684000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 145708,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_429_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 169500,
+      "batch_process_cpu_ns": 411000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 162292,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_429_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 199833,
+      "batch_process_cpu_ns": 555000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 154291,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 179458,
+      "batch_process_cpu_ns": 361000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 172125,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 197125,
+      "batch_process_cpu_ns": 608000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 146000,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 172708,
+      "batch_process_cpu_ns": 202000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 122875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 146542,
+      "batch_process_cpu_ns": 479000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 130917,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 155167,
+      "batch_process_cpu_ns": 1061000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 152209,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 179958,
+      "batch_process_cpu_ns": 620000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 126375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 148791,
+      "batch_process_cpu_ns": 197000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 125959,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 153084,
+      "batch_process_cpu_ns": 857000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 118250,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 145875,
+      "batch_process_cpu_ns": 222000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 118250,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 142292,
+      "batch_process_cpu_ns": 564000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 124375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 159833,
+      "batch_process_cpu_ns": 396000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 125792,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 150958,
+      "batch_process_cpu_ns": 922000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 116500,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 137833,
+      "batch_process_cpu_ns": 182000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 115041,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 135209,
+      "batch_process_cpu_ns": 164000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 120125,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 139666,
+      "batch_process_cpu_ns": 170000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 111959,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 132500,
+      "batch_process_cpu_ns": 704000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 119125,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "0-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 138500,
+      "batch_process_cpu_ns": 171000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 112291,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "0-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 131583,
+      "batch_process_cpu_ns": 399000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 119208,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "0-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 145333,
+      "batch_process_cpu_ns": 737000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 120875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "0-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 140084,
+      "batch_process_cpu_ns": 168000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 119958,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 141458,
+      "batch_process_cpu_ns": 167000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 117584,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 136916,
+      "batch_process_cpu_ns": 167000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 104083,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 122666,
+      "batch_process_cpu_ns": 147000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 106750,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 126334,
+      "batch_process_cpu_ns": 829000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 146584,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 167709,
+      "batch_process_cpu_ns": 194000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 106875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 129209,
+      "batch_process_cpu_ns": 621000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 103375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 136125,
+      "batch_process_cpu_ns": 269000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 101834,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 120916,
+      "batch_process_cpu_ns": 218000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 97917,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 116167,
+      "batch_process_cpu_ns": 140000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 102375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 122167,
+      "batch_process_cpu_ns": 144000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110708,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 129792,
+      "batch_process_cpu_ns": 159000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 141375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 165500,
+      "batch_process_cpu_ns": 184000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 112500,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 133000,
+      "batch_process_cpu_ns": 199000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 101584,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 120083,
+      "batch_process_cpu_ns": 152000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 108208,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 151834,
+      "batch_process_cpu_ns": 1687000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 131375,
+      "batch_process_cpu_ns": 152000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 103208,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 122750,
+      "batch_process_cpu_ns": 167000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 106916,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 131083,
+      "batch_process_cpu_ns": 156000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 150834,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 174292,
+      "batch_process_cpu_ns": 289000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 122000,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 147792,
+      "batch_process_cpu_ns": 863000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 121125,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 143834,
+      "batch_process_cpu_ns": 309000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 151375,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_429_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 173250,
+      "batch_process_cpu_ns": 218000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 129709,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_429_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 153416,
+      "batch_process_cpu_ns": 542000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 134291,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_429_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 159375,
+      "batch_process_cpu_ns": 425000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 121375,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_429_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 143833,
+      "batch_process_cpu_ns": 304000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 113208,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 136500,
+      "batch_process_cpu_ns": 229000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 135750,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "1-failure_429_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 174458,
+      "batch_process_cpu_ns": 673000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 131625,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "1-failure_429_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 155292,
+      "batch_process_cpu_ns": 331000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110667,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "1-failure_429_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 131500,
+      "batch_process_cpu_ns": 159000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 119667,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "1-failure_429_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 142167,
+      "batch_process_cpu_ns": 544000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 127250,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 149541,
+      "batch_process_cpu_ns": 174000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 116708,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_429_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 138667,
+      "batch_process_cpu_ns": 219000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 113709,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_429_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 138667,
+      "batch_process_cpu_ns": 370000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 165125,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_429_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 191791,
+      "batch_process_cpu_ns": 569000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 112334,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_429_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 133000,
+      "batch_process_cpu_ns": 248000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 138625,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 159625,
+      "batch_process_cpu_ns": 246000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 115000,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_429_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 133458,
+      "batch_process_cpu_ns": 160000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 101750,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_429_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 120333,
+      "batch_process_cpu_ns": 141000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 107042,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_429_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 125541,
+      "batch_process_cpu_ns": 658000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 106875,
+      "source_reasons": [
+        "RATE_LIMIT"
+      ],
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_429_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 128625,
+      "batch_process_cpu_ns": 637000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 129917,
+      "batch_process_cpu_ns": 151000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 105500,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 126875,
+      "batch_process_cpu_ns": 288000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 109042,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 134875,
+      "batch_process_cpu_ns": 150000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 107167,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 124542,
+      "batch_process_cpu_ns": 147000,
+      "heap_used_after_batch_bytes": 24150352
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 2410875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 2428750,
+      "batch_process_cpu_ns": 4931000,
+      "heap_used_after_batch_bytes": 4391248
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 137042,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 156000,
+      "batch_process_cpu_ns": 283000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 107625,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 125084,
+      "batch_process_cpu_ns": 148000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 108791,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 127084,
+      "batch_process_cpu_ns": 154000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 109334,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 135875,
+      "batch_process_cpu_ns": 369000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 103292,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 120833,
+      "batch_process_cpu_ns": 144000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 112500,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 131416,
+      "batch_process_cpu_ns": 191000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 108375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 127125,
+      "batch_process_cpu_ns": 631000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 101000,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 118750,
+      "batch_process_cpu_ns": 356000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 104709,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 121666,
+      "batch_process_cpu_ns": 236000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 111375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 128709,
+      "batch_process_cpu_ns": 319000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 123875,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 152667,
+      "batch_process_cpu_ns": 309000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110459,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "batch_id": "2-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 127084,
+      "batch_process_cpu_ns": 267000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 110167,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "batch_id": "2-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 126542,
+      "batch_process_cpu_ns": 296000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 98375,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "batch_id": "2-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 114583,
+      "batch_process_cpu_ns": 704000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "outcome": "UNKNOWN",
+      "duration_ns": 100709,
+      "source_reasons": [
+        "INVALID_RESPONSE"
+      ],
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "batch_id": "2-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "requests": 1,
+      "batch_elapsed_ns": 122875,
+      "batch_process_cpu_ns": 225000,
+      "heap_used_after_batch_bytes": 5439824
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "unsupported",
+      "reason": "core_lookup_does_not_measure_native_policy_or_sqlite"
+    }
+  ],
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "native_login_tested": false,
+  "http_parser_tested": false,
+  "live_accuracy_tested": false,
+  "real_account_authentication_tested": false
+}

@@ -45,6 +45,14 @@ python3 -m cgbench.cli run-core --artifact /absolute/path/connection-guard-all.j
 
 Core and native results are separate layers and cannot be ranked against each other. CI runs the offline suite contracts and the CG core fixture against the newly built JAR. Competitor native evaluations remain explicit local jobs with reviewed artifacts.
 
+## Failure recovery qualification
+
+The additive [failure-recovery-v1 dataset](datasets/failure-recovery-v1.json) completes CLOSED 429/malformed/missing cases alongside their OPEN controls. It deliberately enables SQLite for CG and retains each product's actual cache throughout the failure, recovered-positive and cached replay phases. Positive and negative warm-cache controls establish that storage is working. The original 25-case datasets and published baseline remain unchanged.
+
+Use the same matrix manifest, with `suite` set to the absolute path of `datasets/failure-recovery-v1.json`, and only the qualified CG/GeoRestrict HTTP adapters. Three rounds, four measured batches and two warmups are functional qualification. `recovery_proofs` records the actual extra login outcomes and source counts; these transitions are outside latency percentiles. A two-second owned `Retry-After` enables a bounded pause/recovery check without external traffic or clearing a cache. Missing proof is a setup error; a complete violated recovery/pause contract is a product-contract failure and cannot win latency.
+
+CI additionally checks six typed UNKNOWN/source-reason cases on the actual built CG JAR. Typed-source CI does not qualify the native HTTP parser, SQLite or a competitor. See [completed recovery study](results/2026-10-05-failure-recovery/README.md) and [measurement contract](METHODOLOGY.md) for the exact interpretation.
+
 ## Outputs and extension
 
 Each run produces a hash-bound receipt and coverage summary. A matrix also writes its schedule and Markdown/CSV export. Export a completed receipt again without running a server:

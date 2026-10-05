@@ -1,0 +1,9 @@
+product,version,artifact_sha256,layer,profile,case,track,verdict,samples,expected_samples,p50_ms,p95_ms,p99_ms,max_batch_requests,observed_proxy_rss_bytes,qualification_errors,contract_failures
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_429_open,provider,pass,12,12,0.13368750000000001,0.3180810999999999,0.3853826200000001,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_429_closed,provider,pass,12,12,0.132,0.16819779999999998,0.17397236,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_malformed_open,provider,pass,12,12,0.1224375,1.1795624999999985,2.1646125000000014,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_malformed_closed,provider,pass,12,12,0.110917,0.133125,0.13972500000000002,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_missing_open,provider,pass,12,12,0.106542,0.12267514999999998,0.12516863,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,failure_missing_closed,provider,pass,12,12,0.111375,0.13244404999999998,0.14375601000000002,1,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,positive_cache_control,cache,unsupported,0,12,,,,,,,
+connection-guard-core,0.5.0,172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503,core_lookup,controlled_typed_source,negative_cache_control,cache,unsupported,0,12,,,,,,,

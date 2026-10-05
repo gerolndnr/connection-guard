@@ -37,7 +37,7 @@ public final class CoreLookupBenchmark {
                 if (round % 2 != 0) Collections.reverse(cases);
                 for (JsonElement item : cases) {
                     JsonObject entry = item.getAsJsonObject(); String id = entry.get("id").getAsString(), behavior = entry.get("fixture").getAsString();
-                    if (entry.get("track").getAsString().equals("rules") || behavior.equals("warm_cache") || entry.get("track").getAsString().equals("geo") && !behavior.equals("geo_gb")) {
+                    if (entry.get("track").getAsString().equals("rules") || (behavior.equals("warm_cache") || behavior.equals("warm_negative_cache")) || entry.get("track").getAsString().equals("geo") && !behavior.equals("geo_gb")) {
                         JsonObject skipped = new JsonObject(); skipped.addProperty("case_id", id); skipped.addProperty("round", round);
                         skipped.addProperty("phase", "measure"); skipped.addProperty("sample", 0); skipped.addProperty("status", "unsupported");
                         skipped.addProperty("reason", "core_lookup_does_not_measure_native_policy_or_sqlite"); rows.add(skipped); continue;

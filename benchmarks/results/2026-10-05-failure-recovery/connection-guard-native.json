@@ -1,0 +1,4135 @@
+{
+  "schema": 1,
+  "kind": "measured",
+  "product": "connection-guard",
+  "version": "0.5.0",
+  "suite_sha256": "9f78f0c1d1f84ac90ba04ceab10791bc8dc4b4404c30f44d844f88a9ec3eea26",
+  "adapter_sha256": "208ad11b2af161343038a1df4416ca5029a273dcc1bb5c8b78c192f74ac073c0",
+  "input_sha256": {
+    "cgbench/__init__.py": "6aa61b0e2efa2ebeba1d3fd244bf18043f60329ad8119db12cdbd6ef4feaeb6d",
+    "cgbench/analysis.py": "7379ab60b44122f095fdb1fb71158e288686af5c81f885850b4aafa74df1c933",
+    "cgbench/artifacts.py": "f2802293f51f94d658057a5c95afa939d484159a24253efed7177ead2f3ccb15",
+    "cgbench/cli.py": "c3d84244743b1f013cf93d7653c8418662473e18eee32dc2216d233e8070b327",
+    "cgbench/core.py": "4b7c4fd028620ac45bd5be1fa5cdeadd9a3878cb95cdb7d28b0f8ea56bbe6e9f",
+    "cgbench/export.py": "6d335a667ec845797b2410553e5e1b320f5aa91fb406db909d2c96342c3610c4",
+    "cgbench/matrix.py": "21c07a8a449f135e7132f7fe0fadd1a2c61726e36b12c78a1c493723d404c9fb",
+    "cgbench/model.py": "4451c73ff42bc40ecf0c566b924acb4610f85d52adddcbca98ba1793244e5293",
+    "cgbench/native.py": "590a83979618e4e6d15f847e0a9b4be7d72f6430b6a62906feca0289b2c5fe44",
+    "cgbench/protocol.py": "6f0a04b7f4a17b8779cbcdc3787ee210ad28eb45618f1ae4c0c5ccf8b971dbd6",
+    "java/LoopbackSecurityManager.java": "f71862e52ad4d300a809b89ccd50e8490514f777005969da1ab45ab27fcda414"
+  },
+  "artifact_sha256": "172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503",
+  "environment_sha256": "569568b26f2b010bd670353d34ddd89661b2674a2e02d181cbc56164fc92ab24",
+  "environment": {
+    "java": "openjdk version \"21.0.9\" 2025-10-21\nOpenJDK Runtime Environment Homebrew (build 21.0.9)\nOpenJDK 64-Bit Server VM Homebrew (build 21.0.9, mixed mode, sharing)\n",
+    "os": "Darwin",
+    "os_release": "25.2.0",
+    "machine": "arm64",
+    "hardware": {
+      "cpu_count": 8,
+      "machine": "arm64",
+      "cpu_model": "Apple M3",
+      "physical_memory_bytes": 8589934592
+    },
+    "python": "3.14.0",
+    "runtime_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+    "pyyaml": "6.0.3",
+    "heap": "64m/256m",
+    "event_loop_threads": 2,
+    "transport": "NIO",
+    "subject_transport": "loopback_proxy_v2",
+    "network": "loopback_tcp_dns_metadata_allowed",
+    "protocol": 760
+  },
+  "asset_sha256": {
+    "dev/dejvokep/boosted-yaml/1.3.6/boosted-yaml-1.3.6-relocated.jar": "7094791598b3e68b432843de57d39dc303b8c6e3dc2cfbf8e52e1237f6055451",
+    "dev/dejvokep/boosted-yaml/1.3.6/boosted-yaml-1.3.6.jar": "65addd43d7ba3dd5d9c53656ba1bfcd8d1cfb6b1af505f15160a111f7ecd5035",
+    "me/lucko/jar-relocator/1.7/jar-relocator-1.7.jar": "6f7d1184e17a90788797e3b9b2e34b87ff9e02bd623851052d78709071c3bb82",
+    "org/bstats/bstats-velocity/3.0.2/bstats-velocity-3.0.2-relocated.jar": "dc64485b6c12cdc8881155f293dca3d6971818534e281a0f3ca2c1c9497c8969",
+    "org/bstats/bstats-velocity/3.0.2/bstats-velocity-3.0.2.jar": "98050e59590173dbb70d4e975e37bf7b4f021b686be23752a437a24e5a57a9f1",
+    "org/ow2/asm/asm/9.7/asm-9.7.jar": "adf46d5e34940bdf148ecdd26a9ee8eea94496a72034ff7141066b3eea5c4e9d",
+    "org/ow2/asm/asm-commons/9.7/asm-commons-9.7.jar": "389bc247958e049fc9a0408d398c92c6d370c18035120395d4cba1d9d9304b7a",
+    "org/xerial/sqlite-jdbc/3.46.0.0/sqlite-jdbc-3.46.0.0.jar": "e697df15be3f95219d80773c5f1002030e33e932adda186c1c86fd51df6691a9"
+  },
+  "layer": "native_velocity_login_gate",
+  "profile": "controlled_enforce",
+  "cache_policy": "declared_per_case",
+  "sampling": {
+    "rounds": 3,
+    "samples": 4,
+    "warmups": 2
+  },
+  "rows": [
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 137257542,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 139052542,
+      "resource_before": {
+        "rss_bytes": 155549696,
+        "cpu_seconds": 2.13
+      },
+      "resource_after": {
+        "rss_bytes": 187187200,
+        "cpu_seconds": 2.43
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2714166,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_open-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3002542,
+      "resource_before": {
+        "rss_bytes": 187236352,
+        "cpu_seconds": 2.43
+      },
+      "resource_after": {
+        "rss_bytes": 187367424,
+        "cpu_seconds": 2.44
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2138083,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_open-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2380416,
+      "resource_before": {
+        "rss_bytes": 187367424,
+        "cpu_seconds": 2.44
+      },
+      "resource_after": {
+        "rss_bytes": 187367424,
+        "cpu_seconds": 2.45
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5541208,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_open-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 6361666,
+      "resource_before": {
+        "rss_bytes": 187367424,
+        "cpu_seconds": 2.45
+      },
+      "resource_after": {
+        "rss_bytes": 187416576,
+        "cpu_seconds": 2.46
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 6207417,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_open-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 7033958,
+      "resource_before": {
+        "rss_bytes": 187170816,
+        "cpu_seconds": 2.46
+      },
+      "resource_after": {
+        "rss_bytes": 183730176,
+        "cpu_seconds": 2.47
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3446125,
+      "case_id": "failure_429_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_open-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3842959,
+      "resource_before": {
+        "rss_bytes": 181927936,
+        "cpu_seconds": 2.47
+      },
+      "resource_after": {
+        "rss_bytes": 181649408,
+        "cpu_seconds": 2.47
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 181253083,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 181766916,
+      "resource_before": {
+        "rss_bytes": 137625600,
+        "cpu_seconds": 2.44
+      },
+      "resource_after": {
+        "rss_bytes": 187711488,
+        "cpu_seconds": 2.83
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3167542,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_closed-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3551292,
+      "resource_before": {
+        "rss_bytes": 187858944,
+        "cpu_seconds": 2.85
+      },
+      "resource_after": {
+        "rss_bytes": 187662336,
+        "cpu_seconds": 2.86
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2124542,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_closed-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2380208,
+      "resource_before": {
+        "rss_bytes": 187662336,
+        "cpu_seconds": 2.86
+      },
+      "resource_after": {
+        "rss_bytes": 187662336,
+        "cpu_seconds": 2.86
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2409834,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_closed-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2917042,
+      "resource_before": {
+        "rss_bytes": 187662336,
+        "cpu_seconds": 2.86
+      },
+      "resource_after": {
+        "rss_bytes": 187678720,
+        "cpu_seconds": 2.87
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4335208,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_closed-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 4827292,
+      "resource_before": {
+        "rss_bytes": 186007552,
+        "cpu_seconds": 2.87
+      },
+      "resource_after": {
+        "rss_bytes": 184827904,
+        "cpu_seconds": 2.88
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2437667,
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-failure_429_closed-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2745250,
+      "resource_before": {
+        "rss_bytes": 184827904,
+        "cpu_seconds": 2.88
+      },
+      "resource_after": {
+        "rss_bytes": 184549376,
+        "cpu_seconds": 2.88
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 437633750,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 439720291,
+      "resource_before": {
+        "rss_bytes": 125075456,
+        "cpu_seconds": 3.33
+      },
+      "resource_after": {
+        "rss_bytes": 157302784,
+        "cpu_seconds": 3.97
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 11621875,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 13730708,
+      "resource_before": {
+        "rss_bytes": 152354816,
+        "cpu_seconds": 3.97
+      },
+      "resource_after": {
+        "rss_bytes": 151502848,
+        "cpu_seconds": 3.99
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 6586375,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6977417,
+      "resource_before": {
+        "rss_bytes": 146292736,
+        "cpu_seconds": 3.99
+      },
+      "resource_after": {
+        "rss_bytes": 145686528,
+        "cpu_seconds": 4.01
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5036334,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6772458,
+      "resource_before": {
+        "rss_bytes": 143327232,
+        "cpu_seconds": 4.01
+      },
+      "resource_after": {
+        "rss_bytes": 142721024,
+        "cpu_seconds": 4.02
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 7698542,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 8433000,
+      "resource_before": {
+        "rss_bytes": 135151616,
+        "cpu_seconds": 4.02
+      },
+      "resource_after": {
+        "rss_bytes": 132612096,
+        "cpu_seconds": 4.03
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 6370375,
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6914667,
+      "resource_before": {
+        "rss_bytes": 132055040,
+        "cpu_seconds": 4.03
+      },
+      "resource_after": {
+        "rss_bytes": 132251648,
+        "cpu_seconds": 4.04
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 174726208,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 180465791,
+      "resource_before": {
+        "rss_bytes": 136544256,
+        "cpu_seconds": 2.88
+      },
+      "resource_after": {
+        "rss_bytes": 186023936,
+        "cpu_seconds": 3.29
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 10403166,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 10815417,
+      "resource_before": {
+        "rss_bytes": 185991168,
+        "cpu_seconds": 3.32
+      },
+      "resource_after": {
+        "rss_bytes": 186630144,
+        "cpu_seconds": 3.34
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5482875,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5904917,
+      "resource_before": {
+        "rss_bytes": 186122240,
+        "cpu_seconds": 3.36
+      },
+      "resource_after": {
+        "rss_bytes": 186204160,
+        "cpu_seconds": 3.37
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4947500,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5272375,
+      "resource_before": {
+        "rss_bytes": 186204160,
+        "cpu_seconds": 3.37
+      },
+      "resource_after": {
+        "rss_bytes": 186286080,
+        "cpu_seconds": 3.38
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 6365625,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6986625,
+      "resource_before": {
+        "rss_bytes": 186236928,
+        "cpu_seconds": 3.38
+      },
+      "resource_after": {
+        "rss_bytes": 185991168,
+        "cpu_seconds": 3.39
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4820875,
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5180625,
+      "resource_before": {
+        "rss_bytes": 183795712,
+        "cpu_seconds": 3.39
+      },
+      "resource_after": {
+        "rss_bytes": 181862400,
+        "cpu_seconds": 3.39
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 199411291,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 201841333,
+      "resource_before": {
+        "rss_bytes": 121208832,
+        "cpu_seconds": 3.04
+      },
+      "resource_after": {
+        "rss_bytes": 173457408,
+        "cpu_seconds": 3.49
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 14868750,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 16229042,
+      "resource_before": {
+        "rss_bytes": 173899776,
+        "cpu_seconds": 3.52
+      },
+      "resource_after": {
+        "rss_bytes": 174276608,
+        "cpu_seconds": 3.55
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 9125833,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 10708834,
+      "resource_before": {
+        "rss_bytes": 178782208,
+        "cpu_seconds": 3.57
+      },
+      "resource_after": {
+        "rss_bytes": 182747136,
+        "cpu_seconds": 3.59
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 6017792,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6486208,
+      "resource_before": {
+        "rss_bytes": 182845440,
+        "cpu_seconds": 3.62
+      },
+      "resource_after": {
+        "rss_bytes": 182960128,
+        "cpu_seconds": 3.64
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5946291,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6446875,
+      "resource_before": {
+        "rss_bytes": 176685056,
+        "cpu_seconds": 3.64
+      },
+      "resource_after": {
+        "rss_bytes": 176291840,
+        "cpu_seconds": 3.66
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5172250,
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5517125,
+      "resource_before": {
+        "rss_bytes": 168968192,
+        "cpu_seconds": 3.66
+      },
+      "resource_after": {
+        "rss_bytes": 169345024,
+        "cpu_seconds": 3.67
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 221463709,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 221939541,
+      "resource_before": {
+        "rss_bytes": 136642560,
+        "cpu_seconds": 3.01
+      },
+      "resource_after": {
+        "rss_bytes": 172179456,
+        "cpu_seconds": 3.4
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 7506333,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 7883125,
+      "resource_before": {
+        "rss_bytes": 171360256,
+        "cpu_seconds": 3.4
+      },
+      "resource_after": {
+        "rss_bytes": 172703744,
+        "cpu_seconds": 3.41
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4017791,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4352125,
+      "resource_before": {
+        "rss_bytes": 172703744,
+        "cpu_seconds": 3.41
+      },
+      "resource_after": {
+        "rss_bytes": 172818432,
+        "cpu_seconds": 3.42
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2857417,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3045250,
+      "resource_before": {
+        "rss_bytes": 172818432,
+        "cpu_seconds": 3.42
+      },
+      "resource_after": {
+        "rss_bytes": 172818432,
+        "cpu_seconds": 3.43
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4149417,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4495583,
+      "resource_before": {
+        "rss_bytes": 172818432,
+        "cpu_seconds": 3.43
+      },
+      "resource_after": {
+        "rss_bytes": 172851200,
+        "cpu_seconds": 3.43
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3489167,
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3907708,
+      "resource_before": {
+        "rss_bytes": 172867584,
+        "cpu_seconds": 3.43
+      },
+      "resource_after": {
+        "rss_bytes": 167362560,
+        "cpu_seconds": 3.44
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 521013375,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-positive_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 521911333,
+      "resource_before": {
+        "rss_bytes": 141787136,
+        "cpu_seconds": 3.5
+      },
+      "resource_after": {
+        "rss_bytes": 138526720,
+        "cpu_seconds": 4.01
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 8845875,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-positive_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 12609875,
+      "resource_before": {
+        "rss_bytes": 132874240,
+        "cpu_seconds": 4.01
+      },
+      "resource_after": {
+        "rss_bytes": 133169152,
+        "cpu_seconds": 4.02
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2827875,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-positive_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3148166,
+      "resource_before": {
+        "rss_bytes": 129679360,
+        "cpu_seconds": 4.02
+      },
+      "resource_after": {
+        "rss_bytes": 129056768,
+        "cpu_seconds": 4.03
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3179834,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-positive_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3533833,
+      "resource_before": {
+        "rss_bytes": 122798080,
+        "cpu_seconds": 4.03
+      },
+      "resource_after": {
+        "rss_bytes": 115163136,
+        "cpu_seconds": 4.03
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5816208,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-positive_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 6867125,
+      "resource_before": {
+        "rss_bytes": 103923712,
+        "cpu_seconds": 4.03
+      },
+      "resource_after": {
+        "rss_bytes": 104185856,
+        "cpu_seconds": 4.05
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4154542,
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-positive_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 4563083,
+      "resource_before": {
+        "rss_bytes": 100827136,
+        "cpu_seconds": 4.05
+      },
+      "resource_after": {
+        "rss_bytes": 101122048,
+        "cpu_seconds": 4.05
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 407637125,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "0-negative_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 408063375,
+      "resource_before": {
+        "rss_bytes": 134119424,
+        "cpu_seconds": 3.24
+      },
+      "resource_after": {
+        "rss_bytes": 168378368,
+        "cpu_seconds": 3.58
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 4798292,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-negative_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5063667,
+      "resource_before": {
+        "rss_bytes": 168525824,
+        "cpu_seconds": 3.59
+      },
+      "resource_after": {
+        "rss_bytes": 168771584,
+        "cpu_seconds": 3.6
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2132667,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-negative_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2393167,
+      "resource_before": {
+        "rss_bytes": 168771584,
+        "cpu_seconds": 3.6
+      },
+      "resource_after": {
+        "rss_bytes": 168738816,
+        "cpu_seconds": 3.61
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2176917,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-negative_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2496958,
+      "resource_before": {
+        "rss_bytes": 168738816,
+        "cpu_seconds": 3.61
+      },
+      "resource_after": {
+        "rss_bytes": 168771584,
+        "cpu_seconds": 3.61
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 4947375,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-negative_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5356917,
+      "resource_before": {
+        "rss_bytes": 168574976,
+        "cpu_seconds": 3.61
+      },
+      "resource_after": {
+        "rss_bytes": 168574976,
+        "cpu_seconds": 3.62
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2274125,
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "0-negative_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2554292,
+      "resource_before": {
+        "rss_bytes": 168361984,
+        "cpu_seconds": 3.62
+      },
+      "resource_after": {
+        "rss_bytes": 167804928,
+        "cpu_seconds": 3.62
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 238990041,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-negative_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 239657458,
+      "resource_before": {
+        "rss_bytes": 155713536,
+        "cpu_seconds": 2.16
+      },
+      "resource_after": {
+        "rss_bytes": 184483840,
+        "cpu_seconds": 2.6
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5366875,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-negative_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5808542,
+      "resource_before": {
+        "rss_bytes": 184532992,
+        "cpu_seconds": 2.61
+      },
+      "resource_after": {
+        "rss_bytes": 184582144,
+        "cpu_seconds": 2.63
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 4504834,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-negative_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 4974625,
+      "resource_before": {
+        "rss_bytes": 181600256,
+        "cpu_seconds": 2.63
+      },
+      "resource_after": {
+        "rss_bytes": 181600256,
+        "cpu_seconds": 2.65
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3003542,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-negative_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3854500,
+      "resource_before": {
+        "rss_bytes": 168116224,
+        "cpu_seconds": 2.65
+      },
+      "resource_after": {
+        "rss_bytes": 168247296,
+        "cpu_seconds": 2.65
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3067458,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-negative_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3395625,
+      "resource_before": {
+        "rss_bytes": 166821888,
+        "cpu_seconds": 2.65
+      },
+      "resource_after": {
+        "rss_bytes": 166903808,
+        "cpu_seconds": 2.66
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3251542,
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-negative_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3616333,
+      "resource_before": {
+        "rss_bytes": 157597696,
+        "cpu_seconds": 2.66
+      },
+      "resource_after": {
+        "rss_bytes": 157794304,
+        "cpu_seconds": 2.67
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 169026916,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-positive_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 169597166,
+      "resource_before": {
+        "rss_bytes": 146571264,
+        "cpu_seconds": 2.75
+      },
+      "resource_after": {
+        "rss_bytes": 188940288,
+        "cpu_seconds": 3.13
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 7971167,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-positive_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 8303292,
+      "resource_before": {
+        "rss_bytes": 188841984,
+        "cpu_seconds": 3.16
+      },
+      "resource_after": {
+        "rss_bytes": 189153280,
+        "cpu_seconds": 3.18
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3333917,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-positive_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3642833,
+      "resource_before": {
+        "rss_bytes": 188268544,
+        "cpu_seconds": 3.2
+      },
+      "resource_after": {
+        "rss_bytes": 188334080,
+        "cpu_seconds": 3.21
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5052000,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-positive_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5544500,
+      "resource_before": {
+        "rss_bytes": 188317696,
+        "cpu_seconds": 3.21
+      },
+      "resource_after": {
+        "rss_bytes": 188219392,
+        "cpu_seconds": 3.22
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3078958,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-positive_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3441916,
+      "resource_before": {
+        "rss_bytes": 185794560,
+        "cpu_seconds": 3.22
+      },
+      "resource_after": {
+        "rss_bytes": 173932544,
+        "cpu_seconds": 3.23
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5695125,
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-positive_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 6258250,
+      "resource_before": {
+        "rss_bytes": 172441600,
+        "cpu_seconds": 3.23
+      },
+      "resource_after": {
+        "rss_bytes": 172556288,
+        "cpu_seconds": 3.24
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 126849084,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 127833959,
+      "resource_before": {
+        "rss_bytes": 166199296,
+        "cpu_seconds": 2.24
+      },
+      "resource_after": {
+        "rss_bytes": 182321152,
+        "cpu_seconds": 2.54
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 6384125,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6704875,
+      "resource_before": {
+        "rss_bytes": 184287232,
+        "cpu_seconds": 2.57
+      },
+      "resource_after": {
+        "rss_bytes": 186695680,
+        "cpu_seconds": 2.59
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3998333,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4247041,
+      "resource_before": {
+        "rss_bytes": 191430656,
+        "cpu_seconds": 2.62
+      },
+      "resource_after": {
+        "rss_bytes": 191512576,
+        "cpu_seconds": 2.63
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3640708,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3864375,
+      "resource_before": {
+        "rss_bytes": 191512576,
+        "cpu_seconds": 2.63
+      },
+      "resource_after": {
+        "rss_bytes": 191512576,
+        "cpu_seconds": 2.64
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3174750,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3393833,
+      "resource_before": {
+        "rss_bytes": 191447040,
+        "cpu_seconds": 2.64
+      },
+      "resource_after": {
+        "rss_bytes": 191463424,
+        "cpu_seconds": 2.64
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3881625,
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4169584,
+      "resource_before": {
+        "rss_bytes": 191447040,
+        "cpu_seconds": 2.64
+      },
+      "resource_after": {
+        "rss_bytes": 191463424,
+        "cpu_seconds": 2.65
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 193974584,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 194338792,
+      "resource_before": {
+        "rss_bytes": 178520064,
+        "cpu_seconds": 2.11
+      },
+      "resource_after": {
+        "rss_bytes": 188334080,
+        "cpu_seconds": 2.39
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 9943167,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 10184542,
+      "resource_before": {
+        "rss_bytes": 188383232,
+        "cpu_seconds": 2.4
+      },
+      "resource_after": {
+        "rss_bytes": 188710912,
+        "cpu_seconds": 2.41
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3201875,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3439958,
+      "resource_before": {
+        "rss_bytes": 188710912,
+        "cpu_seconds": 2.41
+      },
+      "resource_after": {
+        "rss_bytes": 188727296,
+        "cpu_seconds": 2.42
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3635500,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4005125,
+      "resource_before": {
+        "rss_bytes": 188727296,
+        "cpu_seconds": 2.42
+      },
+      "resource_after": {
+        "rss_bytes": 188809216,
+        "cpu_seconds": 2.43
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3310167,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3580750,
+      "resource_before": {
+        "rss_bytes": 188809216,
+        "cpu_seconds": 2.43
+      },
+      "resource_after": {
+        "rss_bytes": 188858368,
+        "cpu_seconds": 2.44
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3039208,
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3294541,
+      "resource_before": {
+        "rss_bytes": 188858368,
+        "cpu_seconds": 2.45
+      },
+      "resource_after": {
+        "rss_bytes": 188858368,
+        "cpu_seconds": 2.45
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 103776916,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 104117833,
+      "resource_before": {
+        "rss_bytes": 171868160,
+        "cpu_seconds": 2.02
+      },
+      "resource_after": {
+        "rss_bytes": 190447616,
+        "cpu_seconds": 2.28
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5843667,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 6127667,
+      "resource_before": {
+        "rss_bytes": 195575808,
+        "cpu_seconds": 2.31
+      },
+      "resource_after": {
+        "rss_bytes": 198017024,
+        "cpu_seconds": 2.32
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3083666,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3328125,
+      "resource_before": {
+        "rss_bytes": 198180864,
+        "cpu_seconds": 2.35
+      },
+      "resource_after": {
+        "rss_bytes": 198197248,
+        "cpu_seconds": 2.36
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2981167,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3181375,
+      "resource_before": {
+        "rss_bytes": 198197248,
+        "cpu_seconds": 2.37
+      },
+      "resource_after": {
+        "rss_bytes": 198213632,
+        "cpu_seconds": 2.38
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3715750,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3966917,
+      "resource_before": {
+        "rss_bytes": 198213632,
+        "cpu_seconds": 2.38
+      },
+      "resource_after": {
+        "rss_bytes": 198246400,
+        "cpu_seconds": 2.38
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3396833,
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3627500,
+      "resource_before": {
+        "rss_bytes": 198246400,
+        "cpu_seconds": 2.38
+      },
+      "resource_after": {
+        "rss_bytes": 198279168,
+        "cpu_seconds": 2.39
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 122232292,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 122772958,
+      "resource_before": {
+        "rss_bytes": 156221440,
+        "cpu_seconds": 1.94
+      },
+      "resource_after": {
+        "rss_bytes": 186613760,
+        "cpu_seconds": 2.24
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 10523875,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 10895209,
+      "resource_before": {
+        "rss_bytes": 185106432,
+        "cpu_seconds": 2.26
+      },
+      "resource_after": {
+        "rss_bytes": 185548800,
+        "cpu_seconds": 2.29
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5085834,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5964125,
+      "resource_before": {
+        "rss_bytes": 185761792,
+        "cpu_seconds": 2.32
+      },
+      "resource_after": {
+        "rss_bytes": 185778176,
+        "cpu_seconds": 2.34
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2934584,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3123916,
+      "resource_before": {
+        "rss_bytes": 185794560,
+        "cpu_seconds": 2.35
+      },
+      "resource_after": {
+        "rss_bytes": 185925632,
+        "cpu_seconds": 2.36
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2953083,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3191375,
+      "resource_before": {
+        "rss_bytes": 185925632,
+        "cpu_seconds": 2.36
+      },
+      "resource_after": {
+        "rss_bytes": 185991168,
+        "cpu_seconds": 2.37
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5296542,
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5668500,
+      "resource_before": {
+        "rss_bytes": 184958976,
+        "cpu_seconds": 2.37
+      },
+      "resource_after": {
+        "rss_bytes": 184582144,
+        "cpu_seconds": 2.38
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 107671667,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 108054333,
+      "resource_before": {
+        "rss_bytes": 174030848,
+        "cpu_seconds": 2.04
+      },
+      "resource_after": {
+        "rss_bytes": 195510272,
+        "cpu_seconds": 2.31
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3695334,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_closed-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3936083,
+      "resource_before": {
+        "rss_bytes": 195510272,
+        "cpu_seconds": 2.32
+      },
+      "resource_after": {
+        "rss_bytes": 195624960,
+        "cpu_seconds": 2.32
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2453541,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_closed-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2740417,
+      "resource_before": {
+        "rss_bytes": 195624960,
+        "cpu_seconds": 2.32
+      },
+      "resource_after": {
+        "rss_bytes": 195624960,
+        "cpu_seconds": 2.33
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2341375,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_closed-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2585542,
+      "resource_before": {
+        "rss_bytes": 195330048,
+        "cpu_seconds": 2.33
+      },
+      "resource_after": {
+        "rss_bytes": 195330048,
+        "cpu_seconds": 2.33
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2608459,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_closed-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2904541,
+      "resource_before": {
+        "rss_bytes": 194641920,
+        "cpu_seconds": 2.33
+      },
+      "resource_after": {
+        "rss_bytes": 194641920,
+        "cpu_seconds": 2.34
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2358125,
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_closed-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2656084,
+      "resource_before": {
+        "rss_bytes": 194641920,
+        "cpu_seconds": 2.34
+      },
+      "resource_after": {
+        "rss_bytes": 194265088,
+        "cpu_seconds": 2.34
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 108343167,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "1-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 108823666,
+      "resource_before": {
+        "rss_bytes": 170901504,
+        "cpu_seconds": 2.02
+      },
+      "resource_after": {
+        "rss_bytes": 194625536,
+        "cpu_seconds": 2.31
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3225375,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_open-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3546125,
+      "resource_before": {
+        "rss_bytes": 193806336,
+        "cpu_seconds": 2.31
+      },
+      "resource_after": {
+        "rss_bytes": 193921024,
+        "cpu_seconds": 2.32
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2192167,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_open-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2414791,
+      "resource_before": {
+        "rss_bytes": 193921024,
+        "cpu_seconds": 2.32
+      },
+      "resource_after": {
+        "rss_bytes": 193937408,
+        "cpu_seconds": 2.33
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2171500,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_open-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2425917,
+      "resource_before": {
+        "rss_bytes": 193937408,
+        "cpu_seconds": 2.33
+      },
+      "resource_after": {
+        "rss_bytes": 193970176,
+        "cpu_seconds": 2.33
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2437542,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_open-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2719584,
+      "resource_before": {
+        "rss_bytes": 193970176,
+        "cpu_seconds": 2.33
+      },
+      "resource_after": {
+        "rss_bytes": 193986560,
+        "cpu_seconds": 2.34
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2274500,
+      "case_id": "failure_429_open",
+      "round": 1,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "1-failure_429_open-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2522041,
+      "resource_before": {
+        "rss_bytes": 193986560,
+        "cpu_seconds": 2.34
+      },
+      "resource_after": {
+        "rss_bytes": 194019328,
+        "cpu_seconds": 2.35
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 116337333,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_429_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 116743083,
+      "resource_before": {
+        "rss_bytes": 168394752,
+        "cpu_seconds": 1.97
+      },
+      "resource_after": {
+        "rss_bytes": 191135744,
+        "cpu_seconds": 2.22
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2617166,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_open-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2830334,
+      "resource_before": {
+        "rss_bytes": 191168512,
+        "cpu_seconds": 2.24
+      },
+      "resource_after": {
+        "rss_bytes": 191299584,
+        "cpu_seconds": 2.24
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2023375,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_open-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2266791,
+      "resource_before": {
+        "rss_bytes": 191299584,
+        "cpu_seconds": 2.24
+      },
+      "resource_after": {
+        "rss_bytes": 191004672,
+        "cpu_seconds": 2.25
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2216584,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_open-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2450708,
+      "resource_before": {
+        "rss_bytes": 191004672,
+        "cpu_seconds": 2.25
+      },
+      "resource_after": {
+        "rss_bytes": 191037440,
+        "cpu_seconds": 2.25
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2186167,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_open-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2423000,
+      "resource_before": {
+        "rss_bytes": 191037440,
+        "cpu_seconds": 2.25
+      },
+      "resource_after": {
+        "rss_bytes": 191037440,
+        "cpu_seconds": 2.26
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2521417,
+      "case_id": "failure_429_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_open-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2827000,
+      "resource_before": {
+        "rss_bytes": 191037440,
+        "cpu_seconds": 2.26
+      },
+      "resource_after": {
+        "rss_bytes": 191053824,
+        "cpu_seconds": 2.26
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 270949208,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_429_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 271501500,
+      "resource_before": {
+        "rss_bytes": 157220864,
+        "cpu_seconds": 1.97
+      },
+      "resource_after": {
+        "rss_bytes": 176521216,
+        "cpu_seconds": 2.4
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3637000,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_closed-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3879500,
+      "resource_before": {
+        "rss_bytes": 177799168,
+        "cpu_seconds": 2.43
+      },
+      "resource_after": {
+        "rss_bytes": 178176000,
+        "cpu_seconds": 2.44
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5347667,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_closed-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5815958,
+      "resource_before": {
+        "rss_bytes": 178618368,
+        "cpu_seconds": 2.47
+      },
+      "resource_after": {
+        "rss_bytes": 181239808,
+        "cpu_seconds": 2.48
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4158750,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_closed-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 4516333,
+      "resource_before": {
+        "rss_bytes": 183975936,
+        "cpu_seconds": 2.5
+      },
+      "resource_after": {
+        "rss_bytes": 183992320,
+        "cpu_seconds": 2.51
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 7066750,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_closed-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 7565791,
+      "resource_before": {
+        "rss_bytes": 184205312,
+        "cpu_seconds": 2.53
+      },
+      "resource_after": {
+        "rss_bytes": 183648256,
+        "cpu_seconds": 2.55
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2585000,
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-failure_429_closed-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2884500,
+      "resource_before": {
+        "rss_bytes": 182517760,
+        "cpu_seconds": 2.56
+      },
+      "resource_after": {
+        "rss_bytes": 182517760,
+        "cpu_seconds": 2.56
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 108110666,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 108505583,
+      "resource_before": {
+        "rss_bytes": 170344448,
+        "cpu_seconds": 1.97
+      },
+      "resource_after": {
+        "rss_bytes": 186859520,
+        "cpu_seconds": 2.23
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 5458458,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5735125,
+      "resource_before": {
+        "rss_bytes": 186941440,
+        "cpu_seconds": 2.26
+      },
+      "resource_after": {
+        "rss_bytes": 187318272,
+        "cpu_seconds": 2.28
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3126625,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3386666,
+      "resource_before": {
+        "rss_bytes": 189120512,
+        "cpu_seconds": 2.3
+      },
+      "resource_after": {
+        "rss_bytes": 191119360,
+        "cpu_seconds": 2.32
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3931416,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4215458,
+      "resource_before": {
+        "rss_bytes": 193609728,
+        "cpu_seconds": 2.34
+      },
+      "resource_after": {
+        "rss_bytes": 193806336,
+        "cpu_seconds": 2.35
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2788833,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3021542,
+      "resource_before": {
+        "rss_bytes": 192626688,
+        "cpu_seconds": 2.36
+      },
+      "resource_after": {
+        "rss_bytes": 192659456,
+        "cpu_seconds": 2.37
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2708166,
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 2919208,
+      "resource_before": {
+        "rss_bytes": 192659456,
+        "cpu_seconds": 2.37
+      },
+      "resource_after": {
+        "rss_bytes": 192659456,
+        "cpu_seconds": 2.37
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 109524708,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 109863166,
+      "resource_before": {
+        "rss_bytes": 176586752,
+        "cpu_seconds": 1.99
+      },
+      "resource_after": {
+        "rss_bytes": 192954368,
+        "cpu_seconds": 2.26
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 5065541,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5328875,
+      "resource_before": {
+        "rss_bytes": 187891712,
+        "cpu_seconds": 2.26
+      },
+      "resource_after": {
+        "rss_bytes": 188284928,
+        "cpu_seconds": 2.27
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3220583,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3419292,
+      "resource_before": {
+        "rss_bytes": 188284928,
+        "cpu_seconds": 2.27
+      },
+      "resource_after": {
+        "rss_bytes": 188284928,
+        "cpu_seconds": 2.28
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3142500,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3354667,
+      "resource_before": {
+        "rss_bytes": 188284928,
+        "cpu_seconds": 2.28
+      },
+      "resource_after": {
+        "rss_bytes": 188301312,
+        "cpu_seconds": 2.28
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4794334,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5752792,
+      "resource_before": {
+        "rss_bytes": 188301312,
+        "cpu_seconds": 2.28
+      },
+      "resource_after": {
+        "rss_bytes": 188170240,
+        "cpu_seconds": 2.29
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3468416,
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_malformed_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3719333,
+      "resource_before": {
+        "rss_bytes": 188170240,
+        "cpu_seconds": 2.29
+      },
+      "resource_after": {
+        "rss_bytes": 188186624,
+        "cpu_seconds": 2.3
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 111709417,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 112355334,
+      "resource_before": {
+        "rss_bytes": 169295872,
+        "cpu_seconds": 2.01
+      },
+      "resource_after": {
+        "rss_bytes": 188006400,
+        "cpu_seconds": 2.31
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 4665209,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4967916,
+      "resource_before": {
+        "rss_bytes": 191528960,
+        "cpu_seconds": 2.34
+      },
+      "resource_after": {
+        "rss_bytes": 191266816,
+        "cpu_seconds": 2.35
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3696500,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3962292,
+      "resource_before": {
+        "rss_bytes": 191266816,
+        "cpu_seconds": 2.36
+      },
+      "resource_after": {
+        "rss_bytes": 191332352,
+        "cpu_seconds": 2.37
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2877792,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3094000,
+      "resource_before": {
+        "rss_bytes": 191332352,
+        "cpu_seconds": 2.37
+      },
+      "resource_after": {
+        "rss_bytes": 191381504,
+        "cpu_seconds": 2.38
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 4457458,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4749875,
+      "resource_before": {
+        "rss_bytes": 191381504,
+        "cpu_seconds": 2.38
+      },
+      "resource_after": {
+        "rss_bytes": 191397888,
+        "cpu_seconds": 2.39
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3008708,
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_open-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3240584,
+      "resource_before": {
+        "rss_bytes": 191397888,
+        "cpu_seconds": 2.4
+      },
+      "resource_after": {
+        "rss_bytes": 191414272,
+        "cpu_seconds": 2.4
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 122011083,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 122533416,
+      "resource_before": {
+        "rss_bytes": 163397632,
+        "cpu_seconds": 2.32
+      },
+      "resource_after": {
+        "rss_bytes": 193445888,
+        "cpu_seconds": 2.63
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4821083,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-warmup-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 5033250,
+      "resource_before": {
+        "rss_bytes": 193445888,
+        "cpu_seconds": 2.63
+      },
+      "resource_after": {
+        "rss_bytes": 193822720,
+        "cpu_seconds": 2.64
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3322042,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-measure-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3536583,
+      "resource_before": {
+        "rss_bytes": 193822720,
+        "cpu_seconds": 2.64
+      },
+      "resource_after": {
+        "rss_bytes": 193855488,
+        "cpu_seconds": 2.65
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3470916,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-measure-1",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3830958,
+      "resource_before": {
+        "rss_bytes": 193839104,
+        "cpu_seconds": 2.65
+      },
+      "resource_after": {
+        "rss_bytes": 193855488,
+        "cpu_seconds": 2.66
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3948791,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-measure-2",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 4190292,
+      "resource_before": {
+        "rss_bytes": 193855488,
+        "cpu_seconds": 2.66
+      },
+      "resource_after": {
+        "rss_bytes": 193871872,
+        "cpu_seconds": 2.66
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3502709,
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-failure_missing_closed-measure-3",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 3722125,
+      "resource_before": {
+        "rss_bytes": 193871872,
+        "cpu_seconds": 2.66
+      },
+      "resource_after": {
+        "rss_bytes": 193888256,
+        "cpu_seconds": 2.67
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 112417583,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-positive_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 112846291,
+      "resource_before": {
+        "rss_bytes": 168755200,
+        "cpu_seconds": 1.96
+      },
+      "resource_after": {
+        "rss_bytes": 192741376,
+        "cpu_seconds": 2.24
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 4983750,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-positive_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 5225208,
+      "resource_before": {
+        "rss_bytes": 192741376,
+        "cpu_seconds": 2.26
+      },
+      "resource_after": {
+        "rss_bytes": 192905216,
+        "cpu_seconds": 2.27
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2379417,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-positive_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2628500,
+      "resource_before": {
+        "rss_bytes": 192905216,
+        "cpu_seconds": 2.28
+      },
+      "resource_after": {
+        "rss_bytes": 192905216,
+        "cpu_seconds": 2.29
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2495958,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-positive_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2726333,
+      "resource_before": {
+        "rss_bytes": 192905216,
+        "cpu_seconds": 2.29
+      },
+      "resource_after": {
+        "rss_bytes": 192937984,
+        "cpu_seconds": 2.29
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 2635541,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-positive_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2892417,
+      "resource_before": {
+        "rss_bytes": 192937984,
+        "cpu_seconds": 2.29
+      },
+      "resource_after": {
+        "rss_bytes": 193003520,
+        "cpu_seconds": 2.3
+      }
+    },
+    {
+      "outcome": "DENY",
+      "reason": "login_disconnect_packet",
+      "duration_ns": 3323500,
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-positive_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3571334,
+      "resource_before": {
+        "rss_bytes": 193003520,
+        "cpu_seconds": 2.3
+      },
+      "resource_after": {
+        "rss_bytes": 193003520,
+        "cpu_seconds": 2.31
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 136930208,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 0,
+      "status": "measured",
+      "requests": 1,
+      "batch_id": "2-negative_cache_control-warmup-0",
+      "batch_requests": 1,
+      "batch_elapsed_ns": 139009584,
+      "resource_before": {
+        "rss_bytes": 165838848,
+        "cpu_seconds": 2.09
+      },
+      "resource_after": {
+        "rss_bytes": 186662912,
+        "cpu_seconds": 2.42
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 6019708,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "warmup",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-negative_cache_control-warmup-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 6283167,
+      "resource_before": {
+        "rss_bytes": 193150976,
+        "cpu_seconds": 2.45
+      },
+      "resource_after": {
+        "rss_bytes": 193806336,
+        "cpu_seconds": 2.47
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2553708,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 0,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-negative_cache_control-measure-0",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2866042,
+      "resource_before": {
+        "rss_bytes": 191381504,
+        "cpu_seconds": 2.49
+      },
+      "resource_after": {
+        "rss_bytes": 191070208,
+        "cpu_seconds": 2.49
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2025084,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 1,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-negative_cache_control-measure-1",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2261875,
+      "resource_before": {
+        "rss_bytes": 191070208,
+        "cpu_seconds": 2.49
+      },
+      "resource_after": {
+        "rss_bytes": 191086592,
+        "cpu_seconds": 2.5
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 2419958,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 2,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-negative_cache_control-measure-2",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 2713958,
+      "resource_before": {
+        "rss_bytes": 191086592,
+        "cpu_seconds": 2.5
+      },
+      "resource_after": {
+        "rss_bytes": 191135744,
+        "cpu_seconds": 2.51
+      }
+    },
+    {
+      "outcome": "ALLOW",
+      "reason": "login_success_packet",
+      "duration_ns": 3083458,
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "phase": "measure",
+      "sample": 3,
+      "status": "measured",
+      "requests": 0,
+      "batch_id": "2-negative_cache_control-measure-3",
+      "batch_requests": 0,
+      "batch_elapsed_ns": 3349916,
+      "resource_before": {
+        "rss_bytes": 191168512,
+        "cpu_seconds": 2.51
+      },
+      "resource_after": {
+        "rss_bytes": 190595072,
+        "cpu_seconds": 2.52
+      }
+    }
+  ],
+  "logs": [
+    {
+      "case_id": "failure_429_open",
+      "round": 0,
+      "sha256": "39772daf0d13a87682946c255bbced8b4e31057d5ecbf970ffc56e2e0ce066d6",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "sha256": "cab8e8b9333ad673a96df28abb5e1b616d3d3ddc51d10c6a62a95f2824dc509f",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "sha256": "49ab5d15cc7fd4955cb97311e08688fdee76d413fe02a9634a54def72cd78bb2",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "sha256": "24253f36eaf79c6643c723d1cab5f80003ce3885ce334e0417f28436c692d0d5",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "sha256": "3208f47e816ed1f5dcc2d7bc835665493ab8c67ce4c71d2a32756449be767010",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "sha256": "4a930d2e2ad2612fcebe428832ef9761362966e771778022022de2efabac1e00",
+      "process_exit": 0
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "sha256": "84b43ab02564f46d9e8d7181a6225f6f6743dec72f2cd49f7b774a84428de395",
+      "process_exit": 0
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "sha256": "6e1a7867d04382739d2a22c86d6ef5ee73090b0be82ff48e2c8cf3b4c44ba46c",
+      "process_exit": 0
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "sha256": "273154c8996417fd475eff9954854a5f4d15a9a1f5938ed30ac27525a387593f",
+      "process_exit": 0
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "sha256": "4d952fd85c18d3ad7717ff937c968adc5a7a9080c7be072b65b9342cf049f497",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "sha256": "04569c431f5110c3ef32615ead0bf836dd86b41f5e3672d3b75fa4cfe13e4fae",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "sha256": "a0be3227e88a2824d3d4f56ee932e9dbf81239a5b6503d425a3780f0b61e2734",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "sha256": "18ec2baf2592d0348fcf61bb406d98f43d6899aa5b8d63f498e6429ed100977f",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "sha256": "7bd04cb3e99275cbc9c7388efc82084f88fbe2f31fb09fedffffe6546c68bb90",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "sha256": "990cfec8d0312e3a387a1a76730526e949148d98750302951148e206de328c3c",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 1,
+      "sha256": "ddf4d2b46c2a3679f943dd79111d77c766d2d5b9063ba7bc6a89c47a8d96f3c9",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 2,
+      "sha256": "f390fbc896532a457e80b2a95078647f464b0e9de6c83032fc442efed9f63460",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "sha256": "7f9bb0880f4fedcf6d9336bdea5e71b7ed2beee31bcaddadf0f44123342932d9",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "sha256": "9089262913c76f0530862649c4af56f8f6c28b691c572be65a63a028a06cad2a",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "sha256": "fb2e087c3904e73456c23eaf6b80adeb993c02003464e1339841b96dcadb86a1",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "sha256": "6d7cc90b97bb921e646bbcd6107ee548534956a151317bb45ba16391b5430de8",
+      "process_exit": 0
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "sha256": "8c7b8790b78f8c255cbff0365db5b0e79831571bcfca3f02e27b26d00f3fe16e",
+      "process_exit": 0
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "sha256": "6d62b67c42bb3c67dcbc49546264e00562dabec1ad18512f71bad8d5217df5f8",
+      "process_exit": 0
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "sha256": "e70afa5e564e2758b462fd8387e6276b30e27e1a0600347dcf9ebf96bf2854e2",
+      "process_exit": 0
+    }
+  ],
+  "config_sha256": [
+    {
+      "case_id": "failure_429_open",
+      "round": 0,
+      "files": {
+        "config.yml": "edb1d1c97ce758391be342f15beb5fdd821243e6e5271ac1d33e70230c597004",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "files": {
+        "config.yml": "795a06ce2a94b43b9bab616cdc065b6b68cecd9e0b9c204619da3e26d4221463",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "files": {
+        "config.yml": "4c6774bbe281a34d1ec109f7b919e39de2ee1481055f1ed6a3bc9a0d11f9147f",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "files": {
+        "config.yml": "2b8d0200cffaaa36ccb5e1358c73667675d28a1600276ee0a6036e79b10111a1",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "files": {
+        "config.yml": "6ddb2b136d90e04bf1e3f6fbed3b388faa9883dbf62aa85529a718d7d186b4a2",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "files": {
+        "config.yml": "f3519c52f80a76f72191ea112972266c554de173d895bcfe28a3ecf8448dba89",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 0,
+      "files": {
+        "config.yml": "37d46d967414e2f357904beab3788781cdd64bbd57a173d08543edbc9dc2ff1b",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 0,
+      "files": {
+        "config.yml": "aa91e81eb88c91086b6b59a85a9e80e5694daed49f9c15cbe0416ac92fc3f16b",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 1,
+      "files": {
+        "config.yml": "5c635ddecc9e9f13d07169097a75bf5819dee20a53c953c9448bb6808b57bfb7",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 1,
+      "files": {
+        "config.yml": "a5452288dece624580062f5acc717e4adb8416429519250236c1d1c4814eba3b",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "files": {
+        "config.yml": "49897a073f41484161c6783a0cf6a0c873b79fdacb196451c1344f225d9e9945",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "files": {
+        "config.yml": "4b5e9a93fcda5099b724f172b51706e59ab40870d1bd7964279560dfc4c301c0",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "files": {
+        "config.yml": "13691a395b3ea65db5a31ce97912b9c77d00e63ea3dbcbcdaf244437f9d01c87",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "files": {
+        "config.yml": "37c9ba0bd96af45b26fa373326825e787b7b71a6ec3be8256de6e6b834dbe53c",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "files": {
+        "config.yml": "0b6dc56630124fc728222c788ed2b6592e7496470fa25915baae14ba5738c4d3",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 1,
+      "files": {
+        "config.yml": "752c482b2b919fe0fe5a07df9a981dfe79ce1ce84515a2f91a08e1eddede01c2",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 2,
+      "files": {
+        "config.yml": "2c61d7103d00a93f1f9eb5453da7b8277fde6451c6a79e4ba0e5fe79edf7f96e",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "files": {
+        "config.yml": "82363eb7b4103de8235caa717046518cae366f3e9cabed24ff4005f3605819ab",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "files": {
+        "config.yml": "7276b661062a87360721e3eefbb8a760546b7852b87cec58fb64f81d25fb5201",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "files": {
+        "config.yml": "606e6d69300382328ae6b87c0f7a889ac71f512aebea6166c9b7794cb4c21812",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "files": {
+        "config.yml": "fc5a57e871bf7d0750efa746a46fbb64cb3a41453477c29bda1181fd393fae64",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "files": {
+        "config.yml": "c8ee05b7c10f88dbac60fc00310f8827dac30814376d906b1051779176a06a09",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "positive_cache_control",
+      "round": 2,
+      "files": {
+        "config.yml": "edb2aa711a05cb348a4992c8b882f65953a42c757d10a7bfeb0c7c528f28d559",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    },
+    {
+      "case_id": "negative_cache_control",
+      "round": 2,
+      "files": {
+        "config.yml": "9ca345f265a8b668837495b0d5bdae23e84e40aaa16d5ee8949f831752e9ffba",
+        "translation/en.yml": "703392cfca295b95807719a1cde972d7735819c27d1bf92c3c667949f93c4257"
+      }
+    }
+  ],
+  "environment_errors": [],
+  "recovery_proofs": [
+    {
+      "case_id": "failure_429_open",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1894,
+      "paused": [
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 2501375,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 2213416,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1738875,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 67026917,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 6989500,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1892,
+      "paused": [
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 2776542,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 2005750,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1758291,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 133386084,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 8306416,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 25,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 34991750,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 9586334,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 22,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 15598250,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 8925292,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 20,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 20349542,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 6336792,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 0,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 23,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 12528584,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4415042,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 25,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 13327375,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4811208,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 21,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 14487667,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4471250,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 22,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 14007125,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 5213709,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 25,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 14426583,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4179500,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1912,
+      "paused": [
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1967209,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1303375,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1202334,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 48734291,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 5817834,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 1,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1913,
+      "paused": [
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1876083,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1483000,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1159750,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 83003416,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 6101750,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_429_open",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1920,
+      "paused": [
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 2007292,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1244250,
+          "requests": 0
+        },
+        {
+          "outcome": "ALLOW",
+          "reason": "login_success_packet",
+          "duration_ns": 1042583,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 61016708,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 5783208,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_429_closed",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 1,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 1893,
+      "paused": [
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 3857542,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1995375,
+          "requests": 0
+        },
+        {
+          "outcome": "DENY",
+          "reason": "login_disconnect_packet",
+          "duration_ns": 1588791,
+          "requests": 0
+        }
+      ],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 62575625,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 6839792,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_open",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 22,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 13428167,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4314291,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_malformed_closed",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 21,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 13058750,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4381041,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_open",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 25,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 14092917,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4585583,
+        "requests": 0
+      }
+    },
+    {
+      "case_id": "failure_missing_closed",
+      "round": 2,
+      "cache_retained": true,
+      "initial_source_calls": 6,
+      "positive_source_calls": 1,
+      "recovery_wait_ms": 24,
+      "paused": [],
+      "recovered": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 13782375,
+        "requests": 1
+      },
+      "cached_replay": {
+        "outcome": "DENY",
+        "reason": "login_disconnect_packet",
+        "duration_ns": 4669541,
+        "requests": 0
+      }
+    }
+  ],
+  "live_accuracy_tested": false,
+  "backend_join_tested": false,
+  "real_account_authentication_tested": false,
+  "sampling_purpose": "functional_qualification_with_exploratory_timing",
+  "case_conditions": {
+    "failure_429_open": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "failure_429_closed": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "failure_malformed_open": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "failure_malformed_closed": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "failure_missing_open": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "failure_missing_closed": {
+      "source": "owned_http",
+      "cache": "retained_failure_recovery",
+      "concurrency": 1
+    },
+    "positive_cache_control": {
+      "source": "owned_http",
+      "cache": "warm",
+      "concurrency": 1
+    },
+    "negative_cache_control": {
+      "source": "owned_http",
+      "cache": "warm",
+      "concurrency": 1
+    }
+  },
+  "host_load_average_at_start": [
+    6.49853515625,
+    5.650390625,
+    4.9619140625
+  ],
+  "resource_scope": "Whole proxy RSS observed before/after batches, not peak RSS or plugin-only memory. Coarse ps CPU time.",
+  "geo_database_sha256": "b37601903448683d241af52893c8cbf0fed461e0cdebe0bfaca01891fdeb6db9",
+  "matrix_schedule_sha256": "17c118606debd159a6b3729af335087961731a37c565602a4c6cc896e5aa9d00",
+  "matrix_order": [
+    [
+      "connection-guard",
+      "georestrict"
+    ],
+    [
+      "georestrict",
+      "connection-guard"
+    ],
+    [
+      "connection-guard",
+      "georestrict"
+    ]
+  ]
+}

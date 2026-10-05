@@ -54,7 +54,7 @@ def run(manifest, work):
                 target = receipts[identifier]
                 for key in ['environment_sha256', 'adapter_sha256', 'artifact_sha256', 'profile', 'cache_policy']:
                     require(target[key] == value[key], 'Conditions changed within the matrix: ' + key)
-                for key in ['rows', 'logs', 'environment_errors', 'config_sha256']:
+                for key in ['rows', 'logs', 'environment_errors', 'config_sha256', 'recovery_proofs']:
                     target[key].extend(value[key])
             # Durable progress even if a subsequent artifact fails to start.
             write(work / f'round-{number}-{identifier}.json', value)

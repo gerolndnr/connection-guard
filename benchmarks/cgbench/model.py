@@ -56,7 +56,7 @@ def validate_suite(suite):
     require(isinstance(cases, list) and 1 <= len(cases) <= 128, 'Case count outside bounds')
     ids = set()
     for case in cases:
-        require(isinstance(case, dict) and set(case) <= {'id', 'track', 'ip', 'fixture', 'expected', 'expected_core', 'request_limit', 'concurrency'}, 'Unknown case fields')
+        require(isinstance(case, dict) and set(case) <= {'id', 'track', 'ip', 'fixture', 'expected', 'expected_core', 'request_limit', 'concurrency', 'cache_recovery', 'retry_after_seconds', 'expected_source_reason'}, 'Unknown case fields')
         name = case.get('id', '')
         require(isinstance(name, str) and name.replace('_', '').isalnum() and 1 <= len(name) <= 64 and name not in ids, 'Invalid/duplicate case ID')
         ids.add(name)
@@ -73,9 +73,18 @@ def validate_suite(suite):
                 'Only fixed controlled subject literals are accepted')
         require(type(case.get('concurrency', 1)) is int and 1 <= case.get('concurrency', 1) <= 32, 'Concurrency outside bounds')
         require(type(case.get('request_limit', 1)) is int and 0 <= case.get('request_limit', 1) <= 64, 'Invalid request limit')
-        require(case.get('fixture') in {'positive', 'negative', '503_open', '503_closed', '429_open', 'timeout_open', 'timeout_closed',
-                'malformed_open', 'missing_open', 'slow_positive', 'manual_deny', 'manual_allow', 'deny_allow_conflict', 'expiry',
-                'geo_gb', 'geo_block_gb', 'geo_allow_gb', 'geo_empty_whitelist', 'no_cache', 'warm_cache', 'shared_positive', 'unique_positive'}, 'Unknown fixture')
+        require(case.get('fixture') in {'positive', 'negative', '503_open', '503_closed', '429_open', '429_closed', 'timeout_open', 'timeout_closed',
+                'malformed_open', 'malformed_closed', 'missing_open', 'missing_closed', 'slow_positive', 'manual_deny', 'manual_allow', 'deny_allow_conflict', 'expiry',
+                'geo_gb', 'geo_block_gb', 'geo_allow_gb', 'geo_empty_whitelist', 'no_cache', 'warm_cache', 'warm_negative_cache', 'shared_positive', 'unique_positive'}, 'Unknown fixture')
+        recovery = case.get('cache_recovery', False)
+        require(type(recovery) is bool, 'Recovery flag must be boolean')
+        require(not recovery or case['fixture'].split('_')[0] in {'429', 'malformed', 'missing'} and case.get('concurrency', 1) == 1,
+                'Recovery probes require a qualified single-client source failure')
+        retry = case.get('retry_after_seconds')
+        require(retry is None or type(retry) is int and 1 <= retry <= 5 and recovery and case['fixture'].startswith('429'), 'Invalid bounded retry pause')
+        require(not recovery or not case['fixture'].startswith('429') or retry is not None, 'Rate-limit recovery needs an explicit retry pause')
+        reason = case.get('expected_source_reason')
+        require(reason is None or case.get('expected_core') == 'UNKNOWN' and reason in {'RATE_LIMIT', 'INVALID_RESPONSE'}, 'Invalid typed-source reason')
     return suite
 
 
@@ -105,8 +114,29 @@ def validate_result(result):
             require(row.get('outcome') in {'ALLOW', 'DENY', 'POSITIVE', 'NEGATIVE', 'UNKNOWN', 'GB', 'TIMEOUT', 'PROTOCOL_ERROR'}, 'Invalid measured outcome')
             require(type(row.get('duration_ns')) is int and 0 <= row['duration_ns'] < 120_000_000_000, 'Invalid measured duration')
             require(type(row.get('requests')) is int and row['requests'] >= 0 or row.get('requests') is None, 'Invalid request count')
+            if 'source_reasons' in row:
+                require(isinstance(row['source_reasons'], list) and len(row['source_reasons']) <= 128 and all(isinstance(reason, str) and reason.replace('_', '').isalpha() and reason.isupper() for reason in row['source_reasons']), 'Invalid typed-source reasons')
             if row.get('batch_requests') is not None:
                 require(type(row['batch_requests']) is int and row['batch_requests'] >= 0 and isinstance(row.get('batch_id'), str), 'Invalid batch count')
     for error in result.get('environment_errors', []):
         require(isinstance(error, dict) and isinstance(error.get('case_id'), str) and isinstance(error.get('reason'), str), 'Invalid environment failure')
+    proofs = result.get('recovery_proofs', [])
+    require(isinstance(proofs, list) and len(proofs) <= 1280, 'Invalid recovery evidence')
+    proof_ids = set()
+    for proof in proofs:
+        require(isinstance(proof, dict) and isinstance(proof.get('case_id'), str), 'Invalid recovery case')
+        number = proof.get('round')
+        require(type(number) is int and 0 <= number < result['sampling']['rounds'], 'Invalid recovery round')
+        identity = (proof['case_id'], number)
+        require(identity not in proof_ids, 'Duplicate recovery proof'); proof_ids.add(identity)
+        require(proof.get('cache_retained') is True, 'Recovery must retain the cache')
+        for key in ['initial_source_calls', 'positive_source_calls']:
+            require(type(proof.get(key)) is int and 0 <= proof[key] <= 1000, 'Invalid recovery source count')
+        require(type(proof.get('recovery_wait_ms')) is int and 0 <= proof['recovery_wait_ms'] <= 6000, 'Invalid recovery wait')
+        paused = proof.get('paused', [])
+        require(isinstance(paused, list) and len(paused) in {0, 3}, 'Invalid retry-pause proof')
+        for observation in [proof.get('recovered'), proof.get('cached_replay'), *paused]:
+            require(isinstance(observation, dict) and observation.get('outcome') in {'ALLOW', 'DENY', 'TIMEOUT', 'PROTOCOL_ERROR'}, 'Invalid recovery outcome')
+            require(type(observation.get('requests')) is int and 0 <= observation['requests'] <= 64, 'Invalid recovery requests')
+            require(type(observation.get('duration_ns')) is int and 0 <= observation['duration_ns'] < 120_000_000_000, 'Invalid recovery duration')
     return result
