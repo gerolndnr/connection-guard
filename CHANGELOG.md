@@ -5,6 +5,7 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 ## 0.5.1 — 2026-10-05
 
 - Initialize Velocity bStats with the verified project ID 22913, bundle its injected factory and stop its Metrics instance on shutdown. Statistics errors keep connection checks active; global bStats opt-out remains available.
+- Pin the unchanged MIT LimboAPI 1.1.26 compilation archive and verify its SHA-256, so clean addon builds do not depend on the unavailable upstream Maven path. It remains compile-only and is excluded from all runtime JARs.
 - Link the plugin descriptors and documentation to the canonical Connection Guard website.
 - Replace the README cartoon logo and remove obsolete listing graphics with unverified protection/performance claims.
 - Add a reproducible developer benchmark suite with artifact-bound policy, provider-failure and recovery checks in CI, native comparison receipts and a preregistered latency-study preflight. These tools do not change detection behavior or establish better detection accuracy or measured performance.
