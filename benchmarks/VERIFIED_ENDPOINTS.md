@@ -1,0 +1,13 @@
+# Owner-verified endpoint study (not yet executed)
+
+Use existing resources and voluntary endpoint owners; no paid VPN subscriptions or third-party probes are required for the controlled suite. Do not start live provider traffic or community recruitment from this template. Agree on the actual endpoints, service quota and privacy scope before a live run.
+
+An independent label comes from a known connection the owner controls: actively connected VPN with its exit confirmed (`owned_vpn_exit`), or confirmed direct residential/mobile/business access (`owned_non_vpn_access`). ASN type, hosting keywords and agreement among detection providers are **not ground truth**. Record uncertain exits as `unknown`. Recheck each label immediately before the measurement; the validator refuses more than seven days between verification and evaluation.
+
+Maintain a private proof per pseudonymous endpoint. Record owner attestation, verification/evaluation time, access cohort, IP family, provider/ASN diversity and configuration. Keep raw IPs, ownership details and connection evidence out of public reports. The public record holds a SHA-256 reference, not the proof or an IP. A hash does not independently certify truth: reviewer verification of ownership and label is still required.
+
+Sample separate cohorts: direct residential, mobile/CGNAT, business/datacenter, commercial VPN, IPv6, and an owned residential-proxy exit if available. Never equate datacenter with VPN. Avoid drawing population conclusions from convenient available endpoints or repeated exits of one provider. Keep cohort gaps visible. One vote per endpoint; aggregate retries first and separate transient UNKNOWN from wrong decisions. For each product use the same endpoint/configuration/time window and explicitly record unavailable services.
+
+The input wrapper is `{ "schema": 1, "kind": "verified_endpoints", "observations": [...] }`. Each observation requires `kind: verified_endpoint`, a unique `endpoint_id`, a 64-character lowercase `evidence_sha256`, `label: vpn|non_vpn|unknown`, `outcome: ALLOW|DENY|UNKNOWN`, `verification_method: owned_vpn_exit|owned_non_vpn_access|unknown`, timezone-aware `verified_at` and `evaluated_at`, and `cohort`. Prepare one input per product/configuration; do not combine products in the same confusion matrix.
+
+The aggregator reports denominators, unknown counts, VPN denial and non-VPN false-block rates with Wilson intervals by cohort. Empty denominators yield null. Unknown labels do not enter either class denominator. Unknown outcomes remain in denominators and are separately visible. Convenience samples do not establish a population detection rate. The first benchmark contains **zero independently verified live endpoints**, so no such rate is reported.

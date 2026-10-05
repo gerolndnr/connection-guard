@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "suite": "/absolute/path/connection-guard/benchmarks/datasets/controlled-native-v1.json",
+  "java": "/absolute/path/jdk21/bin/java",
+  "runtime": "/absolute/path/velocity-3.4.0-566.jar",
+  "rounds": 3,
+  "samples": 4,
+  "warmups": 2,
+  "products": [
+    {
+      "id": "connection-guard",
+      "adapter": "connection-guard",
+      "artifact": "/absolute/path/connection-guard-0.5.0-all.jar",
+      "assets": "/absolute/path/prefilled/connection-guard/lib",
+      "geo_db": "/absolute/path/GeoIP2-Country-Test.mmdb"
+    },
+    {
+      "id": "georestrict",
+      "adapter": "georestrict",
+      "artifact": "/absolute/path/georestrict-2.0.2.jar"
+    },
+    {
+      "id": "sqidgeon-antivpn",
+      "adapter": "sqidgeon-antivpn",
+      "artifact": "/absolute/path/AntiVPN-Velocity-1.0.0.jar",
+      "sqlite": "/absolute/path/sqlite-jdbc-3.46.0.0.jar"
+    }
+  ]
+}
