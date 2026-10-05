@@ -1,6 +1,7 @@
 package com.github.gerolndnr.connectionguard.core.geo;
 
 import com.github.gerolndnr.connectionguard.core.http.ProviderHttp;
+import com.github.gerolndnr.connectionguard.core.http.ProviderAddresses;
 import com.google.gson.JsonObject;
 import com.github.gerolndnr.connectionguard.core.http.DetectionFields;
 import okhttp3.Request;
@@ -18,7 +19,7 @@ public class ProxyCheckGeoProvider implements GeoProvider {
     public CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
         return ProviderHttp.submit(() -> {
             try {
-                Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://proxycheck.io/" + (v3 ? "v3/" : "v2/") + ipAddress + "?key=" + apiKey
+                Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://proxycheck.io/" + (v3 ? "v3/" : "v2/") + ProviderAddresses.compressed(ipAddress) + "?key=" + apiKey
                         + (v3 ? "&ver=24-June-2026&tag=0" : "&asn=1&tag=0")).build(), "ProxyCheckGeoProvider");
                 return json.isPresent() ? (v3 ? parseV3(ipAddress, json.get()) : parse(ipAddress, json.get())) : Optional.empty();
             } catch (RuntimeException failure) {
@@ -30,7 +31,7 @@ public class ProxyCheckGeoProvider implements GeoProvider {
     static Optional<GeoResult> parse(String ipAddress, JsonObject json) {
         String status = ProviderHttp.string(json, "status");
         if (!status.equalsIgnoreCase("ok") && !status.equalsIgnoreCase("warning")) return Optional.empty();
-        JsonObject address = json.getAsJsonObject(ipAddress);
+        JsonObject address = ProviderAddresses.response(json, ipAddress);
         GeoResult result = new GeoResult(ipAddress, ProviderHttp.string(address, "isocode"), "Unknown",
                 ProviderHttp.string(address, "provider"));
         result.setAsn(DetectionFields.asn(address, "asn", false)); return Optional.of(result);
@@ -38,7 +39,7 @@ public class ProxyCheckGeoProvider implements GeoProvider {
     static Optional<GeoResult> parseV3(String ipAddress, JsonObject json) {
         String status = ProviderHttp.string(json, "status");
         if (!status.equalsIgnoreCase("ok") && !status.equalsIgnoreCase("warning")) return Optional.empty();
-        JsonObject address = json.getAsJsonObject(ipAddress);
+        JsonObject address = ProviderAddresses.response(json, ipAddress);
         JsonObject location = DetectionFields.object(address, "location"), network = DetectionFields.object(address, "network");
         String country = DetectionFields.text(location, "isocode");
         if (country == null) return Optional.empty();

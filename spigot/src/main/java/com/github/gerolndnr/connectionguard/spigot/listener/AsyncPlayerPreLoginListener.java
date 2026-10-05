@@ -135,7 +135,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 if (!decision.observe() && ConnectionGuardSpigotPlugin.getInstance().getConfig().getBoolean("behavior.vpn.kick-player")) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            decision.messages().getString("messages.vpn-block")
+                            decision.messages().getString("messages.vpn-block") + "\n" + decision.messages().getString("messages.vpn-allow-hint")
                                     .replace("%IP%", vpnResult.getIpAddress())
                                     .replace("%NAME%", preLoginEvent.getName())
                     );

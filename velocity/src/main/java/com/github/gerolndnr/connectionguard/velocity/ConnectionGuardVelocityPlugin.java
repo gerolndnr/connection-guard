@@ -7,6 +7,8 @@ import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.MemoryCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider;
@@ -77,6 +79,7 @@ public class ConnectionGuardVelocityPlugin {
         libraryManager.loadLibrary(boostedYamlLibrary);
 
         // 3. Create and load configs
+        boolean existingInstallation = java.nio.file.Files.exists(dataDirectory.resolve("config.yml"));
         cgVelocityConfig = new CGVelocityConfig(dataDirectory);
         cgVelocityConfig.load();
 
@@ -99,14 +102,18 @@ public class ConnectionGuardVelocityPlugin {
                         .build();
                 libraryManager.loadLibrary(jedisLibrary);
                 ConnectionGuard.setCacheProvider(
-                        new RedisCacheProvider(
+                        new ResilientRedisCacheProvider(new RedisCacheProvider(
                                 getCgVelocityConfig().getConfig().getString("provider.cache.redis.hostname"),
                                 getCgVelocityConfig().getConfig().getInt("provider.cache.redis.port"),
                                 getCgVelocityConfig().getConfig().getString("provider.cache.redis.username"),
                                 getCgVelocityConfig().getConfig().getString("provider.cache.redis.password"),
                                 GuardSettings.bool(path -> getCgVelocityConfig().getConfig().get(path), "provider.cache.redis.tls", false)
-                        )
+                        ))
+
                 );
+                break;
+            case "memory":
+                ConnectionGuard.setCacheProvider(new MemoryCacheProvider());
                 break;
             case "disabled":
                 ConnectionGuard.setCacheProvider(new NoCacheProvider());
@@ -120,6 +127,8 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(dataDirectory);
+        com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(dataDirectory, existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
+        ConnectionGuard.startTorRefresh();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(() -> {
             try { getCgVelocityConfig().reloadValidated(); }

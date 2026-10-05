@@ -11,6 +11,7 @@ command:
   clear-unavailable: Cache clear unavailable (details redacted).
   target-invalid: Use a literal IP or the name/UUID of an online player.
 messages:
+  vpn-allow-hint: 'Ask staff for an exception: /cg allow ip <your IP> vpn <duration>'
   vpn-block: '&7It looks like you are using a &bVPN&7. Please &bdisable&7 it!'
   vpn-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) was flagged as a &evpn user&7.'
   vpn-webhook: '%NAME% (%IP%) tried to connect with a vpn.'

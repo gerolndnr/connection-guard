@@ -26,6 +26,7 @@ class ProviderHttpTest {
     private String url;
     private String body = "{\"data\":{\"isVpn\":true,\"vpnProvider\":\"Local Test VPN\"}}";
     private int status = 200;
+    private String retryAfter;
     private AtomicReference<String> header = new AtomicReference<>();
     private AtomicReference<String> requestBody = new AtomicReference<>();
 
@@ -40,6 +41,7 @@ class ProviderHttpTest {
             int count = exchange.getRequestBody().read(bytes);
             requestBody.set(count < 0 ? "" : new String(bytes, 0, count, StandardCharsets.UTF_8));
             bytes = body.getBytes(StandardCharsets.UTF_8);
+            if (retryAfter != null) exchange.getResponseHeaders().add("Retry-After", retryAfter);
             exchange.sendResponseHeaders(status, bytes.length);
             exchange.getResponseBody().write(bytes);
             exchange.close();
@@ -86,4 +88,13 @@ class ProviderHttpTest {
     @Test void readsValidJsonThroughSharedTransport() {
         assertTrue(ProviderHttp.readJson(new Request.Builder().url(url.replace("%IP%", "192.0.2.1")).build(), "Test").isPresent());
     }
+    @Test void distinguishesExhaustedDailyQuotaFromGenericRateLimit() {
+        status = 429; retryAfter = "2"; body = "{\"message\":\"100 queries exhausted\"}";
+        LookupException exhausted = assertThrows(LookupException.class, () -> ProviderHttp.readJson(new Request.Builder().url(url.replace("%IP%", "192.0.2.1")).build(), "Test"));
+        assertEquals(FailureReason.BUDGET_EXHAUSTED, exhausted.getReason()); assertTrue(exhausted.getRetryAfterMillis() >= 2000);
+        body = "{\"message\":\"Please slow down\"}";
+        LookupException rate = assertThrows(LookupException.class, () -> ProviderHttp.readJson(new Request.Builder().url(url.replace("%IP%", "192.0.2.1")).build(), "Test"));
+        assertEquals(FailureReason.RATE_LIMIT, rate.getReason()); assertEquals(2000, rate.getRetryAfterMillis());
+    }
+
 }

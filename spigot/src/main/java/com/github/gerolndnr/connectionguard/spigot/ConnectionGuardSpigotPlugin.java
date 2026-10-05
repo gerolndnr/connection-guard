@@ -7,6 +7,8 @@ import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.MemoryCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider;
@@ -43,6 +45,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         platformTasks = new PlatformTasks(this);
         getLogger().info("Platform task dispatch: " + platformTasks.mode());
         // 1. Save Default Config & set logger
+        boolean existingInstallation = java.nio.file.Files.exists(getDataFolder().toPath().resolve("config.yml"));
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
         // Dashboard settings layer over config.yml in memory; the file is never written.
@@ -79,14 +82,18 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .build();
                 libraryManager.loadLibrary(jedisLibrary);
                 ConnectionGuard.setCacheProvider(
-                        new RedisCacheProvider(
+                        new ResilientRedisCacheProvider(new RedisCacheProvider(
                                 getConfig().getString("provider.cache.redis.hostname"),
                                 getConfig().getInt("provider.cache.redis.port"),
                                 getConfig().getString("provider.cache.redis.username"),
                                 getConfig().getString("provider.cache.redis.password"),
                                 GuardSettings.bool(path -> getConfig().get(path, null), "provider.cache.redis.tls", false)
-                        )
+                        ))
+
                 );
+                break;
+            case "memory":
+                ConnectionGuard.setCacheProvider(new MemoryCacheProvider());
                 break;
             case "disabled":
                 ConnectionGuard.setCacheProvider(new NoCacheProvider());
@@ -101,6 +108,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
+        ConnectionGuard.startTorRefresh();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUKKIT,

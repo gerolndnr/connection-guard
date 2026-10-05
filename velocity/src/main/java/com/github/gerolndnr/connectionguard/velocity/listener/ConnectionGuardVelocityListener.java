@@ -167,7 +167,7 @@ public class ConnectionGuardVelocityListener {
                     // Check if player should be kicked
                     if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
                         Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
-                                decision.messages().getString("messages.vpn-block")
+                                decision.messages().getString("messages.vpn-block") + "\n" + decision.messages().getString("messages.vpn-allow-hint")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", playerUsername)
                         );
