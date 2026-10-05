@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "kind": "controlled",
+  "description": "Preregistered local HTTP/SQLite timing cases; synthetic subject literals, no live accuracy labels",
+  "cases": [
+    {
+      "id": "vpn_positive_v4",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "provider_slow_positive",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "slow_positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "cache_warm",
+      "track": "cache",
+      "ip": "81.2.69.142",
+      "fixture": "warm_cache",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 0
+    },
+    {
+      "id": "unique_ip_16",
+      "track": "concurrency",
+      "ip": "81.2.69.142",
+      "fixture": "unique_positive",
+      "expected": "DENY",
+      "concurrency": 16,
+      "request_limit": 16,
+      "expected_core": "POSITIVE"
+    }
+  ]
+}
