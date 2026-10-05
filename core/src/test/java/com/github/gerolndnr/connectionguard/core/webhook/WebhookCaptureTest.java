@@ -31,6 +31,12 @@ class WebhookCaptureTest {
         Field field=CGWebHookHelper.class.getDeclaredField("dispatcher");field.setAccessible(true);return (WebhookDispatcher)field.get(null);
     }
     private static void idle()throws Exception {
+        Field field=WebhookDispatcher.class.getDeclaredField("executor");field.setAccessible(true);
+        ThreadPoolExecutor executor=(ThreadPoolExecutor)field.get(owner());
+        // Queue/active counts can both be zero while the worker holds its first task
+        // but has not entered runWorker yet. A FIFO barrier waits for submitted work.
+        try {executor.submit(()->{}).get(4,TimeUnit.SECONDS);}
+        catch(RejectedExecutionException retired) {assertTrue(executor.awaitTermination(4,TimeUnit.SECONDS));}
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(4);
         while(System.nanoTime()<deadline){String value=CGWebHookHelper.describe();if(value.contains("queued=0") && value.contains("active=0"))return;Thread.sleep(1);}
         fail("Owned sender has not physically returned.");

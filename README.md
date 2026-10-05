@@ -8,9 +8,9 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
-**Development builds: 0.5.1-SNAPSHOT.**
+**Stable build: 0.5.1.**
 
-**Latest stable release: [0.5.0](https://github.com/gerolndnr/connection-guard/releases/tag/0.5.0).** [Changes and upgrade guide](CHANGELOG.md).
+**Latest stable release: [0.5.1](https://github.com/gerolndnr/connection-guard/releases/tag/0.5.1).** [Changes and upgrade guide](CHANGELOG.md).
 
 **MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
@@ -57,6 +57,8 @@ Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
 Targeted `info` and `clear` also accept an online player name or UUID. Staff notification permissions are `connectionguard.notify.vpn` and `connectionguard.notify.geo`. [Troubleshoot flagged players and exemptions](docs/TROUBLESHOOTING.md).
 
 ## Reliability and compatibility
+
+The 0.5.1 maintenance release fixes Velocity bStats and adds reproducible developer benchmark checks. [0.5.1 checks and limits](docs/RELEASE_0_5_1.md).
 
 The 0.5.0 release combines the tested rule, provider, identity, scheduler and cloud work since 0.4.11. Its exact combined JAR is checked through reproducible builds, packaging guards and controlled native startup/login/reload/shutdown fixtures. [Release checks and limits](docs/RELEASE_0_5_0.md).
 
