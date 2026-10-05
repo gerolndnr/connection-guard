@@ -29,6 +29,8 @@ After installation:
 
 [Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.
 
+[Comparative benchmark suite](../benchmarks/README.md) provides reproducible controlled checks against exact competitor artifacts, visible qualification gaps and a measured improvement backlog. Controlled fixtures do not establish real-world VPN detection or false-positive rates.
+
 ## Help
 
 Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Discord](https://discord.gg/8q4HFCh2RK). Include plugin, server/proxy and Java versions, reproduction steps and sanitized settings. Remove secrets and personal connection data.

@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "kind": "controlled",
+  "description": "Controlled subject literals delivered only through a loopback PROXY-v2 header; no public endpoint probes or real VPN labels",
+  "cases": [
+    {
+      "id": "geo_fixture_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_gb",
+      "expected": "GB",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "GB"
+    },
+    {
+      "id": "geo_block_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_block_gb",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "geo_allow_gb",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_allow_gb",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1
+    },
+    {
+      "id": "geo_empty_whitelist",
+      "track": "geo",
+      "ip": "81.2.69.142",
+      "fixture": "geo_empty_whitelist",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "kind": "controlled",
+  "description": "Controlled subject literals delivered only through a loopback PROXY-v2 header; no public endpoint probes or real VPN labels",
+  "cases": [
+    {
+      "id": "vpn_positive_v4",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "positive",
+      "expected": "DENY",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "POSITIVE"
+    },
+    {
+      "id": "vpn_negative_v4",
+      "track": "provider",
+      "ip": "81.2.69.142",
+      "fixture": "negative",
+      "expected": "ALLOW",
+      "concurrency": 1,
+      "request_limit": 1,
+      "expected_core": "NEGATIVE"
+    }
+  ]
+}

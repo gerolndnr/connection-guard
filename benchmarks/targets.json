@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "checked_at": "2026-10-05",
+  "selection": "Public candidates from prior competitive analysis and primary project metadata; qualification is per exact artifact, not exhaustive market coverage.",
+  "targets": [
+    {
+      "id": "connection-guard",
+      "source": "https://github.com/gerolndnr/connection-guard",
+      "version": "0.5.0",
+      "artifact_sha256": "172d6e4dc7b925efc8498cab46f28807dba47f20750fbfbdb3c56a64002bb503",
+      "license": "MIT",
+      "adapter": "connection-guard",
+      "status": "native_controls_qualified"
+    },
+    {
+      "id": "georestrict",
+      "source": "https://github.com/DemonZ-Development/Geo-Restrict",
+      "listing": "https://modrinth.com/plugin/georestrict",
+      "version": "2.0.2",
+      "version_id": "qSm6W2zw",
+      "artifact_sha256": "4907800be78f298616b0be0656c7e4b91ed91bc1eb04990d454acfe9886a9196",
+      "license": "GPL-3.0",
+      "adapter": "georestrict",
+      "status": "native_controls_qualified"
+    },
+    {
+      "id": "sqidgeon-antivpn",
+      "listing": "https://modrinth.com/plugin/anti-vpn",
+      "version": "1.0.0V",
+      "binary_version": "1.0.0",
+      "version_id": "gmAiCmWN",
+      "artifact_sha256": "c66e6da19707a702ddcd45fdc0c9a60624dfb00a1e6330ae8d6efaf0b1410a8d",
+      "license": "CC-BY-NC-4.0; do not redistribute JAR",
+      "adapter": "sqidgeon-antivpn",
+      "status": "native_cidr_controls_qualified",
+      "note": "Velocity binary uses config.properties, vpnblock/vpnallow/vpnupdate, separate SQLite JDBC; differs from Bukkit listing configuration. Command compatibility must be qualified separately."
+    },
+    {
+      "id": "topaz",
+      "source": "https://github.com/ZomkaDEV/Topaz",
+      "listing": "https://modrinth.com/plugin/topaz",
+      "version": "2.2-SNAPSHOT",
+      "version_id": "CYnhAHmf",
+      "artifact_sha256": "2e7b2068743eb8ecc34210ccfaf5b41b997da899ffc63f2e044f057b49d53647",
+      "license": "GPL-3.0",
+      "status": "unqualified",
+      "note": "Hardcoded proxycheck.io HTTPS endpoint cannot be redirected through a demonstrated safe local adapter. External transport prohibited; attempted local HTTPS adapter was denied by automatic approval review. No product verdict or timing."
+    },
+    {
+      "id": "lxvpn",
+      "source": "https://github.com/Titanius69/LXVPN",
+      "license": "Apache-2.0",
+      "status": "unqualified_artifact_version_mismatch",
+      "source_commit": "b25bbeadf4ce0a6f7996979c569075d640e8120c",
+      "note": "Source README describes BETA; committed target JAR and pom are older ALPHA. Do not evaluate historical JAR as current BETA."
+    },
+    {
+      "id": "geoblock",
+      "source": "https://github.com/Orchiwi/GeoBlock/",
+      "listing": "https://modrinth.com/plugin/geoblock",
+      "license": "MIT",
+      "status": "not_tested",
+      "next": "Implement Paper/Java25 local-MMDB adapter; exact artifact/runtime/EULA scope before launch."
+    },
+    {
+      "id": "egg82-antivpn",
+      "source": "https://github.com/Laarryy/Anti-VPN",
+      "license": "MIT",
+      "status": "not_tested",
+      "next": "Pin matching stable Bungee/Spigot artifact and local source controls."
+    },
+    {
+      "id": "countryblock",
+      "listing": "https://www.spigotmc.org/resources/countryblock.125322/",
+      "status": "not_tested",
+      "next": "Verify source/license/current JAR; implement backend geo adapter."
+    },
+    {
+      "id": "v4guard",
+      "source": "https://github.com/v4Guard/connector",
+      "license": "GPL-3.0 connector; hosted service separate",
+      "status": "not_tested",
+      "next": "Needs authorized hosted-service evaluation and exact connector artifact. No paid plan."
+    },
+    {
+      "id": "jarvis-antivpn",
+      "source": "https://github.com/JarvisAntiVPN/jarvisguard",
+      "listing": "https://modrinth.com/plugin/jarvis-antivpn",
+      "license": "All rights reserved / hosted service",
+      "status": "not_tested",
+      "next": "Needs existing authorized account, quota scope and matching public artifact."
+    },
+    {
+      "id": "advanced-antivpn",
+      "status": "not_tested",
+      "next": "Only an already-owned permitted license; no purchase under zero-cost mandate."
+    }
+  ]
+}

@@ -90,6 +90,21 @@ jobs:
       - name: Verify release regression guards
         run: python3 ci/test_release_gate.py
 
+      - name: Qualify the benchmark against the actual built JAR
+        working-directory: benchmarks
+        run: |
+          python3 -m cgbench.cli run-core --artifact ../build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-core-benchmark"
+          python3 ../ci/verify_benchmark.py "$RUNNER_TEMP/connection-guard-core-benchmark/receipt.json"
+
+      - name: Retain controlled core benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: connection-guard-benchmark-${{ github.sha }}
+          path: ${{ runner.temp }}/connection-guard-core-benchmark/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Start the combined JAR on a clean Velocity proxy
         run: |
           CONNECTIONGUARD_CLOUD=false python3 ci/startup_smoke.py --platform velocity --artifact build/libs/*-all.jar \
@@ -134,3 +149,23 @@ jobs:
           path: adapters/limbo/build/libs/*.jar
           if-no-files-found: error
           retention-days: 7
+
+  benchmark-contracts:
+    name: Verify benchmark contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Install fixture Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install pinned fixture dependencies
+        run: python3 -m pip install -r benchmarks/requirements.txt
+      - name: Verify offline evidence, analysis and transport guard contracts
+        working-directory: benchmarks
+        run: CGBENCH_JAVA="$JAVA_HOME/bin/java" python3 -m unittest discover -s tests -v
