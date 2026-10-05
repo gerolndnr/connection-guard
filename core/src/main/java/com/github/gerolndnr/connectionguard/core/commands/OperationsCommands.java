@@ -71,6 +71,7 @@ public final class OperationsCommands {
         if (ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider)
             lines.add(((com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider) ConnectionGuard.getCacheProvider()).describe());
         lines.add(ConnectionGuard.torStatus());
+        lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                 .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));
         lines.add("Identity declaredForwarding=" + ConnectionGuard.getSettings().trustForwardedIdentity

@@ -89,6 +89,8 @@ public class ConnectionGuard {
     private static volatile ProviderConfiguration activeDraft;
     private static final java.util.concurrent.atomic.AtomicLong nextHostingNotice = new java.util.concurrent.atomic.AtomicLong();
     private static boolean failover;
+    private static boolean geoDisabled;
+    public static boolean isGeoDisabled() { return geoDisabled; }
     private static int externalAttempts = 3;
     private static volatile com.github.gerolndnr.connectionguard.core.local.TorExitList tor;
     public static String torStatus() { return tor == null ? "Tor local layer unavailable" : tor.describe(); }
@@ -110,7 +112,7 @@ public class ConnectionGuard {
         applySettings(draft.settings);
         tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts;
         vpnProviders = draft.providers;
-        geoProvider = draft.geo;
+        geoProvider = draft.geo; geoDisabled = draft.geo == null;
         requiredPositiveFlags = draft.threshold;
         vpnCacheExpirationTime = draft.vpnTtl;
         geoCacheExpirationTime = draft.geoTtl;
@@ -363,6 +365,7 @@ public class ConnectionGuard {
 
     public static synchronized CompletableFuture<GeoLookup> getGeoLookup(String address) {
         final String ipAddress = Exemptions.normalize(address);
+        if (geoDisabled) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0));
         final long started = System.nanoTime();
         final GeoProvider provider = geoProvider;
         final LookupRuntime runtime = lookupRuntime;
@@ -469,7 +472,7 @@ public class ConnectionGuard {
     }
 
     public static void setGeoProvider(GeoProvider geoProvider) {
-        ConnectionGuard.geoProvider = geoProvider;
+        ConnectionGuard.geoProvider = geoProvider; geoDisabled = false;
         if (geoProvider != null && health.containsKey(quotaKey(geoProvider.getClass().getSimpleName()))) health.get(quotaKey(geoProvider.getClass().getSimpleName())).resetFailures();
         policyContextChanged();
     }
