@@ -23,6 +23,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final long generation, started;
     private final boolean captureEnabled;
     private final int positiveThreshold;
+    private final boolean geoDisabled;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     private List<AdmissionObservation> admissionChecks=Collections.emptyList();
@@ -37,6 +38,7 @@ public final class DecisionCapture implements AutoCloseable {
         settings = ConnectionGuard.getSettings(); messages = ConnectionGuard.getMessages(); generation = DecisionObservers.captureGeneration();
         captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
+        geoDisabled = ConnectionGuard.isGeoDisabled();
         geoSource = "geo." + (ConnectionGuard.getGeoProvider() == null ? "none" : ConnectionGuard.getGeoProvider().getClass().getSimpleName());
     }
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
@@ -85,12 +87,12 @@ public final class DecisionCapture implements AutoCloseable {
             observedAt = asOf;
             sources.clear();
             vpnCheck = vpnExempt ? Check.EXEMPT : Check.valueOf(vpn.getStatus().name());
-            geoCheck = geoExempt ? Check.EXEMPT : geo.getResult().isPresent() ? Check.KNOWN : Check.UNKNOWN;
+            geoCheck = geoExempt ? Check.EXEMPT : geoDisabled ? Check.NOT_CHECKED : geo.getResult().isPresent() ? Check.KNOWN : Check.UNKNOWN;
             if (!vpnExempt) for (ProviderVote vote : vpn.getVotes()) sources.add(new Source(vote.getProvider(), Scope.VPN,
                     new DetectionObservation(DetectionObservation.Status.valueOf(vote.getStatus().name()),
                             DetectionObservation.Reason.valueOf(vote.getReason().name()), metadata(vote.getDetails()),
                             vote.getValidUntil(), vote.getSourceVersion()), vote.getDurationMillis(), vote.isVoting(), vpn.isFromCache()));
-            if (!geoExempt) {
+            if (!geoExempt && !geoDisabled) {
                 GeoResult value = geo.getResult().orElse(null);
                 DetectionMetadata details = value == null ? DetectionMetadata.empty() : new DetectionMetadata(null,
                         value.getAsn(), "Unknown".equalsIgnoreCase(value.getIspName()) ? null : value.getIspName(), null,
