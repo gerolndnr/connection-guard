@@ -45,6 +45,11 @@ public final class GuardSettings {
                 integer(value, "lookup.circuit.failures", defaults.circuitFailures), integer(value, "lookup.circuit.pause-ms", (int) defaults.circuitPauseMillis));
         String mode = string(value, "operation.mode", "ENFORCE").toUpperCase(Locale.ROOT);
         if (!mode.equals("OBSERVE") && !mode.equals("ENFORCE")) throw new IllegalArgumentException("operation.mode must be OBSERVE or ENFORCE.");
+        String strategy = string(value, "provider.vpn-strategy", "CONSENSUS");
+        if (!strategy.equalsIgnoreCase("CONSENSUS") && !strategy.equalsIgnoreCase("FAILOVER")) throw new IllegalArgumentException("provider.vpn-strategy must be CONSENSUS or FAILOVER.");
+        int attempts = integer(value, "provider.max-external-attempts", 3);
+        if (attempts < 1 || attempts > 16) throw new IllegalArgumentException("provider.max-external-attempts must be 1..16.");
+        if (strategy.equalsIgnoreCase("FAILOVER") && integer(value, "required-positive-flags", 1) != 1) throw new IllegalArgumentException("FAILOVER requires required-positive-flags: 1 (no consensus).");
         int enabled = 0;
         for (String key : providerKeys) if (bool(value, "provider.vpn." + key + ".enabled", false)) {
             if (key.equals("local")) continue;
@@ -66,8 +71,8 @@ public final class GuardSettings {
             if (!CGLuckPermsHelper.isAvailable()) warnings.add("Permission exemptions enabled but LuckPerms is unavailable; checks remain active.");
         }
         String cache = string(value, "provider.cache.type", "SQLite");
-        if (!cache.equalsIgnoreCase("SQLite") && !cache.equalsIgnoreCase("Redis") && !cache.equalsIgnoreCase("Disabled")) {
-            throw new IllegalArgumentException("provider.cache.type must be SQLite, Redis or Disabled.");
+        if (!cache.equalsIgnoreCase("SQLite") && !cache.equalsIgnoreCase("Redis") && !cache.equalsIgnoreCase("Memory") && !cache.equalsIgnoreCase("Disabled")) {
+            throw new IllegalArgumentException("provider.cache.type must be SQLite, Redis, Memory or Disabled.");
         }
         if (cache.equalsIgnoreCase("Redis")) {
             String hostname = string(value, "provider.cache.redis.hostname", "");

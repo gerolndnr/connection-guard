@@ -11,6 +11,7 @@ command:
   clear-unavailable: No se puede vaciar la caché (detalles ocultos).
   target-invalid: Usa una dirección IP o el nombre/UUID de un jugador conectado.
 messages:
+  vpn-allow-hint: 'Pide al equipo una excepción: /cg allow ip <tu IP> vpn <duración>'
   vpn-block: '&7Tu conexión se ha clasificado como &bVPN&7. &bDesactiva &7la VPN o contacta con el soporte.'
   vpn-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) se ha clasificado como &eusuario de VPN&7.'
   vpn-webhook: '%NAME% (%IP%) se ha clasificado como usuario de VPN al intentar conectarse.'

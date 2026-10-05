@@ -137,7 +137,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                decision.messages().getString("messages.vpn-block")
+                                decision.messages().getString("messages.vpn-block") + "\n" + decision.messages().getString("messages.vpn-allow-hint")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", identityName)
                         );

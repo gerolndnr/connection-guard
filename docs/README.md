@@ -1,5 +1,8 @@
 # Set up Connection Guard
 
+> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.5.2-SNAPSHOT. Stable 0.5.0/0.5.1 setup instructions below retain their original defaults; new candidate installs use ENFORCE, sequential keyless failover and disabled geo lookups. Existing configuration files are preserved. Full comparative acceptance is pending.
+
+
 [Connection Guard website](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
 Choose the software that receives the player's connection:

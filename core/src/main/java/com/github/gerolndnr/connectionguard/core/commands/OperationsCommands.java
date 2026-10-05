@@ -68,6 +68,11 @@ public final class OperationsCommands {
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);
         lines.add("Cache=" + (ConnectionGuard.getCacheProvider() == null ? "unavailable" : ConnectionGuard.getCacheProvider().getClass().getSimpleName())
                 + "; " + messages.getString("ops.cache-health"));
+        if (ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider)
+            lines.add(((com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider) ConnectionGuard.getCacheProvider()).describe());
+        lines.add(ConnectionGuard.torStatus());
+        ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
+                .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));
         lines.add("Identity declaredForwarding=" + ConnectionGuard.getSettings().trustForwardedIdentity
                 + " nativeFloodgate=" + ConnectionGuard.getSettings().nativeFloodgateIdentity
                 + "; " + messages.getString("ops.identity-authority"));

@@ -1,7 +1,7 @@
-# Connection Guard starts in observation mode on a new installation.
-# Review /cg doctor and provider terms, then deliberately choose ENFORCE.
+# New installations enforce concrete VPN, proxy and Tor evidence.
+# Hosting alone is review evidence. Existing files and modes are never overwritten.
 operation:
-  mode: OBSERVE
+  mode: ENFORCE
 cloud:
   # Optional free dashboard at https://app.connectionguard.net. Logins never wait on it.
   # Until you link this server (link printed in the console, or /cg cloud link), only
@@ -33,13 +33,13 @@ lookup:
   # One eligible-login check budget: permissions, admission, cache and detection.
   # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
-  http-timeout-ms: 2500
-  workers: 8
-  queue-capacity: 64
-  max-inflight: 128
+  http-timeout-ms: 800
+  workers: 16
+  queue-capacity: 256
+  max-inflight: 512
   circuit:
     failures: 3
-    pause-ms: 30000
+    pause-ms: 1000
 
 # Optional admission limits for real login checks (not /cg explain).
 # Limits are disabled by default; tune for households, shared IPs and events.
@@ -167,6 +167,10 @@ required-positive-flags: 1
 # IP is a vpn and which is not. Some work better than others and some have daily/monthly limits.
 
 provider:
+  # FAILOVER tries one provider at a time; stops on the first valid verdict.
+  # Failures may transmit the IP to further providers. CONSENSUS preserves legacy parallel voting.
+  vpn-strategy: FAILOVER
+  max-external-attempts: 3
   vpn:
     # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
     # VPN/Geo currently use separate queries; the plugin counts requests locally.
@@ -176,9 +180,13 @@ provider:
       api-version: v3
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
-    # IP-API is completely free, but has a rate limit of 45 requests per minute.
+    # Keyless HTTPS fallback; commercial use allowed. See docs/PROVIDER_RESILIENCE.md.
+    ipquery:
+      enabled: true
+      minute-budget: 0
+    # Last resort: keyless HTTP, 45/minute; provider terms restrict free use to non-commercial environments.
     ip-api:
-      enabled: false
+      enabled: true
     # IPHub requires an api key, which can be aquired for free (1.000 free daily queries) on https://iphub.info/
     iphub:
       enabled: false
@@ -259,7 +267,7 @@ provider:
     #               100 requests per day without api key or 1.000 requests per day with api key)
     # - Local (operator-imported country/city MMDB plus optional ASN; no API)
     # - Disabled (geo stays UNKNOWN; choose an appropriate failure policy)
-    service: 'IP-API'
+    service: 'Disabled'
   cache:
     # The cache is very important to effectively use the requests you have and avoid running into the request limit.
     # Once a request to a service is made, its data is stored for the specified duration (see below) and used instead of
@@ -269,6 +277,8 @@ provider:
     # Available types:
     # - SQLite (no further configuration is necessary, stored in a file in the plugins directory)
     # - Redis (configure connection details below, useful when deploying Connection Guard on multiple servers)
+    # - Memory (bounded 10,000 entries; no persistence)
+    # Redis automatically uses Memory until its background connection succeeds.
     # - Disabled (disable any caching, make absolutely sure that you don't run into request limits!)
     type: 'SQLite'
 

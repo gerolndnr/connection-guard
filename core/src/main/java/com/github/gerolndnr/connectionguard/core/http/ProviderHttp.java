@@ -43,21 +43,21 @@ public final class ProviderHttp {
 
     public static Optional<JsonObject> readJson(Request request, String provider) {
         try (Response response = CLIENT.newCall(request).execute()) {
-            if (response.code() == 429) throw new LookupException(FailureReason.RATE_LIMIT, retryAfter(response));
+            if (response.code() == 429) {
+                long retry = retryAfter(response); boolean quota = false;
+                try {
+                    if (response.body() != null) {
+                        JsonObject denied = JsonParser.parseString(new String(readBody(response), StandardCharsets.UTF_8)).getAsJsonObject();
+                        quota = exhaustedDailyQuota(denied);
+                    }
+                } catch (RuntimeException | IOException malformed) { /* Keep the explicit HTTP rate-limit fact. */ }
+                throw new LookupException(quota ? FailureReason.BUDGET_EXHAUSTED : FailureReason.RATE_LIMIT, quota ? Math.max(retry, untilNextDay()) : retry);
+            }
             if (response.code() == 401 || response.code() == 403) throw new LookupException(FailureReason.AUTHENTICATION);
             if (!response.isSuccessful()) throw new LookupException(FailureReason.HTTP_ERROR);
             if (response.body() == null) throw new LookupException(FailureReason.INVALID_RESPONSE);
             if (response.body().contentLength() > 262144) throw new LookupException(FailureReason.INVALID_RESPONSE);
-            ByteArrayOutputStream body = new ByteArrayOutputStream();
-            try (InputStream input = response.body().byteStream()) {
-                byte[] buffer = new byte[4096];
-                int count;
-                while ((count = input.read(buffer)) != -1) {
-                    if (body.size() + count > 262144) throw new LookupException(FailureReason.INVALID_RESPONSE);
-                    body.write(buffer, 0, count);
-                }
-            }
-            return Optional.of(JsonParser.parseString(new String(body.toByteArray(), StandardCharsets.UTF_8)).getAsJsonObject());
+            return Optional.of(JsonParser.parseString(new String(readBody(response), StandardCharsets.UTF_8)).getAsJsonObject());
         } catch (InterruptedIOException failure) {
             throw new LookupException(FailureReason.TIMEOUT);
         } catch (IOException failure) {
@@ -67,10 +67,33 @@ public final class ProviderHttp {
         }
     }
 
+    private static byte[] readBody(Response response) throws IOException {
+        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        try (InputStream input = response.body().byteStream()) {
+            byte[] buffer = new byte[4096]; int count;
+            while ((count = input.read(buffer)) != -1) {
+                if (body.size() + count > 262144) throw new LookupException(FailureReason.INVALID_RESPONSE);
+                body.write(buffer, 0, count);
+            }
+        }
+        return body.toByteArray();
+    }
+    /** Recognized quota denial only; never guess exhausted quota from a generic 429. */
+    public static boolean exhaustedDailyQuota(JsonObject json) {
+        com.google.gson.JsonElement field = json.get("message");
+        if (field == null || !field.isJsonPrimitive() || !field.getAsJsonPrimitive().isString()) return false;
+        String message = field.getAsString().toLowerCase(java.util.Locale.ROOT);
+        return message.contains("queries exhausted") || message.contains("daily query allowance") && (message.contains("exceeded") || message.contains("exhausted"));
+    }
+    public static long untilNextDay() {
+        return Math.max(1000, java.time.Duration.between(java.time.Instant.now(), java.time.LocalDate.now(java.time.ZoneOffset.UTC).plusDays(1)
+                .atStartOfDay(java.time.ZoneOffset.UTC).toInstant()).toMillis());
+    }
+
     private static long retryAfter(Response response) {
         String seconds = response.header("Retry-After", response.header("X-Ttl", "60"));
-        try { return Math.min(3600000, Math.max(1000, Long.parseLong(seconds) * 1000)); }
-        catch (NumberFormatException invalid) { return 60000; }
+        try { return Math.min(86400000, Math.max(1000, Math.multiplyExact(Long.parseLong(seconds), 1000))); }
+        catch (IllegalArgumentException | ArithmeticException invalid) { return 60000; }
     }
 
     public static String string(JsonObject object, String field) {

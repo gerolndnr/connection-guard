@@ -18,6 +18,9 @@ public final class ProviderConfiguration {
     public final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
     public final GeoProvider geo;
     public final int threshold, vpnTtl, geoTtl;
+    public final boolean failover;
+    public final int externalAttempts;
+    public final Path dataPath;
     public final String cacheSignature;
     public final String cacheNamespace;
     public final LocalDataStore localStore;
@@ -41,6 +44,9 @@ public final class ProviderConfiguration {
         if (!this.messages.language().equals(language)) throw new IllegalArgumentException("Message draft does not match selected language (value redacted).");
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
         settings = GuardSettings.read(value, providerKeys);
+        dataPath = dataDirectory;
+        failover = GuardSettings.string(value, "provider.vpn-strategy", "CONSENSUS").equalsIgnoreCase("FAILOVER");
+        externalAttempts = GuardSettings.integer(value, "provider.max-external-attempts", 3);
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
@@ -62,7 +68,10 @@ public final class ProviderConfiguration {
         cacheSignature = cache.toLowerCase(Locale.ROOT) + "\n" + GuardSettings.string(value, "provider.cache.redis.hostname", "")
                 + "\n" + GuardSettings.integer(value, "provider.cache.redis.port", 6379) + "\n"
                 + GuardSettings.string(value, "provider.cache.redis.username", "") + "\n" + GuardSettings.string(value, "provider.cache.redis.password", "") + "\n" + GuardSettings.bool(value, "provider.cache.redis.tls", false);
-        for (String key : providerKeys) {
+        List<String> orderedKeys = new ArrayList<>(providerKeys);
+        if (failover) orderedKeys.sort(Comparator.comparingInt(key -> key.equals("proxycheck") ? 0 : key.equals("ipquery") ? 1 : key.equals("ip-api") ? 3 : 2));
+        if (failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
+        for (String key : orderedKeys) {
             if (key.equals("local")) continue;
             String base = "provider.vpn." + key + ".";
             if (!GuardSettings.bool(value, base + "enabled", false)) continue;
@@ -71,6 +80,7 @@ public final class ProviderConfiguration {
             switch (key) {
                 case "proxycheck": provider = new ProxyCheckVpnProvider(apiKey, proxyCheckV3); break;
                 case "ip-api": provider = new IpApiVpnProvider(); break;
+                case "ipquery": provider = new IpQueryVpnProvider(); break;
                 case "iphub": provider = new IpHubVpnProvider(apiKey); break;
                 case "vpnapi": provider = new VpnApiVpnProvider(apiKey); break;
                 case "ipqualityscore":
@@ -118,7 +128,7 @@ public final class ProviderConfiguration {
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
             dayBudgets.put(id, day); minuteBudgets.put(id, minute);
         }
-        if (local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
+        if (!failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
         List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> selected = new ArrayList<>();
         for (com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings.Source source : new com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings(value).sources) {
             com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider adapter = new com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider(source);
@@ -139,7 +149,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema6-extensions:" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema7-failover:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

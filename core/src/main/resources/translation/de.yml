@@ -11,6 +11,7 @@ command:
   clear-unavailable: Cache kann nicht geleert werden (Details ausgeblendet).
   target-invalid: Verwende eine IP-Adresse oder den Namen/die UUID eines verbundenen Spielers.
 messages:
+  vpn-allow-hint: 'Bitte das Team um eine Freigabe: /cg allow ip <deine IP> vpn <Dauer>'
   vpn-block: '&7Deine Verbindung wurde als &bVPN &7eingestuft. Bitte &bdeaktiviere &7das VPN oder kontaktiere den Support.'
   vpn-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) wurde als &eVPN-Nutzer &7eingestuft.'
   vpn-webhook: '%NAME% (%IP%) wurde beim Verbindungsversuch als VPN-Nutzer eingestuft.'

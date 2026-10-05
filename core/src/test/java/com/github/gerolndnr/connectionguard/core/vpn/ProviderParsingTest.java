@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ProviderParsingTest {
     private JsonObject json(String body) { return JsonParser.parseString(body).getAsJsonObject(); }
     @Test void proxyCheckRejectsUnknownStatusesAndFlags() {
-        assertFalse(ProxyCheckVpnProvider.parse("192.0.2.1", json("{\"status\":\"denied\"}")).isPresent());
+        assertEquals(com.github.gerolndnr.connectionguard.core.lookup.FailureReason.RATE_LIMIT, assertThrows(com.github.gerolndnr.connectionguard.core.lookup.LookupException.class, () -> ProxyCheckVpnProvider.parse("192.0.2.1", json("{\"status\":\"denied\"}"))).getReason());
         assertFalse(ProxyCheckVpnProvider.parse("192.0.2.1", json("{\"status\":\"unexpected\"}")).isPresent());
         assertFalse(ProxyCheckVpnProvider.parse("192.0.2.1", json("{\"status\":\"ok\",\"192.0.2.1\":{\"proxy\":\"unknown\"}}")).isPresent());
     }

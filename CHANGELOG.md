@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.2-SNAPSHOT — unreleased provider-resilience candidate
+
+- New installs use ENFORCE and sequential keyless ProxyCheck v3 → IPQuery → IP-API failover, stopping at the first valid verdict. Existing configurations and modes remain unchanged.
+- An embedded Tor bulk snapshot is checked locally before caches/APIs. Periodic list refresh never sends a player's IP. Stale lists remain visible in doctor and retain Tor protection, with documented false-positive/staleness limits.
+- Parse ProxyCheck v3 explicit VPN/proxy/Tor and known VPN operator evidence, while hosting alone remains review-only; normalize IPv6 requests and equivalent response keys.
+- Surface local/remote quota exhaustion and circuit outages; allow a single early transient recovery probe while honoring Retry-After.
+- Redis outages at startup use a bounded Memory cache and background reconnect. Reload/invalidation cannot wait on the reconnect probe.
+- VPN kick messages tell players to ask staff for a scoped `/cg allow` exception.
+
+Hosting-only policy confirmation and the full comparative benchmark acceptance remain open. No stable release or accuracy claim is made by this candidate.
+
+
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
 ## Unreleased — 0.5.2-SNAPSHOT
