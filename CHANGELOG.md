@@ -2,11 +2,16 @@
 
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
-## Unreleased — 0.5.1-SNAPSHOT
+## 0.5.1 — 2026-10-05
 
 - Initialize Velocity bStats with the verified project ID 22913, bundle its injected factory and stop its Metrics instance on shutdown. Statistics errors keep connection checks active; global bStats opt-out remains available.
 - Link the plugin descriptors and documentation to the canonical Connection Guard website.
 - Replace the README cartoon logo and remove obsolete listing graphics with unverified protection/performance claims.
+- Add a reproducible developer benchmark suite with artifact-bound policy, provider-failure and recovery checks in CI, native comparison receipts and a preregistered latency-study preflight. These tools do not change detection behavior or establish better detection accuracy or measured performance.
+
+Upgrade from 0.5.0: stop the server/proxy, replace the main JAR with `connection-guard-0.5.1-all.jar` and restart; keep only one main JAR. Configuration and the Cloud protocol/defaults are unchanged. Cloud remains optional and on by default; [privacy and controls](https://connectionguard.net/privacy#plugin). [Release checks and limits](docs/RELEASE_0_5_1.md).
+
+Download and docs: https://connectionguard.net/download
 
 ## 0.5.0 — 2026-10-04
 

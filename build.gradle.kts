@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.run-paper").version("2.3.0")
 }
 
-version = "0.5.1-SNAPSHOT"
+version = "0.5.1"
 
 allprojects {
     tasks.withType<AbstractArchiveTask>().configureEach {
