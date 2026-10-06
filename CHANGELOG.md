@@ -4,6 +4,8 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 
 ## Unreleased — 0.5.2-SNAPSHOT
 
+- Make the optional Cloud Dashboard prominent with a framed native-colored console notice and a clickable staff/operator join hint, once per installation across clean restarts. Forwarded backends defer in-game hints to the proxy; linked/disabled Cloud stays quiet.
+
 - Implement separately authorized local policy activation/rollback with reviewed candidate/base hashes, a bounded private history, one atomic decision-settings/rules document and pending-login guards. Native activation/restart/rollback qualification passes on four pinned loopback platforms; no stable release has been published. Existing dashboard rule writers use the same journal, while conflicting decision-field ownership is rejected.
 - Send bounded anonymous metadata for Connection Guard's own exceptions with regular Cloud sync, without exception messages, player data or foreign frames. `cloud.error-reports: false` or any Cloud off switch disables capture and reporting; older Clouds receive the same pending sync without the optional field. [Data and controls](docs/PRIVACY.md).
 - Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.

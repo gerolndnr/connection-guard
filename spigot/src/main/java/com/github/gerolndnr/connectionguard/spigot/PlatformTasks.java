@@ -47,13 +47,24 @@ public final class PlatformTasks {
     public void entity(Player player, Runnable work) {
         entity(player, work, () -> { });
     }
+    /** Delay on the player's owning region; never use a legacy scheduler on Folia. */
+    public void entityLater(Player player, long ticks, Runnable work) {
+        if (ticks < 1) throw new IllegalArgumentException("Player task delay must be positive.");
+        entity(player, work, () -> { }, ticks);
+    }
     private void entity(Player player, Runnable work, Runnable retired) {
+        entity(player, work, retired, 1L);
+    }
+    private void entity(Player player, Runnable work, Runnable retired, long ticks) {
         if (closed || !plugin.isEnabled()) return;
         try {
             Runnable ifRetired = active(retired);
             Runnable ifConnected = active(() -> { if (player.isOnline()) work.run(); else retired.run(); });
-            if (entityGetter == null) Bukkit.getScheduler().runTask(plugin, ifConnected);
-            else if (Boolean.FALSE.equals(entityExecute.invoke(entityGetter.invoke(player), plugin, ifConnected, ifRetired, 1L))) ifRetired.run();
+            if (entityGetter == null) {
+                if (ticks == 1L) Bukkit.getScheduler().runTask(plugin, ifConnected);
+                else Bukkit.getScheduler().runTaskLater(plugin, ifConnected, ticks);
+            }
+            else if (Boolean.FALSE.equals(entityExecute.invoke(entityGetter.invoke(player), plugin, ifConnected, ifRetired, ticks))) ifRetired.run();
             // Retirement never invokes player work or falls back to the legacy scheduler.
         } catch (ReflectiveOperationException | RuntimeException unavailable) { warn(); }
     }

@@ -1,0 +1,1 @@
+{"id":"notice-fixture-addon","name":"CloudNoticeFixture","version":"1","main":"fixture.NoticeVelocityFixture","dependencies":[{"id":"connection-guard","optional":false}]}

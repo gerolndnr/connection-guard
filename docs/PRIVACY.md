@@ -2,6 +2,10 @@
 
 The [published privacy disclosure](https://connectionguard.net/privacy#plugin) describes Connection Guard Cloud and its processing. Cloud is optional. `cloud.enabled: false`, `/cg cloud disable`, `CONNECTIONGUARD_CLOUD=false` or `-Dconnectionguard.cloud=false` disable Cloud and error reporting. Linked decision events containing connection IPs and trusted UUIDs are separate from the anonymous error metadata described here; see [Cloud controls](CLOUD.md).
 
+## Local setup-notice preferences
+
+To show the dashboard join hint only once per authorized staff member and installation, the plugin stores SHA-256 hashes derived from staff UUIDs in `cloud/staff-dashboard-notices-v1.json`. The bounded private file contains neither plaintext UUIDs nor link codes. It stays on the server and is never included in Cloud sync or error reports. Deleting it while the plugin is stopped resets suppression. No player-name/IP field, Cloud event or external request is added by the join hint; see [linking notices](CLOUD.md).
+
 ## Anonymous exception metadata, from 0.5.2
 
 When Cloud is enabled, `cloud.error-reports` defaults to `true`, including existing configuration files that omit the option. Own exception metadata goes to the configured Cloud endpoint with the next regular background sync. The hosted Cloud forwards it to PostHog Error Tracking and shows it in the linked operator's dashboard. Set `cloud.error-reports: false` and reload to disable only error reports. Any Cloud off switch also disables them. A separate one-time console notice discloses the setting to existing installations; `/cg doctor` and `/cg cloud status` show its state, buffer and overflow count.

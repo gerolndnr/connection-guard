@@ -1,0 +1,4 @@
+name: CloudNoticeFixture
+version: '1'
+main: fixture.NoticeBungeeFixture
+depends: [ConnectionGuard]
