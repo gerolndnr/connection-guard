@@ -1,6 +1,6 @@
 # Evaluate rules before blocking players
 
-New 0.5.0 installations start with `operation.mode: OBSERVE` and an empty country blocklist. Observation suppresses kicks, commands and webhooks. Existing configurations without that setting retain ENFORCE; upgrades never overwrite existing choices. Choose rules deliberately before accepting live players. A country match is an access-policy decision, not proof of an attack.
+**0.6.0 new installations start in ENFORCE and can block connections immediately.** Explicit VPN/proxy/Tor evidence and Blackbox aggregate listings can trigger the configured actions; Blackbox also covers hosting/cloud addresses. ProxyCheck/zowi hosting-only evidence stays review, and the default geo service is Disabled. ip-check.net requires explicit opt-in. Existing modes, enabled providers, keys, timeouts and service order are never overwritten. To evaluate decisions before blocking, explicitly select OBSERVE as shown below. A country match is an access-policy decision, not proof of an attack.
 
 ## Observe before enforcing
 
@@ -40,6 +40,6 @@ Exceptions are configured separately under `behavior.vpn.exemptions` and `behavi
 
 ## Providers and messages
 
-[Review limits and terms](PROVIDERS.md). Disabling geo kicks does not stop geo lookups. A supported alternative to the default geo provider is `provider.geo.service: 'ProxyCheck'`, using `provider.vpn.proxycheck.api-key` as appropriate for that service. Restart after the change; this does not promise unlimited free requests.
+[Review limits, recipients and terms](PROVIDERS.md). The 0.6.0 template selects `provider.geo.service: Disabled`, so no geo lookup sends an IP. On existing installations, disabling geo kicks alone does not stop an enabled geo lookup. To enable geo deliberately, one supported choice is `provider.geo.service: 'ProxyCheck'`, using `provider.vpn.proxycheck.api-key` as appropriate for that service. Restart after the change; this does not promise unlimited free requests.
 
 The generated `translation/en.yml` and `message-language` control messages. Kick messages should name the relevant server rule and explain how a legitimate player can get help. Keep secrets out of player-facing messages.

@@ -1,6 +1,6 @@
 # Free anti-VPN software: understand provider quotas
 
-> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.5.2-SNAPSHOT. Stable 0.5.0/0.5.1 setup instructions below retain their original defaults; new candidate installs use ENFORCE and disabled geo lookups. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. Stable 0.5.1 remains the published download until release approval. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
 
 
 Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
@@ -24,11 +24,10 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 
 ## How requests accumulate
 
-### New keyless recipients in the 0.5.2 candidate
+### New keyless recipients in the 0.6.0 candidate
 
 **Unreleased, pending comparative benchmark acceptance.** Only new configuration
-files select local Tor → signed Connection Guard Intel → ProxyCheck → Blackbox → ip-check.net → zowi → IPQuery →
-IP-API. Existing files keep their providers and order and get a once-only
+files select local Tor → signed Connection Guard Intel → ProxyCheck → Blackbox → zowi → IPQuery → IP-API. ip-check.net is **disabled by default**; explicit opt-in places it between Blackbox and zowi. Existing files keep their providers and order and get a once-only
 recommendation. The local Tor lookup sends no player IP; each reached external
 service receives the queried player's IP. A successful positive or negative
 answer stops the chain. On errors more than one service may receive that IP,
@@ -66,7 +65,7 @@ SQLite is the simple initial cache. Shipped expirations are 1,440 minutes for VP
 
 If the positive VPN vote threshold is not met, the connection proceeds, subject to geo rules and other plugins. A missing answer is not evidence that an IP is safe. Incomplete negative verdicts are not cached; a later connection can retry. An unavailable geo response provides no geo verdict. [Decision and caching table](PROVIDER_FAILURES.md).
 
-If the configured cache cannot initialize, the plugin stops initialization. This does not stop the whole server or create a fail-closed connection policy. Check startup logs before relying on checks.
+In 0.6.0, an unavailable Redis cache starts with a bounded Memory fallback and reconnects in the background. Other invalid cache configurations can still prevent initialization. Check startup logs and `/cg doctor` before relying on checks.
 
 ## Choose deliberately
 
@@ -75,7 +74,7 @@ Start with a provider whose terms permit your use and confirm its allowance. Add
 Detection requests share IP addresses with selected providers. Consult their official privacy information when documenting your setup. Keep keys private. In 0.4.10, free IP-API uses HTTP; ProxyCheck and IPHub requests use HTTPS.
 
 
-## Connection Guard Intel — unreleased 0.5.2 candidate
+## Connection Guard Intel — unreleased 0.6.0 candidate
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -84,13 +83,13 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. This candidate awaits a
 new full benchmark and is not included in stable0.5.1.
 ## Custom providers
 
-Any detection service with a JSON HTTP API can be added without code. Every section under `provider.vpn` whose name is not a built-in provider (`proxycheck`, `ip-api`, `iphub`, `vpnapi`, `ipqualityscore`, and from 0.5.2 `ipquery`) or `local` is read as a custom provider. The shipped file contains a disabled example called `custom`. Use one section per service, with any name you like.
+Any detection service with a JSON HTTP API can be added without code. Every section under `provider.vpn` whose name is not a built-in provider (`proxycheck`, `ip-api`, `iphub`, `vpnapi`, `ipqualityscore`, and in the 0.6.0 candidate `ipquery`, `blackbox`, `ipcheck`, `zowi`) or `local` is read as a custom provider. The shipped file contains a disabled example called `custom`. Use one section per service, with any name you like.
 
 ```yaml
 provider:
@@ -135,6 +134,6 @@ How the answer is read:
 - `is-vpn-field` is required. With `BOOLEAN` the field must be a JSON `true`/`false`. With `STRING` it is compared with `is-vpn-string`, ignoring case.
 - A missing field or a field of the wrong type does not count as "no VPN". The lookup counts as failed, and your `failure-policy.vpn` decides what happens to that login. A missing optional `details` field simply stays unknown.
 - `%IP%` also works in header values and field paths, for APIs that key their answer by address (for example `"%IP%#proxy"`).
-- Custom providers vote like built-in ones and count towards `required-positive-flags`. From 0.5.2, the failover chain also uses them, with the section name as their ID in `provider.vpn-failover.order`.
+- Custom providers vote like built-in ones and count towards `required-positive-flags`. From 0.6.0, the failover chain also uses them, with the section name as their ID in `provider.vpn-failover.order`.
 
 The plugin checks the section when it loads the configuration. An invalid method, URL, header (it must contain `:`) or response type, or an empty `is-vpn-field`, is reported as a configuration error; on `/cg reload` the previous settings stay active. Check the provider's terms, limits and data protection information before sending player addresses to it.

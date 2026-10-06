@@ -2,8 +2,10 @@
 
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
-## Unreleased — 0.5.2-SNAPSHOT
+## Unreleased — 0.6.0 (release candidate)
 
+- New installations use ENFORCE and can immediately block VPN/proxy/Tor evidence and Blackbox aggregate listings; Geo stays Disabled. ip-check.net is opt-in and defaults off. Existing modes and provider choices are retained.
+- Anonymous error reports are on with Cloud; disable `cloud.error-reports`. [Published disclosure](https://connectionguard.net/privacy#error-reports).
 - Bound external HTTP attempts to 1500ms by default and open a source circuit on its first timeout; preserve explicit timeout choices, source failover and existing pool/pause/login limits. Local quota skips allocate no transport work.
 - Load saved signed Intel bundles asynchronously at platform startup and keep Intel UNKNOWN until ready. Immutable local membership bypasses HTTP workers and shares one parsed address across four indexes.
 

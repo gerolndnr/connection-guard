@@ -20,14 +20,26 @@ class KeylessProviderConfigurationTest {
     @Test void actualNewInstallYamlSelectsTheRequestedOrderGeoOffAndEstablishedLimits() {
         Map<String, Object> yaml = new Yaml().load(getClass().getResourceAsStream("/config.yml"));
         ProviderConfiguration draft = new ProviderConfiguration(path -> value(yaml, path), keys(yaml));
-        assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "ipcheck", "zowi", "ipquery", "ip-api"), draft.keys);
+        assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "zowi", "ipquery", "ip-api"), draft.keys);
+        assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ipcheck.enabled"));
+        assertEquals(60, value(yaml, "provider.vpn.ipcheck.minute-budget"));
         assertNull(draft.geo); assertFalse(draft.settings.observe); assertEquals(5000, draft.settings.lookup.deadlineMillis);
         assertEquals(1500, draft.settings.lookup.httpTimeoutMillis); assertEquals(8, draft.settings.lookup.workers);
         assertEquals(64, draft.settings.lookup.queueCapacity); assertEquals(128, draft.settings.lookup.maxInflight); assertEquals(30000, draft.settings.lookup.circuitPauseMillis);
-        for (int pos = 2; pos <= 4; pos++) {
+        for (int pos = 2; pos <= 3; pos++) {
             String id = draft.keys.get(pos); assertEquals(id, ConnectionGuard.providerId(draft.providers.get(pos), pos));
             assertEquals(Integer.valueOf(60), draft.minuteBudgets.get(id)); assertEquals("vpn."+id, draft.healthIds.get(id));
         }
+    }
+    @Test void upgradeRetainsExplicitIpCheckRecipientObserveAndTimeoutChoices() {
+        Map<String, Object> existing = new HashMap<>();
+        existing.put("provider.vpn.ipcheck.enabled", true);
+        existing.put("provider.vpn.proxycheck.enabled", true);
+        existing.put("provider.vpn-failover.order", Arrays.asList("ipcheck", "proxycheck"));
+        existing.put("operation.mode", "OBSERVE"); existing.put("lookup.http-timeout-ms", 2500);
+        ProviderConfiguration draft = new ProviderConfiguration(existing::get, Arrays.asList("ipcheck", "proxycheck"));
+        assertEquals(Arrays.asList("ipcheck", "proxycheck"), draft.keys);
+        assertTrue(draft.settings.observe); assertEquals(2500, draft.settings.lookup.httpTimeoutMillis);
     }
     @Test void oldSelectionsAndOrderAreRetainedAndTheNoticeNeverRewritesTheFile() throws Exception {
         String original = "# old operator file\noperation:\n  mode: OBSERVE\nprovider:\n  vpn:\n    ipquery:\n      enabled: true\n    proxycheck:\n      enabled: true\n    ip-api:\n      enabled: true\n  vpn-failover:\n    order: [ipquery, proxycheck, ip-api]\n";

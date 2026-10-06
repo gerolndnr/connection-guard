@@ -1,5 +1,6 @@
 # New installations enforce concrete VPN, proxy and Tor evidence.
-# Hosting alone is review evidence. Existing files and modes are never overwritten.
+# ProxyCheck/zowi hosting alone is review; Blackbox listings also include hosting/cloud.
+# Existing files and modes are never overwritten. Choose OBSERVE explicitly to review first.
 operation:
   mode: ENFORCE
 cloud:
@@ -9,7 +10,8 @@ cloud:
   # data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
   # Turn off here, with /cg cloud disable, or with the environment CONNECTIONGUARD_CLOUD=false.
   enabled: true
-  # Own exception types/frames only, never message text or player data. See docs/PRIVACY.md.
+  # Own exception types/frames only, never message text or player data.
+  # Disclosure: https://connectionguard.net/privacy#error-reports ; controls: docs/PRIVACY.md.
   # Sent with background sync; all Cloud off switches also turn these reports off.
   error-reports: true
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
@@ -197,7 +199,7 @@ provider:
       api-version: v2
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
-    # These three HTTPS services receive the player's IP if earlier services fail.
+    # Enabled HTTPS services receive the player's IP if earlier services fail.
     # Include recipients in your server privacy information. Disable any with enabled: false.
     # Conservative LOCAL caps: 60/minute each, not a guarantee of upstream availability.
     # Blackbox: Cameron Munroe / ipinfo.app; no written terms; documented free & unlimited.
@@ -206,8 +208,9 @@ provider:
       enabled: true
       minute-budget: 60
     # ip-check.net publishes no operator, terms or privacy policy (checked 2026-10-06).
+    # Explicit opt-in only, including new installations. Review before enabling.
     ipcheck:
-      enabled: true
+      enabled: false
       minute-budget: 60
     # zowi: operated by Zowi, developer of competitor FoxGate. No key is sent.
     # VPN/proxy/Tor flags block; hosting alone remains review evidence.

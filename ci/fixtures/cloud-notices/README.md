@@ -1,6 +1,6 @@
 # Owned Cloud Dashboard notice qualification
 
-`driver.py --operations-root /absolute/operations-root --artifact /absolute/checkout/build/libs/connection-guard-0.5.2-SNAPSHOT-all.jar --sha256 SHA256 --platform paper --fixture unique-name` qualifies the exact archive; repeat sequentially for Folia, Velocity and Bungee. This opt-in developer fixture is excluded from product archives and CI server starts. Never install the fixture addons on production.
+`driver.py --operations-root /absolute/operations-root --artifact /absolute/checkout/build/libs/connection-guard-0.6.0-all.jar --sha256 SHA256 --platform paper --fixture unique-name` qualifies the exact archive; repeat sequentially for Folia, Velocity and Bungee. This opt-in developer fixture is excluded from product archives and CI server starts. Never install the fixture addons on production.
 
 Use only the previously approved loopback Paper 1.21.11-132 and Folia 1.21.11-14 runtimes, Velocity 3.4.0-566 and BungeeCord 2100, Java 21 and existing local helpers/runtime hashes. Backend starts require the explicit EULA decision in the operations root. All listeners, HTTP responders and synthetic offline clients stay on 127.0.0.1; heaps are capped at 768 MiB per backend and 256 MiB per proxy. Proxy runs use one approved Paper backend, with Cloud disabled on that backend. Run only while no benchmark is active. Final cleanup closes all clients, runtimes and the owned HTTP responder.
 

@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
-> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.5.2-SNAPSHOT. Stable 0.5.0/0.5.1 setup instructions below retain their original defaults; new candidate installs use ENFORCE and disabled geo lookups. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. Stable 0.5.1 remains the published download until release approval. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
 
 
 # Connection Guard
@@ -31,7 +31,7 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 - **Optional cloud:** see checks and manage supported settings at [app.connectionguard.net](https://app.connectionguard.net), with background sync and an explicit off switch.
 - **Messages:** English, German and Spanish, plus private-by-default rich decision webhooks. [Languages](docs/LANGUAGES.md) · [Webhooks](docs/WEBHOOKS.md).
 
-From 0.5.2, enabled Cloud sync also carries bounded anonymous metadata for Connection Guard's own exceptions, without exception messages or player data. `cloud.error-reports: false` disables these reports; every Cloud off switch does too. [Data and controls](docs/PRIVACY.md).
+From 0.6.0, enabled Cloud sync also carries bounded anonymous metadata for Connection Guard's own exceptions, without exception messages or player data. `cloud.error-reports: false` disables these reports; every Cloud off switch does too. [Data and controls](docs/PRIVACY.md).
 
 ## Start here
 
@@ -54,7 +54,7 @@ Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
 | Command | Purpose | Permission |
 | --- | --- | --- |
 | `/cg help` | Show available commands | `connectionguard.command.help` |
-| `/cg cloud sync` | Request immediate background Cloud sync (from 0.5.2) | `connectionguard.command.cloud` |
+| `/cg cloud sync` | Request immediate background Cloud sync (from 0.6.0) | `connectionguard.command.cloud` |
 | `/cg info <IP>` | Inspect provider-supplied information | `connectionguard.command.info` |
 | `/cg reload` | Validate and reload settings/messages; cache connection changes require a restart | `connectionguard.command.reload` |
 | `/cg clear <IP>` | Clear VPN and geo cache entries for an IP | `connectionguard.command.clear` |

@@ -4,13 +4,13 @@ Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
 Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
 Explicit addon selection: [versioned provider contract](PROVIDER_API_V1.md).
 
-Available in Connection Guard 0.5.0.
+This page describes the 0.6.0 candidate; stable 0.5.1 is still the published release. [Release qualification and pending gate](RELEASE_0_6_0.md).
 
-New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.
+**New 0.6.0 installations use ENFORCE and may deny flagged connections immediately.** Explicit VPN/proxy/Tor evidence and Blackbox aggregate listings can trigger actions; Blackbox includes hosting/cloud lists. Hosting-only ProxyCheck/zowi facts stay review. Geo lookups start Disabled; ip-check.net starts disabled. To inspect without actions, explicitly select OBSERVE and reload. Existing files retain their mode and provider choices; no upgrade silently rewrites them.
 
 `failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or legacy TEXT webhooks. Explicit [rich decision webhooks](WEBHOOKS.md) can report that actual denial when DENY is selected. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
 
-The following table describes stable 0.5.1 defaults. In the unreleased 0.5.2 candidate,
+The following table describes the unreleased 0.6.0 defaults; stable 0.5.1 used 2500ms for HTTP. In 0.6.0,
 `lookup.http-timeout-ms` defaults to **1500 ms** (whole HTTP call, connect and read).
 An explicitly configured value is retained. A transport timeout opens that source's
 circuit immediately, without waiting for `lookup.circuit.failures`; the existing
@@ -23,7 +23,7 @@ These bounds are not a promise that every outage login completes within 300ms.
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `lookup.deadline-ms` | 5000 | Whole-login wait budget, including identity inspection, permissions, admission, cache and provider queue |
-| `lookup.http-timeout-ms` | 2500 | HTTP call deadline; cannot exceed total lifetime |
+| `lookup.http-timeout-ms` | 1500 | HTTP call deadline; cannot exceed total lifetime |
 | `lookup.workers` | 8 | Maximum transport workers |
 | `lookup.queue-capacity` | 64 | Maximum queued transport jobs |
 | `lookup.max-inflight` | 128 | Maximum distinct active VPN/geo lookup keys |

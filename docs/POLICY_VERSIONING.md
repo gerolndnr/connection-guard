@@ -1,6 +1,6 @@
 # Local policy activation and rollback
 
-Development implementation in `0.5.2-SNAPSHOT`; absent from stable `0.5.1`. Native qualification remains required before delivery. Review a complete [candidate](../ci/fixtures/policy/candidate.json), use [synthetic replay and live shadow comparison](POLICY_REPLAY.md), and separately authorize a durable change. Neither replay nor shadow activates anything.
+Development implementation in `0.6.0`; absent from stable `0.5.1`. Native qualification remains required before delivery. Review a complete [candidate](../ci/fixtures/policy/candidate.json), use [synthetic replay and live shadow comparison](POLICY_REPLAY.md), and separately authorize a durable change. Neither replay nor shadow activates anything.
 
 ```text
 /cg policy inspect candidate

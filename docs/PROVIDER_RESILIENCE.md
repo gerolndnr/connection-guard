@@ -1,4 +1,4 @@
-# General provider failover and offline protection (0.5.2 candidate)
+# General provider failover and offline protection (0.6.0 candidate)
 
 This candidate is not a stable release. The complete `mc-antivpn-bench`
 acceptance matrix remains a merge/release gate.
@@ -64,7 +64,7 @@ Set it to 1 to limit a lookup to one network attempt; locally skipped circuits o
 quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
-New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox, ip-check.net, zowi,
+New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox and zowi,
 IPQuery and IP-API. The bundled Tor snapshot and then signed Connection Guard Intel precede all of them. All three new
 services have a conservative **local** `minute-budget: 60`, independent of any
 upstream service promise. Locally exhausted sources are skipped without sending
@@ -79,7 +79,7 @@ Existing geo selections are retained.
 ## Evidence and provider conditions
 
 The three new keyless recipients and their privacy/terms limitations are disclosed
-in [PROVIDERS.md](PROVIDERS.md#new-keyless-recipients-in-the-052-candidate).
+in [PROVIDERS.md](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
 They receive the queried player's IP only when reached in the selected chain.
 Malformed text/JSON, redirects, oversized replies, 429 and timeouts are UNKNOWN,
 never clean answers. All three use fixed HTTPS endpoints and compressed IPv6;
@@ -213,7 +213,7 @@ Historical measurements of the earlier operator-name candidate cannot qualify
 this one. The owner's temporary warm-latency waiver remains separate.
 
 
-## Connection Guard Intel — unreleased 0.5.2 candidate
+## Connection Guard Intel — unreleased 0.6.0 candidate
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -222,12 +222,16 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. This candidate awaits a
 new full benchmark and is not included in stable0.5.1.
 
-## Final candidate latency changes (0.5.2, unreleased)
+## New-install decisions (0.6.0, unreleased)
+
+New installations use **ENFORCE** and can deny flagged connections immediately. Geo stays Disabled. `provider.vpn.ipcheck.enabled` defaults to **false**; explicitly enable it only after reviewing its lack of published operator, terms and privacy policy. Blackbox, zowi and IPQuery remain selected network fallback services. Existing selections, mode, keys, timeouts and ordering are retained. An order entry alone never enables a provider.
+
+## Final candidate latency changes (0.6.0, unreleased)
 
 The external HTTP attempt default is now 1500ms, supported by the measured ProxyCheck
 response timings and the hanging-host regression. Existing explicit timeouts remain
