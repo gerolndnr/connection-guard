@@ -28,16 +28,18 @@ class VpnFailoverConfigurationTest {
             throw new java.io.UncheckedIOException(error);
         }
     }
-    @Test void shippedAndMissingLookupDefaultsRemainTheEstablishedValues() throws Exception {
+    @Test void shippedAndMissingLookupDefaultsBoundAttemptsWithoutChangingCapacityOrExplicitTimeouts() throws Exception {
         com.github.gerolndnr.connectionguard.core.lookup.LookupSettings missing = GuardSettings.defaults().lookup;
-        assertEquals(2500, missing.httpTimeoutMillis); assertEquals(8, missing.workers);
+        assertEquals(1500, missing.httpTimeoutMillis); assertEquals(8, missing.workers);
         assertEquals(64, missing.queueCapacity); assertEquals(128, missing.maxInflight); assertEquals(30000, missing.circuitPauseMillis);
+        Map<String, Object> existing = keyed(); existing.put("lookup.http-timeout-ms", 2500);
+        assertEquals(2500, draft(existing, "iphub", "vpnapi").settings.lookup.httpTimeoutMillis);
         try (java.io.InputStream input = getClass().getResourceAsStream("/config.yml")) {
             assertNotNull(input); java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
             byte[] buffer = new byte[4096]; int size;
             while ((size = input.read(buffer)) != -1) bytes.write(buffer, 0, size);
             String shipped = new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
-            for (String value : Arrays.asList("http-timeout-ms: 2500", "workers: 8", "queue-capacity: 64", "max-inflight: 128", "pause-ms: 30000"))
+            for (String value : Arrays.asList("http-timeout-ms: 1500", "workers: 8", "queue-capacity: 64", "max-inflight: 128", "pause-ms: 30000"))
                 assertTrue(shipped.contains(value), "Shipped lookup defaults differ: " + value);
         }
     }
