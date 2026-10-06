@@ -66,10 +66,12 @@ class AccessRuleVersioningTest {
         for (String invalid : Arrays.asList("not json", "[]", "{\"schema\":1}")) {
             Files.write(directory.resolve("access-rules.json"), invalid.getBytes(StandardCharsets.UTF_8));
             assertThrows(IOException.class, store::reload);
+            assertThrows(IllegalArgumentException.class, () -> store.validateConfigReload(configured, false));
             assertThrows(IOException.class, () -> store.add(AccessRule.Effect.DENY, AccessRule.Scope.ALL, "192.0.2.1", 0, "Synthetic"));
             assertTrue(store.locallyOwned()); assertEquals(revision, store.revision()); assertTrue(store.effective(configured).kickVpn);
         }
         Files.write(directory.resolve("access-rules.json"), active); store.reload(); assertEquals(revision, store.revision());
+        assertDoesNotThrow(() -> store.validateConfigReload(configured, false));
     }
     @Test void sharedRuleWritersVersionEachEditAndRollbackDoesNotExtendOrReactivateExpiredGrants() throws Exception {
         AccessRuleStore store = new AccessRuleStore(directory);

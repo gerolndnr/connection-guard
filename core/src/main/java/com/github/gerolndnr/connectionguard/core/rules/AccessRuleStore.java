@@ -186,6 +186,10 @@ public final class AccessRuleStore {
     }
     public void validateConfigReload(GuardSettings next, boolean cloudManaged) {
         synchronized (lock) {
+            try { ensureDiskState(); }
+            catch (IOException changed) {
+                throw new IllegalArgumentException("Rules/policy file changed; reload rules explicitly before changing config (values redacted).", changed);
+            }
             if (locallyOwned() && (cloudManaged || !new PolicyReplay.Snapshot(nativeBase, Collections.emptyList()).fingerprint()
                     .equals(new PolicyReplay.Snapshot(next, Collections.emptyList()).fingerprint())))
                 throw new IllegalArgumentException("Local policy owns decision settings; release its revision before changing config/dashboard policy (values redacted).");
