@@ -11,12 +11,26 @@ import java.util.concurrent.CompletableFuture;
 public class ProxyCheckGeoProvider implements GeoProvider {
     private final String apiKey;
     private final boolean v3;
+    private final transient com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient shared;
 
     public ProxyCheckGeoProvider(String apiKey) { this(apiKey, false); }
-    public ProxyCheckGeoProvider(String apiKey, boolean v3) { this.apiKey = apiKey; this.v3 = v3; }
+    public ProxyCheckGeoProvider(String apiKey, boolean v3) { this(apiKey, v3, null); }
+    public ProxyCheckGeoProvider(String apiKey, boolean v3, com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient shared) {
+        this.apiKey = apiKey; this.v3 = v3; this.shared = shared;
+    }
+    public boolean sharesVpnQuery() { return shared != null; }
+    public CompletableFuture<Optional<GeoResult>> getGeoResult(String ip, long remaining) {
+        if (shared == null) return getGeoResult(ip);
+        return com.github.gerolndnr.connectionguard.core.ConnectionGuard.proxyCheckResponse(shared, ip, true, remaining, () -> {})
+                .thenApply(answer -> {
+                    try { return answer.flatMap(json -> parse(ip, json)); }
+                    catch (RuntimeException error) { throw ProviderHttp.failure(error); }
+                });
+    }
 
     @Override
     public CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress) {
+        if (shared != null) return getGeoResult(ipAddress, com.github.gerolndnr.connectionguard.core.ConnectionGuard.getLookupRuntime().getSettings().deadlineMillis);
         return ProviderHttp.submit(() -> {
             try {
                 Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://proxycheck.io/" + (v3 ? "v3/" : "v2/") + ProviderAddresses.compressed(ipAddress) + "?key=" + apiKey

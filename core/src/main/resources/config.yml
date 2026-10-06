@@ -187,11 +187,12 @@ provider:
   # Legacy vpn-strategy: FAILOVER|CONSENSUS remains accepted if the new switch is absent.
   vpn:
     # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
-    # VPN/Geo currently use separate queries; the plugin counts requests locally.
+    # VPN and ProxyCheck geo share one vpn=1 query and one local quota reservation.
     proxycheck:
       enabled: true
-      # v3 supplies separate detections and operator/confidence fields. Missing setting retains v2.
-      api-version: v3
+      # VPN always uses supported v2 with vpn=1 (including retained v3 settings).
+      # api-version selects standalone geo when ProxyCheck VPN is disabled.
+      api-version: v2
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
     # Keyless HTTPS fallback; commercial use allowed. See docs/PROVIDER_RESILIENCE.md.

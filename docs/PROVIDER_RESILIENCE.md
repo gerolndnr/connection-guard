@@ -61,7 +61,7 @@ Set it to 1 to limit a lookup to one network attempt; locally skipped circuits o
 quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
-New files enable anonymous ProxyCheck v3, IPQuery and IP-API as the initial free
+New files enable anonymous ProxyCheck v2 (`vpn=1`), IPQuery and IP-API as the initial free
 selection. Other keyed and custom sources remain explicitly selected by operators.
 
 Country checks remain separately configured. New files use geo `Disabled` and
@@ -74,13 +74,21 @@ Existing geo selections are retained.
 * **ProxyCheck:** [API](https://proxycheck.io/api/),
   [terms](https://proxycheck.io/terms/). 100 keyless IP queries/day;
   the operator's own free key raises that to 1,000. No key/account/IP rotation to
-  circumvent limits. v2 `proxy=yes` with `vpn=1` is positive. v3 explicit VPN,
-  Proxy or Tor, or concrete VPN operator evidence, is positive. Recognized
-  `operator.services` categories (`datacenter_vpns`, `residential_vpns`,
-  `mobile_vpns`) are evaluated generically, including unnamed/new operators.
+  circumvent limits. VPN checks use the official v2 endpoint with `vpn=1`,
+  `asn=1` and `risk=1`; [ProxyCheck documents v2 support until 2035](https://proxycheck.io/api/?db=1).
+  This also applies to retained `api-version: v3` configurations: v3 hosting-only
+  replies missed explicit v2 VPN signals in the recorded benchmark sample.
+  `proxy=yes` is positive unless the only reported type is Hosting.
   An operator name alone is never detection evidence; there is no brand-name list.
-  Raw provider classification flags remain verbatim in source metadata.
   Hosting alone is reviewed and logged, not automatically denied.
+  When VPN and geo both select ProxyCheck, they share this one v2 response and
+  one local quota reservation, even when a retained setting requests v3.
+  The other scope can consume a completed response within the login deadline;
+  repeated VPN-only lookups still obey the configured persistent cache policy.
+  This bounded in-memory handoff holds at most `lookup.max-inflight` entries,
+  expires eligibility after `lookup.deadline-ms`, and discards completed old
+  entries on subsequent lookups/source replacement. No second API is queried
+  for missing geo fields. Standalone ProxyCheck geo retains the selected API version.
 * **IPQuery:** [API and terms/privacy statements](https://ipquery.io/).
   Keyless HTTPS; its official page permits commercial integration and states
   transient caching/abuse-prevention logging. Requires all `risk.is_vpn`,

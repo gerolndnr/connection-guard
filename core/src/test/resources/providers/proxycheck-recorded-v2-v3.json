@@ -1,0 +1,3068 @@
+{
+  "schema": 1,
+  "source_run": "pr75-1242139-detection140",
+  "sanitization": "Allowlisted facts only; all subject addresses replaced by documentation literals; no keys, request URLs, headers, coordinates or timestamps from user records. Provider body hashes and capture times preserved.",
+  "cases": [
+    {
+      "id": "commercial_vpn-0016",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.1",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.1": {
+            "asn": "AS136557",
+            "provider": "Host Universal Pty Ltd",
+            "isocode": "AU",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "ec552a5c5700b58eec822004dbd97c7863b1962a238ec29c6e0fb733ca30979a",
+          "recorded_at_utc": "2026-10-06T14:05:04.961229+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0023",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.2",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.2": {
+            "asn": "AS212238",
+            "provider": "Datacamp Limited",
+            "isocode": "UA",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "282662856d5160c8f38eff857ac05c74b1009d90976b1a724dfc92acb5988fb5",
+          "recorded_at_utc": "2026-10-06T14:05:14.081953+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0025",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.3",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.3": {
+            "asn": "AS212238",
+            "provider": "Datacamp Limited",
+            "isocode": "ZA",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "ed323cc0d9a339de86a9c5d337c83dbcd245f8a11eafc5f88559590c4577ee5b",
+          "recorded_at_utc": "2026-10-06T14:04:06.746497+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0033",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.4",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.4": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS209854",
+              "provider": "Cyberzone S.A.",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.4": {
+            "asn": "AS209854",
+            "provider": "Cyberzone S.A.",
+            "isocode": "TH",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "c06e9e383845c3f97970333fa18b5ca1f730c913abb2836a1e8a5db58650d197",
+          "recorded_at_utc": "2026-10-06T13:49:02.297582+00:00"
+        },
+        "v2": {
+          "body_sha256": "38a301292642ddd9758ff585501ee7d7400e789e12e58a896116c5ee33ee4f30",
+          "recorded_at_utc": "2026-10-06T13:49:11.215695+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0079",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.5",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.5": {
+            "asn": "AS207990",
+            "provider": "HostRoyale Technologies Pvt Ltd",
+            "isocode": "SI",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "8f007a81ee79235fc0f7dce81c4a1d30418d8c8f16ef9f0352c64825a172b70e",
+          "recorded_at_utc": "2026-10-06T14:06:23.399409+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0081",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.6",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.6": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS60068",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.6": {
+            "asn": "AS60068",
+            "provider": "Datacamp Limited",
+            "isocode": "IT",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "3b8e672896f3ffc8bb06b2ee6a7d6009a9167def4bec2a3a18c332bf1e8b843a",
+          "recorded_at_utc": "2026-10-06T13:53:07.725731+00:00"
+        },
+        "v2": {
+          "body_sha256": "4ac23f5db6467c57885de8f3a71a7b0d9b94cb4ab4240a3d606c48b44949f81e",
+          "recorded_at_utc": "2026-10-06T13:53:16.953251+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0083",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.7",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.7": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS209854",
+              "provider": "Cyberzone S.A.",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.7": {
+            "asn": "AS209854",
+            "provider": "Cyberzone S.A.",
+            "isocode": "MK",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "574ad15e37dadc2e51721cf3d50051143f3c0342bd1b86b045f48a6e84b0763c",
+          "recorded_at_utc": "2026-10-06T13:56:39.685414+00:00"
+        },
+        "v2": {
+          "body_sha256": "ba607f9b8f94d45c2237f380980af0ac7ef1b477669f4f18ef0ca92d2eb3cc93",
+          "recorded_at_utc": "2026-10-06T13:56:48.756588+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0102",
+      "cohort": "commercial_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.8",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.8": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS209854",
+              "provider": "Cyberzone S.A.",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.8": {
+            "asn": "AS209854",
+            "provider": "Cyberzone S.A.",
+            "isocode": "LI",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "aeac18893861386ffa579cd208242fc02a7a2ec7f5e7c66275240657781bdf8c",
+          "recorded_at_utc": "2026-10-06T13:52:57.942317+00:00"
+        },
+        "v2": {
+          "body_sha256": "3d460a98536cf82e4249d4f2bfc3236bf9b9df5a8b850b67923a20e135e33aed",
+          "recorded_at_utc": "2026-10-06T13:53:07.235754+00:00"
+        }
+      }
+    },
+    {
+      "id": "fresh_vpn-0128",
+      "cohort": "fresh_vpn",
+      "kind": "missed_vpn",
+      "ip": "192.0.2.9",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.9": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS212238",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.9": {
+            "asn": "AS212238",
+            "provider": "Datacamp Limited",
+            "isocode": "BR",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "e7d820122ec628e8a6aa1bc8c003c4f2c29fd9682c20dae87cb25274d1b4ca6c",
+          "recorded_at_utc": "2026-10-06T13:53:27.987516+00:00"
+        },
+        "v2": {
+          "body_sha256": "1b87e7aadc830042e6d499e7b6c79452b78034e3d15a8af13be2722bf588fd02",
+          "recorded_at_utc": "2026-10-06T13:53:36.740293+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0655",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::a",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "2001:db8::a": {
+            "asn": "AS9009",
+            "provider": "M247 Europe SRL",
+            "isocode": "BE",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "ac07e431cdf37a3f82c556dbbd68170002190b85f6e538b546daa05b03168c92",
+          "recorded_at_utc": "2026-10-06T14:04:34.130593+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0663",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::b",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::b": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS136557",
+              "provider": "Host Universal Pty Ltd",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::b": {
+            "asn": "AS136557",
+            "provider": "Host Universal Pty Ltd",
+            "isocode": "NZ",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "f42ad9904ac76e07c1b75a66c4833834baf23e6b28934966b56c473d7a4e7775",
+          "recorded_at_utc": "2026-10-06T13:47:23.904769+00:00"
+        },
+        "v2": {
+          "body_sha256": "b8f158c3922799f3c9ee0d26b00d2f6df003ccaac95ee098c76681470765b742",
+          "recorded_at_utc": "2026-10-06T13:47:32.623738+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0666",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::c",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::c": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS21859",
+              "provider": "Zenlayer Inc",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::c": {
+            "asn": "AS21859",
+            "provider": "Zenlayer Inc",
+            "isocode": "MY",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "8aa46d012e9bf74a1fe6b685630fd7d496211427f38c5cb20a94cef883e768a6",
+          "recorded_at_utc": "2026-10-06T13:49:56.682961+00:00"
+        },
+        "v2": {
+          "body_sha256": "efc112a3cd10232aa559f625b78ffb3c668c7adb81e716f249a459df95c39b58",
+          "recorded_at_utc": "2026-10-06T13:50:05.413698+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0668",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::d",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::d": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS212238",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::d": {
+            "asn": "AS212238",
+            "provider": "Datacamp Limited",
+            "isocode": "SK",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "823b6685cbafb0d349f631089726e421dd43ca15a51a1f8446e923df35c4d927",
+          "recorded_at_utc": "2026-10-06T13:46:29.523924+00:00"
+        },
+        "v2": {
+          "body_sha256": "0f3c4437a3218a4628b5f0deabc4d33f403b61c52f1fa3e1090c50b2d7004c58",
+          "recorded_at_utc": "2026-10-06T13:46:38.365142+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0671",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::e",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::e": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS212238",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::e": {
+            "asn": "AS212238",
+            "provider": "Datacamp Limited",
+            "isocode": "PE",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "872de4d32f9a846da3451e93173a7832e495e106e7b346d100f3beb54e12f42c",
+          "recorded_at_utc": "2026-10-06T13:58:08.468090+00:00"
+        },
+        "v2": {
+          "body_sha256": "733cd2a4108bee992f62ce339c5abd01bf568c5acd87807f0d85a1df853034b2",
+          "recorded_at_utc": "2026-10-06T13:58:16.954478+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0672",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::f",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::f": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS60068",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::f": {
+            "asn": "AS60068",
+            "provider": "Datacamp Limited",
+            "isocode": "NL",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "129f550d2d0157f3d50e16c3c48c1833db180920cf9e6fe4c8bba3e1f456e312",
+          "recorded_at_utc": "2026-10-06T13:50:51.522842+00:00"
+        },
+        "v2": {
+          "body_sha256": "703f821f0505edb5d6be2f2c33449a330cb39d3604124ad8f090982db7d9e66f",
+          "recorded_at_utc": "2026-10-06T13:50:59.997793+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0681",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::10",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::10": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS60068",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::10": {
+            "asn": "AS60068",
+            "provider": "Datacamp Limited",
+            "isocode": "HR",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "cc697ff9793336453d1d534b8b830b3db9c46cbda9675b8f70945b9910c2a4e8",
+          "recorded_at_utc": "2026-10-06T13:48:13.394587+00:00"
+        },
+        "v2": {
+          "body_sha256": "52cdd7c60888a7b18ec6e0e86a8ede8b225a418aa1f072dfca88bb3cbba6d7ad",
+          "recorded_at_utc": "2026-10-06T13:48:22.009762+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0683",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::11",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::11": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS60068",
+              "provider": "Datacamp Limited",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::11": {
+            "asn": "AS60068",
+            "provider": "Datacamp Limited",
+            "isocode": "PT",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "36d9789a00eb779d7e6fc3f806e5538b072a9d71e9b43d4c1c339b681b83b4da",
+          "recorded_at_utc": "2026-10-06T13:56:18.630799+00:00"
+        },
+        "v2": {
+          "body_sha256": "3f68de40c9f7fab01848efb59e6e9ea39f4dfd3fdcb01a572a7c573e871e45ef",
+          "recorded_at_utc": "2026-10-06T13:56:27.447556+00:00"
+        }
+      }
+    },
+    {
+      "id": "vpn_v6-0688",
+      "cohort": "vpn_v6",
+      "kind": "missed_vpn",
+      "ip": "2001:db8::12",
+      "expected_v2_vpn": true,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::12": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": true,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS9009",
+              "provider": "M247 Europe SRL",
+              "type": "Hosting"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::12": {
+            "asn": "AS9009",
+            "provider": "M247 Europe SRL",
+            "isocode": "RO",
+            "proxy": "yes",
+            "type": "VPN"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "7bb14492b3b62e8c64509f8c2a58307e2d0f38455044a7a44d5def4b7bcd278c",
+          "recorded_at_utc": "2026-10-06T13:48:32.901856+00:00"
+        },
+        "v2": {
+          "body_sha256": "57a38ceb0c2079eb2e628b74ce7826d0c90b86a14b545b2e9a7063d9366a9362",
+          "recorded_at_utc": "2026-10-06T13:48:41.873018+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0168",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.19",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.19": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS29247",
+              "provider": "Ote SA (Hellenic Telecommunications Organisation)",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.19": {
+            "asn": "AS29247",
+            "provider": "Ote SA (Hellenic Telecommunications Organisation)",
+            "isocode": "GR",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "f0478ef3eceff9ffa52684972384b495fabcaecb7518e4c70ab3208b38b20b74",
+          "recorded_at_utc": "2026-10-06T13:47:58.280882+00:00"
+        },
+        "v2": {
+          "body_sha256": "6f3037257d52590f8723ffc312d49145d487d15b07d1cf9ee82316df251f1e3f",
+          "recorded_at_utc": "2026-10-06T13:48:07.897110+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0170",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.20",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.20": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS5610",
+              "provider": "O2 Czech Republic, a.s.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.20": {
+            "asn": "AS5610",
+            "provider": "O2 Czech Republic, a.s.",
+            "isocode": "CZ",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "004ebd9eb02e424edc0e53c0edb89830900c72fb6426c1759544bf7add986e0a",
+          "recorded_at_utc": "2026-10-06T14:01:51.322361+00:00"
+        },
+        "v2": {
+          "body_sha256": "de91238ce22f900e4c2133cf7bc083678831e737620e513245e5e3d5fc899699",
+          "recorded_at_utc": "2026-10-06T14:02:02.272111+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0174",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.21",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.21": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS139831",
+              "provider": "DITO TELECOMMUNITY CORP.",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.21": {
+            "asn": "AS139831",
+            "provider": "DITO TELECOMMUNITY CORP.",
+            "isocode": "PH",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "4cde6a259b1d03413a965f5955fa8d93c3a4b79741987f2025dc7a0382edc997",
+          "recorded_at_utc": "2026-10-06T13:49:21.658777+00:00"
+        },
+        "v2": {
+          "body_sha256": "8a15c645b62063c0e86cbddc188ac8ad92003a78268e344d7203cd7a96331ad8",
+          "recorded_at_utc": "2026-10-06T13:49:31.132893+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0177",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.22",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.22": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS15435",
+              "provider": "DELTA Fiber Nederland B.V.",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.22": {
+            "asn": "AS15435",
+            "provider": "DELTA Fiber Nederland B.V.",
+            "isocode": "NL",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "494aeac2f1497afb9f9ed2999b2440c6c4e8d845babe0c4117174e7bda3492ca",
+          "recorded_at_utc": "2026-10-06T14:00:07.303750+00:00"
+        },
+        "v2": {
+          "body_sha256": "7382e071e1ff240e2fb5de0c4f7b313ffb0f19e85e7ca09b7e7282425888fd72",
+          "recorded_at_utc": "2026-10-06T14:00:18.150816+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0178",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.23",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.23": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS40980",
+              "provider": "ANEXIA Internetdienstleistungs GmbH",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.23": {
+            "asn": "AS40980",
+            "provider": "ANEXIA Internetdienstleistungs GmbH",
+            "isocode": "AT",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "24df3b1d262b1b9104b95bfabe3642969b292231bbddc0bf1ab15662c1fad551",
+          "recorded_at_utc": "2026-10-06T13:59:15.565178+00:00"
+        },
+        "v2": {
+          "body_sha256": "33da21c4c47e8ca0bd763982505798ebb804978c9f2beeeac474f0819fe953c0",
+          "recorded_at_utc": "2026-10-06T13:59:25.864971+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0191",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.24",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.24": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS26599",
+              "provider": "TELEF\u00d4NICA BRASIL S.A",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.24": {
+            "asn": "AS26599",
+            "provider": "TELEF\u00d4NICA BRASIL S.A",
+            "isocode": "BR",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "7124de771a149ae3b96f1df2892409afe63d7e462375166bfb7a458c14a24bcd",
+          "recorded_at_utc": "2026-10-06T13:58:50.777198+00:00"
+        },
+        "v2": {
+          "body_sha256": "fe9bad8e5f6e86a8916e9ae2abaf1f3d4c9cd9fc3e3ed17a739147612376c204",
+          "recorded_at_utc": "2026-10-06T13:59:01.103998+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0202",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.25",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.25": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS45700",
+              "provider": "PT. NAP Info Lintas Nusa",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.25": {
+            "asn": "AS45700",
+            "provider": "PT. NAP Info Lintas Nusa",
+            "isocode": "ID",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "d2749e46425c45fb02e8070a6098f2a06f240dde56b38f20b1a9e6d38ec49812",
+          "recorded_at_utc": "2026-10-06T13:54:27.204866+00:00"
+        },
+        "v2": {
+          "body_sha256": "b03cb44752a61dd4cb2aac98058d204895f300683b0fabf3b99ed9a77e671bd3",
+          "recorded_at_utc": "2026-10-06T13:54:36.947351+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0211",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.26",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.26": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS24608",
+              "provider": "WIND TRE S.P.A.",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.26": {
+            "asn": "AS24608",
+            "provider": "WIND TRE S.P.A.",
+            "isocode": "IT",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "d28fa0c4b29042d7d01dece11a6a89494f5499221789d51dd3d7ddf0cdb94108",
+          "recorded_at_utc": "2026-10-06T13:53:17.561843+00:00"
+        },
+        "v2": {
+          "body_sha256": "0d6eb996de26ad5f599e66d2dcc9a23fa725b30f4451f2de340c8cb270770560",
+          "recorded_at_utc": "2026-10-06T13:53:27.541965+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0224",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.27",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.27": {
+            "asn": "AS9500",
+            "provider": "One New Zealand Group Limited",
+            "isocode": "NZ",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "f80fdd83b5a86c15a47e070d9946c07ad6902a8813f8926232990a5bbe0568bd",
+          "recorded_at_utc": "2026-10-06T14:04:55.335161+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0226",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.28",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.28": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS30722",
+              "provider": "Fastweb SpA",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.28": {
+            "asn": "AS30722",
+            "provider": "Fastweb SpA",
+            "isocode": "IT",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "dd78b37cf4dca4b308dc520a25cd56063db3cdff29e71facfafe762b72eb3b21",
+          "recorded_at_utc": "2026-10-06T13:51:15.573014+00:00"
+        },
+        "v2": {
+          "body_sha256": "47f0deda61ab5e24d46a46d1a2b390d65b2af5b292c7193de3c23dec63fa269e",
+          "recorded_at_utc": "2026-10-06T13:51:24.518618+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0229",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.29",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.29": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3308",
+              "provider": "Norlys Digital A/S",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.29": {
+            "asn": "AS3308",
+            "provider": "Norlys Digital A/S",
+            "isocode": "DK",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "cf36c1584e5751b8b5638f4a1ad3c7c117b79258aea5acbcdc09331bafc499b2",
+          "recorded_at_utc": "2026-10-06T13:50:41.633292+00:00"
+        },
+        "v2": {
+          "body_sha256": "fb0ec579e452dfc328618dd89ae83c6d04e3e85033558ea4db6a1ee2cf926621",
+          "recorded_at_utc": "2026-10-06T13:50:50.868546+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0231",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.30",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.30": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS852",
+              "provider": "TELUS Communications Inc.",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.30": {
+            "asn": "AS852",
+            "provider": "TELUS Communications Inc.",
+            "isocode": "CA",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "0c6a8af899b16981dddd9944edb6ff83a7be5af7152b91bf3651b3d60515b27b",
+          "recorded_at_utc": "2026-10-06T13:52:20.169592+00:00"
+        },
+        "v2": {
+          "body_sha256": "85c495260f13c5b40be04d9852d60c7fe660d247e4e9d47c0d6ffa43dfabb1c8",
+          "recorded_at_utc": "2026-10-06T13:52:31.365191+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0242",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.31",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.31": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3269",
+              "provider": "Telecom Italia S.p.A.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.31": {
+            "asn": "AS3269",
+            "provider": "Telecom Italia S.p.A.",
+            "isocode": "IT",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "bca3d1ddb8523bdb9fd7cea77ddcab2c5d13253904fe3e3b3e63a15e84008f2d",
+          "recorded_at_utc": "2026-10-06T13:50:11.003844+00:00"
+        },
+        "v2": {
+          "body_sha256": "191da4616d5858d96d1ff93339b7bbfd71dbf21b01827d6316d1efc74987d600",
+          "recorded_at_utc": "2026-10-06T13:50:20.450358+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0243",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.32",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.32": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS5617",
+              "provider": "Orange Polska Spolka Akcyjna",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.32": {
+            "asn": "AS5617",
+            "provider": "Orange Polska Spolka Akcyjna",
+            "isocode": "PL",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "042f69b7b6a27bd0cedcb1830cbf9e92fc29cf3b24466dde7686b79d3d592b60",
+          "recorded_at_utc": "2026-10-06T13:54:42.648185+00:00"
+        },
+        "v2": {
+          "body_sha256": "330b5cf8d0675ed79f88ef0729a9fdbc469846b1a0f2515e88d13941ebe1a364",
+          "recorded_at_utc": "2026-10-06T13:54:51.640766+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0252",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.33",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.33": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS25400",
+              "provider": "Telia Norge AS",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.33": {
+            "asn": "AS25400",
+            "provider": "Telia Norge AS",
+            "isocode": "NO",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "ecdfdd19f986d81dece0ba605b2fb5bdd6b25437e869652663a399df48204d08",
+          "recorded_at_utc": "2026-10-06T13:55:32.258764+00:00"
+        },
+        "v2": {
+          "body_sha256": "39b7c50adb6a154bc6b3567263ccffd3051963a4a24fbdd5641f9dd9e48c85ea",
+          "recorded_at_utc": "2026-10-06T13:55:41.857627+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0258",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.34",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.34": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3320",
+              "provider": "Deutsche Telekom AG",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.34": {
+            "asn": "AS3320",
+            "provider": "Deutsche Telekom AG",
+            "isocode": "DE",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "9c2c8c82bd4920333bc71b0469e3725b4ee55fe61f4632c442bf1c9344fc6428",
+          "recorded_at_utc": "2026-10-06T13:47:14.003974+00:00"
+        },
+        "v2": {
+          "body_sha256": "86dfbf67fef116c5a37664782b86d9f7cdfd89fe694780873744f010eaecca23",
+          "recorded_at_utc": "2026-10-06T13:47:23.484530+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0260",
+      "cohort": "mobile_cgnat",
+      "kind": "negative_control",
+      "ip": "192.0.2.35",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.35": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3301",
+              "provider": "Telia Company AB",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.35": {
+            "asn": "AS3301",
+            "provider": "Telia Company AB",
+            "isocode": "SE",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "7e3af78f0757cefe1598bb2e6ffc029d593d15ea655fce5415707641c0852dd8",
+          "recorded_at_utc": "2026-10-06T13:51:25.143574+00:00"
+        },
+        "v2": {
+          "body_sha256": "0b9555ffc54ed134a8edf322aae9f65ddf6cdd637f01e3d1e6d6caa1dfe5c5a4",
+          "recorded_at_utc": "2026-10-06T13:51:34.568733+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0380",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.36",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.36": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS9471",
+              "provider": "ONATI",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.36": {
+            "asn": "AS9471",
+            "provider": "ONATI",
+            "isocode": "PF",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "1124a5dcef0eeabf5212c580b52234b3adf15f03c15bcea8e65c07af1bb29b50",
+          "recorded_at_utc": "2026-10-06T13:58:28.901642+00:00"
+        },
+        "v2": {
+          "body_sha256": "3404ca7ae8cac62ea8c346c793978f15e2f25b2344b2cc79cde06183cdab16ba",
+          "recorded_at_utc": "2026-10-06T13:58:38.477935+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0383",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.37",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.37": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS9541",
+              "provider": "Cyber Internet Services (Private) Limited",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.37": {
+            "asn": "AS9541",
+            "provider": "Cyber Internet Services (Private) Limited",
+            "isocode": "PK",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "a1c568635bf19df856c1e73512fa267513436d7600c493aad98e9704433fff9e",
+          "recorded_at_utc": "2026-10-06T13:52:36.821024+00:00"
+        },
+        "v2": {
+          "body_sha256": "d0ce37289f1d2812bb290751ae9e4aebce8dacf225c2e659d5644f0501fc3ef9",
+          "recorded_at_utc": "2026-10-06T13:52:57.458074+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0399",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.38",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.38": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS12400",
+              "provider": "Partner Communications Ltd.",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.38": {
+            "asn": "AS12400",
+            "provider": "Partner Communications Ltd.",
+            "isocode": "IL",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "ab20113d9170131357e4624333fcbe658d9d2fb7ef85d4cf67aba14561250dab",
+          "recorded_at_utc": "2026-10-06T13:48:22.477915+00:00"
+        },
+        "v2": {
+          "body_sha256": "ea379e8431b5df882ae0b9e0bc20489389d4b7b823afdd37ad982bdac5a7bdcf",
+          "recorded_at_utc": "2026-10-06T13:48:32.530975+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0405",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.39",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.39": {
+            "asn": "AS52352",
+            "provider": "TVC5 S.A.",
+            "isocode": "AR",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "7c41a6fa1ccd1fb744e4f9b2b76f7aad0b43f6ff742f2e0d09bc365fa64c20c1",
+          "recorded_at_utc": "2026-10-06T14:06:33.467865+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0406",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.40",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.40": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS12252",
+              "provider": "America Movil Peru S.A.C.",
+              "type": "Wireless"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.40": {
+            "asn": "AS12252",
+            "provider": "America Movil Peru S.A.C.",
+            "isocode": "PE",
+            "proxy": "no",
+            "type": "Wireless"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "08c6ad0d40441670a9de8ab9473b60c1145333e3c04f398dce89d703684f17ca",
+          "recorded_at_utc": "2026-10-06T13:59:52.327331+00:00"
+        },
+        "v2": {
+          "body_sha256": "251c852ec1e58c5ac27d06f8daa4fa7786776a2def1522ac7c988f43890b21cb",
+          "recorded_at_utc": "2026-10-06T14:00:01.777553+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0411",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.41",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.41": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS28573",
+              "provider": "Claro NXT Telecomunicacoes Ltda",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.41": {
+            "asn": "AS28573",
+            "provider": "Claro NXT Telecomunicacoes Ltda",
+            "isocode": "BR",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "4b5552fdbf3738b41d1a76357ea1d0cb910ff24f2b626228dfef672be49b5dba",
+          "recorded_at_utc": "2026-10-06T13:56:28.059857+00:00"
+        },
+        "v2": {
+          "body_sha256": "cf7e6f631a08d733886728487e96c7d2e55c4e5f13e4d17f6a2f3e3d4016e4c5",
+          "recorded_at_utc": "2026-10-06T13:56:39.200230+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0428",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.42",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.42": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS27928",
+              "provider": "Liberty Technologies Corp.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.42": {
+            "asn": "AS27928",
+            "provider": "Liberty Technologies Corp.",
+            "isocode": "PA",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "346d5d8b45db23c6a46dd4d4e1d57c2eea72403fc1f83e1bfec72450c757e538",
+          "recorded_at_utc": "2026-10-06T13:57:13.788621+00:00"
+        },
+        "v2": {
+          "body_sha256": "f7c56dba55f9c037534c269240d9db64af6160bdd82a46ec4490cca6b7bd9d95",
+          "recorded_at_utc": "2026-10-06T13:57:24.453491+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0431",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.43",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.43": {
+            "asn": "AS38505",
+            "provider": "PT Graha Multimedia Nusantara",
+            "isocode": "ID",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "6bc4049845b743cb1aaaba7b464ff33932802d8485814730047edf1b68c0b547",
+          "recorded_at_utc": "2026-10-06T14:05:33.460438+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0435",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.44",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.44": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS8758",
+              "provider": "Iway AG",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.44": {
+            "asn": "AS8758",
+            "provider": "Iway AG",
+            "isocode": "CH",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "777fd19e16b1e99fbf6aa9810a8d51c02772a36af0fde249b00b409e5b1c4afc",
+          "recorded_at_utc": "2026-10-06T13:57:47.245281+00:00"
+        },
+        "v2": {
+          "body_sha256": "d96ce19451a5234ae6481248e1b4393d1b188c0806dbe7ea34439fbcdd120709",
+          "recorded_at_utc": "2026-10-06T13:57:57.519388+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0442",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.45",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.45": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3212",
+              "provider": "Telemach Slovenija d.o.o.",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.45": {
+            "asn": "AS3212",
+            "provider": "Telemach Slovenija d.o.o.",
+            "isocode": "SI",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "19c26d16b946b95cfd63dcbb1ea0ec16e35c6076ae4006930524c4cf19f223a8",
+          "recorded_at_utc": "2026-10-06T13:59:26.403198+00:00"
+        },
+        "v2": {
+          "body_sha256": "ab3f006f57c2413b74e11c72e0437f783d5933d658d714394d54246b0148f0bc",
+          "recorded_at_utc": "2026-10-06T13:59:36.866807+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0451",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.46",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.46": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS328228",
+              "provider": "SOCIETE BENINOISE D'INFRASTRUCTURES NUMERIQUES",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.46": {
+            "asn": "AS328228",
+            "provider": "SOCIETE BENINOISE D'INFRASTRUCTURES NUMERIQUES",
+            "isocode": "BJ",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "22dc670dabf2513693c348c07e99b3d94c7aaed4f455247bc4677c6e34dae111",
+          "recorded_at_utc": "2026-10-06T13:57:30.074840+00:00"
+        },
+        "v2": {
+          "body_sha256": "ec94979ff7af91194de74704537791c46acfb283527ba051be4b027245d6781c",
+          "recorded_at_utc": "2026-10-06T13:57:41.701661+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0455",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.47",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.47": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS269820",
+              "provider": "FULL DATA COMUNICACIONES C.A.",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.47": {
+            "asn": "AS269820",
+            "provider": "FULL DATA COMUNICACIONES C.A.",
+            "isocode": "VE",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "153807f9699041c3da38203e8dd1a1529bc8fc6ec69e3bcefb9c430f3a204128",
+          "recorded_at_utc": "2026-10-06T13:56:58.698342+00:00"
+        },
+        "v2": {
+          "body_sha256": "649e02fc3b59053d7e48e04f1561c0749438a0c087f07060b17e91dbfe0183f2",
+          "recorded_at_utc": "2026-10-06T13:57:08.147680+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0456",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.48",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.48": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS265619",
+              "provider": "XK NET S.A. DE C.V.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.48": {
+            "asn": "AS265619",
+            "provider": "XK NET S.A. DE C.V.",
+            "isocode": "MX",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "ff0835f6cd9a6bb7a2cdf7dbb2319d141d0e11e036c88593c1c66c8ffb1ff62a",
+          "recorded_at_utc": "2026-10-06T13:47:43.605119+00:00"
+        },
+        "v2": {
+          "body_sha256": "1e79e9aa3b075c2c126d231a72438ff72d3d9f028588ebb2e6c7d41a19ecc60c",
+          "recorded_at_utc": "2026-10-06T13:47:52.753830+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0457",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.49",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.49": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS327849",
+              "provider": "DIRECTEL COMMUNICATIONS (PTY) LTD",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.49": {
+            "asn": "AS327849",
+            "provider": "DIRECTEL COMMUNICATIONS (PTY) LTD",
+            "isocode": "ZA",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "93d7ccc4ae2f9b7a327ec1cd6e5b0dc88f9e365f9f425ba842d602cd0c9ee202",
+          "recorded_at_utc": "2026-10-06T14:02:25.034564+00:00"
+        },
+        "v2": {
+          "body_sha256": "1698702bcc5580f6093449ba89ad017f2351337baa7ffb5ccfdf852d3865a417",
+          "recorded_at_utc": "2026-10-06T14:02:34.948454+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0458",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.50",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.50": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS1680",
+              "provider": "Cellcom Fixed Line Communication L.P",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.50": {
+            "asn": "AS1680",
+            "provider": "Cellcom Fixed Line Communication L.P",
+            "isocode": "IL",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "328554e95a14370a543194df7331eb395eb07e3cb204cfdaad842e73925ffa3a",
+          "recorded_at_utc": "2026-10-06T13:51:49.789088+00:00"
+        },
+        "v2": {
+          "body_sha256": "0206474253e79df430f214cd5dd59abbe1b9ef0b7933d730c839bdc47eabf46d",
+          "recorded_at_utc": "2026-10-06T13:51:58.949586+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0460",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.51",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.51": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS57908",
+              "provider": "Bilad Al-Rafidain Company for Informatics and Communications Services Ltd",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.51": {
+            "asn": "AS57908",
+            "provider": "Bilad Al-Rafidain Company for Informatics and Communications Services Ltd",
+            "isocode": "IQ",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "e515b0a6f25b6f393d47375341ad30b632d9b5aff4468d34b86081469f0b42a2",
+          "recorded_at_utc": "2026-10-06T13:56:07.351336+00:00"
+        },
+        "v2": {
+          "body_sha256": "f8c098e6d62be2a2f475f4b3e88e12fc0de6e5b96f2b74bccd2c6cc512a1d89a",
+          "recorded_at_utc": "2026-10-06T13:56:18.138844+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0467",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.52",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.52": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS6739",
+              "provider": "VODAFONE ONO, S.A.",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.52": {
+            "asn": "AS6739",
+            "provider": "VODAFONE ONO, S.A.",
+            "isocode": "ES",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "e0f0be7f2452df78a4568198b0923efe4e1ecddcaa1e36906596d49f3cb01004",
+          "recorded_at_utc": "2026-10-06T13:51:40.108041+00:00"
+        },
+        "v2": {
+          "body_sha256": "c1a73e1ed5aa885091b70ae41e6079667ef58bc17af93c7e55e1ea4a3768d5b4",
+          "recorded_at_utc": "2026-10-06T13:51:49.265075+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0469",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.53",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.53": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS36549",
+              "provider": "WestTel Ltd.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.53": {
+            "asn": "AS36549",
+            "provider": "WestTel Ltd.",
+            "isocode": "KY",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "c3a6454b9cab15c3e65bbdcdf052c92754dcb918b5e4901c1811496866e8ca9e",
+          "recorded_at_utc": "2026-10-06T13:55:16.627831+00:00"
+        },
+        "v2": {
+          "body_sha256": "104f6a9ed36b48da270c77dadfbc400c61e79b2303c8431f62d2a3ef885d1617",
+          "recorded_at_utc": "2026-10-06T13:55:26.815097+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0486",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.54",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "192.0.2.54": {
+            "asn": "AS212655",
+            "provider": "YouFibre Limited",
+            "isocode": "GB",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "3d7c205fae44e83b33a4b6714d92d349cee38c300e1f294b06c657a9e9b99daa",
+          "recorded_at_utc": "2026-10-06T14:04:44.204559+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0489",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.55",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.55": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS6752",
+              "provider": "ANDORRA TELECOM, S.A.U.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.55": {
+            "asn": "AS6752",
+            "provider": "ANDORRA TELECOM, S.A.U.",
+            "isocode": "AD",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "abb342d694a399bd1ab315cf74bfd1e2eaa630ae40c90cc40dc9cd5c5cdcdec4",
+          "recorded_at_utc": "2026-10-06T13:47:33.130620+00:00"
+        },
+        "v2": {
+          "body_sha256": "5a8b4ec506c90b7b662de912c23dc65ccc51f6bb8791d7450e3be97e81b17e8e",
+          "recorded_at_utc": "2026-10-06T13:47:42.795213+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0490",
+      "cohort": "residential",
+      "kind": "negative_control",
+      "ip": "192.0.2.56",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "192.0.2.56": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS47377",
+              "provider": "Orange Belgium SA",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "192.0.2.56": {
+            "asn": "AS47377",
+            "provider": "Orange Belgium SA",
+            "isocode": "LU",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "ac431f8b5828d7f7257fc32b0af2cd855697b34a9b6402463e6d660482963428",
+          "recorded_at_utc": "2026-10-06T14:02:13.538767+00:00"
+        },
+        "v2": {
+          "body_sha256": "2dd8286b0866c1bdae9aa91ce405e73c232ccc7158f6b3d955fdf17c22d07ddf",
+          "recorded_at_utc": "2026-10-06T14:02:24.516256+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0514",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::39",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::39": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS50345",
+              "provider": "Optitel LTD.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::39": {
+            "asn": "AS50345",
+            "provider": "Optitel LTD.",
+            "isocode": "BY",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "9aa54256072fb1948c3af1d905a2a04378526eba74c58cc3310246fec2ed25c4",
+          "recorded_at_utc": "2026-10-06T13:50:31.059576+00:00"
+        },
+        "v2": {
+          "body_sha256": "338dbc097483bbbef2a21f8f9d05d83d096fd9a34921058903e6118b76da5f22",
+          "recorded_at_utc": "2026-10-06T13:50:41.160927+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0517",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3a",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::3a": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS8966",
+              "provider": "Emirates Telecommunications Corporation",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::3a": {
+            "asn": "AS8966",
+            "provider": "Emirates Telecommunications Corporation",
+            "isocode": "AE",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "e1409f5a8add9d0145c292f11e4d1c30460077fdd62676a34263fc6d42b95621",
+          "recorded_at_utc": "2026-10-06T13:54:16.994102+00:00"
+        },
+        "v2": {
+          "body_sha256": "f8258c686bb6c94bd5c986d16da7b7570940156ab88fbb2dfc7f1acde5006a0b",
+          "recorded_at_utc": "2026-10-06T13:54:26.782751+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0524",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3b",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::3b": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS55805",
+              "provider": "MobiCom Corporation",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::3b": {
+            "asn": "AS55805",
+            "provider": "MobiCom Corporation",
+            "isocode": "MN",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "2ae82fd7b19e380907b4b28b4fe1aa23c9c359fd43bd0bd741704693e25ce43e",
+          "recorded_at_utc": "2026-10-06T13:58:38.906723+00:00"
+        },
+        "v2": {
+          "body_sha256": "19bfbf001f90c4e6179eb730682d9452429b736b2dade511fd7f30e86829588b",
+          "recorded_at_utc": "2026-10-06T13:58:49.068671+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0527",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3c",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::3c": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS9471",
+              "provider": "ONATI",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::3c": {
+            "asn": "AS9471",
+            "provider": "ONATI",
+            "isocode": "PF",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "d395a1589e6ae31b9b5c3cd5b60ca7a21d452232e22c2d1a2989715eb0c1a7e1",
+          "recorded_at_utc": "2026-10-06T13:46:13.414472+00:00"
+        },
+        "v2": {
+          "body_sha256": "acfb48a0940e54e752631ea9b2d3c9892b537915ead59936ed146002329fc9e4",
+          "recorded_at_utc": "2026-10-06T13:46:28.826526+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0529",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3d",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::3d": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS55850",
+              "provider": "Mercury NZ Limited",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::3d": {
+            "asn": "AS55850",
+            "provider": "Mercury NZ Limited",
+            "isocode": "NZ",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "e56a1a8a7d13a2b7582debae480f57d11c20f24f911f00791657f0555c0bcf4a",
+          "recorded_at_utc": "2026-10-06T14:00:51.552752+00:00"
+        },
+        "v2": {
+          "body_sha256": "32fc6524f497323d718c5c56a532948590d471c4740a3997dabe526147e85994",
+          "recorded_at_utc": "2026-10-06T14:01:03.063356+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0535",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3e",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::3e": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS27895",
+              "provider": "N\u00facleo S.A.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::3e": {
+            "asn": "AS27895",
+            "provider": "N\u00facleo S.A.",
+            "isocode": "PY",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "c06c17894b2cd5593e27a22c71cef1f799ec8c9d41cc4fb6e670963b240ff8f9",
+          "recorded_at_utc": "2026-10-06T13:57:58.186982+00:00"
+        },
+        "v2": {
+          "body_sha256": "e71b54d4d6aa8bc474e02bd381b14dc101c3a957b5f9353748f6a15d0247ebad",
+          "recorded_at_utc": "2026-10-06T13:58:07.712298+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0544",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::3f",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "2001:db8::3f": {
+            "asn": "AS12297",
+            "provider": "Telecom Armenia OJSC",
+            "isocode": "AM",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "ecc5dcec464233c52032fc5f3fba36fd9daf53adb0db9bb418f522724dbdddf4",
+          "recorded_at_utc": "2026-10-06T14:03:05.768759+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0551",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::40",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::40": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS3215",
+              "provider": "Orange S.A.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::40": {
+            "asn": "AS3215",
+            "provider": "Orange S.A.",
+            "isocode": "FR",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "19b7e6dbb8e062698256718ffec3a4de0dd1837327dce66efb90dafb053b5c6c",
+          "recorded_at_utc": "2026-10-06T13:55:57.060661+00:00"
+        },
+        "v2": {
+          "body_sha256": "2e64ed7c98b78218c60b9e88df8da3233bfbcdc8ac53e95ced98a6cd98998ea4",
+          "recorded_at_utc": "2026-10-06T13:56:06.975594+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0554",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::41",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::41": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS13030",
+              "provider": "Init7 (Switzerland) Ltd.",
+              "type": "Residential"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::41": {
+            "asn": "AS13030",
+            "provider": "Init7 (Switzerland) Ltd.",
+            "isocode": "CH",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "62e9bc9dd38aa6f54a2b9b8ed85e8a7b08bb6f43e278f6558227990abf7d480d",
+          "recorded_at_utc": "2026-10-06T14:02:02.860123+00:00"
+        },
+        "v2": {
+          "body_sha256": "c2b7cd71bcc58faf10cf0d04a1a94c639a7ff22c2c144026e0182b15b7dd69a1",
+          "recorded_at_utc": "2026-10-06T14:02:12.988651+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0557",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::42",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::42": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS8708",
+              "provider": "DIGI ROMANIA S.A.",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::42": {
+            "asn": "AS8708",
+            "provider": "DIGI ROMANIA S.A.",
+            "isocode": "RO",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "3e7dbb9f99f3a11162b4920df1691d0180b74374c0c866c76d364add5c5ab148",
+          "recorded_at_utc": "2026-10-06T13:58:17.464111+00:00"
+        },
+        "v2": {
+          "body_sha256": "0f5fec1613cfdb1991142107b3f15cb64832c9e6b6b28be6bf4ed8c6491558e7",
+          "recorded_at_utc": "2026-10-06T13:58:28.223259+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0560",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::43",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "2001:db8::43": {
+            "asn": "AS12768",
+            "provider": "JSC \"ER-Telecom Holding\"",
+            "isocode": "RU",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "7ed3b6c31c96d2e33e853736e28622e8cb558ae6a3fe8e2a9fd0f08e4d4a3e3c",
+          "recorded_at_utc": "2026-10-06T14:03:57.116314+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0562",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::44",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "2001:db8::44": {
+            "asn": "AS8193",
+            "provider": "\"Uzbektelekom\" Joint Stock Company",
+            "isocode": "UZ",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "e2bf88b54abd2097f2d224846b0ed4795ce9971815b9aaacf96def6ca1cc3a46",
+          "recorded_at_utc": "2026-10-06T14:02:55.025610+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0564",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::45",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v2": {
+          "status": "ok",
+          "2001:db8::45": {
+            "asn": "AS203953",
+            "provider": "Hiper A/S",
+            "isocode": "DK",
+            "proxy": "no",
+            "type": "Residential"
+          }
+        }
+      },
+      "provenance": {
+        "v2": {
+          "body_sha256": "e24d802c16b009c2c735d2ab6cc070e39aff49d1ff5b01f798bffb79d8e4c462",
+          "recorded_at_utc": "2026-10-06T14:03:35.619892+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0568",
+      "cohort": "residential_v6",
+      "kind": "negative_control",
+      "ip": "2001:db8::46",
+      "expected_v2_vpn": false,
+      "responses": {
+        "v3": {
+          "status": "ok",
+          "2001:db8::46": {
+            "detections": {
+              "proxy": false,
+              "vpn": false,
+              "tor": false,
+              "hosting": false,
+              "anonymous": false,
+              "confidence": 100
+            },
+            "network": {
+              "asn": "AS206238",
+              "provider": "Freedom Internet BV",
+              "type": "Business"
+            },
+            "location": {}
+          }
+        },
+        "v2": {
+          "status": "ok",
+          "2001:db8::46": {
+            "asn": "AS206238",
+            "provider": "Freedom Internet BV",
+            "isocode": "NL",
+            "proxy": "no",
+            "type": "Business"
+          }
+        }
+      },
+      "provenance": {
+        "v3": {
+          "body_sha256": "06f897f51078f648d8fa5575d464d95ad148f70c55381d2dbfa67ca4eb956e52",
+          "recorded_at_utc": "2026-10-06T13:51:59.468600+00:00"
+        },
+        "v2": {
+          "body_sha256": "417218c3fc928ddd1e9523985ff4d282e13ae6094f04483ed802bec9a54c3829",
+          "recorded_at_utc": "2026-10-06T13:52:09.561621+00:00"
+        }
+      }
+    }
+  ]
+}

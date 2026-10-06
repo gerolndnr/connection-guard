@@ -8,31 +8,31 @@ import com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails;
 import java.util.Map;
 import java.util.EnumMap;
 import java.util.Locale;
-import okhttp3.Request;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ProxyCheckVpnProvider implements VpnProvider {
     private final String apiKey;
     private final boolean v3;
+    private final transient com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient client;
 
     public ProxyCheckVpnProvider(String apiKey) { this(apiKey, false); }
-    public ProxyCheckVpnProvider(String apiKey, boolean v3) { this.apiKey = apiKey; this.v3 = v3; }
+    public ProxyCheckVpnProvider(String apiKey, boolean v3) { this(apiKey, v3, new com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient(apiKey)); }
+    public ProxyCheckVpnProvider(String apiKey, boolean v3, com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient client) {
+        this.apiKey = apiKey; this.v3 = v3; this.client = java.util.Objects.requireNonNull(client);
+    }
+    public com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient client() { return client; }
 
     @Override
     public CompletableFuture<Optional<VpnResult>> getVpnResult(String ipAddress) {
-        return ProviderHttp.submit(() -> {
-            try {
-                Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder().url("https://proxycheck.io/" + (v3 ? "v3/" : "v2/") + ProviderAddresses.compressed(ipAddress) + "?key=" + apiKey
-                        + (v3 ? "&ver=24-June-2026&tag=0" : "&vpn=1&asn=1&risk=1&tag=0")).build(), "ProxyCheckVpnProvider");
-                return json.isPresent() ? (v3 ? parseV3(ipAddress, json.get()) : parse(ipAddress, json.get())) : Optional.empty();
-            } catch (RuntimeException failure) {
-                throw ProviderHttp.failure(failure);
-            }
-        });
+        return getVpnResult(ipAddress, com.github.gerolndnr.connectionguard.core.ConnectionGuard.getLookupRuntime().getSettings().deadlineMillis, () -> {});
+    }
+    public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip, long remaining, Runnable attempted) {
+        return com.github.gerolndnr.connectionguard.core.ConnectionGuard.proxyCheckResponse(client, ip, false, remaining, attempted)
+                .thenApply(answer -> answer.flatMap(json -> parse(ip, json)));
     }
 
-    static Optional<VpnResult> parse(String ipAddress, JsonObject json) {
+    public static Optional<VpnResult> parse(String ipAddress, JsonObject json) {
         String status = ProviderHttp.string(json, "status");
         if (!status.equalsIgnoreCase("ok") && !status.equalsIgnoreCase("warning")) {
             if (status.equalsIgnoreCase("denied") || status.equalsIgnoreCase("denied access")) throw new com.github.gerolndnr.connectionguard.core.lookup.LookupException(ProviderHttp.exhaustedDailyQuota(json) ? com.github.gerolndnr.connectionguard.core.lookup.FailureReason.BUDGET_EXHAUSTED : com.github.gerolndnr.connectionguard.core.lookup.FailureReason.RATE_LIMIT, ProviderHttp.exhaustedDailyQuota(json) ? ProviderHttp.untilNextDay() : 60000);
@@ -49,7 +49,8 @@ public class ProxyCheckVpnProvider implements VpnProvider {
             if (label.equals("VPN") || label.equals("TOR") || label.equals("HOSTING")) types.put(DetectionDetails.Type.valueOf(label), true);
             else if (label.startsWith("SOCKS") || label.equals("HTTP") || label.equals("HTTPS") || label.equals("SHADOWSOCKS") || label.equals("OPENVPN")) types.put(DetectionDetails.Type.PROXY, true);
         }
-        VpnResult result = new VpnResult(ipAddress, proxy.equalsIgnoreCase("yes"));
+        // Hosting is allocation evidence, not an explicit VPN/proxy classification.
+        VpnResult result = new VpnResult(ipAddress, proxy.equalsIgnoreCase("yes") && !"HOSTING".equalsIgnoreCase(type));
         result.setDetails(new DetectionDetails(types, DetectionFields.asn(address, "asn", false), DetectionFields.text(address, "provider"),
                 null, DetectionFields.text(address, "isocode"), DetectionFields.score(address, "risk"), null));
         return Optional.of(result);

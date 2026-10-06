@@ -156,11 +156,13 @@ public final class ProviderConfiguration {
         }
         extensionProviders = Collections.unmodifiableList(selected);
         String geoService = GuardSettings.string(value, "provider.geo.service", "IP-API");
+        com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient sharedProxyCheck = providers.stream()
+                .filter(p -> p instanceof ProxyCheckVpnProvider).map(p -> ((ProxyCheckVpnProvider) p).client()).findFirst().orElse(null);
         geo = geoService.equalsIgnoreCase("Disabled") ? null : geoService.equalsIgnoreCase("Local")
                 ? new LocalGeoProvider(loaded.stream().filter(snapshot -> snapshot.source.kind == LocalSource.Kind.GEO).findFirst().get(),
                     loaded.stream().filter(snapshot -> snapshot.source.kind == LocalSource.Kind.ASN).findFirst().orElse(null))
                 : geoService.equalsIgnoreCase("IP-API") ? new IpApiGeoProvider()
-                : new ProxyCheckGeoProvider(GuardSettings.string(value, "provider.vpn.proxycheck.api-key", ""), proxyCheckV3);
+                : new ProxyCheckGeoProvider(GuardSettings.string(value, "provider.vpn.proxycheck.api-key", ""), proxyCheckV3, sharedProxyCheck);
         String id = geo == null ? "disabled" : geo.getClass().getSimpleName();
         int day = GuardSettings.integer(value, "provider.geo.daily-budget", geo instanceof ProxyCheckGeoProvider
                 ? GuardSettings.string(value, "provider.vpn.proxycheck.api-key", "").isEmpty() ? 100 : 1000 : 0);
@@ -168,7 +170,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema8-general-failover:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema9-proxycheck-v2-shared:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

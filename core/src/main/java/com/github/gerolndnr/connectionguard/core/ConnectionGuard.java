@@ -166,6 +166,7 @@ public class ConnectionGuard {
         if (nextTor == null && draft.dataPath != null) nextTor = new com.github.gerolndnr.connectionguard.core.local.TorExitList(draft.dataPath, logger);
         applySettings(draft.settings);
         tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts;
+        clearProxyCheckHandoffs();
         vpnProviders = draft.providers;
         selectedHealthIds = Collections.unmodifiableMap(new java.util.HashMap<>(draft.healthIds));
         geoProvider = draft.geo; geoDisabled = draft.geo == null;
@@ -239,7 +240,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { uncheckedVpnAdmissions.close(); stopPolicyShadow(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { clearProxyCheckHandoffs(); uncheckedVpnAdmissions.close(); stopPolicyShadow(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
@@ -320,7 +321,9 @@ public class ConnectionGuard {
         sources.set(index, new CompletedSource(new ProviderVote(name, ProviderVote.Status.UNKNOWN, FailureReason.TIMEOUT, elapsed(started)), Optional.empty()));
         java.util.concurrent.atomic.AtomicBoolean attempted = new java.util.concurrent.atomic.AtomicBoolean();
         CompletableFuture<Optional<VpnResult>> job;
-        if (provider.isAvailable()) job = providerCall(runtime, name, () -> provider.getVpnResult(ipAddress), remaining, () -> attempted.set(true));
+        if (provider instanceof com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider)
+            job = ((com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider) provider).getVpnResult(ipAddress, remaining, () -> attempted.set(true));
+        else if (provider.isAvailable()) job = providerCall(runtime, name, () -> provider.getVpnResult(ipAddress), remaining, () -> attempted.set(true));
         else {
             VpnResult unavailable = new VpnResult(ipAddress, false); unavailable.setUnknown(FailureReason.NO_PROVIDER);
             job = CompletableFuture.completedFuture(Optional.of(unavailable));
@@ -438,8 +441,12 @@ public class ConnectionGuard {
                 if (!runtime.isOpen() || elapsed(started) >= limits.deadlineMillis) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.TIMEOUT, false, elapsed(started)));
                 if (cached.isPresent() && (cached.get().getValidUntil() == 0 || System.currentTimeMillis() < cached.get().getValidUntil())) return CompletableFuture.completedFuture(new GeoLookup(cached, FailureReason.NONE, true, elapsed(started)));
                 if (provider == null) return CompletableFuture.completedFuture(new GeoLookup(Optional.empty(), FailureReason.NO_PROVIDER, false, elapsed(started)));
-                return providerCall(runtime, providerName(provider), () -> provider.getGeoResult(ipAddress),
-                        limits.deadlineMillis - elapsed(started)).handle((answer, error) -> {
+                long remaining = limits.deadlineMillis - elapsed(started);
+                CompletableFuture<Optional<GeoResult>> lookup = provider instanceof com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider
+                        && ((com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider) provider).sharesVpnQuery()
+                        ? ((com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider) provider).getGeoResult(ipAddress, remaining)
+                        : providerCall(runtime, providerName(provider), () -> provider.getGeoResult(ipAddress), remaining);
+                return lookup.handle((answer, error) -> {
                     FailureReason reason = error == null ? FailureReason.NONE : LookupException.reason(error);
                     if (answer == null || !answer.isPresent()) { answer = Optional.empty(); if (error == null) reason = FailureReason.INVALID_RESPONSE; }
                     if (answer.isPresent()) {
@@ -459,6 +466,17 @@ public class ConnectionGuard {
            () -> new GeoLookup(Optional.empty(), FailureReason.OVERLOADED, false, elapsed(started)));
     }
 
+    public static CompletableFuture<Optional<com.google.gson.JsonObject>> proxyCheckResponse(
+            com.github.gerolndnr.connectionguard.core.http.ProxyCheckClient client, String address, boolean geo, long remaining, Runnable attempted) {
+        String ip = Exemptions.normalize(address);
+        LookupRuntime runtime = getLookupRuntime(); LookupSettings limits = runtime.getSettings();
+        if (remaining <= 0 || !runtime.isOpen()) {
+            CompletableFuture<Optional<com.google.gson.JsonObject>> expired = new CompletableFuture<>();
+            expired.completeExceptionally(new LookupException(runtime.isOpen() ? FailureReason.TIMEOUT : FailureReason.CANCELLED)); return expired;
+        }
+        return client.query(ip, geo, limits.maxInflight, limits.deadlineMillis,
+                transmitted -> providerCall(runtime, "ProxyCheckVpnProvider", () -> client.fetch(ip), remaining, transmitted), attempted);
+    }
     private static <T> CompletableFuture<T> providerCall(LookupRuntime runtime, String name, Supplier<CompletableFuture<T>> supplier, long remaining) {
         return providerCall(runtime, name, supplier, remaining, () -> {});
     }
@@ -523,8 +541,14 @@ public class ConnectionGuard {
         policyContextChanged();
     }
 
+    private static void clearProxyCheckHandoffs() {
+        if (vpnProviders != null) for (VpnProvider provider : vpnProviders)
+            if (provider instanceof com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider)
+                ((com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider) provider).client().clear();
+    }
     public static synchronized void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
         decisionLeases.requireIdle();
+        clearProxyCheckHandoffs();
         ConnectionGuard.vpnProviders = vpnProviders;
         health.clear(); selectedHealthIds = Collections.emptyMap(); failover = false; if (tor != null) { tor.close(); tor = null; }
         policyContextChanged();
