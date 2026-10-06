@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
-> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. This source is a release candidate until the benchmark gate and release approval; use the stable release link for the published download. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Released in **0.6.0**: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
 
 # Connection Guard
@@ -11,9 +11,9 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
-**Source build: 0.6.0.**
+**Source build: 0.6.1-SNAPSHOT.**
 
-**Published stable releases: [latest release](https://github.com/gerolndnr/connection-guard/releases/latest).** [Changes and upgrade guide](CHANGELOG.md).
+**Published stable release: [0.6.0](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.0).** [Changes and upgrade guide](CHANGELOG.md).
 
 **MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
@@ -22,7 +22,7 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 - **VPN/proxy checks:** select supported providers or configure a custom REST API provider.
 - **Actions:** reject a flagged connection, notify staff, execute a configured console command or send a Discord webhook.
 - **Country rules:** choose an allowlist or blocklist and the response to a match.
-- **Multiple-provider voting:** configure how many enabled providers must return a positive VPN/proxy result.
+- **Provider failover:** sequential checks are the default; explicitly disable failover to restore parallel voting and its positive threshold.
 - **Caching:** reuse lookup results to reduce repeated provider requests.
 - **Access policy:** scoped IPv4/IPv6 CIDR, trusted UUID and time-limited rules; optional ASN, ISP, country and source-specific risk selectors. [Rules](docs/ACCESS_RULES.md).
 - **Local data:** attributed address lists and optional Geo/ASN MMDB files, with freshness checks. [Local sources](docs/LOCAL_DATA.md).
@@ -63,6 +63,8 @@ Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
 Targeted `info` and `clear` also accept an online player name or UUID. Staff notification permissions are `connectionguard.notify.vpn` and `connectionguard.notify.geo`. [Troubleshoot flagged players and exemptions](docs/TROUBLESHOOTING.md).
 
 ## Reliability and compatibility
+
+0.6.0 adds provider failover, signed local Intel, visible unchecked admissions, Redis startup fallback, policy tools and immediate Cloud sync. Its exact master CI passed 863 tests; three archives are reproducible and match the qualified JAR. Six named runtime start/help/reload/stop checks passed. The full competitive benchmark remains pending. [0.6.0 checks and limits](docs/RELEASE_0_6_0.md).
 
 The 0.5.1 maintenance release fixes Velocity bStats and adds reproducible developer benchmark checks. [0.5.1 checks and limits](docs/RELEASE_0_5_1.md).
 

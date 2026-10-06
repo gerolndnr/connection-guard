@@ -10,7 +10,7 @@ This page describes the 0.6.0 candidate; stable 0.5.1 is still the published rel
 
 `failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or legacy TEXT webhooks. Explicit [rich decision webhooks](WEBHOOKS.md) can report that actual denial when DENY is selected. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
 
-The following table describes the unreleased 0.6.0 defaults; stable 0.5.1 used 2500ms for HTTP. In 0.6.0,
+The following table describes the released 0.6.0 defaults; stable 0.5.1 used 2500ms for HTTP. In 0.6.0,
 `lookup.http-timeout-ms` defaults to **1500 ms** (whole HTTP call, connect and read).
 An explicitly configured value is retained. A transport timeout opens that source's
 circuit immediately, without waiting for `lookup.circuit.failures`; the existing

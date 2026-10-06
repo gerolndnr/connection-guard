@@ -1,6 +1,6 @@
 # Set up Connection Guard
 
-> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. This source is a release candidate until the benchmark gate and release approval; use the stable release link for the published download. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Released in **0.6.0**: [provider resilience and migration](PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
 
 [Connection Guard website](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
@@ -29,13 +29,13 @@ After installation:
 
 [bStats platform statistics and opt-out](BSTATS.md) explains the separate reporting settings and the Velocity initialization correction after 0.5.0.
 
-[Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These development features are not included in stable 0.5.1.
+[Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These features are included in 0.6.0; replay/shadow estimates are bounded by the recorded facts and never activate a policy.
 
-[Local version activation and rollback](POLICY_VERSIONING.md) add separately authorized durable transitions and explicit local/dashboard ownership. Development qualification and saved live observations remain open.
+[Local version activation and rollback](POLICY_VERSIONING.md) add separately authorized durable transitions and explicit local/dashboard ownership. These tools are included in 0.6.0; historical native evidence remains bound to its original artifact, and full competitive qualification of 0.6.0 remains pending.
 
 ## Validation scope
 
-[Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.
+[0.6.0 release qualification](RELEASE_0_6_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants and account-wide persistent budgets remain future work; policy replay/rollback are included with their documented boundaries. A dashboard time-limited operator rule is not a verified challenge grant.
 
 [Comparative benchmark suite](../benchmarks/README.md) provides reproducible controlled checks against exact competitor artifacts, visible qualification gaps and a measured improvement backlog. Controlled fixtures do not establish real-world VPN detection or false-positive rates.
 

@@ -1,6 +1,6 @@
 # Local lists and Geo/ASN data
 
-The built-in Connection Guard Intel source below belongs to the unreleased 0.6.0 candidate.
+The built-in Connection Guard Intel source below belongs to the released 0.6.0 version.
 Operator-provided local lists/MMDBs are separate, optional sources.
 
 Operator-provided local sources are optional and disabled by default. They do not send player IPs to a detection API. A configured
@@ -9,7 +9,7 @@ license/account acceptance is performed. Attribution declares your actual data s
 grant a license or validate the accuracy of that source.
 
 
-## Built-in Connection Guard Intel (0.6.0 candidate)
+## Built-in Connection Guard Intel (0.6.0)
 
 New installations enable `provider.local.connectionguard-intel` with a daily background
 update from **https://intel.connectionguard.net/**. Existing configurations remain off
