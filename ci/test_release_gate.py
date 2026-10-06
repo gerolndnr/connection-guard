@@ -89,6 +89,43 @@ class RuntimeEvidenceTest(unittest.TestCase):
 
 
 class ArtifactRegressionTest(unittest.TestCase):
+    def test_missing_or_duplicate_policy_types_and_examples_fail_before_runtime(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        prefix = PACKAGE.replace(".", "/") + "/core/"
+        selected = [prefix + name + ".class" for name in (
+            "policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
+            "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
+            "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View", "commands/PolicyCommands")]
+        selected.append("policy/examples.json")
+        with tempfile.TemporaryDirectory() as directory:
+            for name in selected:
+                self.assertIn(name, resources)
+                for mutation in ("missing", "duplicate"):
+                    broken = Path(directory) / "broken-policy.jar"
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", UserWarning)
+                        with zipfile.ZipFile(broken, "w") as output:
+                            for entry, data in resources.items():
+                                if mutation != "missing" or entry != name: output.writestr(entry, data)
+                            if mutation == "duplicate": output.writestr(name, resources[name])
+                    with self.assertRaisesRegex(ValueError, "policy"):
+                        verify(broken, version)
+
+    def test_changed_policy_examples_fail_source_binding(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        with tempfile.TemporaryDirectory() as directory:
+            broken = Path(directory) / "changed-examples.jar"
+            with zipfile.ZipFile(broken, "w") as output:
+                for name, data in resources.items(): output.writestr(name, b'{"schema":1,"kind":"synthetic","cases":[]}' if name == "policy/examples.json" else data)
+            with self.assertRaisesRegex(ValueError, "policy examples differ"):
+                verify(broken, version)
+
     def test_missing_bundled_locale_fails_before_runtime(self):
         artifact = next((ROOT / "build/libs").glob("*-all.jar"))
         with zipfile.ZipFile(artifact) as jar:

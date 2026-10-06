@@ -55,6 +55,17 @@ def verify(artifact, version):
         require(velocity.get("id") == "connection-guard", "Wrong Velocity plugin ID.")
         require(velocity.get("main") == ENTRYPOINTS["velocity"], "Wrong Velocity entrypoint.")
         require(velocity.get("version") == version, "Velocity version differs from the Gradle project version.")
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0, 5, 2):
+            for policy_type in ("policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
+                                "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
+                                "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
+                                "commands/PolicyCommands"):
+                entry = PACKAGE.replace(".", "/") + "/core/" + policy_type + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate policy runtime type: {policy_type}")
+            require(names.count("policy/examples.json") == 1 and len(jar.read("policy/examples.json")) <= 262144,
+                    "Missing, duplicate or oversized policy examples.")
+            require(jar.read("policy/examples.json") == (ROOT / "core/src/main/resources/policy/examples.json").read_bytes(),
+                    "Bundled policy examples differ from the checked source.")
 
         counts = {}
         expected_modules = dict(MAJORS)
