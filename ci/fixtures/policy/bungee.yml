@@ -1,0 +1,4 @@
+name: PolicyFixture
+version: 1
+main: fixture.PolicyBungeeFixture
+depends: [ConnectionGuard]

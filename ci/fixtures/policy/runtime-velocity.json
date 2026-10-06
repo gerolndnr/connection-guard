@@ -1,0 +1,44 @@
+{
+  "checkout_commit": "f9c28273e5c9fc961a205ad4eff410ba8d0dc6e1",
+  "checkout_tree": "ea2b4a07f6e973280a886e9e6a503b25fe77f879",
+  "checkout_dirty": false,
+  "artifact_sha256": "68e02df6e8cb57b5267383a1f2b055edfad7496af7d925b48068d355893fe9c0",
+  "runtime": "velocity.jar",
+  "runtime_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
+  "java": 21,
+  "addon_sha256": "89f679bccb0647791943c3d1fd744fc478af2f24a5b0e36c0a479f55595c5a28",
+  "fixture_source_sha256": {
+    "PolicyFixtureState.java": "53110bee3b57ef86269c6a57182293ac728751cf18587d2361feef017e9fc492",
+    "PolicyVelocityFixture.java": "a76e82112b6c3b2b6312ba84485d61311d0ac0b174050541f758b12bd2851a54"
+  },
+  "driver_sha256": "978e5eb0cc67d801d643bbdbeb941b92a83821947c5444e03c5bf6c6fb539128",
+  "synthetic_offline_clients": true,
+  "real_account_authentication_tested": false,
+  "telemetry_submission_tested": false,
+  "cases": [
+    "bundled_command_replay_has_no_provider_calls_or_live_actions",
+    "candidate_comparison_has_no_activation_provider_calls_or_live_actions",
+    "live_denial_preserved_with_one_provider_call_action_and_observation_while_candidate_allows",
+    "stopped_window_does_not_count_subsequent_real_login",
+    "candidate_denial_never_kicks_or_adds_actions_to_actual_allowed_login",
+    "invalid_reload_preserves_active_shadow_and_live_policy",
+    "successful_reload_stops_shadow_without_mixing_base_policies",
+    "changed_geo_provider_stops_shadow_before_next_comparison",
+    "real_positive_login_obeys_unchanged_active_vpn_kick",
+    "observe_allows_actual_positive_without_flag_command",
+    "real_geo_blacklist_uses_shared_policy",
+    "real_geo_whitelist_allows_listed_country",
+    "real_empty_geo_whitelist_blocks_known_country",
+    "invalid_country_draft_preserves_actual_active_policy",
+    "deny_added_during_pending_geo_overrides_prior_vpn_exemption"
+  ],
+  "state": {
+    "calls": 10,
+    "geoCalls": 5,
+    "actions": 6
+  },
+  "shutdown_passed": true,
+  "log_sha256": "a482416466aa3bebd9c365b23c8369a427bf3083bf3c8f12c83edf12b57368af",
+  "actual_decision_observations": 11,
+  "actual_backend_join_events": 0
+}

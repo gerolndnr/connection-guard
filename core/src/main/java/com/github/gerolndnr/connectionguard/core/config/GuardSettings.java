@@ -20,13 +20,20 @@ public final class GuardSettings {
     public final boolean nativePaperForwardingIdentity;
     public final FailurePolicy vpnFailure;
     public final FailurePolicy geoFailure;
+    public final boolean kickVpn;
+    public final boolean kickGeo;
+    public final boolean geoWhitelist;
+    public final List<String> countries;
     public final List<String> warnings;
     private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, boolean paperForwarding, com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings hooks, FailurePolicy vpn,
-                          FailurePolicy geo, List<String> warnings, com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks) {
+                          FailurePolicy geo, List<String> warnings, com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks,
+                          boolean kickVpn, boolean kickGeo, boolean geoWhitelist, List<String> countries) {
         this.webhooks = webhooks;
         this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust; this.nativeFloodgateIdentity = floodgate; this.nativePaperForwardingIdentity = paperForwarding;
         this.admissionHooks = hooks;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
+        this.kickVpn = kickVpn; this.kickGeo = kickGeo; this.geoWhitelist = geoWhitelist;
+        this.countries = java.util.Collections.unmodifiableList(new ArrayList<>(countries));
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
         com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));
@@ -78,6 +85,17 @@ public final class GuardSettings {
         }
         String geo = string(value, "behavior.geo.type", "BLACKLIST");
         if (!geo.equalsIgnoreCase("BLACKLIST") && !geo.equalsIgnoreCase("WHITELIST")) throw new IllegalArgumentException("Geo type must be BLACKLIST or WHITELIST.");
+        List<String> countries = new ArrayList<>();
+        Object countryList = value.apply("behavior.geo.list");
+        if (countryList != null) {
+            if (!(countryList instanceof List) || ((List<?>) countryList).size() > 250)
+                throw new IllegalArgumentException("behavior.geo.list must be a list of at most 250 uppercase country codes.");
+            for (Object country : (List<?>) countryList) {
+                if (!(country instanceof String) || !((String) country).matches("[A-Z]{2}"))
+                    throw new IllegalArgumentException("behavior.geo.list requires uppercase two-letter country codes (value redacted).");
+                if (!countries.contains(country)) countries.add((String) country);
+            }
+        }
         String service = string(value, "provider.geo.service", "IP-API");
         if (!service.equalsIgnoreCase("IP-API") && !service.equalsIgnoreCase("ProxyCheck") && !service.equalsIgnoreCase("Local") && !service.equalsIgnoreCase("Disabled")) throw new IllegalArgumentException("Geo service must be IP-API, ProxyCheck, Local or Disabled.");
         if (service.equalsIgnoreCase("IP-API") || bool(value, "provider.vpn.ip-api.enabled", false)) {
@@ -100,7 +118,9 @@ public final class GuardSettings {
         if (paperForwarding) warnings.add("Native Paper modern forwarding selected: only qualified native pre-login profile paths supply gateway authority; protect the proxy secret and backend access. This is not independent account authentication.");
         return new GuardSettings(limits, admission, mode.equals("OBSERVE"), trust, floodgate, paperForwarding,
                 new com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings(value),
-                policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings, webhooks);
+                policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings, webhooks,
+                bool(value, "behavior.vpn.kick-player", false), bool(value, "behavior.geo.kick-player", false),
+                geo.equalsIgnoreCase("WHITELIST"), countries);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }
     private static FailurePolicy policy(Function<String, Object> value, String path) {

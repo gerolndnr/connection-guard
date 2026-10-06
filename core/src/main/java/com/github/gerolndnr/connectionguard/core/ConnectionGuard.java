@@ -30,10 +30,18 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ConnectionGuard {
+    private static final com.github.gerolndnr.connectionguard.core.policy.PolicyShadow policyShadow = new com.github.gerolndnr.connectionguard.core.policy.PolicyShadow();
+    private static final java.util.concurrent.atomic.AtomicLong policyEpoch = new java.util.concurrent.atomic.AtomicLong();
+    private static void policyContextChanged() {
+        policyEpoch.incrementAndGet();
+        policyShadow.stop(com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.State.BASE_CHANGED);
+    }
     private static volatile AccessRuleStore rules;
     public static void initializeRules(java.nio.file.Path directory) {
         try { rules = new AccessRuleStore(directory); }
         catch (java.io.IOException invalid) { throw new IllegalStateException("Access rule file invalid; correct it before enabling checks (values redacted)."); }
+        policyContextChanged();
+        com.github.gerolndnr.connectionguard.core.commands.PolicyCommands.configure(directory);
     }
     public static AccessRuleStore getRuleStore() { return rules; }
     public static Optional<AccessRule> accessRule(String ip, java.util.UUID uuid, boolean trusted, AccessRule.Scope scope) {
@@ -41,24 +49,38 @@ public class ConnectionGuard {
     }
     public static EvidencePolicy.Decision evidenceRule(String ip, java.util.UUID uuid, boolean trusted,
             AccessRule.Scope scope, VpnResult vpn, GeoLookup geo) {
-        List<ProviderVote> sources = new ArrayList<>(vpn.getVotes());
-        if (geoProvider != null) {
-            DetectionDetails details = DetectionDetails.empty();
-            if (geo.getResult().isPresent()) {
-                GeoResult result = geo.getResult().get();
-                String country = result.getCountryName(), isp = result.getIspName();
-                details = new DetectionDetails(null, result.getAsn(), "Unknown".equalsIgnoreCase(isp) ? null : isp, null,
-                        country != null && country.matches("[A-Z]{2}") ? country : null, null, null);
-            }
-            if (geo.getResult().isPresent() || geo.getReason() != FailureReason.NONE) sources.add(new ProviderVote("geo." + providerName(geoProvider),
-                    geo.getResult().isPresent() ? ProviderVote.Status.NEGATIVE : ProviderVote.Status.UNKNOWN,
-                    geo.getResult().isPresent() ? FailureReason.NONE : geo.getReason(), geo.getDurationMillis(), details,
-                    geo.getResult().isPresent() ? geo.getResult().get().getValidUntil() : 0,
-                    geo.getResult().isPresent() ? geo.getResult().get().getSourceVersion() : null, false));
-        }
+        List<ProviderVote> sources = com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy.sources(vpn, geo, policyGeoSource());
         return EvidencePolicy.evaluate(rules == null ? Collections.emptyList() : rules.snapshot(),
                 ip, uuid, trusted, scope, sources, System.currentTimeMillis());
     }
+    public static synchronized String policyGeoSource() { return geoProvider == null ? null : "geo." + providerName(geoProvider); }
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot policySnapshot() {
+        AccessRuleStore store = rules;
+        return new com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot(settings,
+                store == null ? Collections.emptyList() : store.snapshot());
+    }
+    public static com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy.Evaluation evaluatePolicy(
+            GuardSettings selected, String ip, java.util.UUID uuid, boolean trusted, boolean vpnExempt, boolean geoExempt,
+            VpnResult vpn, GeoLookup geo, String selectedGeoSource, long asOf) {
+        AccessRuleStore store = rules;
+        List<AccessRule> selectedRules = store == null ? Collections.emptyList() : store.snapshot();
+        com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy.Evaluation live = com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy.evaluate(selected,
+                selectedRules, ip, uuid, trusted, vpnExempt, geoExempt,
+                vpn, geo, selectedGeoSource, asOf);
+        policyShadow.record(selected, selectedRules, policyEpoch.get(), ip, uuid, trusted, vpnExempt, geoExempt,
+                vpn, geo, selectedGeoSource, asOf, live);
+        return live;
+    }
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.View startPolicyShadow(
+            com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot candidate, long durationMillis) {
+        AccessRuleStore store = rules;
+        return policyShadow.start(settings, store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get(), candidate, durationMillis);
+    }
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.View policyShadowStatus() {
+        AccessRuleStore store = rules;
+        return policyShadow.view(settings, store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get());
+    }
+    public static void stopPolicyShadow() { policyShadow.stop(com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.State.STOPPED); }
     public static boolean hasIdentityRules() {
         return rules != null && rules.snapshot().stream().anyMatch(rule -> rule.getType() == AccessRule.Target.UUID
                 && (rule.getExpiresAt() == 0 || rule.getExpiresAt() > System.currentTimeMillis()));
@@ -111,6 +133,7 @@ public class ConnectionGuard {
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;
+        policyContextChanged();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.configure(next.webhooks);
     }
     private static volatile com.github.gerolndnr.connectionguard.core.admission.AdmissionController admission =
@@ -147,7 +170,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { stopPolicyShadow(); com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
@@ -387,20 +410,24 @@ public class ConnectionGuard {
 
     public static void setRequiredPositiveFlags(int requiredPositiveFlags) {
         ConnectionGuard.requiredPositiveFlags = requiredPositiveFlags;
+        policyContextChanged();
     }
 
     public static void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
         ConnectionGuard.vpnProviders = vpnProviders;
         health.clear();
+        policyContextChanged();
     }
 
     public static void setGeoProvider(GeoProvider geoProvider) {
         ConnectionGuard.geoProvider = geoProvider;
         if (geoProvider != null && health.containsKey(quotaKey(geoProvider.getClass().getSimpleName()))) health.get(quotaKey(geoProvider.getClass().getSimpleName())).resetFailures();
+        policyContextChanged();
     }
 
     public static void setCacheProvider(CacheProvider cacheProvider) {
         ConnectionGuard.cacheProvider = cacheProvider;
+        policyContextChanged();
     }
 
     public static void setLogger(Logger logger) {
@@ -409,10 +436,12 @@ public class ConnectionGuard {
 
     public static void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
         ConnectionGuard.vpnCacheExpirationTime = vpnCacheExpirationTime;
+        policyContextChanged();
     }
 
     public static void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
         ConnectionGuard.geoCacheExpirationTime = geoCacheExpirationTime;
+        policyContextChanged();
     }
 
     public static int getRequiredPositiveFlags() {

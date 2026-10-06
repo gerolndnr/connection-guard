@@ -1,6 +1,6 @@
 package com.github.gerolndnr.connectionguard.velocity.listener;
 
-import com.github.gerolndnr.connectionguard.core.rules.EvidencePolicy;
+import com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture;
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 import com.github.gerolndnr.connectionguard.core.identity.Exemptions;
 import com.github.gerolndnr.connectionguard.core.identity.AuthenticatedIdentity;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
-import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import java.util.concurrent.CompletableFuture;
 
 public class ConnectionGuardVelocityListener {
@@ -115,26 +114,18 @@ public class ConnectionGuardVelocityListener {
                     return;
                 }
                 long asOf = System.currentTimeMillis();
-                VpnResult vpnResult = LookupFreshness.vpn(checks.vpn(), asOf);
-                GeoLookup currentGeo = LookupFreshness.geo(checks.geo(), asOf);
-                Optional<GeoResult> geoResultOptional = currentGeo.getResult();
+                ConnectionPolicy.Evaluation policy = ConnectionGuard.evaluatePolicy(decision.settings(), ipAddress, uuid, trusted,
+                        checks.vpnExempt(), checks.geoExempt(), checks.vpn(), checks.geo(), decision.policyGeoSource(), asOf);
+                VpnResult vpnResult = policy.vpn;
+                GeoLookup currentGeo = policy.geo;
                 decision.facts(vpnResult, currentGeo, checks.vpnExempt(), checks.geoExempt(), asOf);
-                EvidencePolicy.Decision vpnPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN, vpnResult, currentGeo);
-                EvidencePolicy.Decision geoPolicy = ConnectionGuard.evidenceRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO, vpnResult, currentGeo);
-                decision.policy(vpnPolicy, geoPolicy);
-                boolean vpnBypassed = checks.vpnExempt() || vpnPolicy.isBypassed();
-                boolean geoBypassed = checks.geoExempt() || geoPolicy.isBypassed();
-                if (!decision.observe() && ((!checks.vpnExempt() && vpnPolicy.isDenied()) || (!checks.geoExempt() && geoPolicy.isDenied()))) {
-                    deny.accept(Component.text(decision.messages().getString("messages.access-denied"))); decision.denied(DecisionObservation.Reason.ACCESS_RULE);
-                    return;
+                decision.policy(policy.vpnRule, policy.geoRule);
+                if (policy.earlyDenial != null) {
+                    String key = policy.earlyDenial == DecisionObservation.Reason.ACCESS_RULE ? "messages.access-denied" : "messages.lookup-unavailable";
+                    deny.accept(Component.text(decision.messages().getString(key)));
+                    decision.denied(policy.earlyDenial); return;
                 }
-                if (!decision.observe() && (
-                        (!vpnBypassed && (vpnResult.getStatus() == ProviderVote.Status.UNKNOWN || vpnPolicy.isUnresolved()) && decision.settings().vpnFailure == GuardSettings.FailurePolicy.CLOSED)
-                        || (!geoBypassed && (currentGeo.getReason() != FailureReason.NONE || geoPolicy.isUnresolved()) && decision.settings().geoFailure == GuardSettings.FailurePolicy.CLOSED))) {
-                    deny.accept(Component.text(decision.messages().getString("messages.lookup-unavailable"))); decision.denied(DecisionObservation.Reason.LOOKUP_UNAVAILABLE);
-                    return;
-                }
-                if (vpnResult.isVpn() && !vpnBypassed) {
+                if (policy.vpnFlag) {
                     decision.flag(DecisionObservation.Flag.VPN);
                     // Check if staff should be notified
                     if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.notify-staff")) {
@@ -165,7 +156,7 @@ public class ConnectionGuardVelocityListener {
                     }
 
                     // Check if player should be kicked
-                    if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.vpn.kick-player")) {
+                    if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
                         Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                                 decision.messages().getString("messages.vpn-block")
                                         .replace("%IP%", vpnResult.getIpAddress())
@@ -177,23 +168,10 @@ public class ConnectionGuardVelocityListener {
                     }
                 }
 
-                if (geoResultOptional.isPresent() && !geoBypassed) {
+                Optional<GeoResult> geoResultOptional = currentGeo.getResult();
+                if (policy.geoFlag) {
                     GeoResult geoResult = geoResultOptional.get();
-                    boolean isGeoFlagged = false;
-
-                    switch (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getString("behavior.geo.type").toLowerCase()) {
-                        case "blacklist":
-                            if (ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                                isGeoFlagged = true;
-                            break;
-                        case "whitelist":
-                            if (!ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getStringList("behavior.geo.list").contains(geoResult.getCountryName()))
-                                isGeoFlagged = true;
-                            break;
-                        default:
-                            ConnectionGuard.getLogger().info("Invalid geo behavior type. Please use BLACKLIST or WHITELIST.");
-                            break;
-                    }
+                    boolean isGeoFlagged = policy.geoFlag;
 
                     if (isGeoFlagged) {
                         decision.flag(DecisionObservation.Flag.GEO);
@@ -233,7 +211,7 @@ public class ConnectionGuardVelocityListener {
                         }
 
                         // Check if player should be kicked
-                        if (!decision.observe() && ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().getConfig().getBoolean("behavior.geo.kick-player")) {
+                        if (policy.denial == DecisionObservation.Reason.GEO_FLAG) {
                             Component kickMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                                     decision.messages().getString("messages.geo-block")
                                             .replace("%IP%", geoResult.getIpAddress())

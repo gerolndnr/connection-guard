@@ -2,6 +2,11 @@
 
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
+## Unreleased — 0.5.2-SNAPSHOT
+
+- Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.
+- Add an explicitly enabled, in-memory live policy shadow comparison. It reuses final policy facts, retains counters rather than observed identities, and stops on reload, rule changes, expiry or its sample limit. It cannot activate candidates or roll back a policy.
+
 ## 0.5.1 — 2026-10-05
 
 - Initialize Velocity bStats with the verified project ID 22913, bundle its injected factory and stop its Metrics instance on shutdown. Statistics errors keep connection checks active; global bStats opt-out remains available.

@@ -25,6 +25,8 @@ After installation:
 
 [bStats platform statistics and opt-out](BSTATS.md) explains the separate reporting settings and the Velocity initialization correction after 0.5.0.
 
+[Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These development features are not included in stable 0.5.1.
+
 ## Validation scope
 
 [Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.
