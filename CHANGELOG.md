@@ -2,7 +2,11 @@
 
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
-## Unreleased — 0.6.0 (release candidate)
+## Unreleased — 0.6.1
+
+## 0.6.0 — 2026-10-06
+
+Published at the maintainer's request; the full exact-artifact competitive benchmark remains pending. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.0).
 
 - New installations use ENFORCE and can immediately block VPN/proxy/Tor evidence and Blackbox aggregate listings; Geo stays Disabled. ip-check.net is opt-in and defaults off. Existing modes and provider choices are retained.
 - Anonymous error reports are on with Cloud; disable `cloud.error-reports`. [Published disclosure](https://connectionguard.net/privacy#error-reports).
@@ -22,9 +26,9 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
   schema deployment. Full exact-candidate benchmark acceptance remains pending.
 
 - General sequential VPN failover defaults on for every selected keyed, anonymous, custom HTTP or extension source. Configure provider.vpn-failover.enabled/order; disabling restores parallel voting and the stored required-positive-flags. Existing modes, provider selections and keys are retained. A mode/order change invalidates old fact namespaces while preserving selected source quota usage.
-- New installs use ENFORCE with local Tor → signed Connection Guard Intel → anonymous ProxyCheck v2 (`vpn=1`) → Blackbox → ip-check.net → zowi → IPQuery → IP-API. Existing provider selections, order and enforcement modes remain unchanged; a durable once-only upgrade recommendation requires explicit opt-in to the new recipients.
+- New installs use ENFORCE with local Tor → signed Connection Guard Intel → anonymous ProxyCheck v2 (`vpn=1`) → Blackbox → zowi → IPQuery → IP-API. ip-check.net is off by default; opt-in places it between Blackbox and zowi. Existing provider selections, order and enforcement modes remain unchanged; a durable once-only upgrade recommendation requires explicit opt-in to the new recipients.
 - Add native keyless HTTPS adapters `blackbox`, `ipcheck`, `zowi`, each capped locally at 60 requests/minute by default. Malformed/unknown answers never count as clean; the original 5,000 ms login deadline and attempt limit apply. Blackbox Y also covers hosting/cloud lists and the explanation names this broader reason; zowi hosting-only remains UNKNOWN review evidence.
-- The new fallback services receive player IPs. Blackbox is operated by Cameron Munroe / ipinfo.app, has published privacy information but no written terms; ip-check.net publishes no operator, terms or privacy policy; zowi is operated by the developer of competing FoxGate. Include recipients in server privacy information before opting in. [Recipients, controls and sources](docs/PROVIDERS.md#new-keyless-recipients-in-the-052-candidate).
+- The new fallback services receive player IPs. Blackbox is operated by Cameron Munroe / ipinfo.app, has published privacy information but no written terms; ip-check.net publishes no operator, terms or privacy policy; zowi is operated by the developer of competing FoxGate. Include recipients in server privacy information before opting in. [Recipients, controls and sources](docs/PROVIDERS.md#new-keyless-recipients-in-060).
 - Expose only explicit new-provider enabled switches to managed Cloud settings and stable health/event IDs `vpn-blackbox`, `vpn-ipcheck`, `vpn-zowi`. Event enums remain unchanged; the Intel addendum agrees optional types/data_as_of source fields; the dashboard must label a positive Blackbox source as the broader list. Dashboard allowlist/display deployment is coordinated separately before merge.
 - An embedded Tor bulk snapshot is checked locally before caches/APIs. Periodic list refresh never sends a player's IP. Stale lists remain visible in doctor and retain Tor protection, with documented false-positive/staleness limits.
 - Use ProxyCheck v2 with `vpn=1`, officially supported until 2035, for VPN verdicts including retained v3 configurations. Share the same answer and quota reservation with ProxyCheck geo; retain hosting-only review without a VPN-operator name list. Normalize IPv6 requests and equivalent response keys.

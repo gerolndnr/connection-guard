@@ -43,7 +43,7 @@ by the dashboard. The existing strict event schema and `VPN_FLAG` enum are
 retained; no extra reason field or personal-data category is sent. Dashboard
 allowlist/display deployment is required before merge and does not change
 provider order automatically.
-[Player-IP recipients and opt-in](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
+[Player-IP recipients and opt-in](PROVIDERS.md#new-keyless-recipients-in-060).
 
 Most everyday settings can be changed in the dashboard under **Settings**, in plain language instead of YAML:
 
@@ -96,7 +96,7 @@ IP/CIDR rules can be permanent or time limited. Version 0.5.0 reports `rule_expi
 The coordinated dashboard also exposes the keyless-provider and Intel controls listed above. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
 
 
-## Connection Guard Intel — unreleased 0.6.0 candidate
+## Connection Guard Intel — 0.6.0
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -105,10 +105,10 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
-`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
-new full benchmark and is not included in stable0.5.1.
+`types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
+The full competitive benchmark of the published artifact remains pending.
 ### Apply dashboard changes now (from 0.6.0)
 
 Run `/cg cloud sync` to request one immediate check-in on the background worker. The command acknowledges immediately and then reports the applied settings version, that settings are up to date, or the existing failure state. It uses the same validation, reload and rollback path as automatic sync. Delivered settings are reported back after the existing five-second minimum delay; regular sync continues afterwards. If the server is busy, settings stay pending and retry automatically.

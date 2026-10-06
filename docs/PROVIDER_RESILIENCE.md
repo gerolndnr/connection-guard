@@ -1,7 +1,8 @@
-# General provider failover and offline protection (0.6.0 candidate)
+# General provider failover and offline protection (0.6.0)
 
-This candidate is not a stable release. The complete `mc-antivpn-bench`
-acceptance matrix remains a merge/release gate.
+0.6.0 is published at the maintainer's explicit request. The complete
+`mc-antivpn-bench` acceptance matrix remains pending and is required before
+claiming comparative detection, false-positive or burst-coverage results.
 
 ## Lookup contract
 
@@ -79,7 +80,7 @@ Existing geo selections are retained.
 ## Evidence and provider conditions
 
 The three new keyless recipients and their privacy/terms limitations are disclosed
-in [PROVIDERS.md](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
+in [PROVIDERS.md](PROVIDERS.md#new-keyless-recipients-in-060).
 They receive the queried player's IP only when reached in the selected chain.
 Malformed text/JSON, redirects, oversized replies, 429 and timeouts are UNKNOWN,
 never clean answers. All three use fixed HTTPS endpoints and compressed IPv6;
@@ -174,8 +175,9 @@ A persisted notice is emitted once. VPN denial messages append a localized way
 to request a staff `/cg allow` exception, including existing custom translations.
 
 The owner has explicitly approved Blackbox's broader aggregate listing as an
-exception to the ProxyCheck/zowi hosting-only review policy. Merge/release requires an extra immutable
-candidate pin compared with 0.5.0 in `mc-antivpn-bench`. Detection must meet the
+exception to the ProxyCheck/zowi hosting-only review policy. The release was approved
+before the full comparison; comparative acceptance still requires an immutable
+artifact pin against 0.5.0 in `mc-antivpn-bench`. Detection must meet the
 best competitor on the same measured cohorts, false positives must not increase,
 burst concrete-check coverage must reach 95%, all four API faults must retain Tor
 denial, cold p50 must remain approximately below 300 ms; warm latency is advisory
@@ -214,7 +216,7 @@ Historical measurements of the earlier operator-name candidate cannot qualify
 this one. The owner's temporary warm-latency waiver remains separate.
 
 
-## Connection Guard Intel — unreleased 0.6.0 candidate
+## Connection Guard Intel — 0.6.0
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -223,16 +225,16 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
-`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
-new full benchmark and is not included in stable0.5.1.
+`types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
+The full competitive benchmark of the published artifact remains pending.
 
 ## New-install decisions (0.6.0, unreleased)
 
 New installations use **ENFORCE** and can deny flagged connections immediately. Geo stays Disabled. `provider.vpn.ipcheck.enabled` defaults to **false**; explicitly enable it only after reviewing its lack of published operator, terms and privacy policy. Blackbox, zowi and IPQuery remain selected network fallback services. Existing selections, mode, keys, timeouts and ordering are retained. An order entry alone never enables a provider.
 
-## Final candidate latency changes (0.6.0, unreleased)
+## Released latency behavior (0.6.0)
 
 The external HTTP attempt default is now 1500ms, supported by the measured ProxyCheck
 response timings and the hanging-host regression. Existing explicit timeouts remain

@@ -1,9 +1,24 @@
 # Connection Guard 0.6.0 qualification
 
-**Qualification gates for the 0.6.0 release candidate.** This page defines the gates
-for the combined provider/Intel, custom-provider guide and Cloud-sync candidate.
-It does not claim a completed competitive acceptance. The operational release
-receipt records the exact source commit, archive SHA-256, CI and runtime results.
+**0.6.0 is published on GitHub, Modrinth, Hangar and Spigot at the maintainer's explicit request.**
+The earlier candidate gates below describe the qualification plan; publication was
+approved before the full competitive benchmark, which remains pending.
+No comparative detection, false-positive or burst-coverage acceptance is claimed.
+
+- Immutable tag/source: `180cebe4afd631c44d61844d6f5c6daf6c6fe941`.
+- Main JAR SHA-256: `8ba9534abde294eeb830aed848c5014e03409213aed514719abb6c63d6e9b2c2`.
+- [Exact master CI](https://github.com/gerolndnr/connection-guard/actions/runs/37538644878):
+  863 regression tests passed with no failures or skips; three archives byte-identical
+  to the reproducible qualified candidate and 23 actual-JAR core cases passed.
+- The entire merge tree equals tested candidate `c4b67eb0962f75d218ffdd339f4ea2392119dade`;
+  the same main JAR passed the six named runtime smoke checks below. These are
+  start/help/reload/shutdown checks, not every version or real-account login.
+- The maintainer accepted the measured three-hanging-host component boundary
+  of about 4.52 s; the universal first-outage target below 2 s is not met.
+
+[Release notes, downloads and SHA256SUMS](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.0).
+The operational receipts retain the original candidate source and runtime log hashes;
+no evidence was rewritten to claim a new test run on the merge commit.
 
 ## Changed defaults and recipients
 
@@ -82,8 +97,8 @@ Unchecked allowances must produce the periodic summary and status counters.
 Warm latency is advisory as Gero selected. Disclose Intel/ground-truth overlap
 and fixture provenance; neither proves independent held-out detection quality.
 
-**No release tag, publication, listing update or release announcement before the
-final benchmark acceptance and Gero's go.** Stop and back up the data directory
+**Publication before full comparative acceptance was explicitly approved by Gero.
+The benchmark remains pending and must not be described as passed.** Stop and back up the data directory
 before replacing the JAR; keep a single main archive. Rollback restores both the
 previous JAR and its backed-up data. Cloud remains optional and separately
 disableable; [upgrade/configuration](CONFIGURATION.md).

@@ -4,13 +4,13 @@ The [published privacy disclosure](https://connectionguard.net/privacy#plugin) d
 
 ## Local setup-notice preferences
 
-The unreleased 0.6.0 new-install template selects additional player-IP recipients:
+The 0.6.0 new-install template selects additional player-IP recipients:
 Blackbox, zowi and IPQuery. ip-check.net is available but **disabled by default**; enabling it explicitly adds another recipient. Existing configurations are not changed.
 Blackbox lists hosting/cloud as well as VPN/proxy/Tor; its published privacy policy
 names Cameron Munroe, while no written terms are published. ip-check.net publishes
 no operator, terms or privacy policy. zowi is operated by the FoxGate developer.
 Operators must include these recipients in their server privacy information
-before opting in; [endpoints, source links and controls](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
+before opting in; [endpoints, source links and controls](PROVIDERS.md#new-keyless-recipients-in-060).
 The `keyless-providers-v052.notice` marker stores only that the upgrade
 recommendation has been consumed, not player information.
 
@@ -33,7 +33,7 @@ Reporting is best effort. Fatal startup errors before configuration/Cloud initia
 [bStats](BSTATS.md) uses separate statistics settings. [Detection providers](PROVIDERS.md) receive queried IP addresses according to the selected provider configuration; the error-reporting switch does not configure either system.
 
 
-## Connection Guard Intel — unreleased 0.6.0 candidate
+## Connection Guard Intel — 0.6.0
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -42,7 +42,7 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
-`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
-new full benchmark and is not included in stable0.5.1.
+`types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
+The full competitive benchmark of the published artifact remains pending.

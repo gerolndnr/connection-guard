@@ -1,6 +1,6 @@
 # Free anti-VPN software: understand provider quotas
 
-> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. This source is a release candidate until the benchmark gate and release approval; use the stable release link for the published download. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Released in **0.6.0**: [provider resilience and migration](PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
 
 Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
@@ -24,7 +24,7 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 
 ## How requests accumulate
 
-### New keyless recipients in the 0.6.0 candidate
+### New keyless recipients in 0.6.0
 
 **Unreleased, pending comparative benchmark acceptance.** Only new configuration
 files select local Tor → signed Connection Guard Intel → ProxyCheck → Blackbox → zowi → IPQuery → IP-API. ip-check.net is **disabled by default**; explicit opt-in places it between Blackbox and zowi. Existing files keep their providers and order and get a once-only
@@ -74,7 +74,7 @@ Start with a provider whose terms permit your use and confirm its allowance. Add
 Detection requests share IP addresses with selected providers. Consult their official privacy information when documenting your setup. Keep keys private. In 0.4.10, free IP-API uses HTTP; ProxyCheck and IPHub requests use HTTPS.
 
 
-## Connection Guard Intel — unreleased 0.6.0 candidate
+## Connection Guard Intel — 0.6.0
 
 Fresh installations select the built-in signed local Intel bundle before VPN APIs;
 existing installations must opt in. Daily background HTTPS downloads contact
@@ -83,13 +83,13 @@ All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
 HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
 Endpoint/key are bundled and cannot be managed remotely. See
-[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
-`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
-new full benchmark and is not included in stable0.5.1.
+`types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
+The full competitive benchmark of the published artifact remains pending.
 ## Custom providers
 
-Any detection service with a JSON HTTP API can be added without code. Every section under `provider.vpn` whose name is not a built-in provider (`proxycheck`, `ip-api`, `iphub`, `vpnapi`, `ipqualityscore`, and in the 0.6.0 candidate `ipquery`, `blackbox`, `ipcheck`, `zowi`) or `local` is read as a custom provider. The shipped file contains a disabled example called `custom`. Use one section per service, with any name you like.
+Any detection service with a JSON HTTP API can be added without code. Every section under `provider.vpn` whose name is not a built-in provider (`proxycheck`, `ip-api`, `iphub`, `vpnapi`, `ipqualityscore`, and from 0.6.0 `ipquery`, `blackbox`, `ipcheck`, `zowi`) or `local` is read as a custom provider. The shipped file contains a disabled example called `custom`. Use one section per service, with any name you like.
 
 ```yaml
 provider:
