@@ -1,6 +1,6 @@
 # Free anti-VPN software: understand provider quotas
 
-> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. Stable 0.5.1 remains the published download until release approval. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Development candidate: [provider resilience and migration](PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. This source is a release candidate until the benchmark gate and release approval; use the stable release link for the published download. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
 
 
 Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
@@ -12,10 +12,10 @@ Reviewed 2 October 2026. Check the linked official information before deployment
 | Provider | Integration | Official information |
 | --- | --- | --- |
 | ProxyCheck | VPN/proxy and geo; default VPN provider | [Pricing](https://proxycheck.io/pricing/) and [API documentation](https://proxycheck.io/api/) |
-| IP-API | VPN/proxy and geo; default geo provider | [JSON documentation](https://ip-api.com/docs/api:json) |
+| IP-API | VPN/proxy and geo; final VPN fallback, geo requires opt-in | [JSON documentation](https://ip-api.com/docs/api:json) |
 | IPHub | VPN/proxy; API key configured in the plugin | [API documentation](https://iphub.info/api) |
 | VPNAPI | VPN/proxy; API key configured in the plugin | [Official site](https://vpnapi.io/) |
-| IPQualityScore | Optional native adapter in unreleased 0.5.0-SNAPSHOT; [configuration and exact risk](IPQUALITYSCORE.md) | [API](https://www.ipqualityscore.com/documentation/proxy-detection-api/overview) and [terms](https://www.ipqualityscore.com/terms-of-service) |
+| IPQualityScore | Optional native adapter; [configuration and exact risk](IPQUALITYSCORE.md) | [API](https://www.ipqualityscore.com/documentation/proxy-detection-api/overview) and [terms](https://www.ipqualityscore.com/terms-of-service) |
 | Custom provider | Configurable GET/POST API and response fields; see [Custom providers](#custom-providers) | Your provider's official documentation |
 
 ProxyCheck currently advertises **1,000 daily queries** for its registered free plan. This is a query allowance, not a count of unique Minecraft players. Check your account's actual allowance.

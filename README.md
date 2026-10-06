@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
-> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. Stable 0.5.1 remains the published download until release approval. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
+> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.6.0. The 0.6.0 candidate starts new installations in **ENFORCE: flagged VPN/proxy/Tor connections and Blackbox aggregate listings can be denied immediately**. Geo lookups are disabled. ip-check.net is disabled unless explicitly enabled. This source is a release candidate until the benchmark gate and release approval; use the stable release link for the published download. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
 
 
 # Connection Guard
@@ -11,9 +11,9 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
-**Stable build: 0.5.1.**
+**Source build: 0.6.0.**
 
-**Latest stable release: [0.5.1](https://github.com/gerolndnr/connection-guard/releases/tag/0.5.1).** [Changes and upgrade guide](CHANGELOG.md).
+**Published stable releases: [latest release](https://github.com/gerolndnr/connection-guard/releases/latest).** [Changes and upgrade guide](CHANGELOG.md).
 
 **MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
@@ -43,9 +43,9 @@ From 0.6.0, enabled Cloud sync also carries bounded anonymous metadata for Conne
 
 The combined JAR is available from [GitHub](https://github.com/gerolndnr/connection-guard/releases/latest), [Spigot](https://www.spigotmc.org/resources/121509/), [Modrinth](https://modrinth.com/plugin/connectionguard) and [Hangar](https://hangar.papermc.io/gerolndnr/connection-guard). To build it yourself, follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Review the generated configuration before accepting live players. **New 0.5.0 installations start in OBSERVE with an empty country blocklist.** Inspect decisions, then deliberately enable ENFORCE. Existing configurations without `operation.mode` keep their previous ENFORCE behavior. [Choose your policy](docs/CONFIGURATION.md).
+Review the generated configuration before accepting live players. **New 0.6.0 installations use ENFORCE and can deny flagged connections immediately.** To evaluate before acting, explicitly select OBSERVE. Existing configurations retain their chosen mode and settings. [Choose your policy](docs/CONFIGURATION.md).
 
-The default VPN provider is ProxyCheck; the default geo provider is IP-API. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment. Website guides: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries on a Minecraft server](https://connectionguard.net/guides/block-countries-minecraft-server).
+The 0.6.0 template checks local Tor/Intel before sequential VPN APIs; ProxyCheck is the first network service. Geo is Disabled, and ip-check.net requires opt-in. IP-API is the last VPN fallback. The free IP-API endpoint is for non-commercial use, is rate-limited and uses HTTP. [Choose providers and understand quotas](docs/PROVIDERS.md) before deployment. Website guides: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries on a Minecraft server](https://connectionguard.net/guides/block-countries-minecraft-server).
 
 ## Commands and permissions
 

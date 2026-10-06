@@ -1,6 +1,6 @@
 # Connection Guard 0.6.0 qualification
 
-**Release candidate; stable 0.5.1 remains published.** This page defines the gates
+**Qualification gates for the 0.6.0 release candidate.** This page defines the gates
 for the combined provider/Intel, custom-provider guide and Cloud-sync candidate.
 It does not claim a completed competitive acceptance. The operational release
 receipt records the exact source commit, archive SHA-256, CI and runtime results.

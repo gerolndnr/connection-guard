@@ -65,7 +65,7 @@ quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
 New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox and zowi,
-IPQuery and IP-API. The bundled Tor snapshot and then signed Connection Guard Intel precede all of them. All three new
+IPQuery and IP-API. ip-check.net is disabled unless explicitly enabled. The bundled Tor snapshot and then signed Connection Guard Intel precede all of them. All three new
 services have a conservative **local** `minute-budget: 60`, independent of any
 upstream service promise. Locally exhausted sources are skipped without sending
 the IP; failures advance within the original **5,000 ms** whole-login budget.
@@ -202,7 +202,8 @@ same-batch/sequence fallback for APIs that have not deployed this field yet.
 Local counts remain exact if an older API rejects the extension; doctor/cloud
 status explicitly report that compatibility limit.
 
-HTTP timeout 2,500 ms, 8 workers, queue 64, max-inflight 128 and circuit pause
+HTTP calls default to 1,500 ms in 0.6.0; explicit older 2,500 ms settings are retained.
+The 8 workers, queue 64, max-inflight 128 and circuit pause
 30,000 ms retain 0.5.1 defaults. There is no hidden one-second circuit override.
 Geo is Disabled for new installs. Controlled test limits are explicit fixture
 settings, not evidence that shipped defaults satisfy the burst/recovery gates.
