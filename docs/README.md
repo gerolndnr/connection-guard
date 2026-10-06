@@ -25,7 +25,7 @@ After installation:
 
 [bStats platform statistics and opt-out](BSTATS.md) explains the separate reporting settings and the Velocity initialization correction after 0.5.0.
 
-[Local policy replay](POLICY_REPLAY.md) compares synthetic saved VPN/geo facts with a complete candidate without activating it. This development feature is not included in stable 0.5.0.
+[Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These development features are not included in stable 0.5.1.
 
 ## Validation scope
 

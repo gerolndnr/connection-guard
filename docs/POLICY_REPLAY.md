@@ -16,7 +16,25 @@ This command reads saved evidence. It makes **no provider requests**, changes no
 
 Saved evidence does not prove today's provider accuracy. Replay does not reproduce provider/threshold configuration changes, fresh identity or LuckPerms resolution, overload refusal, admission hooks, ban/challenge outcomes or real account authentication. Exemption and identity fields are explicit **synthetic test assumptions**. Old source facts expire at the same boundary as live facts. The captured VPN quorum is preserved; unknown sources never silently reduce it. Source hashes identify saved data, not a current provider version. Changed decisions are **not** a false-positive rate.
 
-No live observation capture is enabled. Optional consented observation capture, full shadow analysis, versioned atomic activation/rollback and diagnostics for changed provider conditions remain separate implementation work; this preview must not be presented as the full simulation workflow.
+This feature is in development (`0.5.2-SNAPSHOT`), absent from stable `0.5.1`. No saved live observation capture is enabled. Versioned atomic activation/rollback and explicit saved observations remain separate implementation work; replay and the bounded shadow comparison below must not be presented as the complete policy rollout workflow.
+
+## Live shadow comparison
+
+After reviewing `policy/candidate.json`, enable a comparison explicitly:
+
+```text
+/cg policy shadow start candidate 15m
+/cg policy shadow status
+/cg policy shadow stop
+```
+
+The same `connectionguard.command.policy` permission applies. Supported windows are `5m`, `15m` (default) and `1h`. There is no automatic start, scheduler, upload or on-disk observation log. A candidate is immutable for the session; editing its file does not silently change a running comparison. At most 128 candidate rules, 10,000 reserved samples and eight simultaneous comparisons are allowed. Busy samples are skipped and counted, rather than queued. Work already reserved can finish after stop; `pending` exposes this. One active window is allowed; starting a replacement requires stopping the current window first.
+
+At the final policy evaluator, the candidate consumes the **same** existing VPN/geo facts, evaluation timestamp and resolved identity/exemption inputs as the live policy. It does not query any provider, fetch missing facts, use a candidate cache namespace, send a second observer/Cloud event, execute commands or kick players. Candidate failure ends the comparison and increments a redacted error count; the actual live result is returned unchanged. Counters remain in memory until a new window or restart. Observed IPs, UUIDs, names and provider response bodies are not retained by the shadow session. Configured candidate rules may contain operator-supplied IP/UUID targets just as ordinary access rules do.
+
+Status identifies the two decision policies with SHA-256 fingerprints and reports changed effective refusal reasons, flags and selected rules; unknown VPN/geo facts, busy skips, pending work, errors and candidate evaluation time are separate. The fingerprint covers decision settings and ordered access rules, including expiry. It excludes provider credentials and operational settings; the session separately checks the current configuration generation and immutable rule snapshot. A successful reload, provider/threshold/cache change, manual or Cloud rule change ends the session as `BASE_CHANGED`, retaining the old counters. Even an idle session expires at its monotonic deadline on status read. Invalid drafts rejected before activation leave the old comparison and live settings active.
+
+This is a sample of calls that reach the **final policy evaluator**, not every login. Earlier admission, ban/challenge, literal-rule refusals and skipped lookups may be absent. Missing/exempt facts stay missing; a candidate cannot undo an earlier exemption resolution or reconstruct a lookup that did not run. The window does not freeze remote provider behavior or refresh local data; new completed source facts are used equally by both policies. It does not replay actions already performed elsewhere in the pipeline. Changed outcomes are **not false positives**, a detection rate or a rollout approval. No activate/rollback command is provided in this package.
 
 ## JSON contracts (schema 1)
 

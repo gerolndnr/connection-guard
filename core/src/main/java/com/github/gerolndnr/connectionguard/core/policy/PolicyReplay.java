@@ -21,6 +21,29 @@ public final class PolicyReplay {
             if (rules.size() > 1024) throw PolicyJson.invalid();
             this.rules = Collections.unmodifiableList(new ArrayList<>(rules));
         }
+        /** Stable identifier for the decision policy only; never includes provider keys or observed players. */
+        public String fingerprint() {
+            JsonObject value = new JsonObject();
+            value.addProperty("schema", 1); value.addProperty("mode", settings.observe ? "OBSERVE" : "ENFORCE");
+            value.addProperty("vpn_failure", settings.vpnFailure.name()); value.addProperty("geo_failure", settings.geoFailure.name());
+            value.addProperty("kick_vpn", settings.kickVpn); value.addProperty("kick_geo", settings.kickGeo);
+            value.addProperty("geo_type", settings.geoWhitelist ? "WHITELIST" : "BLACKLIST");
+            JsonArray countries = new JsonArray(); settings.countries.forEach(countries::add); value.add("countries", countries);
+            JsonArray entries = new JsonArray();
+            for (AccessRule rule : rules) {
+                JsonObject entry = new JsonObject(); entry.addProperty("id", rule.getId());
+                entry.addProperty("effect", rule.getEffect().name()); entry.addProperty("scope", rule.getScope().name());
+                entry.addProperty("target", rule.getTarget()); entry.addProperty("expires_at", rule.getExpiresAt());
+                entry.addProperty("reason", rule.getReason()); entries.add(entry);
+            }
+            value.add("rules", entries);
+            try {
+                byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(value.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder result = new StringBuilder(64);
+                for (byte octet : digest) result.append(String.format(java.util.Locale.ROOT, "%02x", octet & 255));
+                return result.toString();
+            } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable."); }
+        }
     }
     public static final class Case {
         public final String id;

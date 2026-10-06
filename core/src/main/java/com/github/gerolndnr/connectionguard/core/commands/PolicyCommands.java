@@ -9,7 +9,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 
-/** Read-only local preview. Never dispatches live decision actions or changes an active draft. */
+/** Local replay and explicit shadow comparison. Never dispatches live actions or activates a policy. */
 public final class PolicyCommands {
     private static volatile Path dataDirectory;
     private PolicyCommands() { }
@@ -18,6 +18,7 @@ public final class PolicyCommands {
         if (args.length == 0 || !args[0].equalsIgnoreCase("policy")) return false;
         MessageCatalog messages = ConnectionGuard.getMessages();
         if (!permission.test("connectionguard.command.policy")) { reply.accept(messages.getString("ops.permission")); return true; }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("shadow")) return shadow(args, reply, messages);
         if (args.length < 2 || args.length > 4 || !args[1].equalsIgnoreCase("test")) {
             reply.accept(messages.getString("ops.policy-usage")); return true;
         }
@@ -52,6 +53,34 @@ public final class PolicyCommands {
             reply.accept("asOf=" + java.time.Instant.ofEpochMilli(asOf) + " capturedAt=" + (cases.capturedAt == 0 ? "unavailable" : java.time.Instant.ofEpochMilli(cases.capturedAt))
                     + " ageMs=" + (cases.capturedAt == 0 || cases.capturedAt > asOf ? "unavailable" : asOf - cases.capturedAt));
             reply.accept(messages.getString("ops.policy-limits")); output.forEach(reply);
+        } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
+        return true;
+    }
+    private static boolean shadow(String[] args, Consumer<String> reply, MessageCatalog messages) {
+        try {
+            if (args.length == 3 && args[2].equalsIgnoreCase("stop")) ConnectionGuard.stopPolicyShadow();
+            else if (args.length >= 4 && args.length <= 5 && args[2].equalsIgnoreCase("start")) {
+                long duration;
+                switch (args.length == 5 ? args[4] : "15m") {
+                    case "5m": duration = 300_000; break;
+                    case "15m": duration = 900_000; break;
+                    case "1h": duration = 3_600_000; break;
+                    default: throw new IllegalArgumentException();
+                }
+                PolicyReplay.Snapshot candidate;
+                try (InputStream input = open(args[3])) { candidate = PolicyReplay.readCandidate(input); }
+                ConnectionGuard.startPolicyShadow(candidate, duration);
+            } else if (args.length != 3 || !args[2].equalsIgnoreCase("status")) {
+                reply.accept(messages.getString("ops.policy-shadow-usage")); return true;
+            }
+            PolicyShadow.View view = ConnectionGuard.policyShadowStatus();
+            reply.accept(messages.text("ops.policy-shadow-summary", view.state.name(), view.compared,
+                    view.changedOutcomes, view.changedFlags, view.changedRules));
+            reply.accept("base=" + view.baseId + " candidate=" + view.candidateId + " remainingMs=" + view.remainingMillis
+                    + " pending=" + view.pending + " skippedBusy=" + view.skippedBusy + " errors=" + view.errors
+                    + " unknownVpn=" + view.unknownVpn + " unknownGeo=" + view.unknownGeo
+                    + " evaluationNanos=" + view.evaluationNanos + " maxEvaluationNanos=" + view.maxEvaluationNanos);
+            reply.accept(messages.getString("ops.policy-shadow-limits"));
         } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
         return true;
     }
