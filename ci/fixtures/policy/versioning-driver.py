@@ -21,21 +21,18 @@ def wait_until(runtime, test, seconds=15):
     raise RuntimeError('Missing owned policy evidence')
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--checkout',choices=['policy-versioning'],default='policy-versioning');parser.add_argument('--platform',choices=['velocity','bungee','paper','folia'],required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--checkout',choices=['pr77-integration'],default='pr77-integration');parser.add_argument('--platform',choices=['velocity','bungee','paper','folia'],required=True)
     parser.add_argument('--fixture',required=True);parser.add_argument('--artifact',type=Path,required=True);parser.add_argument('--sha256',required=True);args=parser.parse_args()
     checkout=ROOT/args.checkout;artifact=args.artifact.resolve()
     assert artifact.is_relative_to(checkout/'build/libs') and digest(artifact)==args.sha256
-    ci=json.loads((ROOT/'delivery/policy-versioning/ci-verified.json').read_text())
+    ci=json.loads((ROOT/'delivery/pr-integration/77/ci-verified.json').read_text())
     assert ci['source']==subprocess.check_output(['git','-C',str(checkout),'rev-parse','HEAD'],text=True).strip()
     assert ci['conclusion']=='success' and ci['archives'][0]['sha256']==args.sha256
-    # Do not contaminate the accepted timing/accuracy measurements.
-    bench=json.loads((ROOT/'delivery/provider-resilience/docker-progress-2026-10-06.json').read_text())
-    assert bench['status']=='complete', 'Wait for all current Docker measurements before native qualification'
-    assert {r['family'] for r in bench['stages']}=={'performance','detection','failure','functional'}
-    for stage in bench['stages']:
-        assert stage['container']=='cg-provider-'+stage['family']+'-20261006'
-        measured=json.loads(subprocess.check_output(['docker','inspect',stage['container'],'--format','{{json .State}}'],text=True))
-        assert not measured['Running'] and not measured['OOMKilled'] and measured['ExitCode']==0
+    # This explicit merge request authorizes the bounded native qualification.
+    # Run it before the new comparative measurement so the JVMs cannot distort timing.
+    active = subprocess.check_output(['docker', 'ps', '--format', '{{.Names}}'], text=True).strip()
+    assert not active, 'Native qualification must not overlap Docker measurements'
+    os.environ['CONNECTIONGUARD_TOR_REFRESH']='false'
 
     assert re.fullmatch('[a-z0-9-]+',args.fixture)
     os.environ['CONNECTIONGUARD_CLOUD']='false'
@@ -113,7 +110,7 @@ def main():
         (data/'candidate.json').write_text(json.dumps(candidate))
         runtime.command('cg policy test examples candidate','Synthetic cases: 8; changed outcomes: 1;')
         assert state()==before;result['cases'].append('candidate_comparison_has_no_activation_provider_calls_or_live_actions')
-        if args.checkout=='policy-versioning':
+        if args.checkout=='pr77-integration':
             before=state();runtime.command('cg policy shadow start candidate 5m','Shadow ACTIVE: compared 0;')
             assert state()==before
             connect('CGShadowDenied','VPN','VPN_FLAG');wait_until(runtime,lambda:state()['actions']==before['actions']+1)

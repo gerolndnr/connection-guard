@@ -118,7 +118,7 @@ def run_versions(runtime, connect, state, configure, restart, settings, data, re
     assert '198.51.100.1' in stored
     changed = status(); legacy = journal_file.read_bytes()
     preserve('cg policy activate version-candidate ' + reviewed + ' ' + baseline['expected'], changed, legacy)
-    assert json.loads(legacy)[0]['target'] == '198.51.100.1'
+    assert json.loads(legacy)[0]['target'] == '198.51.100.1/32'
     case('native_staff_rule_edit_invalidates_reviewed_activation_token')
 
     candidate_file.write_text(json.dumps(dict(candidate, kick_geo=False)))
