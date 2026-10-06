@@ -106,7 +106,7 @@ public class ConnectionGuardVelocityListener {
                 }
                 if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
-                    decision.overload();
+                    decision.overload(checks.vpnExempt());
                     if (checks.shouldDenyAdmission()) {
                         deny.accept(Component.text(decision.messages().getString("messages.busy")));
                         decision.denied(DecisionObservation.Reason.OVERLOAD);

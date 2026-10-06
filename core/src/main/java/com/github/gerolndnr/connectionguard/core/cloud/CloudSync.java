@@ -65,7 +65,7 @@ public final class CloudSync {
     private volatile String networkName, linkCode, linkUrl, lastError;
     private volatile long lastSyncAt;
     private JsonObject pending;
-    private boolean legacyStatus;
+    private boolean legacyStatus, legacyCoverageStatus;
     private boolean cleanupWarned;
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
@@ -252,11 +252,19 @@ public final class CloudSync {
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
+        if (reply.status == 400 && !legacyCoverageStatus && pending.getAsJsonObject("status").has("vpn_unchecked_allowed")) {
+            // Keep rule-expiry capabilities when only the new aggregate is unsupported.
+            legacyCoverageStatus = true;
+            pending.getAsJsonObject("status").remove("vpn_unchecked_allowed");
+            lastError = "cloud API does not yet support VPN coverage status";
+            return MIN_DELAY;
+        }
         if (reply.status == 400 && !legacyStatus && pending.getAsJsonObject("status").has("capabilities")) {
             // Older protocol-1 APIs reject unknown status fields. Retry the SAME decision batch
             // and sequence without capabilities, rather than draining/dropping or recounting it.
             legacyStatus = true;
             pending.getAsJsonObject("status").remove("capabilities");
+            pending.getAsJsonObject("status").remove("vpn_unchecked_allowed");
             lastError = "using older cloud status format";
             return MIN_DELAY;
         }
@@ -346,6 +354,17 @@ public final class CloudSync {
             providers.add(p);
         }
         s.add("providers", providers);
+        if (!legacyStatus && !legacyCoverageStatus) {
+            com.github.gerolndnr.connectionguard.core.lookup.UncheckedVpnAdmissions.Snapshot coverage = ConnectionGuard.uncheckedVpnAdmissions().snapshot();
+            JsonObject unchecked = new JsonObject();
+            unchecked.addProperty("total", Math.min(1_000_000_000L, coverage.total));
+            unchecked.addProperty("since_summary", Math.min(1_000_000_000L, coverage.sinceSummary));
+            unchecked.addProperty("window_seconds", Math.min(1_000_000_000L, coverage.windowSeconds));
+            JsonObject reasons = new JsonObject();
+            coverage.reasons.forEach((reason, count) -> reasons.addProperty(reason.name(), Math.min(1_000_000_000L, count)));
+            unchecked.add("reasons", reasons);
+            s.add("vpn_unchecked_allowed", unchecked);
+        }
         if (!legacyStatus) {
             JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry");
             s.add("capabilities", capabilities);
@@ -494,6 +513,7 @@ public final class CloudSync {
     public static synchronized List<String> describeLines() {
         List<String> lines = new ArrayList<>();
         CloudSync sync = current;
+        lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
         com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         if (sync == null) {
             lines.add(messages.text("cloud.status-off", lastSettings != null && lastSettings.disabledBy != null ? " (" + lastSettings.disabledBy + ")" : ""));
@@ -503,6 +523,7 @@ public final class CloudSync {
         lines.add(messages.text("cloud.status-on", state, sync.settings.endpoint.getHost(),
                 sync.lastSyncAt == 0 ? messages.getString("cloud.no-sync") : messages.text("cloud.last-sync", (System.currentTimeMillis() - sync.lastSyncAt) / 1000),
                 sync.lastError == null ? "" : messages.text("cloud.last-error", sync.lastError)));
+        if (sync.legacyCoverageStatus) lines.add("Cloud API does not yet support VPN coverage counters; local counts above remain accurate.");
         lines.add("Cloud events buffered=" + sync.recorder.buffered() + " dropped=" + sync.recorder.dropped()
                 + (sync.claimed ? "" : messages.getString("cloud.anonymous")));
         return lines;

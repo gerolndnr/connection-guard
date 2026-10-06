@@ -96,6 +96,11 @@ public class ConnectionGuard {
     private static volatile com.github.gerolndnr.connectionguard.core.local.TorExitList tor;
     public static String torStatus() { return tor == null ? "Tor local layer unavailable" : tor.describe(); }
     public static void startTorRefresh() { if (tor != null) tor.start(); }
+    private static final UncheckedVpnAdmissions uncheckedVpnAdmissions = new UncheckedVpnAdmissions();
+    public static UncheckedVpnAdmissions uncheckedVpnAdmissions() { return uncheckedVpnAdmissions; }
+    public static void startCoverageReporting() {
+        uncheckedVpnAdmissions.start(line -> { Logger output = logger; if (output != null) output.warning(line); });
+    }
     public static ProviderConfiguration getActiveDraft() { return activeDraft; }
     private static final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog INITIAL_MESSAGES = com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en");
     public static com.github.gerolndnr.connectionguard.core.messages.MessageCatalog getMessages() {
@@ -183,7 +188,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { stopPolicyShadow(); com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { uncheckedVpnAdmissions.close(); stopPolicyShadow(); com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;

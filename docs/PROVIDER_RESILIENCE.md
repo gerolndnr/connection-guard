@@ -76,9 +76,9 @@ Existing geo selections are retained.
   the operator's own free key raises that to 1,000. No key/account/IP rotation to
   circumvent limits. v2 `proxy=yes` with `vpn=1` is positive. v3 explicit VPN,
   Proxy or Tor, or concrete VPN operator evidence, is positive. Recognized
-  `operator.services` VPN categories and a documented exact-name set (IVPN,
-  Mullvad, NordVPN, Surfshark, Private Internet Access, ProtonVPN/Proton VPN,
-  ExpressVPN, Windscribe) cover hosting exits with known VPN operators.
+  `operator.services` categories (`datacenter_vpns`, `residential_vpns`,
+  `mobile_vpns`) are evaluated generically, including unnamed/new operators.
+  An operator name alone is never detection evidence; there is no brand-name list.
   Raw provider classification flags remain verbatim in source metadata.
   Hosting alone is reviewed and logged, not automatically denied.
 * **IPQuery:** [API and terms/privacy statements](https://ipquery.io/).
@@ -121,8 +121,8 @@ Console warnings name the provider and typed failure, without IPs, keys or URLs.
 `/cg doctor` includes provider counters, local quota estimates and circuit state;
 the existing Cloud `last_reason`/`paused` fields carry the same facts without new
 personal data or new enum values. Local counters are not the provider account's
-remaining balance. Transient circuits allow one half-open probe after at most
-one second. Explicit HTTP 429 Retry-After is honored (up to 24 hours); older
+remaining balance. Circuits honor `lookup.circuit.pause-ms` (the unchanged
+30-second shipped default), then allow only one half-open probe. Explicit HTTP 429 Retry-After is honored (up to 24 hours); older
 in-flight successful answers cannot erase a rate-limit pause.
 
 Redis startup does not depend on a successful network connection. A bounded
@@ -145,3 +145,31 @@ burst concrete-check coverage must reach 95%, all four API faults must retain To
 denial, cold p50 must remain approximately below 300 ms, warm approximately 4 ms,
 and stampede/rejected-reload protection must pass. Core simulations and startup
 smokes alone do not establish those comparative results.
+
+## Unchecked admissions and comparison boundaries
+
+Every actual CG-allowed login with an UNKNOWN VPN result increments a bounded,
+anonymous coverage counter, even with Cloud and external observers disabled.
+A successful fallback (negative or positive), an intentional VPN exception, a
+CG-denied login, and `/cg explain` do not increment it. An incomplete consensus
+without a conclusive result is counted. One login contributes once, with the
+first failed voting source's reason; coalescing does not collapse login counts.
+
+`/cg doctor` and `/cg cloud status` show `uncheckedAllowed`, the current summary
+window and cumulative reasons. Every five minutes the console warns with the
+window's count and reasons; zero windows stay quiet. Shutdown reports a final
+partial window. Reload retains the counters. No IP, UUID, name or key is kept.
+Cloud status includes optional `vpn_unchecked_allowed` anonymous totals, with
+same-batch/sequence fallback for APIs that have not deployed this field yet.
+Local counts remain exact if an older API rejects the extension; doctor/cloud
+status explicitly report that compatibility limit.
+
+HTTP timeout 2,500 ms, 8 workers, queue 64, max-inflight 128 and circuit pause
+30,000 ms retain 0.5.1 defaults. There is no hidden one-second circuit override.
+Geo is Disabled for new installs. Controlled test limits are explicit fixture
+settings, not evidence that shipped defaults satisfy the burst/recovery gates.
+This changed candidate requires a new exact-JAR comparison: detection/FPR,
+all four API faults with local Tor, recovery, cold latency, ≥95% concrete burst
+checks including failover, stampede, bad reload, and periodic unchecked warnings.
+Historical measurements of the earlier operator-name candidate cannot qualify
+this one. The owner's temporary warm-latency waiver remains separate.

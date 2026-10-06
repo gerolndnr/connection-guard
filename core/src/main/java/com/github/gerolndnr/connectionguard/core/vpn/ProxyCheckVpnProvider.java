@@ -67,11 +67,11 @@ public class ProxyCheckVpnProvider implements VpnProvider {
         JsonObject operator = DetectionFields.object(address, "operator");
         String operatorName = DetectionFields.text(operator, "name");
         Map<DetectionDetails.Type, Boolean> types = DetectionFields.types(detections, DetectionDetails.Type.VPN, DetectionDetails.Type.PROXY, DetectionDetails.Type.TOR, DetectionDetails.Type.HOSTING);
-        boolean knownVpn = vpnOperator(operator);
+        boolean vpnService = vpnOperator(operator);
         boolean hostingOnly = Boolean.TRUE.equals(types.get(DetectionDetails.Type.HOSTING)) && !Boolean.TRUE.equals(types.get(DetectionDetails.Type.VPN))
-                && !Boolean.TRUE.equals(types.get(DetectionDetails.Type.PROXY)) && !Boolean.TRUE.equals(types.get(DetectionDetails.Type.TOR)) && !knownVpn;
+                && !Boolean.TRUE.equals(types.get(DetectionDetails.Type.PROXY)) && !Boolean.TRUE.equals(types.get(DetectionDetails.Type.TOR)) && !vpnService;
         boolean positive = Boolean.TRUE.equals(anonymous) && !hostingOnly || Boolean.TRUE.equals(types.get(DetectionDetails.Type.VPN))
-                || Boolean.TRUE.equals(types.get(DetectionDetails.Type.PROXY)) || Boolean.TRUE.equals(types.get(DetectionDetails.Type.TOR)) || knownVpn;
+                || Boolean.TRUE.equals(types.get(DetectionDetails.Type.PROXY)) || Boolean.TRUE.equals(types.get(DetectionDetails.Type.TOR)) || vpnService;
         // A hosting allocation alone is review evidence. An operator VPN service is concrete detection evidence.
         // Keep the provider's explicit flags verbatim, even when operator evidence determines the verdict.
         if (!positive && anonymous == null && !(types.containsKey(DetectionDetails.Type.VPN) && types.containsKey(DetectionDetails.Type.PROXY) && types.containsKey(DetectionDetails.Type.TOR))) return Optional.empty();
@@ -84,9 +84,6 @@ public class ProxyCheckVpnProvider implements VpnProvider {
     }
     private static boolean vpnOperator(JsonObject operator) {
         if (operator == null) return false;
-        String name = DetectionFields.text(operator, "name");
-        if (name != null && java.util.Arrays.asList("ivpn", "mullvad", "nordvpn", "surfshark", "private internet access", "protonvpn", "proton vpn", "expressvpn", "windscribe")
-                .contains(name.toLowerCase(Locale.ROOT))) return true;
         com.google.gson.JsonElement services = operator.get("services");
         if (services == null || services.isJsonNull()) return false;
         if (!services.isJsonArray() || services.getAsJsonArray().size() > 32) throw new IllegalArgumentException("Invalid operator services.");

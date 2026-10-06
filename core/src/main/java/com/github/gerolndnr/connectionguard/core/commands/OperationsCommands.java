@@ -74,6 +74,7 @@ public final class OperationsCommands {
         if (draft != null) lines.add("VPN strategy=" + (draft.failover ? "FAILOVER" : "CONSENSUS")
                 + " effectiveThreshold=" + draft.threshold + " maxExternalAttempts=" + draft.externalAttempts + " order=" + draft.keys);
         lines.add(ConnectionGuard.torStatus());
+        lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
         lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                 .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));

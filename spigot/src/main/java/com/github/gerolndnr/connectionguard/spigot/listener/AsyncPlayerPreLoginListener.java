@@ -74,7 +74,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
             if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
-                decision.overload();
+                decision.overload(checks.vpnExempt());
                 if (checks.shouldDenyAdmission()) {
                     preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.busy"));
                     decision.denied(DecisionObservation.Reason.OVERLOAD);

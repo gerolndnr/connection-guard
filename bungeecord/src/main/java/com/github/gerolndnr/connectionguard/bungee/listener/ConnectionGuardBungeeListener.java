@@ -84,7 +84,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
                 if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
-                    decision.overload();
+                    decision.overload(checks.vpnExempt());
                     if (checks.shouldDenyAdmission()) {
                         loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.busy")));
                         loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.OVERLOAD);

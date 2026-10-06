@@ -30,6 +30,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final List<Source> sources = new ArrayList<>();
     private final List<Rule> rules = new ArrayList<>();
     private Reason denied;
+    private FailureReason uncheckedVpnReason;
     private long observedAt = System.currentTimeMillis();
     private boolean processingError, finished, overload, unresolved, admissionUnresolved, invalidObservation, identityUnavailable;
     private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
@@ -58,7 +59,8 @@ public final class DecisionCapture implements AutoCloseable {
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
     public void identityUnavailable() { identityUnavailable = true; }
-    public void overload() { overload = true; }
+    public void overload() { overload(false); }
+    public void overload(boolean vpnExempt) { overload = true; if (!vpnExempt) uncheckedVpnReason = FailureReason.OVERLOADED; }
     public void flag(Flag flag) { if (captureEnabled) flags.add(flag); }
     public void manual(Optional<AccessRule> vpn, Optional<AccessRule> geo) {
         record(() -> { rules.clear(); vpn.ifPresent(rule -> selected(rule, Scope.VPN)); geo.ifPresent(rule -> selected(rule, Scope.GEO)); });
@@ -69,6 +71,7 @@ public final class DecisionCapture implements AutoCloseable {
         if (rule.getEffect() == AccessRule.Effect.DENY) flags.add(Flag.ACCESS_POLICY);
     }
     public void policy(EvidencePolicy.Decision vpn, EvidencePolicy.Decision geo) {
+        if (vpn.isBypassed()) uncheckedVpnReason = null;
         record(() -> {
             unresolved = vpn.isUnresolved() || geo.isUnresolved(); flags.remove(Flag.ACCESS_POLICY);
             rules.clear(); policy(vpn, Scope.VPN); policy(geo, Scope.GEO);
@@ -85,6 +88,7 @@ public final class DecisionCapture implements AutoCloseable {
         }
     }
     public void facts(VpnResult vpn, GeoLookup geo, boolean vpnExempt, boolean geoExempt, long asOf) {
+        uncheckedVpnReason = UncheckedVpnAdmissions.unresolved(vpn, vpnExempt);
         record(() -> {
             observedAt = asOf;
             sources.clear();
@@ -123,6 +127,7 @@ public final class DecisionCapture implements AutoCloseable {
     @Override public synchronized void close() {
         if (finished) return;
         finished = true;
+        if (denied == null && !processingError) ConnectionGuard.uncheckedVpnAdmissions().allowed(uncheckedVpnReason);
         if (!captureEnabled || invalidObservation) return;
         // Observation construction must never change admission or retain exception details.
         DecisionObservation event;

@@ -53,9 +53,8 @@ public final class ProviderHealth {
         lastReason = reason;
         if (reason == FailureReason.NONE || reason == FailureReason.NO_EVIDENCE || reason == FailureReason.STALE_DATA) { successes++; failures = 0; pausedUntil = 0; return; }
         if (reason == FailureReason.OVERLOADED || reason == FailureReason.CANCELLED) return;
-        // Transient faults recover within one second, even with an old 30s YAML cooldown.
-        // A provider's explicit Retry-After remains authoritative.
-        long pause = reason == FailureReason.AUTHENTICATION ? settings.circuitPauseMillis : Math.min(1000, settings.circuitPauseMillis);
+        // Honor the operator's configured pause; a provider's explicit Retry-After is a lower bound.
+        long pause = settings.circuitPauseMillis;
         while (error instanceof CompletionException) error = error.getCause();
         if (error instanceof LookupException) pause = Math.max(pause, ((LookupException) error).getRetryAfterMillis());
         if (reason == FailureReason.RATE_LIMIT || reason == FailureReason.BUDGET_EXHAUSTED || ++failures >= settings.circuitFailures) {

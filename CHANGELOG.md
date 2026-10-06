@@ -5,8 +5,9 @@
 - General sequential VPN failover defaults on for every selected keyed, anonymous, custom HTTP or extension source. Configure provider.vpn-failover.enabled/order; disabling restores parallel voting and the stored required-positive-flags. Existing modes, provider selections and keys are retained. A mode/order change invalidates old fact namespaces while preserving selected source quota usage.
 - New installs use ENFORCE with anonymous ProxyCheck v3 → IPQuery → IP-API as the initial free selection; existing enforcement modes remain unchanged.
 - An embedded Tor bulk snapshot is checked locally before caches/APIs. Periodic list refresh never sends a player's IP. Stale lists remain visible in doctor and retain Tor protection, with documented false-positive/staleness limits.
-- Parse ProxyCheck v3 explicit VPN/proxy/Tor and known VPN operator evidence, while hosting alone remains review-only; normalize IPv6 requests and equivalent response keys.
-- Surface local/remote quota exhaustion and circuit outages; allow a single early transient recovery probe while honoring Retry-After.
+- Parse ProxyCheck v3 explicit VPN/proxy/Tor and generic operator VPN-service evidence, while hosting alone remains review-only; normalize IPv6 requests and equivalent response keys.
+- Surface local/remote quota exhaustion and circuit outages. Count CG-allowed UNKNOWN VPN logins independently of observers, show totals/reasons in doctor and Cloud status, and warn every five minutes. Preserve configured circuit pauses and Retry-After.
+- Retain established HTTP timeout, worker, queue, inflight and circuit defaults pending comparative load/failure evidence; new-install Geo stays Disabled.
 - Redis outages at startup use a bounded Memory cache and background reconnect. Reload/invalidation cannot wait on the reconnect probe.
 - VPN kick messages tell players to ask staff for a scoped `/cg allow` exception.
 

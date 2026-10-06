@@ -33,13 +33,13 @@ lookup:
   # One eligible-login check budget: permissions, admission, cache and detection.
   # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
-  http-timeout-ms: 800
-  workers: 16
-  queue-capacity: 256
-  max-inflight: 512
+  http-timeout-ms: 2500
+  workers: 8
+  queue-capacity: 64
+  max-inflight: 128
   circuit:
     failures: 3
-    pause-ms: 1000
+    pause-ms: 30000
 
 # Optional admission limits for real login checks (not /cg explain).
 # Limits are disabled by default; tune for households, shared IPs and events.

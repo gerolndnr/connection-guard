@@ -129,6 +129,7 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.initializeRules(dataDirectory);
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(dataDirectory, existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
+        ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(() -> {
             try { getCgVelocityConfig().reloadValidated(); }

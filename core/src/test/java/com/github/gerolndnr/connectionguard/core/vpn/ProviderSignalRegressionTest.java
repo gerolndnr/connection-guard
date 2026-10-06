@@ -11,10 +11,29 @@ class ProviderSignalRegressionTest {
     private VpnResult v3(String operator) {
         return ProxyCheckVpnProvider.parseV3("2001:db8:0:0:0:0:0:7", json("{\"status\":\"ok\",\"2001:db8::7\":{\"detections\":{\"anonymous\":false,\"hosting\":true,\"vpn\":false,\"proxy\":false,\"tor\":false},\"operator\":" + operator + "}}")).get();
     }
-    @Test void knownVpnOperatorAndVpnServiceBlockHostingExits() {
-        assertTrue(v3("{\"name\":\"IVPN\"}").isVpn());
-        assertTrue(v3("{\"name\":\"New operator\",\"services\":[\"datacenter_vpns\"]}").isVpn());
-        assertEquals(Boolean.FALSE, v3("{\"name\":\"Mullvad\"}").getDetails().get(DetectionDetails.Type.VPN));
+    @Test void operatorNamesAloneNeverSupplyVpnEvidence() {
+        for (String name : java.util.Arrays.asList("IVPN", "Mullvad", "NordVPN", "Surfshark", "PIA", "Private Internet Access", "Proton", "ProtonVPN", "Proton VPN", "Express", "ExpressVPN", "Windscribe", "Unknown company")) {
+            VpnResult result = v3("{\"name\":\"" + name + "\"}");
+            assertFalse(result.isVpn(), name + " has no explicit flags or VPN services");
+            assertEquals(Boolean.FALSE, result.getDetails().get(DetectionDetails.Type.VPN));
+            assertEquals(Boolean.TRUE, result.getDetails().get(DetectionDetails.Type.HOSTING));
+        }
+    }
+    @Test void genericVpnServicesWorkForEveryOperatorName() {
+        for (String category : java.util.Arrays.asList("datacenter_vpns", "residential_vpns", "mobile_vpns")) {
+            assertTrue(v3("{\"name\":\"Previously unseen company\",\"services\":[\"" + category + "\"]}").isVpn());
+            assertTrue(v3("{\"services\":[\"" + category + "\"]}").isVpn());
+        }
+        assertFalse(v3("{\"name\":\"Mullvad\",\"services\":[\"hosting\"]}").isVpn());
+        assertFalse(v3("{\"services\":[\"not_vpn\"]}").isVpn());
+        assertThrows(IllegalArgumentException.class, () -> v3("{\"services\":true}"));
+        assertThrows(IllegalArgumentException.class, () -> v3("{\"services\":[true]}"));
+    }
+    @Test void explicitV3SignalsDoNotRequireAnOperatorName() {
+        for (String signal : java.util.Arrays.asList("vpn", "proxy", "tor", "anonymous")) {
+            String body = "{\"status\":\"ok\",\"192.0.2.7\":{\"detections\":{\"" + signal + "\":true}}}";
+            assertTrue(ProxyCheckVpnProvider.parseV3("192.0.2.7", json(body)).get().isVpn());
+        }
     }
     @Test void hostingOnlyAndScraperOperatorRemainReviewEvidence() {
         assertFalse(v3("null").isVpn());

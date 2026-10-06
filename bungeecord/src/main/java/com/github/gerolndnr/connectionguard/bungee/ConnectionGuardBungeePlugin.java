@@ -135,6 +135,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ConnectionGuard.initializeRules(getDataFolder().toPath());
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
+        ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUNGEE,
