@@ -39,7 +39,7 @@ public class CGVelocityConfig {
             }
         }
         try {
-            config = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(true).build());
+            config = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
             com.github.gerolndnr.connectionguard.core.cloud.CloudSync.prepareErrorReports(dataDirectory, config::get);
             // Dashboard settings layer over config.yml in memory; the file is never written.
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, config::set);

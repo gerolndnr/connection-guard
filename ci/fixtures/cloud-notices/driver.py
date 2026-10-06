@@ -25,6 +25,7 @@ def main():
     assert 'Ja, EULA akzeptieren und diese lokalen Tests durchführen' in (root/'delivery/backend-runtime-scope.md').read_text()
     assert 'CONNECTIONGUARD_CLOUD' not in os.environ, 'Owned loopback Cloud must be explicitly enabled'
     os.environ['CONNECTIONGUARD_TOR_REFRESH']='false'
+    os.environ['CONNECTIONGUARD_INTEL_REFRESH']='false'
     sys.path.insert(0,str(root/'tools'))
     from backend_fixture import Backend, RUNTIMES
     from release_backend_test import Clients

@@ -1,7 +1,8 @@
-# Connection Guard starts in observation mode on a new installation.
-# Review /cg doctor and provider terms, then deliberately choose ENFORCE.
+# New installations enforce concrete VPN, proxy and Tor evidence.
+# ProxyCheck/zowi hosting alone is review; Blackbox listings also include hosting/cloud.
+# Existing files and modes are never overwritten. Choose OBSERVE explicitly to review first.
 operation:
-  mode: OBSERVE
+  mode: ENFORCE
 cloud:
   # Optional free dashboard at https://app.connectionguard.net. Logins never wait on it.
   # Until you link this server (link printed in the console, or /cg cloud link), only
@@ -9,7 +10,8 @@ cloud:
   # data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
   # Turn off here, with /cg cloud disable, or with the environment CONNECTIONGUARD_CLOUD=false.
   enabled: true
-  # Own exception types/frames only, never message text or player data. See docs/PRIVACY.md.
+  # Own exception types/frames only, never message text or player data.
+  # Disclosure: https://connectionguard.net/privacy#error-reports ; controls: docs/PRIVACY.md.
   # Sent with background sync; all Cloud off switches also turn these reports off.
   error-reports: true
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
@@ -36,7 +38,8 @@ lookup:
   # One eligible-login check budget: permissions, admission, cache and detection.
   # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
-  http-timeout-ms: 2500
+  # Per external attempt (entire call, connect and read). A timeout opens that source's circuit immediately.
+  http-timeout-ms: 1500
   workers: 8
   queue-capacity: 64
   max-inflight: 128
@@ -158,7 +161,9 @@ behavior:
 # You can use multiple services at the same time (just enable multiple at once) to minimize
 # the number of provider votes required. Provider votes are not necessarily independent. This determines how many enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
-# Default value: 1
+# Applies when provider.vpn-failover.enabled is false (legacy parallel voting).
+# With failover enabled the first concrete voting answer decides, using an effective threshold of 1.
+# The configured value is retained for switching back. Default value: 1
 # Missing or failed provider responses do not count as positive votes. If the
 # threshold is not met, failure-policy decides how UNKNOWN is handled; an incomplete
 # verdict is not cached, so a later connection can retry after provider recovery.
@@ -170,18 +175,55 @@ required-positive-flags: 1
 # IP is a vpn and which is not. Some work better than others and some have daily/monthly limits.
 
 provider:
+  # Applies to every enabled VPN provider: with/without a key, custom HTTP and selected extensions.
+  vpn-failover:
+    # Default true, including existing files without a strategy selection.
+    # False restores parallel voting and required-positive-flags, with the same enabled providers.
+    enabled: true
+    # Optional provider IDs in preferred order; unspecified enabled sources follow.
+    # Example: [ipqualityscore, iphub, proxycheck, extension.owned, corporate]
+    # Local lists always precede APIs; ip-api is always the last network option.
+    # New-install template only; existing files keep their selections and order.
+    order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]
+  # Network attempts per lookup, bounded by the original whole-login deadline (1..16).
+  # Locally skipped quotas/circuits and local list checks do not consume this limit.
+  max-external-attempts: 16
+  # Legacy vpn-strategy: FAILOVER|CONSENSUS remains accepted if the new switch is absent.
   vpn:
     # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
-    # VPN/Geo currently use separate queries; the plugin counts requests locally.
+    # VPN and ProxyCheck geo share one vpn=1 query and one local quota reservation.
     proxycheck:
       enabled: true
-      # v3 supplies separate detections and operator/confidence fields. Missing setting retains v2.
-      api-version: v3
+      # VPN always uses supported v2 with vpn=1 (including retained v3 settings).
+      # api-version selects standalone geo when ProxyCheck VPN is disabled.
+      api-version: v2
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
-    # IP-API is completely free, but has a rate limit of 45 requests per minute.
-    ip-api:
+    # Enabled HTTPS services receive the player's IP if earlier services fail.
+    # Include recipients in your server privacy information. Disable any with enabled: false.
+    # Conservative LOCAL caps: 60/minute each, not a guarantee of upstream availability.
+    # Blackbox: Cameron Munroe / ipinfo.app; no written terms; documented free & unlimited.
+    # Privacy: https://ipinfo.app/privacy/ . Y ALSO covers hosting/cloud lists and can block them.
+    blackbox:
+      enabled: true
+      minute-budget: 60
+    # ip-check.net publishes no operator, terms or privacy policy (checked 2026-10-06).
+    # Explicit opt-in only, including new installations. Review before enabling.
+    ipcheck:
       enabled: false
+      minute-budget: 60
+    # zowi: operated by Zowi, developer of competitor FoxGate. No key is sent.
+    # VPN/proxy/Tor flags block; hosting alone remains review evidence.
+    zowi:
+      enabled: true
+      minute-budget: 60
+    # Keyless HTTPS fallback; commercial use allowed. See docs/PROVIDER_RESILIENCE.md.
+    ipquery:
+      enabled: true
+      minute-budget: 0
+    # Last resort: keyless HTTP, 45/minute; provider terms restrict free use to non-commercial environments.
+    ip-api:
+      enabled: true
     # IPHub requires an api key, which can be aquired for free (1.000 free daily queries) on https://iphub.info/
     iphub:
       enabled: false
@@ -248,6 +290,18 @@ provider:
           # Leave empty if this detection provider does not give information about the vpn provider.
           field-name: "data#vpnProvider"
   local:
+    # Built-in signed lists hosted by Connection Guard at https://intel.connectionguard.net/.
+    # Daily background manifest/signature + VPN/Tor/Relay/Hosting fetch; NO player IP is sent.
+    # New-install template only. Existing installations must explicitly opt in.
+    # Trust key is bundled in the plugin; no runtime URL/key override. Missing/stale = UNKNOWN.
+    connectionguard-intel:
+      enabled: true
+      update-hours: 24
+      max-age-hours: 72
+      # ALLOW: a relay-only hit is a negative VPN verdict in failover (not an exemption).
+      # Explicit Intel VPN/Tor hits take priority. VPN classifies relay membership positively.
+      # HOSTING is enrichment/review only in both modes.
+      relay: ALLOW
     # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
     # MMDBs are always operator-imported, with their embedded build date and your source's license.
     update-hours: 0
@@ -262,7 +316,7 @@ provider:
     #               100 requests per day without api key or 1.000 requests per day with api key)
     # - Local (operator-imported country/city MMDB plus optional ASN; no API)
     # - Disabled (geo stays UNKNOWN; choose an appropriate failure policy)
-    service: 'IP-API'
+    service: 'Disabled'
   cache:
     # The cache is very important to effectively use the requests you have and avoid running into the request limit.
     # Once a request to a service is made, its data is stored for the specified duration (see below) and used instead of
@@ -272,6 +326,8 @@ provider:
     # Available types:
     # - SQLite (no further configuration is necessary, stored in a file in the plugins directory)
     # - Redis (configure connection details below, useful when deploying Connection Guard on multiple servers)
+    # - Memory (bounded 10,000 entries; no persistence)
+    # Redis automatically uses Memory until its background connection succeeds.
     # - Disabled (disable any caching, make absolutely sure that you don't run into request limits!)
     type: 'SQLite'
 

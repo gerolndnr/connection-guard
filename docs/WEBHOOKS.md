@@ -1,6 +1,6 @@
 # Security decision webhooks
 
-Development documentation for 0.5.0-SNAPSHOT; these rich notifications are not in the stable 0.4.11 download. Webhooks are disabled by default. Global `operation.mode: OBSERVE` suppresses both TEXT and EMBED output, including manual rules and provider failures. Rich notifications do not require a selected addon decision observer.
+Rich notifications are available since 0.5.0 and remain available in 0.6.0. Webhooks are disabled by default. Global `operation.mode: OBSERVE` suppresses both TEXT and EMBED output, including manual rules and provider failures. Rich notifications do not require a selected addon decision observer.
 
 Rich human labels follow `message-language` (`en`, `de`, `es` or your own file); typed decision/source codes stay unchanged. See [languages](LANGUAGES.md).
 

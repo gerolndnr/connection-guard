@@ -74,7 +74,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
             if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
-                decision.overload();
+                decision.overload(checks.vpnExempt());
                 if (checks.shouldDenyAdmission()) {
                     preLoginEvent.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, decision.messages().getString("messages.busy"));
                     decision.denied(DecisionObservation.Reason.OVERLOAD);
@@ -123,7 +123,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
                     String kickMessage = ChatColor.translateAlternateColorCodes(
                             '&',
-                            decision.messages().getString("messages.vpn-block")
+                            decision.messages().getString("messages.vpn-block") + "\n" + decision.messages().getString("messages.vpn-allow-hint")
                                     .replace("%IP%", vpnResult.getIpAddress())
                                     .replace("%NAME%", preLoginEvent.getName())
                     );

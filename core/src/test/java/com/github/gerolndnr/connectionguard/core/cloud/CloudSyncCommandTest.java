@@ -66,7 +66,7 @@ class CloudSyncCommandTest {
         return "{\"next_sync_in\":"+interval+",\"live\":false,\"claimed\":true,\"network_name\":\"Fixture\","
                 +"\"link_code\":null,\"link_url\":null,\"accept_events\":true,\"commands\":[],\"config\":"+desired+"}";
     }
-    private void start() { CloudSync.start(dir,config::get,Platform.VELOCITY,"synthetic","0.5.2-test",Logger.getLogger("sync-command-test")); }
+    private void start() { CloudSync.start(dir,config::get,Platform.VELOCITY,"synthetic","0.6.0-test",Logger.getLogger("sync-command-test")); }
     private void linkedStart() throws Exception {
         new CloudCredentials("ins_AAAAAAAAAAAAAAAAAAAAAAAA","cgs_"+String.join("",Collections.nCopies(48,"s")),endpoint()).save(dir.resolve("cloud/credentials.json"));
         start();CloudSync.runOnceForTest();assertTrue(CloudSync.isLinked());payloads.clear();requests.set(0);

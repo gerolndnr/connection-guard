@@ -12,17 +12,22 @@ public final class DetectionMetadata {
     private final String isp, operator, country;
     private final Integer risk, confidence;
     private final BigDecimal exactRisk;
+    private final Long dataAsOf;
     public DetectionMetadata(Map<Type, Boolean> types, Long asn, String isp, String operator,
                              String country, Integer risk, Integer confidence) {
         this(types, asn, isp, operator, country, risk, confidence, null);
     }
     private DetectionMetadata(Map<Type, Boolean> types, Long asn, String isp, String operator,
                               String country, Integer risk, Integer confidence, BigDecimal exactRisk) {
+        this(types, asn, isp, operator, country, risk, confidence, exactRisk, null);
+    }
+    private DetectionMetadata(Map<Type, Boolean> types, Long asn, String isp, String operator,
+                              String country, Integer risk, Integer confidence, BigDecimal exactRisk, Long dataAsOf) {
         Map<Type, Boolean> copy = new EnumMap<>(Type.class);
         if (types != null) copy.putAll(types);
         this.types = Collections.unmodifiableMap(copy);
         this.asn = asn; this.isp = text(isp); this.operator = text(operator); this.country = text(country);
-        this.risk = risk; this.confidence = confidence; this.exactRisk = exactRisk;
+        this.risk = risk; this.confidence = confidence; this.exactRisk = exactRisk; this.dataAsOf = dataAsOf;
         toCore().validate();
     }
     /** Additive API: preserves decimals without changing the original constructor/getRisk contract. */
@@ -36,6 +41,8 @@ public final class DetectionMetadata {
     private static String text(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
     public static DetectionMetadata empty() { return new DetectionMetadata(null, null, null, null, null, null, null); }
     public Map<Type, Boolean> getTypes() { return types; }
+    public Long getDataAsOf() { return dataAsOf; }
+    public DetectionMetadata withDataAsOf(Long timestamp) { return new DetectionMetadata(types, asn, isp, operator, country, risk, confidence, exactRisk, timestamp); }
     public Long getAsn() { return asn; }
     public String getIsp() { return isp; }
     public String getOperator() { return operator; }
@@ -47,6 +54,6 @@ public final class DetectionMetadata {
     private DetectionDetails toCore() {
         Map<DetectionDetails.Type, Boolean> values = new EnumMap<>(DetectionDetails.Type.class);
         types.forEach((type, flag) -> values.put(DetectionDetails.Type.valueOf(type.name()), flag));
-        return DetectionDetails.withExactRisk(values, asn, isp, operator, country, getExactRisk(), confidence);
+        return DetectionDetails.withExactRisk(values, asn, isp, operator, country, getExactRisk(), confidence).withDataAsOf(dataAsOf);
     }
 }

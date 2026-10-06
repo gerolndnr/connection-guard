@@ -70,6 +70,11 @@ public final class CacheCodec {
         com.github.gerolndnr.connectionguard.core.http.DetectionFields.score(object, "risk");
         com.github.gerolndnr.connectionguard.core.http.DetectionFields.score(object, "confidence");
         com.github.gerolndnr.connectionguard.core.http.DetectionFields.decimalScore(object, "exactRisk");
+        if (object.has("dataAsOf") && !object.get("dataAsOf").isJsonNull()) {
+            com.google.gson.JsonElement time = object.get("dataAsOf");
+            if (!time.isJsonPrimitive() || !time.getAsJsonPrimitive().isNumber() || !time.getAsString().matches("[1-9][0-9]{0,18}")) throw new IllegalArgumentException("Invalid cached publication time.");
+            Long.parseLong(time.getAsString());
+        }
         if (object.has("classifications")) {
             com.google.gson.JsonObject types = object.getAsJsonObject("classifications");
             for (java.util.Map.Entry<String, com.google.gson.JsonElement> entry : types.entrySet()) {

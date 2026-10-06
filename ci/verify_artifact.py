@@ -56,6 +56,14 @@ def verify(artifact, version):
         require(velocity.get("main") == ENTRYPOINTS["velocity"], "Wrong Velocity entrypoint.")
         require(velocity.get("version") == version, "Velocity version differs from the Gradle project version.")
         if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0, 5, 2):
+            for shared_type in ("ProxyCheckClient", "ProxyCheckClient$Flight"):
+                entry = PACKAGE.replace(".", "/") + "/core/http/" + shared_type + ".class"
+                require(names.count(entry) == 1, "Missing or duplicate shared ProxyCheck response runtime type.")
+            failover_type = PACKAGE.replace(".", "/") + "/core/config/VpnFailoverSettings.class"
+            require(names.count(failover_type) == 1, "Missing or duplicate general failover settings runtime type.")
+            for coverage_type in ("UncheckedVpnAdmissions", "UncheckedVpnAdmissions$Snapshot"):
+                entry = PACKAGE.replace(".", "/") + "/core/lookup/" + coverage_type + ".class"
+                require(names.count(entry) == 1, "Missing or duplicate VPN coverage runtime type.")
             for policy_type in ("policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
                                 "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
                                 "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",

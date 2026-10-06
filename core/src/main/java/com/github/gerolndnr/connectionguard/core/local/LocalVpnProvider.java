@@ -11,6 +11,7 @@ public final class LocalVpnProvider implements VpnProvider {
         this.snapshot = snapshot; sourceId = "local." + snapshot.source.id;
         generation = snapshot.source.fingerprint() + ":" + snapshot.version + ":" + snapshot.dataTime;
     }
+    @Override public boolean isLocal() { return true; }
     @Override public String sourceName() { return sourceId; }
     @Override public boolean isVoting() { return snapshot.source.isVoting(); }
     @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) {

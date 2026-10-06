@@ -9,6 +9,8 @@ import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
 import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.cache.NoCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.RedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider;
+import com.github.gerolndnr.connectionguard.core.cache.MemoryCacheProvider;
 import com.github.gerolndnr.connectionguard.core.cache.SQLiteCacheProvider;
 import com.github.gerolndnr.connectionguard.core.geo.IpApiGeoProvider;
 import com.github.gerolndnr.connectionguard.core.geo.ProxyCheckGeoProvider;
@@ -53,6 +55,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         if (!translationFolder.exists()) {
             translationFolder.mkdirs();
         }
+        boolean existingInstallation = java.nio.file.Files.exists(getDataFolder().toPath().resolve("config.yml"));
         configFile = new File(getDataFolder(), "config.yml");
         if (!configFile.exists()) {
             try {
@@ -110,14 +113,18 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                         .build();
                 libraryManager.loadLibrary(jedisLibrary);
                 ConnectionGuard.setCacheProvider(
-                        new RedisCacheProvider(
+                        new ResilientRedisCacheProvider(new RedisCacheProvider(
                                 getConfig().getString("provider.cache.redis.hostname"),
                                 getConfig().getInt("provider.cache.redis.port"),
                                 getConfig().getString("provider.cache.redis.username"),
                                 getConfig().getString("provider.cache.redis.password"),
                                 GuardSettings.bool(path -> getConfig().get(path, null), "provider.cache.redis.tls", false)
-                        )
+                        ))
+
                 );
+                break;
+            case "memory":
+                ConnectionGuard.setCacheProvider(new MemoryCacheProvider());
                 break;
             case "disabled":
                 ConnectionGuard.setCacheProvider(new NoCacheProvider());
@@ -127,10 +134,15 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
+        ProviderConfiguration draft = ProviderConfiguration.forStartup(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getSection("provider.vpn").getKeys()), getDataFolder().toPath(), selectedMessages.messages);
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
+        com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.KeylessProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.IntelProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
+        ConnectionGuard.startTorRefresh();
+        ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setNoticeConsole(notice -> {

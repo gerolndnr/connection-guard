@@ -12,6 +12,13 @@ public final class LocalListDownloader {
             .connectTimeout(3000, TimeUnit.MILLISECONDS).readTimeout(3000, TimeUnit.MILLISECONDS)
             .followRedirects(false).followSslRedirects(false).build();
     private LocalListDownloader() { }
+    static OkHttpClient client() { return CLIENT; }
+    static byte[] bytes(HttpUrl url, int limit, OkHttpClient client) throws IOException {
+        try (Response response = client.newCall(new Request.Builder().url(url).header("User-Agent", "ConnectionGuard-local-data").build()).execute()) {
+            if (!response.isSuccessful() || response.body() == null || response.body().contentLength() > limit) throw new IOException("Intel fetch unavailable or oversized (contents redacted).");
+            return LocalDataStore.readBounded(response.body().byteStream(), limit);
+        }
+    }
     public static LocalSnapshot update(LocalDataStore store, String id) throws IOException {
         LocalSource source = store.source(id);
         if (source.downloadUrl().isEmpty() || source.isDatabase()) throw new IllegalArgumentException("This source has no public HTTPS list download configured.");

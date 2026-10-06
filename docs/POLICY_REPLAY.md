@@ -16,7 +16,7 @@ This command reads saved evidence. It makes **no provider requests**, changes no
 
 Saved evidence does not prove today's provider accuracy. Replay does not reproduce provider/threshold configuration changes, fresh identity or LuckPerms resolution, overload refusal, admission hooks, ban/challenge outcomes or real account authentication. Exemption and identity fields are explicit **synthetic test assumptions**. Old source facts expire at the same boundary as live facts. The captured VPN quorum is preserved; unknown sources never silently reduce it. Source hashes identify saved data, not a current provider version. Changed decisions are **not** a false-positive rate.
 
-This feature is in development (`0.5.2-SNAPSHOT`), absent from stable `0.5.1`. No saved live observation capture is enabled. [Separately authorized version activation and rollback](POLICY_VERSIONING.md) are under qualification. Explicit saved observations remain unfinished; replay and the bounded shadow comparison below must not be presented as the complete policy rollout workflow.
+This feature is in development (`0.6.0`), absent from stable `0.5.1`. No saved live observation capture is enabled. [Separately authorized version activation and rollback](POLICY_VERSIONING.md) are under qualification. Explicit saved observations remain unfinished; replay and the bounded shadow comparison below must not be presented as the complete policy rollout workflow.
 
 ## Live shadow comparison
 

@@ -4,16 +4,26 @@ Optional login workload limits: [lookup admission and cooldowns](OVERLOAD.md).
 Shared raw facts and per-server rules: [Redis network cache](NETWORK_CACHE.md).
 Explicit addon selection: [versioned provider contract](PROVIDER_API_V1.md).
 
-Available in Connection Guard 0.5.0.
+This page describes the 0.6.0 candidate; stable 0.5.1 is still the published release. [Release qualification and pending gate](RELEASE_0_6_0.md).
 
-New installations use `operation.mode: OBSERVE`: classification and staff notices remain available; kicks, console commands and webhooks are suppressed. Country blacklist starts empty. Existing files without this setting retain `ENFORCE`; no upgrade silently rewrites operator choices. To activate blocking, deliberately set `ENFORCE` and use `/cg reload` after reviewing `/cg doctor`.
+**New 0.6.0 installations use ENFORCE and may deny flagged connections immediately.** Explicit VPN/proxy/Tor evidence and Blackbox aggregate listings can trigger actions; Blackbox includes hosting/cloud lists. Hosting-only ProxyCheck/zowi facts stay review. Geo lookups start Disabled; ip-check.net starts disabled. To inspect without actions, explicitly select OBSERVE and reload. Existing files retain their mode and provider choices; no upgrade silently rewrites them.
 
 `failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or legacy TEXT webhooks. Explicit [rich decision webhooks](WEBHOOKS.md) can report that actual denial when DENY is selected. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
+
+The following table describes the unreleased 0.6.0 defaults; stable 0.5.1 used 2500ms for HTTP. In 0.6.0,
+`lookup.http-timeout-ms` defaults to **1500 ms** (whole HTTP call, connect and read).
+An explicitly configured value is retained. A transport timeout opens that source's
+circuit immediately, without waiting for `lookup.circuit.failures`; the existing
+30s pause and one half-open probe remain. Used-up quotas and open circuits are
+rejected locally before any transport job is allocated. Available fallback sources
+continue to be tried; multiple previously untested hanging sources can therefore
+take more than two seconds together, within the unchanged 5000ms login ceiling.
+These bounds are not a promise that every outage login completes within 300ms.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `lookup.deadline-ms` | 5000 | Whole-login wait budget, including identity inspection, permissions, admission, cache and provider queue |
-| `lookup.http-timeout-ms` | 2500 | HTTP call deadline; cannot exceed total lifetime |
+| `lookup.http-timeout-ms` | 1500 | HTTP call deadline; cannot exceed total lifetime |
 | `lookup.workers` | 8 | Maximum transport workers |
 | `lookup.queue-capacity` | 64 | Maximum queued transport jobs |
 | `lookup.max-inflight` | 128 | Maximum distinct active VPN/geo lookup keys |
@@ -22,7 +32,7 @@ New installations use `operation.mode: OBSERVE`: classification and staff notice
 
 The same canonical IP shares each ongoing VPN lookup and each ongoing geo lookup; cancelling one caller does not cancel everyone else. IPv4-mapped IPv6 addresses map to IPv4. No hostname resolution is offered in the new operations commands. Limits bound this plugin's work; they are not network-level DDoS protection.
 
-Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `provider.geo` supports them too. Zero means no locally imposed limit. Default ProxyCheck limit is 100/day without a key, 1000/day with one; free IP-API is capped at 45/minute. VPN and geo calls to the same native service share one quota counter and the stricter nonzero configured limit. Daily counters reset at UTC midnight and when the plugin process restarts, so they are local estimates; other servers and tools also consume account quotas. Account-wide remaining quota is **not** reported. Quota exhaustion yields UNKNOWN. Numeric provider 429 backoff is bounded to one hour. Errors, queues and missing fields retain a reason code; 30-second log cooldowns avoid a repeated provider warning for each player.
+Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `provider.geo` supports them too. Zero means no locally imposed limit. Default ProxyCheck limit is 100/day without a key, 1000/day with one; free IP-API is capped at 45/minute. VPN and geo calls to the same native service share one quota counter and the stricter nonzero configured limit. When both select ProxyCheck they also share one v2 `vpn=1&asn=1` response and one reservation per physical request. Daily counters reset at UTC midnight and when the plugin process restarts, so they are local estimates; other servers and tools also consume account quotas. Account-wide remaining quota is **not** reported. Quota exhaustion yields UNKNOWN. Numeric provider 429 backoff is bounded to one hour. Errors, queues and missing fields retain a reason code; 30-second log cooldowns avoid a repeated provider warning for each player.
 
 Commands and permissions:
 

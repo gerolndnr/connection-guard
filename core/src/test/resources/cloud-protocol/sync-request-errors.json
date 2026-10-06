@@ -1,7 +1,7 @@
 {
   "protocol": 1,
   "seq": 8,
-  "plugin_version": "0.5.2",
+  "plugin_version": "0.6.0",
   "platform_version": "Velocity 3.4.0-SNAPSHOT",
   "status": {
     "mode": "OBSERVE",

@@ -27,3 +27,9 @@ The MIT notice is included as bStats-MIT.txt in this directory.
 Gson 2.11.0 — Google Inc. — Apache License 2.0
 https://github.com/google/gson/blob/gson-parent-2.11.0/LICENSE
 The Apache License 2.0 is included as Apache-2.0.txt in this directory.
+
+Bundled Tor bulk exit snapshot — The Tor Project — CC0 data
+https://check.torproject.org/torbulkexitlist
+https://metrics.torproject.org/collector.html
+Snapshot provenance and fetch time are embedded in tor-exits.txt.
+Tor membership is point-in-time evidence, not an accuracy or affiliation claim.

@@ -84,7 +84,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 }
                 if (checks.isCancelled()) { decision.error(); return; }
             if (!checks.isAdmitted()) {
-                    decision.overload();
+                    decision.overload(checks.vpnExempt());
                     if (checks.shouldDenyAdmission()) {
                         loginEvent.setCancelReason(new TextComponent(decision.messages().getString("messages.busy")));
                         loginEvent.setCancelled(true); decision.denied(DecisionObservation.Reason.OVERLOAD);
@@ -137,7 +137,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                     if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
                         String kickMessage = ChatColor.translateAlternateColorCodes(
                                 '&',
-                                decision.messages().getString("messages.vpn-block")
+                                decision.messages().getString("messages.vpn-block") + "\n" + decision.messages().getString("messages.vpn-allow-hint")
                                         .replace("%IP%", vpnResult.getIpAddress())
                                         .replace("%NAME%", identityName)
                         );

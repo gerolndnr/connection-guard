@@ -42,12 +42,21 @@ public final class NetworkIndex {
         }
         return Collections.unmodifiableList(result);
     }
-    public boolean contains(String literalIp) {
-        final byte[] bytes;
-        try { bytes = InetAddress.getByName(Exemptions.normalize(literalIp)).getAddress(); }
-        catch (UnknownHostException invalid) { throw new IllegalArgumentException("Invalid literal address."); }
-        BigInteger address = new BigInteger(1, bytes);
-        List<Range> ranges = bytes.length == 4 ? ipv4 : ipv6;
+    /** One validated literal shared by all four Intel indexes; never performs DNS. */
+    static final class Address {
+        final BigInteger value;
+        final boolean ipv4;
+        Address(String literalIp) {
+            final byte[] bytes;
+            try { bytes = InetAddress.getByName(Exemptions.normalize(literalIp)).getAddress(); }
+            catch (UnknownHostException invalid) { throw new IllegalArgumentException("Invalid literal address."); }
+            value = new BigInteger(1, bytes); ipv4 = bytes.length == 4;
+        }
+    }
+    public boolean contains(String literalIp) { return contains(new Address(literalIp)); }
+    boolean contains(Address literal) {
+        BigInteger address = literal.value;
+        List<Range> ranges = literal.ipv4 ? ipv4 : ipv6;
         int low = 0, high = ranges.size()-1;
         while (low <= high) {
             int middle = (low + high) >>> 1;

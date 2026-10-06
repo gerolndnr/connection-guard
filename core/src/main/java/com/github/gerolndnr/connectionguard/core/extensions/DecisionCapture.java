@@ -23,6 +23,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final long generation, started;
     private final boolean captureEnabled;
     private final int positiveThreshold;
+    private final boolean geoDisabled;
     private final com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease policyLease;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
@@ -30,6 +31,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final List<Source> sources = new ArrayList<>();
     private final List<Rule> rules = new ArrayList<>();
     private Reason denied;
+    private FailureReason uncheckedVpnReason;
     private long observedAt = System.currentTimeMillis();
     private boolean processingError, finished, overload, unresolved, admissionUnresolved, invalidObservation, identityUnavailable;
     private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
@@ -38,6 +40,7 @@ public final class DecisionCapture implements AutoCloseable {
         settings = ConnectionGuard.getSettings(); messages = ConnectionGuard.getMessages(); generation = DecisionObservers.captureGeneration();
         captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
+        geoDisabled = ConnectionGuard.isGeoDisabled();
         String selectedGeo = ConnectionGuard.policyGeoSource();
         geoSource = selectedGeo == null ? "geo.none" : selectedGeo;
         policyLease = ConnectionGuard.acquireDecisionLease();
@@ -58,7 +61,8 @@ public final class DecisionCapture implements AutoCloseable {
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
     public void identityUnavailable() { identityUnavailable = true; }
-    public void overload() { overload = true; }
+    public void overload() { overload(false); }
+    public void overload(boolean vpnExempt) { overload = true; if (!vpnExempt) uncheckedVpnReason = FailureReason.OVERLOADED; }
     public void flag(Flag flag) { if (captureEnabled) flags.add(flag); }
     public void manual(Optional<AccessRule> vpn, Optional<AccessRule> geo) {
         record(() -> { rules.clear(); vpn.ifPresent(rule -> selected(rule, Scope.VPN)); geo.ifPresent(rule -> selected(rule, Scope.GEO)); });
@@ -69,6 +73,7 @@ public final class DecisionCapture implements AutoCloseable {
         if (rule.getEffect() == AccessRule.Effect.DENY) flags.add(Flag.ACCESS_POLICY);
     }
     public void policy(EvidencePolicy.Decision vpn, EvidencePolicy.Decision geo) {
+        if (vpn.isBypassed()) uncheckedVpnReason = null;
         record(() -> {
             unresolved = vpn.isUnresolved() || geo.isUnresolved(); flags.remove(Flag.ACCESS_POLICY);
             rules.clear(); policy(vpn, Scope.VPN); policy(geo, Scope.GEO);
@@ -85,16 +90,17 @@ public final class DecisionCapture implements AutoCloseable {
         }
     }
     public void facts(VpnResult vpn, GeoLookup geo, boolean vpnExempt, boolean geoExempt, long asOf) {
+        uncheckedVpnReason = UncheckedVpnAdmissions.unresolved(vpn, vpnExempt);
         record(() -> {
             observedAt = asOf;
             sources.clear();
             vpnCheck = vpnExempt ? Check.EXEMPT : Check.valueOf(vpn.getStatus().name());
-            geoCheck = geoExempt ? Check.EXEMPT : geo.getResult().isPresent() ? Check.KNOWN : Check.UNKNOWN;
+            geoCheck = geoExempt ? Check.EXEMPT : geoDisabled ? Check.NOT_CHECKED : geo.getResult().isPresent() ? Check.KNOWN : Check.UNKNOWN;
             if (!vpnExempt) for (ProviderVote vote : vpn.getVotes()) sources.add(new Source(vote.getProvider(), Scope.VPN,
                     new DetectionObservation(DetectionObservation.Status.valueOf(vote.getStatus().name()),
                             DetectionObservation.Reason.valueOf(vote.getReason().name()), metadata(vote.getDetails()),
                             vote.getValidUntil(), vote.getSourceVersion()), vote.getDurationMillis(), vote.isVoting(), vpn.isFromCache()));
-            if (!geoExempt) {
+            if (!geoExempt && !geoDisabled) {
                 GeoResult value = geo.getResult().orElse(null);
                 DetectionMetadata details = value == null ? DetectionMetadata.empty() : new DetectionMetadata(null,
                         value.getAsn(), "Unknown".equalsIgnoreCase(value.getIspName()) ? null : value.getIspName(), null,
@@ -118,11 +124,12 @@ public final class DecisionCapture implements AutoCloseable {
         Map<DetectionMetadata.Type, Boolean> values = new EnumMap<>(DetectionMetadata.Type.class);
         details.getClassifications().forEach((type, flag) -> values.put(DetectionMetadata.Type.valueOf(type.name()), flag));
         return DetectionMetadata.withExactRisk(values, details.getAsn(), details.getIsp(), details.getOperator(),
-                details.getCountry(), details.getExactRisk(), details.getConfidence());
+                details.getCountry(), details.getExactRisk(), details.getConfidence()).withDataAsOf(details.getDataAsOf());
     }
     @Override public synchronized void close() {
         if (finished) return;
         finished = true;
+        if (denied == null && !processingError) ConnectionGuard.uncheckedVpnAdmissions().allowed(uncheckedVpnReason);
         policyLease.close();
         if (!captureEnabled || invalidObservation) return;
         // Observation construction must never change admission or retain exception details.

@@ -523,7 +523,7 @@ class CloudSyncTest {
         } finally { release.countDown(); threads.shutdownNow(); assertTrue(threads.awaitTermination(3, TimeUnit.SECONDS)); }
     }
 
-    @Test void oldStrictApiFallbackRetainsTheSameSequenceEventsCountersAndQueuedNewEvents() throws Exception {
+    @Test void coverageFallbackRetainsCapabilitiesAndTheSameSequenceEventsCountersAndQueuedNewEvents() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest(); syncs.clear();
         long before = DecisionObservers.delivered();
@@ -537,14 +537,44 @@ class CloudSyncTest {
         DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
         syncStatus = 200; CloudSync.runOnceForTest();
         JsonObject retried = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retried);
-        JsonObject expected = first.deepCopy(); expected.getAsJsonObject("status").remove("capabilities");
+        JsonObject expected = first.deepCopy(); expected.getAsJsonObject("status").remove("vpn_unchecked_allowed");
         assertEquals(expected, retried, "Only unsupported metadata changes: the exact batch and seq are retained");
         CloudSync.runOnceForTest();
         JsonObject next = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(next);
-        assertFalse(next.getAsJsonObject("status").has("capabilities"));
+        assertTrue(next.getAsJsonObject("status").has("capabilities"));
+        assertFalse(next.getAsJsonObject("status").has("vpn_unchecked_allowed"));
         assertTrue(next.get("seq").getAsLong() > first.get("seq").getAsLong());
         assertEquals(1, next.getAsJsonArray("events").size());
         assertEquals(1, next.getAsJsonObject("counters").get("allowed").getAsInt());
+    }
+
+    @Test void olderApiRejectingBothStatusExtensionsRetriesExactlyTheSameBatchTwice() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
+        assertNotNull(first); assertTrue(first.getAsJsonObject("status").has("vpn_unchecked_allowed"));
+        CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
+        assertNotNull(second); JsonObject expected = first.deepCopy(); expected.getAsJsonObject("status").remove("vpn_unchecked_allowed");
+        assertEquals(expected, second); assertTrue(second.getAsJsonObject("status").has("capabilities"));
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject third = syncs.poll(5, TimeUnit.SECONDS);
+        expected.getAsJsonObject("status").remove("capabilities"); assertEquals(expected, third);
+        CloudSync.runOnceForTest(); JsonObject next = syncs.poll(5, TimeUnit.SECONDS);
+        assertNotNull(next); assertEquals(0, next.getAsJsonObject("counters").get("allowed").getAsLong());
+        assertFalse(next.getAsJsonObject("status").has("vpn_unchecked_allowed"));
+        assertFalse(next.getAsJsonObject("status").has("capabilities"));
+    }
+
+    @Test void cloudStatusIncludesExactAnonymousVpnCoverageIndependentOfObserverDelivery() throws Exception {
+        long before = ConnectionGuard.uncheckedVpnAdmissions().snapshot().total;
+        for (int i = 0; i < 52; i++) ConnectionGuard.uncheckedVpnAdmissions().allowed(com.github.gerolndnr.connectionguard.core.lookup.FailureReason.BUDGET_EXHAUSTED);
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        JsonObject coverage = body.getAsJsonObject("status").getAsJsonObject("vpn_unchecked_allowed");
+        assertNotNull(coverage); assertEquals(before + 52, coverage.get("total").getAsLong());
+        assertTrue(coverage.getAsJsonObject("reasons").get("BUDGET_EXHAUSTED").getAsLong() >= 52);
+        assertEquals(new HashSet<>(Arrays.asList("total", "since_summary", "window_seconds", "reasons")), coverage.keySet());
+        assertEquals(0, body.getAsJsonArray("events").size(), "Unlinked coverage status contains only anonymous counters");
     }
 
     @Test void malformedTypedCommandGetsRedactedFailureAndDoesNotPreventFollowingCommand() throws Exception {
@@ -604,15 +634,17 @@ class CloudSyncTest {
         CloudSync.runOnceForTest(); assertFalse(syncs.poll(5, TimeUnit.SECONDS).has("errors"));
     }
 
-    @Test void errorsFallbackAndCapabilityFallbackPreserveSameSequenceAndBatch() throws Exception {
+    @Test void errorsCoverageAndCapabilityFallbackPreserveSameSequenceAndBatch() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.SYNC);
         awaitErrorBuffered();
         syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
         CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
         assertNotNull(first); assertNotNull(second); JsonObject expected = first.deepCopy(); expected.remove("errors"); assertEquals(expected, second);
-        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject third = syncs.poll(5, TimeUnit.SECONDS);
-        expected.getAsJsonObject("status").remove("capabilities"); assertEquals(expected, third);
+        CloudSync.runOnceForTest(); JsonObject third = syncs.poll(5, TimeUnit.SECONDS);
+        expected.getAsJsonObject("status").remove("vpn_unchecked_allowed"); assertEquals(expected, third);
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject fourth = syncs.poll(5, TimeUnit.SECONDS);
+        expected.getAsJsonObject("status").remove("capabilities"); assertEquals(expected, fourth);
     }
 
     @Test void disablingReportsAlsoRemovesErrorsFromAnUnsentRetryBatch() throws Exception {

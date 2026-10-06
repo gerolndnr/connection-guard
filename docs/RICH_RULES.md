@@ -12,11 +12,11 @@ Each source retains its generic verdict and its actually reported VPN, PROXY, TO
 | IP-API | Hosting; the generic proxy flag includes VPN/Tor and is not relabelled as a separate proxy classification | ASN, ISP, country |
 | IPHub with `Accept-Version: 2.2` | Proxy, Tor, hosting, relay | ASN, ISP, country |
 | ProxyCheck v2 | One reported type, without inventing false values for other types | ASN, ISP, country, risk |
-| ProxyCheck v3 | VPN, proxy, Tor, hosting | ASN, ISP, operator, country, risk, detection confidence |
+| ProxyCheck v3 (recorded parser fixtures; no live VPN request) | VPN, proxy, Tor, hosting | ASN, ISP, operator, country, risk, detection confidence |
 
-Adapters follow the [VPNAPI](https://vpnapi.io/api-documentation), [IP-API](https://ip-api.com/docs/api:json), [IPHub](https://iphub.info/api) and [ProxyCheck](https://proxycheck.io/api/) contracts. The [ProxyCheck OpenAPI spec](https://proxycheck.io/resources/proxycheck-openapi.yaml) puts v3 risk at the address level, country/city under `location.isocode`/`location.city` and confidence under detections. v3 is pinned to `24-June-2026`.
+Adapters follow the [VPNAPI](https://vpnapi.io/api-documentation), [IP-API](https://ip-api.com/docs/api:json), [IPHub](https://iphub.info/api) and [ProxyCheck](https://proxycheck.io/api/) contracts. The [ProxyCheck OpenAPI spec](https://proxycheck.io/resources/proxycheck-openapi.yaml) puts v3 risk at the address level, country/city under `location.isocode`/`location.city` and confidence under detections. Standalone v3 geo is pinned to `24-June-2026`.
 
-The new template sets `provider.vpn.proxycheck.api-version: v3`. An existing config without this setting keeps v2. Either explicit version is accepted; invalid versions reject the draft before activation. Absent IPHub 2.2 metadata preserves a generic verdict without fabricated classifications. Neither averaging risk scores nor interpreting a score of 80 as an 80% chance of abuse is supported. Provider votes can be correlated.
+The new template sets `provider.vpn.proxycheck.api-version: v2`. Live VPN requests always use v2 with `vpn=1`, officially supported until 2035, because v3 hosting-only results missed explicit VPNs in the recorded sample. Retained `v3` configurations are accepted and use this same v2 signal for VPN and shared ProxyCheck geo. The version setting still selects standalone geo if ProxyCheck VPN is disabled; invalid versions reject the draft before activation. V2 returns one type and does not supply v3 operator/confidence metadata. Existing rules requiring absent metadata keep their unknown-field behavior. Absent IPHub 2.2 metadata preserves a generic verdict without fabricated classifications. Neither averaging risk scores nor interpreting a score of 80 as an 80% chance of abuse is supported. Provider votes can be correlated.
 
 ## Commands
 

@@ -215,4 +215,24 @@ class DecisionObserversTest {
             assertTrue(activated); DecisionObservers.publish(sample()); next.get(2, TimeUnit.SECONDS);
         } finally { release.countDown(); }
     }
+    @Test void deliberatelyDisabledGeoIsNotAFailedCheckOrAClaimedCountry() throws Exception {
+        java.lang.reflect.Field disabled = ConnectionGuard.class.getDeclaredField("geoDisabled"); disabled.setAccessible(true);
+        boolean original = disabled.getBoolean(null);
+        try {
+            disabled.setBoolean(null, true);
+            GeoLookup skipped = ConnectionGuard.getGeoLookup("192.0.2.1").get(1, TimeUnit.SECONDS);
+            assertEquals(FailureReason.NONE, skipped.getReason()); assertFalse(skipped.getResult().isPresent());
+            CompletableFuture<DecisionObservation> next = observer("fixture"); DecisionObservers.configure(settings("fixture"));
+            DecisionCapture capture = DecisionCapture.begin(Platform.VELOCITY, Phase.LOGIN, "192.0.2.1", null, IdentityTrust.UNTRUSTED);
+            capture.facts(new VpnResult("192.0.2.1", false), skipped, false, false, System.currentTimeMillis()); capture.close();
+            DecisionObservation event = next.get(2, TimeUnit.SECONDS);
+            assertEquals(Check.NOT_CHECKED, event.getGeoCheck()); assertEquals(Reason.CHECKS_COMPLETE, event.getReason());
+            assertTrue(event.getSources().stream().noneMatch(source -> source.getScope() == Scope.GEO));
+        } finally { disabled.setBoolean(null, original); }
+    }
+    @Test void absentEnabledGeoProviderStillReportsNoProvider() throws Exception {
+        ConnectionGuard.setGeoProvider(null);
+        assertEquals(FailureReason.NO_PROVIDER, ConnectionGuard.getGeoLookup("192.0.2.1").get(1, TimeUnit.SECONDS).getReason());
+    }
+
 }

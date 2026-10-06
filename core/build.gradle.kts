@@ -29,6 +29,7 @@ dependencies {
     testImplementation("net.luckperms:api:5.4")
     testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
     testImplementation("redis.clients:jedis:5.0.0")
+    testImplementation("org.yaml:snakeyaml:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -43,6 +44,8 @@ java {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    // Production Intel refresh is outside tests; fixtures use owned loopback transport.
+    environment("CONNECTIONGUARD_INTEL_REFRESH", "false")
     // Changing the owned Redis fixture must not reuse a previous skipped/integration test report.
     inputs.property("redisFixturePort", providers.environmentVariable("CG_TEST_REDIS").orElse("disabled"))
 }

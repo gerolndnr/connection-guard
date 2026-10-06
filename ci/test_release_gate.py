@@ -89,6 +89,45 @@ class RuntimeEvidenceTest(unittest.TestCase):
 
 
 class ArtifactRegressionTest(unittest.TestCase):
+    def test_missing_or_duplicate_general_failover_settings_fail_before_runtime(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        entry = PACKAGE.replace(".", "/") + "/core/config/VpnFailoverSettings.class"
+        self.assertIn(entry, resources)
+        with tempfile.TemporaryDirectory() as directory:
+            for mutation in ("missing", "duplicate"):
+                broken = Path(directory) / "broken-failover.jar"
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    with zipfile.ZipFile(broken, "w") as output:
+                        for name, data in resources.items():
+                            if mutation != "missing" or name != entry: output.writestr(name, data)
+                        if mutation == "duplicate": output.writestr(entry, resources[entry])
+                with self.assertRaisesRegex(ValueError, "failover"):
+                    verify(broken, version)
+
+    def test_missing_or_duplicate_vpn_coverage_types_fail_before_runtime(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        with tempfile.TemporaryDirectory() as directory:
+            for coverage_type in ("UncheckedVpnAdmissions", "UncheckedVpnAdmissions$Snapshot"):
+                entry = PACKAGE.replace(".", "/") + "/core/lookup/" + coverage_type + ".class"
+                self.assertIn(entry, resources)
+                for mutation in ("missing", "duplicate"):
+                    broken = Path(directory) / "broken-coverage.jar"
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", UserWarning)
+                        with zipfile.ZipFile(broken, "w") as output:
+                            for name, data in resources.items():
+                                if mutation != "missing" or name != entry: output.writestr(name, data)
+                            if mutation == "duplicate": output.writestr(entry, resources[entry])
+                    with self.assertRaisesRegex(ValueError, "coverage"):
+                        verify(broken, version)
+
     def test_missing_or_duplicate_policy_types_and_examples_fail_before_runtime(self):
         artifact = next((ROOT / "build/libs").glob("*-all.jar"))
         with zipfile.ZipFile(artifact) as jar:

@@ -36,7 +36,12 @@ public final class OperationsCommands {
                 com.github.gerolndnr.connectionguard.core.lookup.GeoLookup geo = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.geo(rawGeo, asOf);
                 reply.accept("VPN=" + result.getStatus() + " threshold=" + ConnectionGuard.getRequiredPositiveFlags()
                         + " cached=" + result.isFromCache() + " ageMs=" + (result.getCachedOn() == 0 ? "unavailable" : Math.max(0, System.currentTimeMillis() - result.getCachedOn())));
-                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason() + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
+                for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason()
+                        + (vote.getProvider().equals("blackbox") && vote.getStatus() == ProviderVote.Status.POSITIVE
+                            ? " evidence=" + com.github.gerolndnr.connectionguard.core.vpn.BlackboxVpnProvider.LISTED_REASON : "")
+                        + (vote.getProvider().equals("connectionguard-intel") && vote.getDetails().getDataAsOf() != null
+                            ? " evidence=Connection Guard Intel " + vote.getDetails().getClassifications() + " (" + java.time.Instant.ofEpochMilli(vote.getDetails().getDataAsOf()) + ")" : "")
+                        + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
                 reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
                         + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
                 for (AccessRule.Scope scope : new AccessRule.Scope[]{AccessRule.Scope.VPN, AccessRule.Scope.GEO}) {
@@ -74,6 +79,17 @@ public final class OperationsCommands {
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);
         lines.add("Cache=" + (ConnectionGuard.getCacheProvider() == null ? "unavailable" : ConnectionGuard.getCacheProvider().getClass().getSimpleName())
                 + "; " + messages.getString("ops.cache-health"));
+        if (ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider)
+            lines.add(((com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider) ConnectionGuard.getCacheProvider()).describe());
+        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = ConnectionGuard.getActiveDraft();
+        if (draft != null) lines.add("VPN strategy=" + (draft.failover ? "FAILOVER" : "CONSENSUS")
+                + " effectiveThreshold=" + draft.threshold + " maxExternalAttempts=" + draft.externalAttempts + " order=" + draft.keys);
+        lines.add(ConnectionGuard.torStatus());
+        if (draft != null && draft.intelSettings.enabled) lines.add(draft.intelSnapshot.describe(System.currentTimeMillis()));
+        lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
+        lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
+        ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
+                .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));
         lines.add("Identity declaredForwarding=" + ConnectionGuard.getSettings().trustForwardedIdentity
                 + " nativeFloodgate=" + ConnectionGuard.getSettings().nativeFloodgateIdentity
                 + "; " + messages.getString("ops.identity-authority"));

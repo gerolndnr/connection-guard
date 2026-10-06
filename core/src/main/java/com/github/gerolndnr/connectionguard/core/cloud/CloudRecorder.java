@@ -130,6 +130,7 @@ final class CloudRecorder implements DecisionObserver {
     }
 
     static String sourceId(String raw) {
+        if (raw.equals("blackbox") || raw.equals("ipcheck") || raw.equals("zowi")) return "vpn-" + raw;
         String id = raw.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]+", "-").replaceAll("^[^a-z]+", "");
         if (id.isEmpty()) id = "source";
         return id.length() > 32 ? id.substring(0, 32) : id;
@@ -174,6 +175,12 @@ final class CloudRecorder implements DecisionObserver {
             j.addProperty("isp", m == null ? null : clip(m.getIsp(), 128));
             Integer risk = m == null ? null : m.getRisk();
             j.addProperty("risk", risk == null ? null : Math.max(0, Math.min(100, risk)));
+            if (m != null) {
+                JsonArray types = new JsonArray();
+                for (DetectionMetadata.Type type : DetectionMetadata.Type.values()) if (Boolean.TRUE.equals(m.getTypes().get(type))) types.add(type.name());
+                if (types.size() > 0) j.add("types", types);
+                if (m.getDataAsOf() != null) j.addProperty("data_as_of", m.getDataAsOf());
+            }
             sources.add(j);
         }
         e.add("sources", sources);

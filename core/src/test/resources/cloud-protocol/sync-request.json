@@ -46,7 +46,13 @@
     },
     "capabilities": [
       "rule_expiry"
-    ]
+    ],
+    "vpn_unchecked_allowed": {
+      "total": 0,
+      "since_summary": 0,
+      "window_seconds": 300,
+      "reasons": {}
+    }
   },
   "counters": {
     "window_start": 1791099940000,

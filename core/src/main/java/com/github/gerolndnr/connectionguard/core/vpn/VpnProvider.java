@@ -12,5 +12,7 @@ public interface VpnProvider {
     /** Owned versioned adapters expose globally unique selected IDs without positional suffixes. */
     default boolean stableSourceId() { return false; }
     /** An unavailable extension cannot contribute a cached negative on a new query. */
+    /** In-memory local observations do not consume an external-attempt budget. */
+    default boolean isLocal() { return false; }
     default boolean isAvailable() { return true; }
 }

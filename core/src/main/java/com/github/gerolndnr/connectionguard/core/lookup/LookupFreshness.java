@@ -14,7 +14,7 @@ public final class LookupFreshness {
             if (!vote.isFresh(asOf)) {
                 expired = true;
                 votes.add(new ProviderVote(vote.getProvider(), ProviderVote.Status.UNKNOWN, FailureReason.STALE_DATA,
-                        vote.getDurationMillis(), DetectionDetails.empty(), 0, vote.getSourceVersion(), vote.isVoting()));
+                        vote.getDurationMillis(), DetectionDetails.empty().withDataAsOf(vote.getDetails().getDataAsOf()), 0, vote.getSourceVersion(), vote.isVoting()));
             } else votes.add(vote);
         }
         if (!expired) return input;

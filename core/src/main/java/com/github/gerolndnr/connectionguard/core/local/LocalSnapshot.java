@@ -32,7 +32,7 @@ public final class LocalSnapshot {
             return new LocalSnapshot(source, version, timeBasis, asOf, fetchedAt, null, database);
         }
         dates(asOf, fetchedAt, now);
-        if (!Arrays.asList("IMPORT_AS_OF", "HTTP_LAST_MODIFIED", "FETCH").contains(timeBasis)) throw new IllegalArgumentException("Invalid list time basis.");
+        if (!Arrays.asList("IMPORT_AS_OF", "HTTP_LAST_MODIFIED", "FETCH", "SIGNED_MANIFEST").contains(timeBasis)) throw new IllegalArgumentException("Invalid list time basis.");
         final String text;
         try { text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString(); }
         catch (CharacterCodingException invalid) { throw new IllegalArgumentException("List must be valid UTF-8."); }
@@ -56,6 +56,8 @@ public final class LocalSnapshot {
     private static void dates(long dataTime, long fetchedAt, long now) {
         if (dataTime <= 0 || fetchedAt <= 0 || dataTime > now + 300000 || fetchedAt > now + 300000) throw new IllegalArgumentException("Invalid local data date (values redacted).");
     }
+    int recordCount() { return index == null ? 0 : index.getRecords(); }
+    boolean contains(NetworkIndex.Address literal) { return index != null && index.contains(literal); }
     public long validUntil() { return dataTime == 0 ? 0 : dataTime + source.maxAgeMillis; }
     public FailureReason readiness(long now) { return dataTime == 0 ? FailureReason.NO_EVIDENCE : now >= validUntil() ? FailureReason.STALE_DATA : FailureReason.NONE; }
     public VpnResult vpn(String ip, long now) {

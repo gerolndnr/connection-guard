@@ -26,12 +26,24 @@ The plugin works fully without it. No account is required to use Connection Guar
 
 The exact wire format is open source: `packages/protocol` in `gerolndnr/connection-guard-cloud`.
 
-From 0.5.2, Cloud sync can also send bounded anonymous metadata for Connection Guard's own exceptions to error tracking and the linked dashboard, without exception messages or player data. `cloud.error-reports: false` disables it independently; all Cloud off switches disable it too. [Report fields, limits and privacy controls](PRIVACY.md).
+From 0.6.0, Cloud sync can also send bounded anonymous metadata for Connection Guard's own exceptions to error tracking and the linked dashboard, without exception messages or player data. `cloud.error-reports: false` disables it independently; all Cloud off switches disable it too. [Report fields, limits and privacy controls](PRIVACY.md).
 
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
 - **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard.
 
 ## Configuring the plugin from the dashboard
+
+The 0.6.0 candidate allowlist additionally accepts explicit Boolean switches
+`provider.vpn.blackbox.enabled`, `provider.vpn.ipcheck.enabled` and
+`provider.vpn.zowi.enabled`. Missing local selections snapshot as `false` and
+are never automatically activated on upgrade. Their health and event IDs are
+`vpn-blackbox`, `vpn-ipcheck`, `vpn-zowi`. A positive `vpn-blackbox` source means
+aggregate VPN/proxy/Tor/hosting/cloud membership and must be labelled that way
+by the dashboard. The existing strict event schema and `VPN_FLAG` enum are
+retained; no extra reason field or personal-data category is sent. Dashboard
+allowlist/display deployment is required before merge and does not change
+provider order automatically.
+[Player-IP recipients and opt-in](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
 
 Most everyday settings can be changed in the dashboard under **Settings**, in plain language instead of YAML:
 
@@ -81,9 +93,23 @@ Versioned local qualification drivers and their limits are in `ci/fixtures/cloud
 
 IP/CIDR rules can be permanent or time limited. Version 0.5.0 reports `rule_expiry`: UTC deadlines persist locally, expired rules never permit access, and background sync removes expired records. An invalid or already expired deadline rejects the command. These are operator access rules; they are not automatic identity-bound challenge grants.
 
-The current dashboard settings expose the original four VPN services and custom REST provider. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
+The coordinated dashboard also exposes the keyless-provider and Intel controls listed above. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
 
-### Apply dashboard changes now (from 0.5.2)
+
+## Connection Guard Intel — unreleased 0.6.0 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.
+### Apply dashboard changes now (from 0.6.0)
 
 Run `/cg cloud sync` to request one immediate check-in on the background worker. The command acknowledges immediately and then reports the applied settings version, that settings are up to date, or the existing failure state. It uses the same validation, reload and rollback path as automatic sync. Delivered settings are reported back after the existing five-second minimum delay; regular sync continues afterwards. If the server is busy, settings stay pending and retry automatically.
 

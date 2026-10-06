@@ -51,6 +51,7 @@ class PolicyVersionCommandsTest {
         GuardSettings effective = ConnectionGuard.getSettings(); assertEquals(Reason.VPN_FLAG, denial(effective));
         assertSame(base.lookup, effective.lookup); assertSame(base.webhooks, effective.webhooks);
         assertSame(base.admission, effective.admission); assertSame(base.admissionHooks, effective.admissionHooks);
+        assertSame(base.vpnFailover, effective.vpnFailover);
         PolicyJournal history = ConnectionGuard.getRuleStore().journal(); String original = history.revisions.get(1).id;
         assertEquals(fingerprint, history.find(original).policy.fingerprint());
         assertTrue(command("policy", "rollback", original, ConnectionGuard.policyActivationToken()).get(0).startsWith("Policy committed:"));
@@ -97,6 +98,7 @@ class PolicyVersionCommandsTest {
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.applyProviders(same));
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.setRequiredPositiveFlags(2));
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.setVpnProviders(new ArrayList<>()));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setFailover(false, 16));
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.setGeoProvider(null));
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.setCacheProvider(null));
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.setVpnCacheExpirationTime(1));

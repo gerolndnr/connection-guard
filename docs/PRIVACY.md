@@ -4,9 +4,21 @@ The [published privacy disclosure](https://connectionguard.net/privacy#plugin) d
 
 ## Local setup-notice preferences
 
+The unreleased 0.6.0 new-install template selects additional player-IP recipients:
+Blackbox, zowi and IPQuery. ip-check.net is available but **disabled by default**; enabling it explicitly adds another recipient. Existing configurations are not changed.
+Blackbox lists hosting/cloud as well as VPN/proxy/Tor; its published privacy policy
+names Cameron Munroe, while no written terms are published. ip-check.net publishes
+no operator, terms or privacy policy. zowi is operated by the FoxGate developer.
+Operators must include these recipients in their server privacy information
+before opting in; [endpoints, source links and controls](PROVIDERS.md#new-keyless-recipients-in-the-060-candidate).
+The `keyless-providers-v052.notice` marker stores only that the upgrade
+recommendation has been consumed, not player information.
+
 To show the dashboard join hint only once per authorized staff member and installation, the plugin stores SHA-256 hashes derived from staff UUIDs in `cloud/staff-dashboard-notices-v1.json`. The bounded private file contains neither plaintext UUIDs nor link codes. It stays on the server and is never included in Cloud sync or error reports. Deleting it while the plugin is stopped resets suppression. No player-name/IP field, Cloud event or external request is added by the join hint; see [linking notices](CLOUD.md).
 
-## Anonymous exception metadata, from 0.5.2
+## Anonymous exception metadata, from 0.6.0
+
+[Published error-report disclosure](https://connectionguard.net/privacy#error-reports).
 
 When Cloud is enabled, `cloud.error-reports` defaults to `true`, including existing configuration files that omit the option. Own exception metadata goes to the configured Cloud endpoint with the next regular background sync. The hosted Cloud forwards it to PostHog Error Tracking and shows it in the linked operator's dashboard. Set `cloud.error-reports: false` and reload to disable only error reports. Any Cloud off switch also disables them. A separate one-time console notice discloses the setting to existing installations; `/cg doctor` and `/cg cloud status` show its state, buffer and overflow count.
 
@@ -19,3 +31,18 @@ Disabling reports clears captured data and removes `errors` from an unsent retry
 Reporting is best effort. Fatal startup errors before configuration/Cloud initialization, a process crash, or stopping before the next successful sync can prevent delivery. Reporting adds no startup/shutdown HTTP request and never waits on a login. A self-hosted endpoint receives the same metadata; use an endpoint you trust. The open Cloud schema is `ErrorReport` in `gerolndnr/connection-guard-cloud/packages/protocol`; the Java contract fixture is `core/src/test/resources/cloud-protocol/sync-request-errors.json`.
 
 [bStats](BSTATS.md) uses separate statistics settings. [Detection providers](PROVIDERS.md) receive queried IP addresses according to the selected provider configuration; the error-reporting switch does not configure either system.
+
+
+## Connection Guard Intel — unreleased 0.6.0 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.
