@@ -187,6 +187,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                 }
             }
         } catch (RuntimeException | LinkageError failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             decision.error(); throw failure;
         } finally { decision.close(); }
     }

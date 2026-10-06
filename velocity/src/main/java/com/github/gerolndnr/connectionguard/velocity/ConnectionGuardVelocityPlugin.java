@@ -64,6 +64,10 @@ public class ConnectionGuardVelocityPlugin {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent initializeEvent) {
+        try { initializeGuard(initializeEvent); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.STARTUP); throw failure; }
+    }
+    private void initializeGuard(ProxyInitializeEvent initializeEvent) {
         // 1. Set logger
         ConnectionGuard.setLogger(java.util.logging.Logger.getLogger(logger.getName()));
 
@@ -82,6 +86,7 @@ public class ConnectionGuardVelocityPlugin {
         boolean existingInstallation = java.nio.file.Files.exists(dataDirectory.resolve("config.yml"));
         cgVelocityConfig = new CGVelocityConfig(dataDirectory);
         cgVelocityConfig.load();
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.prepareErrorReports(dataDirectory, path -> getCgVelocityConfig().getConfig().get(path));
 
         // 4. Register specified cache provider
         switch (cgVelocityConfig.getConfig().getString("provider.cache.type").toLowerCase()) {
@@ -153,6 +158,7 @@ public class ConnectionGuardVelocityPlugin {
         // Platform-standard bStats opt-out applies; no player identities or custom data are added.
         try { metrics = metricsFactory.make(this, 22913); }
         catch (RuntimeException | LinkageError unavailable) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(unavailable, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.OTHER);
             logger.warn("bStats initialization failed; connection checks remain active.");
         }
     }
@@ -161,7 +167,8 @@ public class ConnectionGuardVelocityPlugin {
     public void onProxyShutdown(com.velocitypowered.api.event.proxy.ProxyShutdownEvent event) {
         if (metrics != null) {
             try { metrics.shutdown(); }
-            catch (RuntimeException | LinkageError unavailable) { logger.warn("bStats shutdown failed; continuing plugin shutdown."); }
+            catch (RuntimeException | LinkageError unavailable) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(unavailable, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.OTHER); logger.warn("bStats shutdown failed; continuing plugin shutdown."); }
         }
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();

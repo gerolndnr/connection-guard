@@ -42,12 +42,17 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        try { enableGuard(); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.STARTUP); throw failure; }
+    }
+    private void enableGuard() {
         platformTasks = new PlatformTasks(this);
         getLogger().info("Platform task dispatch: " + platformTasks.mode());
         // 1. Save Default Config & set logger
         boolean existingInstallation = java.nio.file.Files.exists(getDataFolder().toPath().resolve("config.yml"));
         saveDefaultConfig();
         activeConfig = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml"));
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.prepareErrorReports(getDataFolder().toPath(), path -> getConfig().get(path, null));
         // Dashboard settings layer over config.yml in memory; the file is never written.
         com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), activeConfig::set);
 
@@ -143,6 +148,10 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
     @Override public org.bukkit.configuration.file.FileConfiguration getConfig() { return activeConfig != null ? activeConfig : super.getConfig(); }
     public void reloadAllConfigs() {
+        try { reloadGuardConfigs(); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.RELOAD); throw failure; }
+    }
+    private void reloadGuardConfigs() {
         synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
             YamlConfiguration next = new YamlConfiguration();
             try { next.load(new File(getDataFolder(), "config.yml")); }

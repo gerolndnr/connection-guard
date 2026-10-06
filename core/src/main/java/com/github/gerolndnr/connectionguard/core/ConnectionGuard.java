@@ -209,6 +209,7 @@ public class ConnectionGuard {
         } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
         } catch (RuntimeException | ExecutionException | TimeoutException failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.CACHE);
             // Do not forward exception details that may contain cache credentials.
         }
         throw new IllegalStateException("Connection Guard could not initialize the configured cache; "
@@ -433,7 +434,11 @@ public class ConnectionGuard {
             }).thenCompose(future -> future).whenComplete((answer, error) -> {
                 if (error == null && answer instanceof Optional && !((Optional<?>) answer).isPresent()) outcome.completeExceptionally(new LookupException(FailureReason.INVALID_RESPONSE));
                 else if (error == null) outcome.complete(answer);
-                else outcome.completeExceptionally(error);
+                else {
+                    Throwable cause = error instanceof java.util.concurrent.CompletionException && error.getCause() != null ? error.getCause() : error;
+                    if (!(cause instanceof LookupException)) com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(cause, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
+                    outcome.completeExceptionally(error);
+                }
             });
         } catch (RuntimeException error) { outcome.completeExceptionally(error); }
         return bounded;

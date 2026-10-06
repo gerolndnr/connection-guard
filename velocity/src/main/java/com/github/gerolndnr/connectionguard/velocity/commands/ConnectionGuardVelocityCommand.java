@@ -21,6 +21,10 @@ import java.util.concurrent.CompletableFuture;
 public class ConnectionGuardVelocityCommand implements SimpleCommand {
     @Override
     public void execute(Invocation invocation) {
+        try { executeGuard(invocation); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); throw failure; }
+    }
+    private void executeGuard(Invocation invocation) {
         final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         CommandSource commandSender = invocation.source();
         String[] args = invocation.arguments();
