@@ -101,6 +101,10 @@ class CloudSyncTest {
     private static void awaitDelivered(long expected) throws InterruptedException {
         for (int i = 0; i < 200 && DecisionObservers.delivered() < expected; i++) Thread.sleep(10);
     }
+    private static void awaitErrorBuffered() throws InterruptedException {
+        for (int i = 0; i < 500 && PluginErrorReports.bufferedForTest() == 0; i++) Thread.sleep(10);
+        assertTrue(PluginErrorReports.bufferedForTest() > 0, "The background collector has finished before testing the next sync.");
+    }
 
     @Test void disabledMeansNoRequestAtAll() {
         Map<String, Object> off = new HashMap<>(); off.put("cloud.enabled", false);
@@ -448,6 +452,7 @@ class CloudSyncTest {
     @Test void anonymousExceptionBatchUsesExactOptionalCloudContractAndClearsAfterSync() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.LOOKUP);
+        awaitErrorBuffered();
         CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first);
         JsonObject expected = JsonParser.parseString(fixture("sync-request-errors.json")).getAsJsonObject();
         assertEquals(expected.keySet(), first.keySet());
@@ -472,8 +477,13 @@ class CloudSyncTest {
 
     @Test void olderCloudRetriesIdenticalBatchOnceWithoutErrorsUntilRestart() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
         PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.SYNC);
+        awaitErrorBuffered();
         syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first);
+        assertEquals(1, first.getAsJsonArray("events").size(), "The error fallback also retains an actual decision batch.");
         assertTrue(first.has("errors")); assertTrue(first.getAsJsonObject("status").has("capabilities"));
         syncStatus = 200; CloudSync.runOnceForTest(); JsonObject retry = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retry);
         JsonObject without = first.deepCopy(); without.remove("errors"); assertEquals(without, retry);
@@ -486,6 +496,7 @@ class CloudSyncTest {
     @Test void errorsFallbackAndCapabilityFallbackPreserveSameSequenceAndBatch() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.SYNC);
+        awaitErrorBuffered();
         syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
         CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
         assertNotNull(first); assertNotNull(second); JsonObject expected = first.deepCopy(); expected.remove("errors"); assertEquals(expected, second);
@@ -496,6 +507,7 @@ class CloudSyncTest {
     @Test void disablingReportsAlsoRemovesErrorsFromAnUnsentRetryBatch() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.CACHE);
+        awaitErrorBuffered();
         syncStatus = 503; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first); assertTrue(first.has("errors"));
         startSync(Collections.singletonMap("cloud.error-reports", false));
         syncStatus = 200; CloudSync.runOnceForTest(); JsonObject next = syncs.poll(5, TimeUnit.SECONDS);

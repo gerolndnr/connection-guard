@@ -49,6 +49,7 @@ public final class PluginErrorReports implements AutoCloseable {
         PluginErrorReports owner = current;
         return owner == null ? new JsonArray() : owner.drain();
     }
+    static int bufferedForTest() { PluginErrorReports owner = current; return owner == null ? 0 : owner.buffered(); }
     public static synchronized void shutdown() {
         PluginErrorReports owner = current; current = null;
         if (owner != null) owner.close();
