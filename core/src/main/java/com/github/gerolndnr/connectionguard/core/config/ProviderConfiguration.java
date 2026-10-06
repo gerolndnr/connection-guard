@@ -31,6 +31,7 @@ public final class ProviderConfiguration {
     public final IntelSettings intelSettings;
     public final IntelDataStore intelStore;
     public final IntelSnapshot intelSnapshot;
+    public final boolean intelBootstrapPending;
     public final List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> extensionProviders;
     public final com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings observers;
     private final transient Function<String, Object> values;
@@ -44,6 +45,15 @@ public final class ProviderConfiguration {
     }
     public ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory,
                                  com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
+        this(value, providerKeys, dataDirectory, messages, true);
+    }
+    /** Startup never parses saved Intel indexes on the platform's lifecycle thread. Reloads still validate. */
+    public static ProviderConfiguration forStartup(Function<String, Object> value, List<String> providerKeys, Path dataDirectory,
+                                 com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
+        return new ProviderConfiguration(value, providerKeys, dataDirectory, messages, false);
+    }
+    private ProviderConfiguration(Function<String, Object> value, List<String> providerKeys, Path dataDirectory,
+                                 com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages, boolean loadIntel) {
         String language = com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));
         this.messages = messages == null ? com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults(language) : messages;
         if (!this.messages.language().equals(language)) throw new IllegalArgumentException("Message draft does not match selected language (value redacted).");
@@ -58,7 +68,8 @@ public final class ProviderConfiguration {
         localUpdateHours = local.updateHours;
         intelSettings = new IntelSettings(value);
         intelStore = intelSettings.enabled && dataDirectory != null ? new IntelDataStore(dataDirectory, intelSettings) : null;
-        try { intelSnapshot = intelStore == null ? IntelSnapshot.missing(intelSettings) : intelStore.load(System.currentTimeMillis()); }
+        intelBootstrapPending = intelStore != null && !loadIntel;
+        try { intelSnapshot = intelStore == null || intelBootstrapPending ? IntelSnapshot.missing(intelSettings) : intelStore.load(System.currentTimeMillis()); }
         catch (java.io.IOException invalid) { throw new IllegalArgumentException("Intel data invalid; previous configuration preserved (contents redacted)."); }
         localStore = local.vpnEnabled || local.geoEnabled ? new LocalDataStore(dataDirectory, local.sources) : null;
         List<LocalSnapshot> loaded = new ArrayList<>();

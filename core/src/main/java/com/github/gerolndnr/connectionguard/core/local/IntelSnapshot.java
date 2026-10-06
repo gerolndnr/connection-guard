@@ -63,7 +63,10 @@ public final class IntelSnapshot {
     public long validUntil(){return asOf==0?0:asOf+settings.maxAgeHours*3600000L;}
     public VpnResult vpn(String ip,long now){
         FailureReason ready=readiness(now);Map<DetectionDetails.Type,Boolean> types=new EnumMap<>(DetectionDetails.Type.class);
-        if(ready==FailureReason.NONE)for(LocalSource.Kind kind:kinds())if(Boolean.TRUE.equals(lists.get(kind).vpn(ip,now).getDetails().get(DetectionDetails.Type.valueOf(kind.name()))))types.put(DetectionDetails.Type.valueOf(kind.name()),true);
+        if(ready==FailureReason.NONE){
+            NetworkIndex.Address literal=new NetworkIndex.Address(ip);
+            for(LocalSource.Kind kind:kinds())if(lists.get(kind).contains(literal))types.put(DetectionDetails.Type.valueOf(kind.name()),true);
+        }
         boolean positive=types.containsKey(DetectionDetails.Type.VPN)||types.containsKey(DetectionDetails.Type.TOR)||settings.relay==IntelSettings.Relay.VPN&&types.containsKey(DetectionDetails.Type.RELAY);
         boolean relayAllowed=!positive&&types.containsKey(DetectionDetails.Type.RELAY)&&settings.relay==IntelSettings.Relay.ALLOW;
         VpnResult result=new VpnResult(ip,positive,positive?Optional.of("Listed as "+types.keySet()+" (Connection Guard Intel, "+Instant.ofEpochMilli(asOf)+")"):Optional.empty());

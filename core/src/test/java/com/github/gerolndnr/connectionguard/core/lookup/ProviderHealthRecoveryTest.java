@@ -4,6 +4,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProviderHealthRecoveryTest {
+    @Test void firstTimeoutPausesWithoutWaitingForFailureThresholdAndLateSuccessCannotReopen() {
+        ProviderHealth h = new ProviderHealth(); long now = System.currentTimeMillis();
+        assertEquals(FailureReason.NONE, h.reserve(now));
+        h.record(FailureReason.TIMEOUT, new LookupException(FailureReason.TIMEOUT), LookupSettings.defaults());
+        assertEquals(FailureReason.CIRCUIT_OPEN, h.reserve(now + 100));
+        h.record(FailureReason.NONE, null, LookupSettings.defaults()); // An already-running request finishes late.
+        assertEquals(FailureReason.CIRCUIT_OPEN, h.reserve(now + 200));
+        assertEquals(FailureReason.TIMEOUT, h.snapshot().lastReason);
+        assertEquals(FailureReason.NONE, h.reserve(System.currentTimeMillis() + 31000));
+        assertEquals(FailureReason.CIRCUIT_OPEN, h.reserve(System.currentTimeMillis() + 31000));
+    }
     @Test void configuredPauseHasOneHalfOpenProbeWithoutHiddenShortening() {
         ProviderHealth h = new ProviderHealth(); LookupSettings settings = new LookupSettings(5000, 1000, 8, 64, 128, 1, 30000);
         long now = System.currentTimeMillis(); assertEquals(FailureReason.NONE, h.reserve(now));

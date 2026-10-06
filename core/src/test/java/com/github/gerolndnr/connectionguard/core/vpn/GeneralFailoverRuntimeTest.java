@@ -102,6 +102,24 @@ class GeneralFailoverRuntimeTest {
     private VpnResult lookup(String ip) throws Exception { return ConnectionGuard.getVpnResult(ip).get(3, TimeUnit.SECONDS); }
     private int calls(String id) { return calls.containsKey(id) ? calls.get(id).get() : 0; }
 
+    @Test void exhaustedBudgetIsRejectedBeforeAllocatingAnyTransportJobEvenWhenPoolIsFull() throws Exception {
+        values.put("provider.vpn.custom-a.daily-budget",1);activate(draft("custom-a"));
+        assertEquals(ProviderVote.Status.NEGATIVE,lookup("192.0.2.230").getStatus());idle();
+        LookupRuntime runtime=ConnectionGuard.getLookupRuntime();int workers=runtime.getSettings().workers,capacity=runtime.getSettings().queueCapacity;
+        CountDownLatch entered=new CountDownLatch(workers),release=new CountDownLatch(1);
+        List<CompletableFuture<Void>> jobs=new ArrayList<>();
+        try{
+            for(int i=0;i<workers;i++)jobs.add(runtime.submit(()->{entered.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}return null;}));
+            assertTrue(entered.await(1,TimeUnit.SECONDS));for(int i=0;i<capacity;i++)jobs.add(runtime.submit(()->null));
+            for(int i=1;i<=10;i++){
+                CompletableFuture<VpnResult> future=ConnectionGuard.getVpnResult("198.51.100."+i);
+                assertTrue(future.isDone(),"Used-up budget must not wait for transport workers");
+                assertEquals(FailureReason.BUDGET_EXHAUSTED,future.get().getVotes().get(0).getReason());
+            }
+            assertEquals(capacity,runtime.getQueueSize());assertEquals(1,calls("custom-a"));
+        }finally{release.countDown();CompletableFuture.allOf(jobs.toArray(new CompletableFuture[0])).get(2,TimeUnit.SECONDS);idle();}
+    }
+
     @ParameterizedTest @ValueSource(strings = {"429", "503", "malformed", "incomplete", "timeout"})
     void customProvidersFailOverOnActualHttpFailuresAndStopAtTheFirstVerdict(String error) throws Exception {
         fault = error; activate(draft("custom-a", "custom-b", "custom-c"));

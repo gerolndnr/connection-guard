@@ -36,7 +36,8 @@ lookup:
   # One eligible-login check budget: permissions, admission, cache and detection.
   # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
-  http-timeout-ms: 2500
+  # Per external attempt (entire call, connect and read). A timeout opens that source's circuit immediately.
+  http-timeout-ms: 1500
   workers: 8
   queue-capacity: 64
   max-inflight: 128

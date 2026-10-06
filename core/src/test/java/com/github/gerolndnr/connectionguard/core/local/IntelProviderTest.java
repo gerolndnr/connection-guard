@@ -122,4 +122,27 @@ class IntelProviderTest {
         assertTrue(expired.getVotes().get(0).getDetails().getClassifications().isEmpty());assertEquals(good.asOf,expired.getVotes().get(0).getDetails().getDataAsOf());
     }
 
+    @Test void intelMembershipNeverWaitsBehindSaturatedHttpWorkers()throws Exception{
+        com.github.gerolndnr.connectionguard.core.ConnectionGuard.setLogger(null);
+        com.github.gerolndnr.connectionguard.core.ConnectionGuard.setCacheProvider(new NoCacheProvider());
+        Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.geo.service","Disabled");v.put("lookup.workers",1);v.put("lookup.queue-capacity",1);
+        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft=new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(v::get,Collections.emptyList());
+        draft.providers.set(0,new IntelVpnProvider(update()));
+        com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(draft);
+        LookupRuntime runtime=com.github.gerolndnr.connectionguard.core.ConnectionGuard.getLookupRuntime();CountDownLatch entered=new CountDownLatch(1),release=new CountDownLatch(1);
+        CompletableFuture<Void> active=runtime.submit(()->{entered.countDown();try{release.await();}catch(InterruptedException e){Thread.currentThread().interrupt();}return null;});
+        assertTrue(entered.await(1,TimeUnit.SECONDS));CompletableFuture<Void> queued=runtime.submit(()->null);
+        try{
+            for(int i=1;i<16;i++){
+                CompletableFuture<VpnResult> lookup=com.github.gerolndnr.connectionguard.core.ConnectionGuard.getVpnResult("192.0.2."+i);
+                assertTrue(lookup.isDone(),"Immutable Intel membership must not allocate a transport job");assertTrue(lookup.get().isVpn());
+            }
+            assertEquals(1,runtime.getQueueSize());
+        }finally{
+            release.countDown();active.get(1,TimeUnit.SECONDS);queued.get(1,TimeUnit.SECONDS);
+            long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);while(!runtime.isIdle()&&System.nanoTime()<until)Thread.sleep(2);
+            com.github.gerolndnr.connectionguard.core.ConnectionGuard.applyProviders(new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(k->null,Collections.emptyList()));
+        }
+    }
+
 }

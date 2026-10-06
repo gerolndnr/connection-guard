@@ -310,7 +310,7 @@ public class ConnectionGuard {
         VpnProvider provider = providers.get(index);
         return vpnSource(ip, provider, index, sources, runtime, started).thenCompose(completed -> {
             if (completed.vote.isVoting() && completed.vote.getStatus() != ProviderVote.Status.UNKNOWN) return CompletableFuture.completedFuture(null);
-                boolean transmitted = completed.attempted && !provider.isLocal();
+            boolean transmitted = completed.attempted && !provider.isLocal();
             return failoverChain(ip, providers, sources, runtime, started, index + 1, sent + (transmitted ? 1 : 0), maximum);
         });
     }
@@ -321,7 +321,10 @@ public class ConnectionGuard {
         sources.set(index, new CompletedSource(new ProviderVote(name, ProviderVote.Status.UNKNOWN, FailureReason.TIMEOUT, elapsed(started)), Optional.empty()));
         java.util.concurrent.atomic.AtomicBoolean attempted = new java.util.concurrent.atomic.AtomicBoolean();
         CompletableFuture<Optional<VpnResult>> job;
-        if (provider instanceof com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider)
+        if (provider instanceof com.github.gerolndnr.connectionguard.core.local.IntelVpnProvider
+                || provider instanceof com.github.gerolndnr.connectionguard.core.local.LocalVpnProvider)
+            job = localProviderCall(runtime, name, provider, ipAddress, remaining);
+        else if (provider instanceof com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider)
             job = ((com.github.gerolndnr.connectionguard.core.vpn.ProxyCheckVpnProvider) provider).getVpnResult(ipAddress, remaining, () -> attempted.set(true));
         else if (provider.isAvailable()) job = providerCall(runtime, name, () -> provider.getVpnResult(ipAddress), remaining, () -> attempted.set(true));
         else {
@@ -357,6 +360,26 @@ public class ConnectionGuard {
                     sources.set(index, completed);
                     return completed;
         });
+    }
+
+    /** Only final built-in immutable indexes bypass transport workers; arbitrary addons never do. */
+    private static CompletableFuture<Optional<VpnResult>> localProviderCall(LookupRuntime runtime, String name,
+            VpnProvider provider, String ip, long remaining) {
+        ProviderHealth state = health.computeIfAbsent(quotaKey(name), key -> new ProviderHealth());
+        FailureReason admission = !runtime.isOpen() ? FailureReason.CANCELLED
+                : remaining <= 0 ? FailureReason.TIMEOUT : state.reserve(System.currentTimeMillis());
+        if (admission != FailureReason.NONE) {
+            CompletableFuture<Optional<VpnResult>> rejected = new CompletableFuture<>();
+            rejected.completeExceptionally(new LookupException(admission)); return rejected;
+        }
+        try {
+            return provider.getVpnResult(ip).whenComplete((answer, error) ->
+                    state.record(error == null ? FailureReason.NONE : LookupException.reason(error), error, runtime.getSettings()));
+        } catch (RuntimeException invalid) {
+            state.record(LookupException.reason(invalid), invalid, runtime.getSettings());
+            CompletableFuture<Optional<VpnResult>> rejected = new CompletableFuture<>();
+            rejected.completeExceptionally(invalid); return rejected;
+        }
     }
 
     private static final class CompletedSource {

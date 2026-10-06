@@ -22,7 +22,7 @@ class KeylessProviderConfigurationTest {
         ProviderConfiguration draft = new ProviderConfiguration(path -> value(yaml, path), keys(yaml));
         assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "ipcheck", "zowi", "ipquery", "ip-api"), draft.keys);
         assertNull(draft.geo); assertFalse(draft.settings.observe); assertEquals(5000, draft.settings.lookup.deadlineMillis);
-        assertEquals(2500, draft.settings.lookup.httpTimeoutMillis); assertEquals(8, draft.settings.lookup.workers);
+        assertEquals(1500, draft.settings.lookup.httpTimeoutMillis); assertEquals(8, draft.settings.lookup.workers);
         assertEquals(64, draft.settings.lookup.queueCapacity); assertEquals(128, draft.settings.lookup.maxInflight); assertEquals(30000, draft.settings.lookup.circuitPauseMillis);
         for (int pos = 2; pos <= 4; pos++) {
             String id = draft.keys.get(pos); assertEquals(id, ConnectionGuard.providerId(draft.providers.get(pos), pos));

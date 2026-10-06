@@ -23,15 +23,16 @@ public final class LocalDataCommands {
         scheduled = null;
         if (intelScheduled != null) intelScheduled.cancel(false);
         intelScheduled = null;
-        if (draft.intelStore != null && draft.intelSettings.updateHours > 0 && !"false".equalsIgnoreCase(System.getenv("CONNECTIONGUARD_INTEL_REFRESH"))) {
+        boolean fetchIntel = draft.intelSettings.updateHours > 0 && !"false".equalsIgnoreCase(System.getenv("CONNECTIONGUARD_INTEL_REFRESH"));
+        if (draft.intelStore != null && (draft.intelBootstrapPending || fetchIntel)) {
             intelScheduled = TIMER.scheduleWithFixedDelay(() -> {
                 if (ConnectionGuard.getActiveDraft() != draft) return;
                 long now = System.currentTimeMillis();
-                if (draft.intelSnapshot.readiness(now) == com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE
+                if (!draft.intelBootstrapPending && draft.intelSnapshot.readiness(now) == com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE
                         && now - draft.intelSnapshot.fetchedAt < TimeUnit.HOURS.toMillis(draft.intelSettings.updateHours)) return;
-                try { WORKER.execute(() -> automaticIntel(draft)); }
+                try { WORKER.execute(() -> { if (draft.intelBootstrapPending) bootstrapIntel(draft); else automaticIntel(draft); }); }
                 catch (RejectedExecutionException busy) { alert("Intel updater busy; last verified generation retained."); }
-            }, 0, draft.intelSettings.updateHours, TimeUnit.HOURS);
+            }, 0, Math.max(1, draft.intelSettings.updateHours), TimeUnit.HOURS);
         }
         if (draft.localUpdateHours == 0 || draft.localStore == null) return;
         scheduled = TIMER.scheduleWithFixedDelay(() -> {
@@ -39,6 +40,19 @@ public final class LocalDataCommands {
             try { WORKER.execute(() -> automatic(draft)); }
             catch (RejectedExecutionException busy) { alert("Local data updater is busy; active generation preserved."); }
         }, draft.localUpdateHours, draft.localUpdateHours, TimeUnit.HOURS);
+    }
+    private static void bootstrapIntel(ProviderConfiguration current) {
+        if (ConnectionGuard.getActiveDraft() != current) return;
+        // Reverification and index construction happen entirely on the local-data worker.
+        try { activate(current); }
+        catch (Exception unavailable) {
+            alert("Saved Intel load/activation unavailable; Intel remains UNKNOWN. Other protection stays active; retry /cg local reload.");
+            TIMER.schedule(() -> {
+                if (ConnectionGuard.getActiveDraft() != current) return;
+                try { WORKER.execute(() -> bootstrapIntel(current)); }
+                catch (RejectedExecutionException busy) { alert("Intel bootstrap busy; retry /cg local reload."); }
+            }, 1, TimeUnit.MINUTES);
+        }
     }
     private static void automaticIntel(ProviderConfiguration current) {
         if (ConnectionGuard.getActiveDraft() != current) return;

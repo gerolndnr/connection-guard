@@ -4,6 +4,9 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 
 ## Unreleased — 0.5.2-SNAPSHOT
 
+- Bound external HTTP attempts to 1500ms by default and open a source circuit on its first timeout; preserve explicit timeout choices, source failover and existing pool/pause/login limits. Local quota skips allocate no transport work.
+- Load saved signed Intel bundles asynchronously at platform startup and keep Intel UNKNOWN until ready. Immutable local membership bypasses HTTP workers and shares one parsed address across four indexes.
+
 - Add built-in **Connection Guard Intel** before VPN APIs on new installations;
   existing configurations require explicit opt-in. Daily background fetches from
   https://intel.connectionguard.net/ send no player IP. Verify an ECDSA P-256

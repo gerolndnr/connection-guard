@@ -22,7 +22,9 @@ import com.github.gerolndnr.connectionguard.core.lookup.*;
 /** Shared bounded HTTP transport; provider failures never include URLs or keys in logs. */
 public final class ProviderHttp {
     private static volatile OkHttpClient CLIENT = new OkHttpClient.Builder()
-            .callTimeout(2500, TimeUnit.MILLISECONDS)
+            .callTimeout(1500, TimeUnit.MILLISECONDS)
+            .connectTimeout(1500, TimeUnit.MILLISECONDS)
+            .readTimeout(1500, TimeUnit.MILLISECONDS)
             .followRedirects(false)
             .followSslRedirects(false)
             .build();
@@ -30,7 +32,9 @@ public final class ProviderHttp {
     private ProviderHttp() { }
 
     public static void configure(LookupSettings settings) {
-        CLIENT = CLIENT.newBuilder().callTimeout(settings.httpTimeoutMillis, TimeUnit.MILLISECONDS).build();
+        CLIENT = CLIENT.newBuilder().callTimeout(settings.httpTimeoutMillis, TimeUnit.MILLISECONDS)
+                .connectTimeout(settings.httpTimeoutMillis, TimeUnit.MILLISECONDS)
+                .readTimeout(settings.httpTimeoutMillis, TimeUnit.MILLISECONDS).build();
     }
 
     public static <T> CompletableFuture<T> submit(Supplier<T> operation) {

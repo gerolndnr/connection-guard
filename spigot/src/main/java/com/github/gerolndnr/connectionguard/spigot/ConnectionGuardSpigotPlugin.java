@@ -109,7 +109,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                 return;
         }
 
-        ProviderConfiguration draft = new ProviderConfiguration(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
+        ProviderConfiguration draft = ProviderConfiguration.forStartup(path -> getConfig().get(path, null), new ArrayList<>(getConfig().getConfigurationSection("provider.vpn").getKeys(false)), getDataFolder().toPath(), selectedMessages.messages);
         ConnectionGuard.applyProviders(draft);
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());

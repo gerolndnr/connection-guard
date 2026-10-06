@@ -57,6 +57,7 @@ public final class LocalSnapshot {
         if (dataTime <= 0 || fetchedAt <= 0 || dataTime > now + 300000 || fetchedAt > now + 300000) throw new IllegalArgumentException("Invalid local data date (values redacted).");
     }
     int recordCount() { return index == null ? 0 : index.getRecords(); }
+    boolean contains(NetworkIndex.Address literal) { return index != null && index.contains(literal); }
     public long validUntil() { return dataTime == 0 ? 0 : dataTime + source.maxAgeMillis; }
     public FailureReason readiness(long now) { return dataTime == 0 ? FailureReason.NO_EVIDENCE : now >= validUntil() ? FailureReason.STALE_DATA : FailureReason.NONE; }
     public VpnResult vpn(String ip, long now) {

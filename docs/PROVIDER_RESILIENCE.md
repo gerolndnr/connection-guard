@@ -226,3 +226,20 @@ Endpoint/key are bundled and cannot be managed remotely. See
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. This candidate awaits a
 new full benchmark and is not included in stable0.5.1.
+
+## Final candidate latency changes (0.5.2, unreleased)
+
+The external HTTP attempt default is now 1500ms, supported by the measured ProxyCheck
+response timings and the hanging-host regression. Existing explicit timeouts remain
+operator choices. The first TIMEOUT opens that provider's circuit immediately; late
+success from an already-running request cannot erase the pause. One half-open probe
+rechecks the provider after the configured pause. Local quota/circuit refusal allocates
+no transport jobs. Pools, queues, in-flight limits, pause and the 5000ms whole-login
+ceiling remain unchanged. Failover to available sources is preserved, as confirmed by
+Gero: if several untested sources time out sequentially, aggregate latency may exceed
+2s until their circuits are open. Measured limits must be reported per case.
+
+Signed Intel startup disk validation/index building is asynchronous and temporarily
+UNKNOWN; queries use immutable binary-search indexes without index locks and do not
+queue behind transport workers. This does not establish competitive burst percentiles;
+the new exact candidate is measured separately.

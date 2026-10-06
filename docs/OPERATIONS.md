@@ -10,6 +10,16 @@ New installations use `operation.mode: OBSERVE`: classification and staff notice
 
 `failure-policy.vpn` and `.geo` accept `OPEN`, `OBSERVE`, `CLOSED`. Missing or incomplete answers are **UNKNOWN**, not negative. `OPEN`/`OBSERVE` allow them; `CLOSED` temporarily denies a login with a verification-unavailable message, without executing bans, normal positive-result commands or legacy TEXT webhooks. Explicit [rich decision webhooks](WEBHOOKS.md) can report that actual denial when DENY is selected. Global OBSERVE overrides denials. A healthy vote does not lower `required-positive-flags` after an outage. Positive threshold decisions remain cacheable; incomplete negative answers do not.
 
+The following table describes stable 0.5.1 defaults. In the unreleased 0.5.2 candidate,
+`lookup.http-timeout-ms` defaults to **1500 ms** (whole HTTP call, connect and read).
+An explicitly configured value is retained. A transport timeout opens that source's
+circuit immediately, without waiting for `lookup.circuit.failures`; the existing
+30s pause and one half-open probe remain. Used-up quotas and open circuits are
+rejected locally before any transport job is allocated. Available fallback sources
+continue to be tried; multiple previously untested hanging sources can therefore
+take more than two seconds together, within the unchanged 5000ms login ceiling.
+These bounds are not a promise that every outage login completes within 300ms.
+
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `lookup.deadline-ms` | 5000 | Whole-login wait budget, including identity inspection, permissions, admission, cache and provider queue |

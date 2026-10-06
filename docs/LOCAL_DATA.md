@@ -41,8 +41,13 @@ All four immutable indexes activate together behind one atomic disk-generation
 pointer. Every load rechecks signature and file hashes. An update failure keeps
 the last good generation; an in-flight login never sees a partially replaced set.
 Publication uses the existing quiescent local-data activation gate and can stage
-for `/cg local reload` if admissions remain busy. The startup fetch is background
-work and is not awaited by logins. No data subscription or terms are accepted.
+for `/cg local reload` if admissions remain busy. At every server startup, even the saved manifest/signature verification and index
+construction run on the separate local-data worker. Intel is UNKNOWN until that
+complete generation can activate; ordinary config reloads still validate saved data
+and preserve the active configuration on rejection. Loading a cached bundle still
+runs when automatic downloads are disabled. The startup fetch is background work
+and is not awaited by logins. Built-in immutable list lookups bypass HTTP workers,
+parse the literal address once for all four indexes and take no index locks. No data subscription or terms are accepted.
 
 Failover checks bundled Tor first, then Intel, then configured APIs. A VPN/TOR hit
 is positive and avoids subsequent VPN-provider queries. Pure RELAY membership with

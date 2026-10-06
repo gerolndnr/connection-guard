@@ -49,7 +49,7 @@ public final class ProviderHealth {
     public synchronized void record(FailureReason reason, Throwable error, LookupSettings settings) {
         probe = false;
         if ((reason == FailureReason.NONE || reason == FailureReason.NO_EVIDENCE || reason == FailureReason.STALE_DATA)
-                && System.currentTimeMillis() < pausedUntil && (lastReason == FailureReason.RATE_LIMIT || lastReason == FailureReason.BUDGET_EXHAUSTED)) { successes++; return; }
+                && System.currentTimeMillis() < pausedUntil && (lastReason == FailureReason.TIMEOUT || lastReason == FailureReason.RATE_LIMIT || lastReason == FailureReason.BUDGET_EXHAUSTED)) { successes++; return; }
         lastReason = reason;
         if (reason == FailureReason.NONE || reason == FailureReason.NO_EVIDENCE || reason == FailureReason.STALE_DATA) { successes++; failures = 0; pausedUntil = 0; return; }
         if (reason == FailureReason.OVERLOADED || reason == FailureReason.CANCELLED) return;
@@ -57,7 +57,7 @@ public final class ProviderHealth {
         long pause = settings.circuitPauseMillis;
         while (error instanceof CompletionException) error = error.getCause();
         if (error instanceof LookupException) pause = Math.max(pause, ((LookupException) error).getRetryAfterMillis());
-        if (reason == FailureReason.RATE_LIMIT || reason == FailureReason.BUDGET_EXHAUSTED || ++failures >= settings.circuitFailures) {
+        if (reason == FailureReason.TIMEOUT || reason == FailureReason.RATE_LIMIT || reason == FailureReason.BUDGET_EXHAUSTED || ++failures >= settings.circuitFailures) {
             pausedUntil = System.currentTimeMillis() + Math.min(86400000, pause);
         }
     }
