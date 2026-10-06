@@ -59,6 +59,8 @@ def verify(artifact, version):
             for policy_type in ("policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
                                 "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
                                 "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
+                                "policy/PolicyJournal", "policy/PolicyJournal$Revision", "policy/PolicyJournal$Operation",
+                                "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State",
                                 "commands/PolicyCommands"):
                 entry = PACKAGE.replace(".", "/") + "/core/" + policy_type + ".class"
                 require(names.count(entry) == 1, f"Missing or duplicate policy runtime type: {policy_type}")
