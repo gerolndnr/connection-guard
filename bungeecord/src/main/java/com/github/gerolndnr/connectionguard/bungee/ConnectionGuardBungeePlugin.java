@@ -140,6 +140,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ConnectionGuard.initializeRules(getDataFolder().toPath());
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
         com.github.gerolndnr.connectionguard.core.config.KeylessProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.IntelProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
         ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.

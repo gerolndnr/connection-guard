@@ -286,6 +286,18 @@ provider:
           # Leave empty if this detection provider does not give information about the vpn provider.
           field-name: "data#vpnProvider"
   local:
+    # Built-in signed lists hosted by Connection Guard at https://intel.connectionguard.net/.
+    # Daily background manifest/signature + VPN/Tor/Relay/Hosting fetch; NO player IP is sent.
+    # New-install template only. Existing installations must explicitly opt in.
+    # Trust key is bundled in the plugin; no runtime URL/key override. Missing/stale = UNKNOWN.
+    connectionguard-intel:
+      enabled: true
+      update-hours: 24
+      max-age-hours: 72
+      # ALLOW: a relay-only hit is a negative VPN verdict in failover (not an exemption).
+      # Explicit Intel VPN/Tor hits take priority. VPN classifies relay membership positively.
+      # HOSTING is enrichment/review only in both modes.
+      relay: ALLOW
     # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
     # MMDBs are always operator-imported, with their embedded build date and your source's license.
     update-hours: 0

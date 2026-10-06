@@ -1,11 +1,75 @@
 # Local lists and Geo/ASN data
 
-Development documentation for the next release. The published 0.4.10 tag does not contain these features.
+The built-in Connection Guard Intel source below belongs to the unreleased 0.5.2 candidate.
+Operator-provided local lists/MMDBs are separate, optional sources.
 
-Local sources are optional and disabled by default. They do not send player IPs to a detection API. A configured
+Operator-provided local sources are optional and disabled by default. They do not send player IPs to a detection API. A configured
 public list download contacts its host to fetch the list, without a player IP. No data subscription or automatic
 license/account acceptance is performed. Attribution declares your actual data source and license; it does not
 grant a license or validate the accuracy of that source.
+
+
+## Built-in Connection Guard Intel (0.5.2 candidate)
+
+New installations enable `provider.local.connectionguard-intel` with a daily background
+update from **https://intel.connectionguard.net/**. Existing configurations remain off
+unless they explicitly opt in; a once-only console recommendation never edits YAML.
+The HTTPS list fetch sends **no player IP, UUID or name**. The host sees the server's
+normal download connection; switching Cloud off does not switch Intel off.
+
+```yaml
+provider:
+  local:
+    connectionguard-intel:
+      enabled: true
+      update-hours: 24 # 0 disables automatic fetches; manual update remains available
+      max-age-hours: 72
+      relay: ALLOW # ALLOW or VPN
+```
+
+The bundled ECDSA P-256 key authenticates the exact manifest bytes with Java8
+`SHA256withECDSA`. The endpoint and trust key cannot be changed by YAML or Cloud;
+key rotation requires a plugin update. A bounded manifest (64KiB) and signature
+(256 bytes) are verified before any lists are fetched. VPN, TOR, RELAY and HOSTING
+files must match the signed size, SHA-256 and record count. List limits remain
+4MiB/100,000 networks each. Evaluation-only, future-dated, rollback and malformed
+bundles are rejected. Source attribution/terms are published in the signed manifest
+and the [public Intel repository](https://github.com/gerolndnr/connection-guard-intel);
+its licence does not replace upstream source terms or prove detection accuracy.
+
+All four immutable indexes activate together behind one atomic disk-generation
+pointer. Every load rechecks signature and file hashes. An update failure keeps
+the last good generation; an in-flight login never sees a partially replaced set.
+Publication uses the existing quiescent local-data activation gate and can stage
+for `/cg local reload` if admissions remain busy. The startup fetch is background
+work and is not awaited by logins. No data subscription or terms are accepted.
+
+Failover checks bundled Tor first, then Intel, then configured APIs. A VPN/TOR hit
+is positive and avoids subsequent VPN-provider queries. Pure RELAY membership with
+`relay: ALLOW` is a negative generic VPN verdict and stops the sequential chain,
+with RELAY metadata retained; it is **not a permission/access-rule exemption**.
+Explicit Intel VPN/TOR hits take precedence over overlapping RELAY ranges.
+`relay: VPN` makes a relay-only hit positive, still classified as RELAY rather than
+inventing a VPN type. HOSTING alone remains UNKNOWN review evidence, allowing the
+chain to continue. Unlisted addresses are UNKNOWN, never an assumed clean IP.
+Consensus mode retains its normal multi-source aggregation and may consult APIs.
+A separately selected external Geo source still performs its configured Geo check.
+
+Data becomes STALE/UNKNOWN after the signed `as_of` plus `max-age-hours`; stale
+classifications cannot block or enter metadata rules. Cache facts cannot outlive
+that expiry; generation, freshness setting and relay choice partition the cache.
+`/cg local status`, `/cg providers`, `/cg doctor` and `/cg explain <IP>` identify
+`connectionguard-intel`, observed types and manifest `as_of`. To fetch manually:
+`/cg local update connectionguard-intel`, requiring the existing local permission.
+
+The coordinated Cloud settings are the Boolean `.enabled` and enum `.relay` only.
+Health/event ID: `connectionguard-intel`. Per-source optional `types` contains only
+observed true categories, at most five; `data_as_of` is the manifest epoch ms.
+Unknown fields are omitted. Hosting is review, and allowed relay remains a
+NEGATIVE source with RELAY metadata. The Cloud schema accepting these optional
+fields must be deployed before integration; this adds dataset provenance, no
+new personal-data category. Full comparative acceptance of the exact new candidate
+remains pending; overlapping source/benchmark lists are not independent evidence.
 
 ## Evidence and freshness
 

@@ -175,6 +175,12 @@ final class CloudRecorder implements DecisionObserver {
             j.addProperty("isp", m == null ? null : clip(m.getIsp(), 128));
             Integer risk = m == null ? null : m.getRisk();
             j.addProperty("risk", risk == null ? null : Math.max(0, Math.min(100, risk)));
+            if (m != null) {
+                JsonArray types = new JsonArray();
+                for (DetectionMetadata.Type type : DetectionMetadata.Type.values()) if (Boolean.TRUE.equals(m.getTypes().get(type))) types.add(type.name());
+                if (types.size() > 0) j.add("types", types);
+                if (m.getDataAsOf() != null) j.addProperty("data_as_of", m.getDataAsOf());
+            }
             sources.add(j);
         }
         e.add("sources", sources);

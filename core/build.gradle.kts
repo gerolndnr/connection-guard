@@ -44,6 +44,8 @@ java {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    // Production Intel refresh is outside tests; fixtures use owned loopback transport.
+    environment("CONNECTIONGUARD_INTEL_REFRESH", "false")
     // Changing the owned Redis fixture must not reuse a previous skipped/integration test report.
     inputs.property("redisFixturePort", providers.environmentVariable("CG_TEST_REDIS").orElse("disabled"))
 }

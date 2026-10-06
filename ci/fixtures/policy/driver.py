@@ -26,6 +26,7 @@ def main():
     assert artifact.is_relative_to(checkout/'build/libs') and digest(artifact)==args.sha256
     assert re.fullmatch('[a-z0-9-]+',args.fixture)
     os.environ['CONNECTIONGUARD_CLOUD']='false'
+    os.environ['CONNECTIONGUARD_INTEL_REFRESH']='false'
     backend=args.platform in RUNTIMES
     base=ROOT/'.runtime'/('backend-smoke' if backend else 'native-bungee-smoke' if args.platform=='bungee' else 'policy-smoke')
     work=base/args.fixture;assert not work.exists();work.mkdir(parents=True,mode=0o700)

@@ -94,3 +94,18 @@ Versioned local qualification drivers and their limits are in `ci/fixtures/cloud
 IP/CIDR rules can be permanent or time limited. Version 0.5.0 reports `rule_expiry`: UTC deadlines persist locally, expired rules never permit access, and background sync removes expired records. An invalid or already expired deadline rejects the command. These are operator access rules; they are not automatic identity-bound challenge grants.
 
 The current dashboard settings expose the original four VPN services and custom REST provider. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
+
+
+## Connection Guard Intel — unreleased 0.5.2 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.

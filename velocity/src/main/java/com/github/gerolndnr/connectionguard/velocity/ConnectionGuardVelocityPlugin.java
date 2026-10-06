@@ -134,6 +134,7 @@ public class ConnectionGuardVelocityPlugin {
         ConnectionGuard.initializeRules(dataDirectory);
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(dataDirectory, existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
         com.github.gerolndnr.connectionguard.core.config.KeylessProviderNotice.show(dataDirectory, existingInstallation, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.IntelProviderNotice.show(dataDirectory, existingInstallation, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
         ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.

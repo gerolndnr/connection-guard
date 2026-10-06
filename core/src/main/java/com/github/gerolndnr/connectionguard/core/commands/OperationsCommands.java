@@ -39,6 +39,8 @@ public final class OperationsCommands {
                 for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason()
                         + (vote.getProvider().equals("blackbox") && vote.getStatus() == ProviderVote.Status.POSITIVE
                             ? " evidence=" + com.github.gerolndnr.connectionguard.core.vpn.BlackboxVpnProvider.LISTED_REASON : "")
+                        + (vote.getProvider().equals("connectionguard-intel") && vote.getDetails().getDataAsOf() != null
+                            ? " evidence=Connection Guard Intel " + vote.getDetails().getClassifications() + " (" + java.time.Instant.ofEpochMilli(vote.getDetails().getDataAsOf()) + ")" : "")
                         + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
                 reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
                         + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
@@ -83,6 +85,7 @@ public final class OperationsCommands {
         if (draft != null) lines.add("VPN strategy=" + (draft.failover ? "FAILOVER" : "CONSENSUS")
                 + " effectiveThreshold=" + draft.threshold + " maxExternalAttempts=" + draft.externalAttempts + " order=" + draft.keys);
         lines.add(ConnectionGuard.torStatus());
+        if (draft != null && draft.intelSettings.enabled) lines.add(draft.intelSnapshot.describe(System.currentTimeMillis()));
         lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
         lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())

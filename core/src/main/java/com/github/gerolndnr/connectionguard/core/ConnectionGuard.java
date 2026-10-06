@@ -310,7 +310,7 @@ public class ConnectionGuard {
         VpnProvider provider = providers.get(index);
         return vpnSource(ip, provider, index, sources, runtime, started).thenCompose(completed -> {
             if (completed.vote.isVoting() && completed.vote.getStatus() != ProviderVote.Status.UNKNOWN) return CompletableFuture.completedFuture(null);
-                boolean transmitted = completed.attempted && !(provider instanceof com.github.gerolndnr.connectionguard.core.local.LocalVpnProvider);
+                boolean transmitted = completed.attempted && !provider.isLocal();
             return failoverChain(ip, providers, sources, runtime, started, index + 1, sent + (transmitted ? 1 : 0), maximum);
         });
     }

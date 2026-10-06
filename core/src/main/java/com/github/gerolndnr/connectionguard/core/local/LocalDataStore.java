@@ -107,14 +107,14 @@ public final class LocalDataStore {
         }
         return output.toByteArray();
     }
-    private static void checkParents(Path path) {
+    static void checkParents(Path path) {
         for (Path next = path.toAbsolutePath().normalize(); next != null; next = next.getParent()) if (Files.isSymbolicLink(next)) throw new IllegalArgumentException("Local data paths must not contain symbolic links.");
     }
-    private static void privateMode(Path path, String mode) throws IOException {
+    static void privateMode(Path path, String mode) throws IOException {
         try { Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(mode)); }
         catch (UnsupportedOperationException ignored) { /* Platform ACLs on Windows. */ }
     }
-    private static void writeAtomic(Path target, byte[] bytes) throws IOException {
+    static void writeAtomic(Path target, byte[] bytes) throws IOException {
         checkParents(target);
         Path temp = Files.createTempFile(target.getParent(), ".cg-local-", ".tmp");
         try {

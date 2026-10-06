@@ -17,10 +17,22 @@ public final class LocalDataCommands {
         ScheduledThreadPoolExecutor timer = new ScheduledThreadPoolExecutor(1, task -> { Thread thread = new Thread(task, "connection-guard-local-timer"); thread.setDaemon(true); return thread; });
         timer.setRemoveOnCancelPolicy(true); return timer;
     }
-    private static ScheduledFuture<?> scheduled;
+    private static ScheduledFuture<?> scheduled, intelScheduled;
     public static synchronized void configure(ProviderConfiguration draft) {
         if (scheduled != null) scheduled.cancel(false);
         scheduled = null;
+        if (intelScheduled != null) intelScheduled.cancel(false);
+        intelScheduled = null;
+        if (draft.intelStore != null && draft.intelSettings.updateHours > 0 && !"false".equalsIgnoreCase(System.getenv("CONNECTIONGUARD_INTEL_REFRESH"))) {
+            intelScheduled = TIMER.scheduleWithFixedDelay(() -> {
+                if (ConnectionGuard.getActiveDraft() != draft) return;
+                long now = System.currentTimeMillis();
+                if (draft.intelSnapshot.readiness(now) == com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE
+                        && now - draft.intelSnapshot.fetchedAt < TimeUnit.HOURS.toMillis(draft.intelSettings.updateHours)) return;
+                try { WORKER.execute(() -> automaticIntel(draft)); }
+                catch (RejectedExecutionException busy) { alert("Intel updater busy; last verified generation retained."); }
+            }, 0, draft.intelSettings.updateHours, TimeUnit.HOURS);
+        }
         if (draft.localUpdateHours == 0 || draft.localStore == null) return;
         scheduled = TIMER.scheduleWithFixedDelay(() -> {
             if (ConnectionGuard.getActiveDraft() != draft) return;
@@ -28,15 +40,14 @@ public final class LocalDataCommands {
             catch (RejectedExecutionException busy) { alert("Local data updater is busy; active generation preserved."); }
         }, draft.localUpdateHours, draft.localUpdateHours, TimeUnit.HOURS);
     }
-    private static void automatic(ProviderConfiguration current) {
-        boolean stored = false;
-        for (LocalSource source : current.localStore.sources()) {
-            if (ConnectionGuard.getActiveDraft() != current) return;
-            if (source.downloadUrl().isEmpty()) continue;
-            try { LocalListDownloader.update(current.localStore, source.id); stored = true; }
-            catch (Exception unavailable) { alert("Local list update unavailable; previous source manifest preserved."); }
-        }
-        if (stored) try { activate(current); }
+    private static void automaticIntel(ProviderConfiguration current) {
+        if (ConnectionGuard.getActiveDraft() != current) return;
+        try { current.intelStore.update(); }
+        catch (Exception unavailable) { alert("Connection Guard Intel refresh failed; last signed generation retained. Missing/stale data remains UNKNOWN; see /cg doctor."); return; }
+        publishOrRetry(current);
+    }
+    private static void publishOrRetry(ProviderConfiguration current) {
+        try { activate(current); }
         catch (Exception busy) {
             alert("Validated local data staged; active generation preserved. Activation will retry in one minute.");
             TIMER.schedule(() -> {
@@ -47,6 +58,17 @@ public final class LocalDataCommands {
             }, 1, TimeUnit.MINUTES);
         }
     }
+    private static void automatic(ProviderConfiguration current) {
+        boolean stored = false;
+        for (LocalSource source : current.localStore.sources()) {
+            if (ConnectionGuard.getActiveDraft() != current) return;
+            if (source.downloadUrl().isEmpty()) continue;
+            try { LocalListDownloader.update(current.localStore, source.id); stored = true; }
+            catch (Exception unavailable) { alert("Local list update unavailable; previous source manifest preserved."); }
+        }
+        if (stored) publishOrRetry(current);
+    }
+
     private static void alert(String message) { if (ConnectionGuard.getLogger() != null) ConnectionGuard.getLogger().warning(message); }
     private static void activate(ProviderConfiguration current) {
         ProviderConfiguration draft = current.refreshLocal();
@@ -61,8 +83,9 @@ public final class LocalDataCommands {
         if (args.length == 0 || !args[0].equalsIgnoreCase("local")) return false;
         if (!permission.test("connectionguard.command.local")) { reply.accept(messages.getString("ops.permission")); return true; }
         ProviderConfiguration current = ConnectionGuard.getActiveDraft();
-        if (current == null || current.localStore == null) { reply.accept(messages.getString("ops.local-disabled")); return true; }
+        if (current == null || current.localStore == null && current.intelStore == null) { reply.accept(messages.getString("ops.local-disabled")); return true; }
         if (args.length == 1 || args.length == 2 && args[1].equalsIgnoreCase("status")) {
+            if (current.intelSettings.enabled) reply.accept(current.intelSnapshot.describe(System.currentTimeMillis()));
             for (LocalSnapshot snapshot : current.localSnapshots) reply.accept(snapshot.describe(System.currentTimeMillis()));
             return true;
         }
@@ -75,7 +98,11 @@ public final class LocalDataCommands {
         }
         final long asOf;
         try {
-            if (update || importing) current.localStore.source(args[2]);
+            if (prepare && current.localStore == null) throw new IllegalArgumentException("No operator local sources configured.");
+            if ((update || importing) && !(update && args[2].equals(IntelSnapshot.ID) && current.intelStore != null)) {
+                if (current.localStore == null) throw new IllegalArgumentException("No operator local sources configured.");
+                current.localStore.source(args[2]);
+            }
             asOf = importing ? Instant.parse(args[4]).toEpochMilli() : 0;
         } catch (RuntimeException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.local-invalid")); return true; }
         try {
@@ -84,7 +111,7 @@ public final class LocalDataCommands {
                 try {
                     if (ConnectionGuard.getActiveDraft() != current) throw new IllegalStateException("Configuration changed.");
                     if (prepare) { current.localStore.prepareInbox(); reply.accept(messages.getString("ops.local-prepared")); return; }
-                    if (update) { LocalListDownloader.update(current.localStore, args[2]); stored = true; }
+                    if (update) { if (args[2].equals(IntelSnapshot.ID) && current.intelStore != null) current.intelStore.update(); else LocalListDownloader.update(current.localStore, args[2]); stored = true; }
                     if (importing) { current.localStore.importFile(args[2], args[3], asOf, System.currentTimeMillis()); stored = true; }
                     activate(current);
                     reply.accept(messages.getString("ops.local-activated"));

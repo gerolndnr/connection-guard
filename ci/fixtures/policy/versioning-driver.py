@@ -33,6 +33,7 @@ def main():
     active = subprocess.check_output(['docker', 'ps', '--format', '{{.Names}}'], text=True).strip()
     assert not active, 'Native qualification must not overlap Docker measurements'
     os.environ['CONNECTIONGUARD_TOR_REFRESH']='false'
+    os.environ['CONNECTIONGUARD_INTEL_REFRESH']='false'
 
     assert re.fullmatch('[a-z0-9-]+',args.fixture)
     os.environ['CONNECTIONGUARD_CLOUD']='false'

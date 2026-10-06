@@ -29,3 +29,18 @@ Disabling reports clears captured data and removes `errors` from an unsent retry
 Reporting is best effort. Fatal startup errors before configuration/Cloud initialization, a process crash, or stopping before the next successful sync can prevent delivery. Reporting adds no startup/shutdown HTTP request and never waits on a login. A self-hosted endpoint receives the same metadata; use an endpoint you trust. The open Cloud schema is `ErrorReport` in `gerolndnr/connection-guard-cloud/packages/protocol`; the Java contract fixture is `core/src/test/resources/cloud-protocol/sync-request-errors.json`.
 
 [bStats](BSTATS.md) uses separate statistics settings. [Detection providers](PROVIDERS.md) receive queried IP addresses according to the selected provider configuration; the error-reporting switch does not configure either system.
+
+
+## Connection Guard Intel — unreleased 0.5.2 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.

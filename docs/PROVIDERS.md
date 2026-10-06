@@ -27,7 +27,7 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 ### New keyless recipients in the 0.5.2 candidate
 
 **Unreleased, pending comparative benchmark acceptance.** Only new configuration
-files select local Tor → ProxyCheck → Blackbox → ip-check.net → zowi → IPQuery →
+files select local Tor → signed Connection Guard Intel → ProxyCheck → Blackbox → ip-check.net → zowi → IPQuery →
 IP-API. Existing files keep their providers and order and get a once-only
 recommendation. The local Tor lookup sends no player IP; each reached external
 service receives the queried player's IP. A successful positive or negative
@@ -73,3 +73,18 @@ If the configured cache cannot initialize, the plugin stops initialization. This
 Start with a provider whose terms permit your use and confirm its allowance. Add providers with a reason and enough quota, then select a meaningful vote threshold. Threshold changes are not guaranteed accuracy improvements.
 
 Detection requests share IP addresses with selected providers. Consult their official privacy information when documenting your setup. Keep keys private. In 0.4.10, free IP-API uses HTTP; ProxyCheck and IPHub requests use HTTPS.
+
+
+## Connection Guard Intel — unreleased 0.5.2 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.

@@ -65,7 +65,7 @@ quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
 New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox, ip-check.net, zowi,
-IPQuery and IP-API. The local Tor snapshot precedes all of them. All three new
+IPQuery and IP-API. The bundled Tor snapshot and then signed Connection Guard Intel precede all of them. All three new
 services have a conservative **local** `minute-budget: 60`, independent of any
 upstream service promise. Locally exhausted sources are skipped without sending
 the IP; failures advance within the original **5,000 ms** whole-login budget.
@@ -211,3 +211,18 @@ all four API faults with local Tor, recovery, cold latency, ≥95% concrete burs
 checks including failover, stampede, bad reload, and periodic unchecked warnings.
 Historical measurements of the earlier operator-name candidate cannot qualify
 this one. The owner's temporary warm-latency waiver remains separate.
+
+
+## Connection Guard Intel — unreleased 0.5.2 candidate
+
+Fresh installations select the built-in signed local Intel bundle before VPN APIs;
+existing installations must opt in. Daily background HTTPS downloads contact
+https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
+All four lists activate together after ECDSA P-256 signature, size and SHA-256
+verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
+HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+Endpoint/key are bundled and cannot be managed remotely. See
+[local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-052-candidate).
+Cloud source `connectionguard-intel` uses the coordinated optional source fields
+`types` and `data_as_of`; unknown values are omitted. This candidate awaits a
+new full benchmark and is not included in stable0.5.1.

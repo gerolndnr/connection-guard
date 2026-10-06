@@ -8,6 +8,7 @@ and stop their owned process even when the plugin fails to enable.
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import queue
 import re
@@ -101,7 +102,8 @@ def run(artifact, platform, runtime, directory, java, accept_eula, source_commit
     if platform == "paper":
         arguments.append("--nogui")
     process = subprocess.Popen(arguments, cwd=directory, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                               stderr=subprocess.STDOUT, text=True, bufsize=1)
+                               stderr=subprocess.STDOUT, text=True, bufsize=1,
+                               env={**os.environ, "CONNECTIONGUARD_INTEL_REFRESH": "false", "CONNECTIONGUARD_TOR_REFRESH": "false"})
 
     def consume():
         for line in process.stdout:

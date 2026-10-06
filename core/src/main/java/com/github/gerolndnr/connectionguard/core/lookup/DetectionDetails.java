@@ -11,16 +11,21 @@ public final class DetectionDetails {
     private final String isp, operator, country;
     private final Integer risk, confidence;
     private final BigDecimal exactRisk;
+    private final Long dataAsOf;
     public DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
                             String country, Integer risk, Integer confidence) {
         this(classifications, asn, isp, operator, country, risk, confidence, null);
     }
     private DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
                              String country, Integer risk, Integer confidence, BigDecimal exactRisk) {
+        this(classifications, asn, isp, operator, country, risk, confidence, exactRisk, null);
+    }
+    private DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
+                             String country, Integer risk, Integer confidence, BigDecimal exactRisk, Long dataAsOf) {
         this.classifications = new EnumMap<>(Type.class);
         if (classifications != null) this.classifications.putAll(classifications);
         this.asn = asn; this.isp = text(isp); this.operator = text(operator); this.country = text(country);
-        this.risk = risk; this.confidence = confidence; this.exactRisk = exactRisk;
+        this.risk = risk; this.confidence = confidence; this.exactRisk = exactRisk; this.dataAsOf = dataAsOf;
         validate();
     }
     /** Exact source risk; legacy getRisk is null when the value is not an integer. */
@@ -45,6 +50,7 @@ public final class DetectionDetails {
     }
     public static DetectionDetails empty() { return new DetectionDetails(null, null, null, null, null, null, null); }
     public void validate() {
+        if (dataAsOf != null && dataAsOf <= 0) throw new IllegalArgumentException("Invalid source publication time.");
         if (exactRisk != null && !Objects.equals(risk, integerRisk(normalizeRisk(exactRisk))))
             throw new IllegalArgumentException("Inconsistent source risk.");
         if (classifications == null || classifications.containsKey(null) || classifications.containsValue(null) || classifications.size() > Type.values().length
@@ -57,6 +63,8 @@ public final class DetectionDetails {
     private static boolean validText(String text) { return text == null || (text.length() <= 200 && !text.chars().anyMatch(Character::isISOControl) && text.indexOf('\u00a7') < 0); }
     public Map<Type, Boolean> getClassifications() { return Collections.unmodifiableMap(classifications); }
     public Boolean get(Type type) { return classifications.get(type); }
+    public Long getDataAsOf() { return dataAsOf; }
+    public DetectionDetails withDataAsOf(Long timestamp) { return new DetectionDetails(classifications, asn, isp, operator, country, risk, confidence, exactRisk, timestamp); }
     public Long getAsn() { return asn; }
     public String getIsp() { return isp; }
     public String getOperator() { return operator; }
@@ -66,6 +74,6 @@ public final class DetectionDetails {
     public BigDecimal getExactRisk() { return exactRisk != null ? exactRisk : risk == null ? null : BigDecimal.valueOf(risk); }
     public Integer getConfidence() { return confidence; }
     public String describe() { return "types=" + classifications + " asn=" + value(asn) + " isp=" + value(isp)
-            + " operator=" + value(operator) + " country=" + value(country) + " risk=" + value(getExactRisk()) + " confidence=" + value(confidence); }
+            + " operator=" + value(operator) + " country=" + value(country) + " risk=" + value(getExactRisk()) + " confidence=" + value(confidence) + " as_of=" + value(dataAsOf); }
     private static String value(Object value) { return value == null ? "UNKNOWN" : value.toString(); }
 }

@@ -28,6 +28,9 @@ public final class ProviderConfiguration {
     public final LocalDataStore localStore;
     public final List<LocalSnapshot> localSnapshots;
     public final int localUpdateHours;
+    public final IntelSettings intelSettings;
+    public final IntelDataStore intelStore;
+    public final IntelSnapshot intelSnapshot;
     public final List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> extensionProviders;
     public final com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings observers;
     private final transient Function<String, Object> values;
@@ -53,6 +56,10 @@ public final class ProviderConfiguration {
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
+        intelSettings = new IntelSettings(value);
+        intelStore = intelSettings.enabled && dataDirectory != null ? new IntelDataStore(dataDirectory, intelSettings) : null;
+        try { intelSnapshot = intelStore == null ? IntelSnapshot.missing(intelSettings) : intelStore.load(System.currentTimeMillis()); }
+        catch (java.io.IOException invalid) { throw new IllegalArgumentException("Intel data invalid; previous configuration preserved (contents redacted)."); }
         localStore = local.vpnEnabled || local.geoEnabled ? new LocalDataStore(dataDirectory, local.sources) : null;
         List<LocalSnapshot> loaded = new ArrayList<>();
         if (localStore != null) for (LocalSource source : local.sources) {
@@ -73,6 +80,7 @@ public final class ProviderConfiguration {
                 + GuardSettings.string(value, "provider.cache.redis.username", "") + "\n" + GuardSettings.string(value, "provider.cache.redis.password", "") + "\n" + GuardSettings.bool(value, "provider.cache.redis.tls", false);
         List<String> orderedKeys = new ArrayList<>(providerKeys);
         Map<String, Integer> sourceDays = new HashMap<>(), sourceMinutes = new HashMap<>();
+        if (intelSettings.enabled) { keys.add(IntelSnapshot.ID); providers.add(new IntelVpnProvider(intelSnapshot)); }
         if (failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
         for (String key : orderedKeys) {
             if (key.equals("local")) continue;
@@ -146,7 +154,7 @@ public final class ProviderConfiguration {
             List<VpnProvider> originalProviders = new ArrayList<>(providers);
             List<Integer> positions = new ArrayList<>();
             for (int i = 0; i < providers.size(); i++) positions.add(i);
-            positions.sort(Comparator.comparingInt(i -> settings.vpnFailover.rank(originalKeys.get(i), originalProviders.get(i) instanceof LocalVpnProvider)));
+            positions.sort(Comparator.comparingInt(i -> originalProviders.get(i) instanceof IntelVpnProvider ? -2 : settings.vpnFailover.rank(originalKeys.get(i), originalProviders.get(i).isLocal())));
             keys.clear(); providers.clear();
             for (int i : positions) { keys.add(originalKeys.get(i)); providers.add(originalProviders.get(i)); }
         }
@@ -156,7 +164,7 @@ public final class ProviderConfiguration {
             String name = provider.sourceName() == null ? provider.getClass().getSimpleName() : provider.sourceName();
             String id = name + (provider.stableSourceId() ? "" : "#" + i);
             dayBudgets.put(id, sourceDays.getOrDefault(key, 0)); minuteBudgets.put(id, sourceMinutes.getOrDefault(key, 0));
-            healthIds.put(id, key.startsWith("extension.") || provider instanceof LocalVpnProvider ? key : "vpn." + key);
+            healthIds.put(id, key.startsWith("extension.") || provider.isLocal() ? key : "vpn." + key);
         }
         extensionProviders = Collections.unmodifiableList(selected);
         String geoService = GuardSettings.string(value, "provider.geo.service", "IP-API");
@@ -174,7 +182,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema9-proxycheck-v2-shared:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema10-signed-intel:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));
