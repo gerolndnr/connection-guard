@@ -67,7 +67,7 @@ class GeneralFailoverRuntimeTest {
                 int status = current.equals("429") ? 429 : current.equals("503") ? 503 : 200;
                 boolean positive = primary ? firstPositive : true;
                 String body = id.equals("keyed") ? "{\"success\":true,\"vpn\":" + positive
-                        + ",\"proxy\":false,\"tor\":false,\"fraud_score\":0}"
+                        + ",\"proxy\":" + positive + ",\"tor\":false,\"fraud_score\":0}"
                         : "{\"vpn\":" + positive + "}";
                 if (current.equals("malformed")) body = "{";
                 if (current.equals("incomplete")) body = "{}";
@@ -125,7 +125,9 @@ class GeneralFailoverRuntimeTest {
         draft.providers.set(0, new IpQualityScoreVpnProvider("synthetic-key", 0, true, true,
                 HttpUrl.get("http://127.0.0.1:" + server.getAddress().getPort() + "/api/json/ip")));
         firstPositive = true; activate(draft);
-        assertTrue(lookup("192.0.2.93").isVpn()); assertEquals("synthetic-key", keyedHeader.get());
+        VpnResult first = lookup("192.0.2.93"); assertTrue(first.isVpn()); assertEquals(1, first.getVotes().size());
+        assertTrue(first.getVotes().get(0).getProvider().startsWith("IpQualityScoreVpnProvider"));
+        assertEquals("synthetic-key", keyedHeader.get());
         assertEquals(1, calls("keyed")); assertEquals(0, calls("custom-b"));
         fault = "429"; assertTrue(lookup("192.0.2.94").isVpn());
         assertEquals(2, calls("keyed")); assertEquals(1, calls("custom-b"));
