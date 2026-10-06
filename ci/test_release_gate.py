@@ -98,9 +98,9 @@ class ArtifactRegressionTest(unittest.TestCase):
         selected = [prefix + name + ".class" for name in (
             "policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
             "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
-            "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View", "commands/PolicyCommands",
-            "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context", "cloud/PluginErrorReports$Pending",
-            "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame")]
+            "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
+            "policy/PolicyJournal", "policy/PolicyJournal$Revision", "policy/PolicyJournal$Operation",
+            "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State", "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context", "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame")]
         selected.append("policy/examples.json")
         with tempfile.TemporaryDirectory() as directory:
             for name in selected:

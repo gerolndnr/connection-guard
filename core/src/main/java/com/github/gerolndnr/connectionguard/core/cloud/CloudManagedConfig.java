@@ -68,6 +68,14 @@ public final class CloudManagedConfig {
     CloudManagedConfig(int version, Map<String, Object> values) { this.version = version; this.values = Collections.unmodifiableMap(new LinkedHashMap<>(values)); }
 
     static final CloudManagedConfig EMPTY = new CloudManagedConfig(0, new LinkedHashMap<>());
+    public static boolean managesDecisionPolicy(Path directory) {
+        if (directory == null) return false;
+        return load(directory).values.keySet().stream().anyMatch(CloudManagedConfig::decisionPath);
+    }
+    public static boolean decisionPath(String path) {
+        return Arrays.asList("operation.mode", "failure-policy.vpn", "failure-policy.geo", "behavior.vpn.kick-player",
+                "behavior.geo.kick-player", "behavior.geo.type", "behavior.geo.list").contains(path);
+    }
 
     static Path file(Path dataDir) { return dataDir.resolve("cloud").resolve("managed-config.json"); }
 
@@ -214,9 +222,26 @@ public final class CloudManagedConfig {
     /** Effective values for the dashboard. Secrets are reported only as "set" plus their last four characters. */
     static JsonObject snapshot(Function<String, Object> effective) {
         JsonObject out = new JsonObject();
+        final com.github.gerolndnr.connectionguard.core.config.GuardSettings policy;
+        final boolean local;
+        synchronized (com.github.gerolndnr.connectionguard.core.ConnectionGuard.class) {
+            policy = com.github.gerolndnr.connectionguard.core.ConnectionGuard.getSettings();
+            com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore store = com.github.gerolndnr.connectionguard.core.ConnectionGuard.getRuleStore();
+            local = store != null && store.locallyOwned();
+        }
         for (Map.Entry<String, Field> entry : FIELDS.entrySet()) {
             Object value;
             try { value = effective.apply(entry.getKey()); } catch (RuntimeException unreadable) { continue; }
+            if (local) switch (entry.getKey()) {
+                case "operation.mode": value = policy.observe ? "OBSERVE" : "ENFORCE"; break;
+                case "failure-policy.vpn": value = policy.vpnFailure.name(); break;
+                case "failure-policy.geo": value = policy.geoFailure.name(); break;
+                case "behavior.vpn.kick-player": value = policy.kickVpn; break;
+                case "behavior.geo.kick-player": value = policy.kickGeo; break;
+                case "behavior.geo.type": value = policy.geoWhitelist ? "WHITELIST" : "BLACKLIST"; break;
+                case "behavior.geo.list": value = policy.countries; break;
+                default: break;
+            }
             Field f = entry.getValue();
             if (f.kind == Kind.SECRET || f.kind == Kind.SECRET_URL) {
                 String s = value == null ? "" : value.toString();

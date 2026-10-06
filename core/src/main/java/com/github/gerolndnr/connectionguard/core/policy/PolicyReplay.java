@@ -23,6 +23,9 @@ public final class PolicyReplay {
         }
         /** Stable identifier for the decision policy only; never includes provider keys or observed players. */
         public String fingerprint() {
+            return digest(toJson().toString());
+        }
+        public JsonObject toJson() {
             JsonObject value = new JsonObject();
             value.addProperty("schema", 1); value.addProperty("mode", settings.observe ? "OBSERVE" : "ENFORCE");
             value.addProperty("vpn_failure", settings.vpnFailure.name()); value.addProperty("geo_failure", settings.geoFailure.name());
@@ -37,13 +40,16 @@ public final class PolicyReplay {
                 entry.addProperty("reason", rule.getReason()); entries.add(entry);
             }
             value.add("rules", entries);
+            return value;
+        }
+    }
+    public static String digest(String text) {
             try {
-                byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(value.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 StringBuilder result = new StringBuilder(64);
                 for (byte octet : digest) result.append(String.format(java.util.Locale.ROOT, "%02x", octet & 255));
                 return result.toString();
             } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable."); }
-        }
     }
     public static final class Case {
         public final String id;
@@ -109,7 +115,9 @@ public final class PolicyReplay {
         return new Cases(PolicyJson.number(object, "captured_at", Long.MAX_VALUE), cases);
     }
     public static Snapshot readCandidate(InputStream input) throws IOException {
-        JsonObject object = PolicyJson.read(input);
+        return readCandidate(PolicyJson.read(input));
+    }
+    static Snapshot readCandidate(JsonObject object) {
         PolicyJson.fields(object, "schema", "mode", "vpn_failure", "geo_failure", "kick_vpn", "kick_geo", "geo_type", "countries", "rules");
         if (PolicyJson.number(object, "schema", 1) != 1) throw PolicyJson.invalid();
         Map<String, Object> fields = new HashMap<>();
