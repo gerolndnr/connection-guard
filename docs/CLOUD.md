@@ -67,7 +67,7 @@ The backend is open source (AGPL-3.0). Point `cloud.endpoint` at your own deploy
 
 ## Commands and permission
 
-`/cg cloud status | link | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
+`/cg cloud status | link | sync | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
 
 ## Current development coverage
 
@@ -82,3 +82,11 @@ Versioned local qualification drivers and their limits are in `ci/fixtures/cloud
 IP/CIDR rules can be permanent or time limited. Version 0.5.0 reports `rule_expiry`: UTC deadlines persist locally, expired rules never permit access, and background sync removes expired records. An invalid or already expired deadline rejects the command. These are operator access rules; they are not automatic identity-bound challenge grants.
 
 The current dashboard settings expose the original four VPN services and custom REST provider. Configure native IPQualityScore, precise source-risk policy and advanced rich-webhook fields locally using their guides; those controls are not yet exposed in the dashboard. Cloud protocol v1 displays legacy integer risk; local decisions, caches, explain output and rich webhooks retain exact decimal risk. Unsupported remote fields reject the whole draft instead of partially applying it.
+
+### Apply dashboard changes now (from 0.5.2)
+
+Run `/cg cloud sync` to request one immediate check-in on the background worker. The command acknowledges immediately and then reports the applied settings version, that settings are up to date, or the existing failure state. It uses the same validation, reload and rollback path as automatic sync. Delivered settings are reported back after the existing five-second minimum delay; regular sync continues afterwards. If the server is busy, settings stay pending and retry automatically.
+
+Only linked servers with Cloud running can use this command, with `connectionguard.command.cloud`. At most one manual sync is accepted every ten seconds across callers and reloads, and one request can be queued or running at a time. An unlinked/off server sends no request from the command. A Cloud 429 keeps the pending sequence/batch and honors the retry delay without increasing transport-error backoff. No additional data fields or recipient are introduced by a manual sync.
+
+The server advertises `sync_command` in `status.capabilities`; the dashboard may show the command hint only for capable servers.

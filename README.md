@@ -51,6 +51,7 @@ Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
 | Command | Purpose | Permission |
 | --- | --- | --- |
 | `/cg help` | Show available commands | `connectionguard.command.help` |
+| `/cg cloud sync` | Request immediate background Cloud sync (from 0.5.2) | `connectionguard.command.cloud` |
 | `/cg info <IP>` | Inspect provider-supplied information | `connectionguard.command.info` |
 | `/cg reload` | Validate and reload settings/messages; cache connection changes require a restart | `connectionguard.command.reload` |
 | `/cg clear <IP>` | Clear VPN and geo cache entries for an IP | `connectionguard.command.clear` |
