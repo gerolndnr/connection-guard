@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Opt-in native dashboard notices on owned loopback; see README for EULA/runtime scope."""
-import argparse, copy, gzip, hashlib, json, os, re, subprocess, sys, threading, time, zipfile
+import argparse, copy, gzip, hashlib, json, os, queue, re, shutil, subprocess, sys, threading, time, zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import yaml
@@ -31,7 +31,6 @@ def main():
     from release_redis_velocity_test import Proxy
     from release_native_bungee_test import Bungee, RUNTIME, RUNTIME_SHA
     from release_velocity_test import JAVA, PROXY, PROXY_SHA
-    from pr77_runtime_cases import restart_process
     family='backend-smoke' if args.platform in RUNTIMES else 'native-bungee-smoke' if args.platform=='bungee' else 'policy-smoke'
     work=root/'.runtime'/family/args.fixture; assert not work.exists(); work.mkdir(parents=True,mode=0o700)
     state={'claimed':False,'records':[],'installs':0}; lock=threading.Lock()
@@ -80,7 +79,24 @@ def main():
         settings['behavior'][scope]['notify-staff']=False
         settings['behavior'][scope]['execute-command']['enabled']=False
         settings['behavior'][scope]['send-webhook']['enabled']=False
-    instance=backend=clients=None
+    instance=backend=clients=None; client_logs=[]
+    def stop_clients():
+        nonlocal clients
+        if clients:
+            clients.close(); client_logs.extend(clients.transcript); clients=None
+    def restart():
+        arguments=list(instance.process.args); instance.close(); assert instance.process.returncode==0
+        shutil.copyfile(instance.directory/'smoke.log',work/'before-restart.log')
+        # The proxy's actual backend is still our running Paper instance; never replace it with an unused target.
+        instance.lines,instance.transcript=queue.Queue(),[]
+        instance.process=subprocess.Popen(arguments,cwd=instance.directory,stdin=subprocess.PIPE,stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,text=True,bufsize=1)
+        process=instance.process
+        def consume():
+            for line in process.stdout:
+                line=re.sub(r'\x1b\[[0-9;]*[A-Za-z]','',line); instance.transcript.append(line); instance.lines.put(line)
+            instance.lines.put(None)
+        threading.Thread(target=consume,daemon=True).start(); instance.ready()
     try:
         if native_backend:
             instance=Backend(work/'server',args.platform,artifact,settings,addon)
@@ -110,12 +126,13 @@ def main():
         record('framed-console-banner-with-confirmed-console-source-link')
         clients=Clients(instance)
         def connect(name):
-            begin=len(clients.transcript); started=time.monotonic(); clients.write('connect '+name)
-            clients.wait('CLIENT '+name+' login')
-            until(lambda:any('NOTICE_JOIN '+name in line for line in instance.transcript),'post-join event')
+            begin=len(clients.transcript); native_begin=len(instance.transcript); started=time.monotonic(); clients.write('connect '+name)
+            until(lambda:any('CLIENT '+name+' login' in line for line in clients.transcript[begin:]),'fresh actual login')
+            until(lambda:any('NOTICE_JOIN '+name in line for line in instance.transcript[native_begin:]),'fresh post-join event')
             return begin,started
         def close(name):
-            clients.write('close '+name); clients.wait('CLIENT '+name+' end'); time.sleep(.2)
+            begin=len(clients.transcript); clients.write('close '+name)
+            until(lambda:any('CLIENT '+name+' end' in line for line in clients.transcript[begin:]),'fresh actual disconnect'); time.sleep(.2)
         def hints(begin,name): return [line for line in clients.transcript[begin:] if line.startswith('CLIENT '+name+' system_chat ') and 'src=join' in line]
         begin,started=connect('CGStaff')
         link=until(lambda:hints(begin,'CGStaff'),'staff clickable setup link')[0]
@@ -133,15 +150,14 @@ def main():
         record('ordinary-player-receives-no-hint')
         begin,_=connect('CGOperator'); until(lambda:hints(begin,'CGOperator'),'operator hint'); close('CGOperator')
         record('operator-or-proxy-cloud-permission-receives-hint')
-        clients.close(); clients=None
-        restart_process(instance,work)
+        stop_clients(); restart()
         until(lambda:any('?src=console' in line for line in instance.transcript),'confirmed unlinked restart banner')
         clients=Clients(instance); begin,_=connect('CGStaff'); time.sleep(3); assert not hints(begin,'CGStaff'); close('CGStaff')
         record('clean-native-restart-preserves-once-per-installation')
         if native_backend:
-            settings['identity']['trust-forwarded-uuid']=True; instance.write(settings); instance.command('cg reload','Configuration reloaded!')
+            settings['identity']['trust-forwarded-uuid']=True; instance.write(settings); instance.command('cg reload','Config has been reloaded!')
             begin,_=connect('CGBackend'); time.sleep(3); assert not hints(begin,'CGBackend'); close('CGBackend')
-            settings['identity']['trust-forwarded-uuid']=False; instance.write(settings); instance.command('cg reload','Configuration reloaded!')
+            settings['identity']['trust-forwarded-uuid']=False; instance.write(settings); instance.command('cg reload','Config has been reloaded!')
             begin,_=connect('CGBackend'); until(lambda:hints(begin,'CGBackend'),'standalone hint after proxy suppression'); close('CGBackend')
             record('forwarded-backend-suppression-does-not-consume-once-only-hint')
         with lock: state['claimed']=True
@@ -150,15 +166,15 @@ def main():
         begin,_=connect('CGLinked'); time.sleep(3); assert not hints(begin,'CGLinked'); close('CGLinked')
         assert before==sum('FREE CLOUD DASHBOARD' in line for line in instance.transcript)
         record('confirmed-linked-installation-stays-quiet')
-        instance.command('cg cloud disable','Cloud disabled')
+        instance.command('cg cloud disable','Cloud is off and stays off')
         begin,_=connect('CGOff'); time.sleep(3); assert not hints(begin,'CGOff'); close('CGOff')
         record('explicit-cloud-off-stays-quiet')
-        clients.close(); clients=None; instance.close(); assert instance.process.returncode==0
+        stop_clients(); instance.close(); assert instance.process.returncode==0
         result.update(status='passed',native_exit_code=instance.process.returncode,console_sha256=digest(instance.directory/'smoke.log'))
         if backend: backend.close(); assert backend.process.returncode==0
         (work/'result.json').write_text(json.dumps(result,indent=2)+'\n'); print(json.dumps(result),flush=True)
     finally:
-        if clients: (work/'clients.log').write_text(''.join(clients.transcript)); clients.close()
+        stop_clients(); (work/'clients.log').write_text(''.join(client_logs))
         if instance: instance.close()
         if backend: backend.close()
         http.shutdown(); http.server_close()
