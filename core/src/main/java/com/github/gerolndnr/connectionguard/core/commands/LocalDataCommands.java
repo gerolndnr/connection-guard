@@ -77,7 +77,7 @@ public final class LocalDataCommands {
         try {
             if (update || importing) current.localStore.source(args[2]);
             asOf = importing ? Instant.parse(args[4]).toEpochMilli() : 0;
-        } catch (RuntimeException invalid) { reply.accept(messages.getString("ops.local-invalid")); return true; }
+        } catch (RuntimeException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.local-invalid")); return true; }
         try {
             WORKER.execute(() -> {
                 boolean stored = false;
@@ -88,7 +88,7 @@ public final class LocalDataCommands {
                     if (importing) { current.localStore.importFile(args[2], args[3], asOf, System.currentTimeMillis()); stored = true; }
                     activate(current);
                     reply.accept(messages.getString("ops.local-activated"));
-                } catch (Exception invalid) {
+                } catch (Exception invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND);
                     reply.accept(stored ? messages.getString("ops.local-stored")
                             : messages.getString("ops.local-rejected"));
                 }

@@ -53,7 +53,7 @@ public final class PolicyCommands {
             reply.accept("asOf=" + java.time.Instant.ofEpochMilli(asOf) + " capturedAt=" + (cases.capturedAt == 0 ? "unavailable" : java.time.Instant.ofEpochMilli(cases.capturedAt))
                     + " ageMs=" + (cases.capturedAt == 0 || cases.capturedAt > asOf ? "unavailable" : asOf - cases.capturedAt));
             reply.accept(messages.getString("ops.policy-limits")); output.forEach(reply);
-        } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
+        } catch (IOException | RuntimeException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.policy-rejected")); }
         return true;
     }
     private static boolean shadow(String[] args, Consumer<String> reply, MessageCatalog messages) {
@@ -81,7 +81,7 @@ public final class PolicyCommands {
                     + " unknownVpn=" + view.unknownVpn + " unknownGeo=" + view.unknownGeo
                     + " evaluationNanos=" + view.evaluationNanos + " maxEvaluationNanos=" + view.maxEvaluationNanos);
             reply.accept(messages.getString("ops.policy-shadow-limits"));
-        } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
+        } catch (IOException | RuntimeException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.policy-rejected")); }
         return true;
     }
     private static InputStream open(String name) throws IOException {

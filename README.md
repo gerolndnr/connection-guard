@@ -28,6 +28,8 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 - **Optional cloud:** see checks and manage supported settings at [app.connectionguard.net](https://app.connectionguard.net), with background sync and an explicit off switch.
 - **Messages:** English, German and Spanish, plus private-by-default rich decision webhooks. [Languages](docs/LANGUAGES.md) · [Webhooks](docs/WEBHOOKS.md).
 
+From 0.5.2, enabled Cloud sync also carries bounded anonymous metadata for Connection Guard's own exceptions, without exception messages or player data. `cloud.error-reports: false` disables these reports; every Cloud off switch does too. [Data and controls](docs/PRIVACY.md).
+
 ## Start here
 
 | Your setup | Guide |

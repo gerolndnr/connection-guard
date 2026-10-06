@@ -16,6 +16,10 @@ import java.util.List;
 public class ConnectionGuardSpigotCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
+        try { return executeGuard(commandSender, command, s, args); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); throw failure; }
+    }
+    private boolean executeGuard(CommandSender commandSender, Command command, String s, String[] args) {
         final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',

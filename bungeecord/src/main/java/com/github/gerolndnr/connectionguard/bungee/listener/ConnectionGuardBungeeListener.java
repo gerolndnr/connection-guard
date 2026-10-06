@@ -214,6 +214,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                 finally { loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance()); }
             });
         } catch (RuntimeException | LinkageError failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             decision.error(); decision.close();
             loginEvent.completeIntent(ConnectionGuardBungeePlugin.getInstance());
             throw failure;

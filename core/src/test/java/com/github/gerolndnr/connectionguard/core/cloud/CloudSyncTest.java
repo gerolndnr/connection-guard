@@ -31,6 +31,7 @@ class CloudSyncTest {
     private volatile CountDownLatch installEntered, installRelease;
 
     @BeforeEach void start() throws IOException {
+        CloudSync.resetErrorReportsForTest();
         DecisionObservers.closeAll();
         ConnectionGuard.applySettings(GuardSettings.defaults());
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -108,6 +109,25 @@ class CloudSyncTest {
         assertEquals(0, installs);
         assertFalse(CloudSync.isRunning());
         assertEquals(-1, DecisionObservers.captureGeneration(), "no capture work when the cloud is off");
+    }
+
+    @Test void existingInstallGetsOneErrorReportingNoticeAcrossReloadsAndRestarts() throws Exception {
+        Files.createDirectories(dir.resolve("cloud")); Files.write(dir.resolve("cloud/notice-v1"), new byte[0]);
+        java.util.concurrent.atomic.AtomicInteger notices = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.logging.Handler handler = new java.util.logging.Handler() {
+            @Override public void publish(java.util.logging.LogRecord record) {
+                if (record.getMessage().startsWith("Connection Guard error reports are on:")) notices.incrementAndGet();
+            }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        Logger logger = Logger.getLogger("test"); logger.addHandler(handler);
+        try {
+            startSync(Collections.emptyMap()); assertEquals(1, notices.get());
+            startSync(Collections.emptyMap()); startSync(Collections.singletonMap("cloud.error-reports", false));
+            startSync(Collections.emptyMap()); CloudSync.stop(); startSync(Collections.emptyMap());
+            assertEquals(1, notices.get()); assertTrue(Files.exists(dir.resolve("cloud/error-reports-notice-v1")));
+        } finally { logger.removeHandler(handler); }
     }
 
     @Test void unlinkedSendsOnlyAnonymousTotals() throws Exception {
@@ -423,6 +443,72 @@ class CloudSyncTest {
         assertEquals("Command refused (values redacted).", results.get(0).getAsJsonObject().get("message").getAsString());
         assertEquals("cmd_BBBBBBBBBBBBBBBB", results.get(1).getAsJsonObject().get("id").getAsString());
         assertTrue(results.get(1).getAsJsonObject().get("ok").getAsBoolean());
+    }
+
+    @Test void anonymousExceptionBatchUsesExactOptionalCloudContractAndClearsAfterSync() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.LOOKUP);
+        CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first);
+        JsonObject expected = JsonParser.parseString(fixture("sync-request-errors.json")).getAsJsonObject();
+        assertEquals(expected.keySet(), first.keySet());
+        JsonObject report = first.getAsJsonArray("errors").get(0).getAsJsonObject();
+        assertEquals(expected.getAsJsonArray("errors").get(0).getAsJsonObject().keySet(), report.keySet());
+        assertEquals(expected.getAsJsonArray("errors").get(0).getAsJsonObject().getAsJsonArray("frames").get(0).getAsJsonObject().keySet(),
+                report.getAsJsonArray("frames").get(0).getAsJsonObject().keySet());
+        assertEquals(0, first.getAsJsonArray("events").size());
+        for (String canary : PluginErrorReportsTest.CANARY.split(" ")) assertFalse(first.toString().contains(canary));
+        CloudSync.runOnceForTest(); assertFalse(syncs.poll(5, TimeUnit.SECONDS).has("errors"));
+        assertEquals(1, installs, "Reporting reuses normal syncs and never adds an install or separate request.");
+    }
+
+    @Test void errorReportOptOutOmitsFieldAndIsVisibleInDoctor() throws Exception {
+        startSync(Collections.singletonMap("cloud.error-reports", false)); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.STARTUP);
+        CloudSync.runOnceForTest(); assertFalse(syncs.poll(5, TimeUnit.SECONDS).has("errors"));
+        assertTrue(CloudSync.describeLines().stream().anyMatch(line -> line.startsWith("Cloud error reports: off")));
+        assertTrue(com.github.gerolndnr.connectionguard.core.commands.OperationsCommands.doctor().stream()
+                .anyMatch(line -> line.startsWith("Cloud error reports: off")));
+    }
+
+    @Test void olderCloudRetriesIdenticalBatchOnceWithoutErrorsUntilRestart() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.SYNC);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first);
+        assertTrue(first.has("errors")); assertTrue(first.getAsJsonObject("status").has("capabilities"));
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject retry = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retry);
+        JsonObject without = first.deepCopy(); without.remove("errors"); assertEquals(without, retry);
+        assertTrue(CloudSync.describeLines().stream().anyMatch(line -> line.contains("disabled until restart")));
+        CloudSync.stop(); startSync(Collections.emptyMap());
+        PluginErrorReports.record(PluginErrorReportsTest.failure(8), PluginErrorReports.Context.OTHER);
+        CloudSync.runOnceForTest(); assertFalse(syncs.poll(5, TimeUnit.SECONDS).has("errors"));
+    }
+
+    @Test void errorsFallbackAndCapabilityFallbackPreserveSameSequenceAndBatch() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.SYNC);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
+        CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
+        assertNotNull(first); assertNotNull(second); JsonObject expected = first.deepCopy(); expected.remove("errors"); assertEquals(expected, second);
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject third = syncs.poll(5, TimeUnit.SECONDS);
+        expected.getAsJsonObject("status").remove("capabilities"); assertEquals(expected, third);
+    }
+
+    @Test void disablingReportsAlsoRemovesErrorsFromAnUnsentRetryBatch() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.CACHE);
+        syncStatus = 503; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(first); assertTrue(first.has("errors"));
+        startSync(Collections.singletonMap("cloud.error-reports", false));
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject next = syncs.poll(5, TimeUnit.SECONDS);
+        JsonObject expected = first.deepCopy(); expected.remove("errors"); assertEquals(expected, next);
+    }
+
+    @Test void cloudCommandOptOutPurgesQueuedErrors() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        PluginErrorReports.record(PluginErrorReportsTest.failure(7), PluginErrorReports.Context.CACHE);
+        CloudSync.setDisabledByCommand(true);
+        assertTrue(CloudSync.describeLines().stream().anyMatch(line -> line.startsWith("Cloud error reports: off")));
+        assertEquals(0, PluginErrorReports.drainForSync().size()); CloudSync.runOnceForTest(); assertEquals(0, syncs.size());
+        CloudSync.setDisabledByCommand(false); CloudSync.runOnceForTest(); assertFalse(syncs.poll(5, TimeUnit.SECONDS).has("errors"));
     }
 
 }

@@ -26,6 +26,8 @@ The plugin works fully without it. No account is required to use Connection Guar
 
 The exact wire format is open source: `packages/protocol` in `gerolndnr/connection-guard-cloud`.
 
+From 0.5.2, Cloud sync can also send bounded anonymous metadata for Connection Guard's own exceptions to error tracking and the linked dashboard, without exception messages or player data. `cloud.error-reports: false` disables it independently; all Cloud off switches disable it too. [Report fields, limits and privacy controls](PRIVACY.md).
+
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
 - **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard.
 

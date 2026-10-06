@@ -9,6 +9,9 @@ cloud:
   # data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
   # Turn off here, with /cg cloud disable, or with the environment CONNECTIONGUARD_CLOUD=false.
   enabled: true
+  # Own exception types/frames only, never message text or player data. See docs/PRIVACY.md.
+  # Sent with background sync; all Cloud off switches also turn these reports off.
+  error-reports: true
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
   network-token: ""
 identity:
