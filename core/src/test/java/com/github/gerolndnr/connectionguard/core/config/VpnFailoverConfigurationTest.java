@@ -21,7 +21,12 @@ class VpnFailoverConfigurationTest {
         return values;
     }
     private ProviderConfiguration draft(Map<String, Object> values, String... keys) {
-        return new ProviderConfiguration(values::get, Arrays.asList(keys), directory);
+        try {
+            // macOS exposes /var through a symlink; use the actual temporary directory.
+            return new ProviderConfiguration(values::get, Arrays.asList(keys), directory.toRealPath());
+        } catch (java.io.IOException error) {
+            throw new java.io.UncheckedIOException(error);
+        }
     }
     @Test void shippedAndMissingLookupDefaultsRemainTheEstablishedValues() throws Exception {
         com.github.gerolndnr.connectionguard.core.lookup.LookupSettings missing = GuardSettings.defaults().lookup;
