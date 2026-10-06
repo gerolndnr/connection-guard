@@ -84,7 +84,11 @@ class WebhookCaptureTest {
         // The login-side close already returned although the notification response remains gated.
     }
     @Test void capturedMinimumCannotChangeMidDecision()throws Exception {
-        DecisionCapture capture=begin();ConnectionGuard.setRequiredPositiveFlags(2);flagged(capture);idle();
+        try(DecisionCapture capture=begin()) {
+            assertThrows(IllegalStateException.class,()->ConnectionGuard.setRequiredPositiveFlags(2));
+            assertEquals(1,ConnectionGuard.getRequiredPositiveFlags());flagged(capture);
+        }
+        ConnectionGuard.setRequiredPositiveFlags(2);idle();
         assertTrue(bodies.get(0).toString().contains("configured minimum: 1"));
     }
     @Test void manualDenyBeforeLookupStillContainsTheSelectedRule()throws Exception {
