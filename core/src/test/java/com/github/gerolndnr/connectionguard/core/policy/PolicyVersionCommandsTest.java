@@ -4,6 +4,7 @@ import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.*;
 import com.github.gerolndnr.connectionguard.core.ConnectionGuard;
 import com.github.gerolndnr.connectionguard.core.commands.OperationsCommands;
 import com.github.gerolndnr.connectionguard.core.config.GuardSettings;
+import com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration;
 import com.github.gerolndnr.connectionguard.core.extensions.*;
 import com.github.gerolndnr.connectionguard.core.lookup.*;
 import com.github.gerolndnr.connectionguard.core.rules.AccessRule;
@@ -92,6 +93,14 @@ class PolicyVersionCommandsTest {
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.initializeRules(directory));
             assertThrows(java.io.IOException.class, () -> ConnectionGuard.getRuleStore().reload());
             assertThrows(IllegalStateException.class, () -> ConnectionGuard.getRuleStore().transition(candidate, PolicyJournal.Operation.ACTIVATE, true, 10));
+            ProviderConfiguration same = new ProviderConfiguration(key -> key.equals("provider.geo.service") ? "Disabled" : null, Collections.emptyList());
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.applyProviders(same));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setRequiredPositiveFlags(2));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setVpnProviders(new ArrayList<>()));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setGeoProvider(null));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setCacheProvider(null));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setVpnCacheExpirationTime(1));
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setGeoCacheExpirationTime(1));
             assertEquals(revision, ConnectionGuard.getRuleStore().revision());
             pending.error(); pending.denied(Reason.EXTERNAL_POLICY);
         } finally { pending.close(); pending.close(); }
@@ -130,5 +139,16 @@ class PolicyVersionCommandsTest {
         assertDoesNotThrow(() -> ConnectionGuard.applySettings(base)); assertEquals(Reason.VPN_FLAG, denial(ConnectionGuard.getSettings()));
         ConnectionGuard.shutdown(); ConnectionGuard.applySettings(base); ConnectionGuard.initializeRules(directory);
         assertEquals(revision, ConnectionGuard.getRuleStore().revision()); assertEquals(Reason.VPN_FLAG, denial(ConnectionGuard.getSettings()));
+    }
+    @Test void sharedLateDenyStillUpdatesBothScopesWhileVersionAndSourceChangesWaitForTheLogin() throws Exception {
+        activate();
+        try (DecisionCapture pending = capture()) {
+            ConnectionGuard.getRuleStore().add(AccessRule.Effect.DENY, AccessRule.Scope.ALL, "192.0.2.1", 0, "Synthetic late deny");
+            assertEquals(Reason.ACCESS_RULE, denial(pending.settings()));
+            assertEquals(PolicyJournal.Operation.RULES, ConnectionGuard.getRuleStore().journal().current().operation);
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.setRequiredPositiveFlags(2));
+            assertEquals(1, ConnectionGuard.activePolicyDecisions());
+        }
+        assertEquals(0, ConnectionGuard.activePolicyDecisions());
     }
 }

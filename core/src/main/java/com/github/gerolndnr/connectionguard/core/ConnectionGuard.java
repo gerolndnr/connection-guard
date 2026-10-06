@@ -141,6 +141,7 @@ public class ConnectionGuard {
         return selected == null ? INITIAL_MESSAGES : selected.messages;
     }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
+        decisionLeases.requireIdle();
         if (rules != null) rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy);
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");
@@ -458,24 +459,28 @@ public class ConnectionGuard {
     }
     private static long elapsed(long started) { return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started); }
 
-    public static void setRequiredPositiveFlags(int requiredPositiveFlags) {
+    public static synchronized void setRequiredPositiveFlags(int requiredPositiveFlags) {
+        decisionLeases.requireIdle();
         ConnectionGuard.requiredPositiveFlags = requiredPositiveFlags;
         policyContextChanged();
     }
 
-    public static void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
+    public static synchronized void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
+        decisionLeases.requireIdle();
         ConnectionGuard.vpnProviders = vpnProviders;
         health.clear();
         policyContextChanged();
     }
 
-    public static void setGeoProvider(GeoProvider geoProvider) {
+    public static synchronized void setGeoProvider(GeoProvider geoProvider) {
+        decisionLeases.requireIdle();
         ConnectionGuard.geoProvider = geoProvider;
         if (geoProvider != null && health.containsKey(quotaKey(geoProvider.getClass().getSimpleName()))) health.get(quotaKey(geoProvider.getClass().getSimpleName())).resetFailures();
         policyContextChanged();
     }
 
-    public static void setCacheProvider(CacheProvider cacheProvider) {
+    public static synchronized void setCacheProvider(CacheProvider cacheProvider) {
+        decisionLeases.requireIdle();
         ConnectionGuard.cacheProvider = cacheProvider;
         policyContextChanged();
     }
@@ -484,12 +489,14 @@ public class ConnectionGuard {
         ConnectionGuard.logger = logger;
     }
 
-    public static void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
+    public static synchronized void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
+        decisionLeases.requireIdle();
         ConnectionGuard.vpnCacheExpirationTime = vpnCacheExpirationTime;
         policyContextChanged();
     }
 
-    public static void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
+    public static synchronized void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
+        decisionLeases.requireIdle();
         ConnectionGuard.geoCacheExpirationTime = geoCacheExpirationTime;
         policyContextChanged();
     }
