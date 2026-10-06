@@ -80,6 +80,10 @@ def run_versions(runtime, connect, state, configure, restart, settings, data, re
         return match[1]
 
     def commit(command):
+        deadline = time.monotonic() + 5
+        while 'runtimeIdle=true' not in runtime.command('fixture-policy status', 'POLICY_STATUS'):
+            assert runtime.process.poll() is None and time.monotonic() < deadline
+            time.sleep(.02)
         line = runtime.command(command, 'Policy committed:')
         committed = re.search(r'Policy committed: (p[0-9]+-[a-f0-9]{12})', line)
         assert committed

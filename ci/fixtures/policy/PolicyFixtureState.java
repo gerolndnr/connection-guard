@@ -47,7 +47,7 @@ public final class PolicyFixtureState implements AutoCloseable {
       case "status": break;
       default:return;
     }
-    System.out.println("POLICY_STATUS calls="+calls.get()+" geoCalls="+geoCalls.get()+" actions="+actions.get()+" admissionCalls="+admissionCalls.get());
+    System.out.println("POLICY_STATUS calls="+calls.get()+" geoCalls="+geoCalls.get()+" actions="+actions.get()+" admissionCalls="+admissionCalls.get()+" runtimeIdle="+ConnectionGuard.getLookupRuntime().isIdle());
   }
   private GeoResult geo(){return new GeoResult("127.0.0.1","DE","Fixture city","Fixture ISP");}
   private final class FixtureGeoProvider implements GeoProvider {
