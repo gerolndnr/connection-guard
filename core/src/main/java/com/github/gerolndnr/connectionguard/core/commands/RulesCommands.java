@@ -29,7 +29,7 @@ public final class RulesCommands {
         if (args.length == 3 && args[1].equalsIgnoreCase("remove")) {
             if (store.snapshot().stream().noneMatch(rule -> rule.getId().equals(args[2]) && rule.getEffect() == effect)) { reply.accept(messages.text("ops.rules-missing", name)); return true; }
             ConnectionGuard.getLookupRuntime().submit(() -> {
-                try { return store.remove(args[2]); } catch (java.io.IOException failure) { throw new IllegalStateException("Rule removal failed (details redacted)."); }
+                try { return store.remove(args[2]); } catch (java.io.IOException failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); throw new IllegalStateException("Rule removal failed (details redacted)."); }
             }).thenAccept(removed -> reply.accept(removed ? messages.getString("ops.rule-removed") : messages.getString("ops.rule-absent")))
                     .exceptionally(error -> { reply.accept(messages.getString("ops.rule-remove-failed")); return null; }); return true;
         }
@@ -47,10 +47,10 @@ public final class RulesCommands {
                 reason = String.join(" ", Arrays.copyOfRange(args, boundary+2, args.length));
                 // Validate before scheduling any write.
                 new AccessRule("validation", effect, scope, target, expiry, reason);
-            } catch (IllegalArgumentException | ArithmeticException invalid) { reply.accept(messages.getString("ops.rule-invalid")); return true; }
+            } catch (IllegalArgumentException | ArithmeticException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.rule-invalid")); return true; }
             ConnectionGuard.getLookupRuntime().submit(() -> {
                 try { return store.add(effect, scope, target, expiry, reason); }
-                catch (java.io.IOException failure) { throw new IllegalStateException("Rule write failed (details redacted)."); }
+                catch (java.io.IOException failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); throw new IllegalStateException("Rule write failed (details redacted)."); }
             }).thenAccept(rule -> reply.accept(messages.text("ops.rule-stored", rule.getId(), rule.getEffect(), rule.getTarget(), rule.getScope())))
                     .exceptionally(error -> { reply.accept(messages.getString("ops.rule-write-failed")); return null; }); return true;
         }

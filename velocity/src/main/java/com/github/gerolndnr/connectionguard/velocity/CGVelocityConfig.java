@@ -40,6 +40,7 @@ public class CGVelocityConfig {
         }
         try {
             config = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(true).build());
+            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.prepareErrorReports(dataDirectory, config::get);
             // Dashboard settings layer over config.yml in memory; the file is never written.
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, config::set);
         } catch (IOException e) {
@@ -53,6 +54,10 @@ public class CGVelocityConfig {
     }
 
     public void reloadValidated() throws IOException {
+        try { reloadGuardValidated(); }
+        catch (IOException | RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.RELOAD); throw failure; }
+    }
+    private void reloadGuardValidated() throws IOException {
         synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
             YamlDocument next = YamlDocument.create(configFile, GeneralSettings.builder().setUseDefaults(false).build());
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(dataDirectory, next::set);

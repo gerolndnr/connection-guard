@@ -25,6 +25,10 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
 
     @Override
     public void execute(CommandSender commandSender, String[] args) {
+        try { executeGuard(commandSender, args); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); throw failure; }
+    }
+    private void executeGuard(CommandSender commandSender, String[] args) {
         final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         String noPermissionMessage = ChatColor.translateAlternateColorCodes(
                 '&',

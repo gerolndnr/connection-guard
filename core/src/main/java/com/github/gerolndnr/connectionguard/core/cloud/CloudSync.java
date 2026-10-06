@@ -65,7 +65,10 @@ public final class CloudSync {
     private volatile String networkName, linkCode, linkUrl, lastError;
     private volatile long lastSyncAt;
     private JsonObject pending;
+    private final Object pendingLock = new Object();
     private boolean legacyStatus;
+    private static volatile boolean errorsUnsupported;
+    private volatile boolean errorReportsEnabled;
     private boolean cleanupWarned;
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
@@ -75,6 +78,7 @@ public final class CloudSync {
         this.settings = settings; this.dir = dir; this.platform = platform; this.platformVersion = platformVersion;
         this.pluginVersion = pluginVersion; this.log = log;
         this.client = new CloudClient(settings.endpoint, pluginVersion);
+        errorReportsEnabled = settings.errorReports && !errorsUnsupported;
 
     }
 
@@ -90,12 +94,20 @@ public final class CloudSync {
                 CloudSettings next;
                 try { next = CloudSettings.read(config, Files.exists(disabledMarker(dataDir))); }
                 catch (IllegalArgumentException invalid) {
-                    stopLocked(); lastSettings = null;
+                    stopLocked(); lastSettings = null; PluginErrorReports.configure(false);
                     log.warning("Connection Guard Cloud stays off: invalid settings (values redacted)."); return;
                 }
                 lastSettings = next;
+                PluginErrorReports.configure(next.errorReports && !errorsUnsupported);
                 if (next.enabled && current != null && current.settings.endpoint.equals(next.endpoint)
-                        && current.settings.networkToken.equals(next.networkToken)) return;
+                        && current.settings.networkToken.equals(next.networkToken)) {
+                    current.errorReportsEnabled = next.errorReports && !errorsUnsupported;
+                    synchronized (current.pendingLock) {
+                        if (!current.errorReportsEnabled && current.pending != null) current.pending.remove("errors");
+                    }
+                    current.errorReportNotice();
+                    return;
+                }
                 stopLocked();
                 if (!next.enabled) return;
                 if (worker != null && worker.isShutdown() && !worker.isTerminated()) {
@@ -111,7 +123,7 @@ public final class CloudSync {
                 current = sync;
                 try { sync.begin(); }
                 catch (RuntimeException unavailable) {
-                    stopLocked(); log.warning("Connection Guard Cloud stays off: local state unavailable (values redacted).");
+                    stopLocked(); PluginErrorReports.configure(false); log.warning("Connection Guard Cloud stays off: local state unavailable (values redacted).");
                 }
             }
         }
@@ -126,7 +138,7 @@ public final class CloudSync {
     }
 
     public static void stop() {
-        synchronized (ConnectionGuard.class) { synchronized (CloudSync.class) { stopLocked(); } }
+        synchronized (ConnectionGuard.class) { synchronized (CloudSync.class) { stopLocked(); PluginErrorReports.configure(false); } }
     }
     private static void stopLocked() {
         CloudSync sync = current; current = null;
@@ -141,6 +153,7 @@ public final class CloudSync {
         synchronized (ConnectionGuard.class) {
             synchronized (CloudSync.class) {
                 stopLocked();
+                PluginErrorReports.shutdown();
                 if (worker != null) worker.shutdownNow();
                 reloadHook = null; lastConfig = null; dataDirectory = null;
             }
@@ -148,11 +161,19 @@ public final class CloudSync {
     }
     private boolean active() { return !closed && current == this; }
 
+    /** Configure capture as soon as native config is readable; never starts a Cloud HTTP request. */
+    public static void prepareErrorReports(Path dataDir, Function<String, Object> config) {
+        try { PluginErrorReports.configure(CloudSettings.read(config, Files.exists(disabledMarker(dataDir))).errorReports && !errorsUnsupported); }
+        catch (IllegalArgumentException invalid) { PluginErrorReports.configure(false); }
+    }
+    static void resetErrorReportsForTest() { PluginErrorReports.shutdown(); errorsUnsupported = false; }
+
     private void begin() {
         credentials = CloudCredentials.load(dir.resolve("credentials.json"));
         managed = CloudManagedConfig.load(dir.getParent());
         if (credentials != null && !credentials.endpoint.equals(settings.endpoint.toString())) credentials = null;
         firstRunNotice();
+        errorReportNotice();
         DecisionObservers.setInternal(recorder);
         schedule(FIRST_DELAY + new Random().nextInt(10));
     }
@@ -164,6 +185,15 @@ public final class CloudSync {
                 + " (no IPs, no player data) to " + settings.endpoint.getHost() + ".");
         log.info("Turn it off with cloud.enabled: false in config.yml or /cg cloud disable. Logins never wait on the cloud.");
         try { Files.createDirectories(dir); Files.write(marker, new byte[0]); } catch (IOException ignored) { /* shown again next start */ }
+    }
+
+    private void errorReportNotice() {
+        if (!errorReportsEnabled) return;
+        Path marker = dir.resolve("error-reports-notice-v1");
+        if (Files.exists(marker)) return;
+        log.info("Connection Guard error reports are on: own exception types and code frames, never message text or player data, are sent with background Cloud sync for error tracking. Set cloud.error-reports: false to turn them off. Privacy: https://connectionguard.net/privacy#plugin");
+        try { Files.createDirectories(dir); Files.write(marker, new byte[0]); }
+        catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
     }
 
     private void schedule(long seconds) {
@@ -185,6 +215,7 @@ public final class CloudSync {
             if (rules != null) {
                 try { rules.pruneExpired(System.currentTimeMillis()); cleanupWarned = false; }
                 catch (IOException cleanupFailed) {
+                    PluginErrorReports.record(cleanupFailed, PluginErrorReports.Context.CACHE);
                     if (!cleanupWarned) log.warning("Connection Guard Cloud: expired rules could not be removed from local storage; expired rules still never permit access (values redacted).");
                     cleanupWarned = true;
                 }
@@ -196,6 +227,7 @@ public final class CloudSync {
             failures++;
             lastError = failure instanceof IOException ? "network unavailable" : "unexpected response";
             next = backoff(-1);
+            PluginErrorReports.record(failure, PluginErrorReports.Context.SYNC);
             if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
             // Remote values and underlying exceptions may contain secrets; never retain their text/cause.
         }
@@ -241,8 +273,17 @@ public final class CloudSync {
     }
 
     private long sync() throws IOException {
-        if (pending == null) pending = buildSync();
-        CloudClient.Reply reply = client.post("/v1/sync", pending, credentials.bearer());
+        // Filtering never holds a lifecycle/admission monitor. Freeze the request separately
+        // so a local opt-out cannot mutate Gson's object while HTTP serializes it.
+        JsonObject built = pending == null ? buildSync() : null;
+        JsonObject request;
+        synchronized (pendingLock) {
+            if (built != null) pending = built;
+            if (!errorReportsEnabled || errorsUnsupported) pending.remove("errors");
+            request = pending.deepCopy();
+        }
+        if (!active()) return MAX_DELAY;
+        CloudClient.Reply reply = client.post("/v1/sync", request, credentials.bearer());
         synchronized (ConnectionGuard.class) {
         if (!active()) return MAX_DELAY;
         if (reply.status == 401) {
@@ -252,6 +293,14 @@ public final class CloudSync {
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
+        if (reply.status == 400 && request.has("errors")) {
+            errorsUnsupported = true;
+            errorReportsEnabled = false;
+            PluginErrorReports.configure(false);
+            synchronized (pendingLock) { pending.remove("errors"); }
+            lastError = "error reports disabled for an older cloud until restart";
+            return MIN_DELAY; // SAME seq, events and counters; retry only once without errors.
+        }
         if (reply.status == 400 && !legacyStatus && pending.getAsJsonObject("status").has("capabilities")) {
             // Older protocol-1 APIs reject unknown status fields. Retry the SAME decision batch
             // and sequence without capabilities, rather than draining/dropping or recounting it.
@@ -322,6 +371,10 @@ public final class CloudSync {
         JsonArray results = new JsonArray();
         synchronized (commandResults) { commandResults.forEach(results::add); commandResults.clear(); }
         body.add("command_results", results);
+        if (errorReportsEnabled && !errorsUnsupported) {
+            JsonArray errors = PluginErrorReports.drainForSync();
+            if (errors.size() > 0) body.add("errors", errors);
+        }
         return body;
     }
 
@@ -382,7 +435,7 @@ public final class CloudSync {
     private boolean applyConfig(JsonObject desired) {
         final int version;
         try { version = CloudManagedConfig.desiredVersion(desired); }
-        catch (IllegalArgumentException invalid) { lastError = "malformed settings response"; return false; }
+        catch (IllegalArgumentException invalid) { PluginErrorReports.record(invalid, PluginErrorReports.Context.SYNC); lastError = "malformed settings response"; return false; }
         if (version <= managed.version) return false;
         Runnable hook = reloadHook;
         if (hook == null) { configResult = result(version, false, "This server cannot apply dashboard settings."); return true; }
@@ -390,6 +443,7 @@ public final class CloudSync {
         try {
             next = CloudManagedConfig.desired(managed, desired);
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException | UnsupportedOperationException invalid) {
+            PluginErrorReports.record(invalid, PluginErrorReports.Context.RELOAD);
             configResult = result(version, false, "Malformed or unsupported settings; values redacted.");
             log.warning("Connection Guard Cloud: refused dashboard settings v" + version + ": " + configResult.get("message").getAsString());
             return true;
@@ -397,7 +451,7 @@ public final class CloudSync {
         Path dataDir = dir.getParent();
         byte[] previous;
         try { previous = CloudManagedConfig.write(dataDir, next); }
-        catch (IOException failure) { configResult = result(version, false, "Could not write the settings file on the server."); return true; }
+        catch (IOException failure) { PluginErrorReports.record(failure, PluginErrorReports.Context.RELOAD); configResult = result(version, false, "Could not write the settings file on the server."); return true; }
         try {
             applying.set(this);
             try { hook.run(); } finally { applying.remove(); }
@@ -480,6 +534,7 @@ public final class CloudSync {
                 credentials = null; claimed = false; recorder.acceptEvents(false);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException refused) {
+            PluginErrorReports.record(refused, PluginErrorReports.Context.COMMAND);
             ok = false; message = "Command refused (values redacted).";
         }
         JsonObject result = new JsonObject();
@@ -493,6 +548,7 @@ public final class CloudSync {
 
     public static synchronized List<String> describeLines() {
         List<String> lines = new ArrayList<>();
+        lines.add(PluginErrorReports.describe() + (errorsUnsupported ? " (older cloud: disabled until restart)" : ""));
         CloudSync sync = current;
         com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         if (sync == null) {

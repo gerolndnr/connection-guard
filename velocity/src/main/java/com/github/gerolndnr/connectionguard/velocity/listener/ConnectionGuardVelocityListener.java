@@ -229,6 +229,7 @@ public class ConnectionGuardVelocityListener {
                 }
             }).whenComplete((ignored, error) -> { if (error != null) decision.error(); decision.close(); });
         } catch (RuntimeException | LinkageError failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             decision.error(); decision.close(); throw failure;
         }
     }

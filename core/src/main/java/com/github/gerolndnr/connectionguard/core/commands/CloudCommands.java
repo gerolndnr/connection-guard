@@ -27,17 +27,17 @@ public final class CloudCommands {
                 return true;
             case "settings":
                 try { CloudSync.describeSettings().forEach(reply); }
-                catch (IllegalArgumentException invalid) { reply.accept(messages.getString("cloud.local-error")); }
+                catch (IllegalArgumentException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("cloud.local-error")); }
                 return true;
             case "reset-settings":
                 try { reply.accept(messages.translate(CloudSync.resetSettingsLocally())); }
-                catch (IllegalStateException notReady) { reply.accept(messages.getString("cloud.not-ready")); }
-                catch (IllegalArgumentException invalid) { reply.accept(messages.getString("cloud.local-error")); }
+                catch (IllegalStateException notReady) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(notReady, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("cloud.not-ready")); }
+                catch (IllegalArgumentException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("cloud.local-error")); }
                 return true;
             case "enable":
             case "disable":
                 try { reply.accept(messages.translate(CloudSync.setDisabledByCommand(action.equals("disable")))); }
-                catch (IOException | IllegalStateException failure) { reply.accept(messages.getString("cloud.change-error")); }
+                catch (IOException | IllegalStateException failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("cloud.change-error")); }
                 return true;
             default:
                 reply.accept("/cg cloud status | link | settings | reset-settings | enable | disable");

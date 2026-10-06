@@ -38,6 +38,7 @@ public final class ProviderHttp {
     }
 
     public static LookupException failure(RuntimeException error) {
+        if (!(error instanceof LookupException)) com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(error, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
         return error instanceof LookupException ? (LookupException) error : new LookupException(FailureReason.INVALID_RESPONSE);
     }
 
@@ -59,8 +60,10 @@ public final class ProviderHttp {
             }
             return Optional.of(JsonParser.parseString(new String(body.toByteArray(), StandardCharsets.UTF_8)).getAsJsonObject());
         } catch (InterruptedIOException failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             throw new LookupException(FailureReason.TIMEOUT);
         } catch (IOException failure) {
+            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             throw new LookupException(FailureReason.NETWORK);
         } catch (RuntimeException failure) {
             throw failure(failure);

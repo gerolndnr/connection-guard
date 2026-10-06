@@ -59,9 +59,11 @@ def verify(artifact, version):
             for policy_type in ("policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
                                 "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
                                 "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
-                                "commands/PolicyCommands"):
+                                "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context",
+                                "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame"):
                 entry = PACKAGE.replace(".", "/") + "/core/" + policy_type + ".class"
-                require(names.count(entry) == 1, f"Missing or duplicate policy runtime type: {policy_type}")
+                label = "error report" if policy_type.startswith("cloud/") else "policy"
+                require(names.count(entry) == 1, f"Missing or duplicate {label} runtime type: {policy_type}")
             require(names.count("policy/examples.json") == 1 and len(jar.read("policy/examples.json")) <= 262144,
                     "Missing, duplicate or oversized policy examples.")
             require(jar.read("policy/examples.json") == (ROOT / "core/src/main/resources/policy/examples.json").read_bytes(),
