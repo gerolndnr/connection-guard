@@ -41,7 +41,7 @@ public final class GuardSettings {
     public GuardSettings withPolicy(GuardSettings policy) {
         return new GuardSettings(lookup, admission, policy.observe, trustForwardedIdentity, nativeFloodgateIdentity,
                 nativePaperForwardingIdentity, admissionHooks, policy.vpnFailure, policy.geoFailure, warnings, webhooks,
-                policy.kickVpn, policy.kickGeo, policy.geoWhitelist, policy.countries);
+                policy.kickVpn, policy.kickGeo, policy.geoWhitelist, policy.countries, vpnFailover);
     }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
         com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));

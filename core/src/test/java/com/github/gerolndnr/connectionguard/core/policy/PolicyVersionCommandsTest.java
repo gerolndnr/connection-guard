@@ -51,6 +51,7 @@ class PolicyVersionCommandsTest {
         GuardSettings effective = ConnectionGuard.getSettings(); assertEquals(Reason.VPN_FLAG, denial(effective));
         assertSame(base.lookup, effective.lookup); assertSame(base.webhooks, effective.webhooks);
         assertSame(base.admission, effective.admission); assertSame(base.admissionHooks, effective.admissionHooks);
+        assertSame(base.vpnFailover, effective.vpnFailover);
         PolicyJournal history = ConnectionGuard.getRuleStore().journal(); String original = history.revisions.get(1).id;
         assertEquals(fingerprint, history.find(original).policy.fingerprint());
         assertTrue(command("policy", "rollback", original, ConnectionGuard.policyActivationToken()).get(0).startsWith("Policy committed:"));
