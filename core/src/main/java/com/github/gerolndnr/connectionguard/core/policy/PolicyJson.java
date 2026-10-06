@@ -13,10 +13,14 @@ final class PolicyJson {
     private PolicyJson() { }
     static final int MAX_BYTES = 262144;
     static JsonObject read(InputStream input) throws IOException {
+        return read(input, MAX_BYTES);
+    }
+    static JsonObject read(InputStream input, int maximum) throws IOException {
+        if (maximum < 1 || maximum > 1048576) throw invalid();
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         byte[] buffer = new byte[4096]; int size;
         while ((size = input.read(buffer)) != -1) {
-            if (bytes.size() + size > MAX_BYTES) throw invalid();
+            if (bytes.size() + size > maximum) throw invalid();
             bytes.write(buffer, 0, size);
         }
         String text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)

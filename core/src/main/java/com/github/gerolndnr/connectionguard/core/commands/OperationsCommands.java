@@ -63,6 +63,12 @@ public final class OperationsCommands {
     public static List<String> doctor() { return doctor(ConnectionGuard.getMessages()); }
     private static List<String> doctor(com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
         List<String> lines = new ArrayList<>();
+        synchronized (ConnectionGuard.class) {
+            com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore store = ConnectionGuard.getRuleStore();
+            if (store != null) lines.add("Policy owner=" + (store.locallyOwned() ? "LOCAL_VERSION" : "CONFIG")
+                    + " revision=" + store.revision() + " activeDecisions=" + ConnectionGuard.activePolicyDecisions()
+                    + (store.locallyOwned() ? "; release the local revision before changing config/dashboard decision fields" : ""));
+        }
         lines.add("Mode=" + (ConnectionGuard.getSettings().observe ? "OBSERVE" : "ENFORCE")
                 + " vpnFailure=" + ConnectionGuard.getSettings().vpnFailure + " geoFailure=" + ConnectionGuard.getSettings().geoFailure);
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);

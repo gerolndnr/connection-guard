@@ -23,6 +23,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final long generation, started;
     private final boolean captureEnabled;
     private final int positiveThreshold;
+    private final com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease policyLease;
     private Check vpnCheck = Check.NOT_CHECKED, geoCheck = Check.NOT_CHECKED;
     private final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     private List<AdmissionObservation> admissionChecks=Collections.emptyList();
@@ -39,6 +40,7 @@ public final class DecisionCapture implements AutoCloseable {
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
         String selectedGeo = ConnectionGuard.policyGeoSource();
         geoSource = selectedGeo == null ? "geo.none" : selectedGeo;
+        policyLease = ConnectionGuard.acquireDecisionLease();
     }
     public static DecisionCapture begin(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust) {
         return begin(platform, phase, ip, uuid, trust, System.nanoTime());
@@ -121,6 +123,7 @@ public final class DecisionCapture implements AutoCloseable {
     @Override public synchronized void close() {
         if (finished) return;
         finished = true;
+        policyLease.close();
         if (!captureEnabled || invalidObservation) return;
         // Observation construction must never change admission or retain exception details.
         DecisionObservation event;

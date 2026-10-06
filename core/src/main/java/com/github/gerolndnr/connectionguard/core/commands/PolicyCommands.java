@@ -9,7 +9,7 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 
-/** Local replay and explicit shadow comparison. Never dispatches live actions or activates a policy. */
+/** Local replay, shadow comparison and separately authorized durable policy transitions. No provider queries. */
 public final class PolicyCommands {
     private static volatile Path dataDirectory;
     private PolicyCommands() { }
@@ -18,6 +18,8 @@ public final class PolicyCommands {
         if (args.length == 0 || !args[0].equalsIgnoreCase("policy")) return false;
         MessageCatalog messages = ConnectionGuard.getMessages();
         if (!permission.test("connectionguard.command.policy")) { reply.accept(messages.getString("ops.permission")); return true; }
+        if (args.length >= 2 && Arrays.asList("status", "history", "inspect", "activate", "rollback", "release").contains(args[1].toLowerCase(Locale.ROOT)))
+            return versions(args, permission, reply, messages);
         if (args.length >= 2 && args[1].equalsIgnoreCase("shadow")) return shadow(args, reply, messages);
         if (args.length < 2 || args.length > 4 || !args[1].equalsIgnoreCase("test")) {
             reply.accept(messages.getString("ops.policy-usage")); return true;
@@ -54,6 +56,47 @@ public final class PolicyCommands {
                     + " ageMs=" + (cases.capturedAt == 0 || cases.capturedAt > asOf ? "unavailable" : asOf - cases.capturedAt));
             reply.accept(messages.getString("ops.policy-limits")); output.forEach(reply);
         } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
+        return true;
+    }
+    private static boolean versions(String[] args, Predicate<String> permission, Consumer<String> reply, MessageCatalog messages) {
+        String operation = args[1].toLowerCase(Locale.ROOT);
+        boolean write = Arrays.asList("activate", "rollback", "release").contains(operation);
+        if (write && !permission.test("connectionguard.command.policy.activate")) { reply.accept(messages.getString("ops.permission")); return true; }
+        try {
+            if (operation.equals("inspect") && args.length == 3) {
+                PolicyReplay.Snapshot candidate;
+                try (InputStream input = open(args[2])) { candidate = PolicyReplay.readCandidate(input); }
+                reply.accept("candidate=" + candidate.fingerprint() + " mode=" + (candidate.settings.observe ? "OBSERVE" : "ENFORCE") + " rules=" + candidate.rules.size());
+            } else if (operation.equals("activate") && args.length == 5) {
+                PolicyReplay.Snapshot candidate;
+                try (InputStream input = open(args[2])) { candidate = PolicyReplay.readCandidate(input); }
+                reply.accept("Policy committed: " + ConnectionGuard.activatePolicy(candidate, args[3], args[4]));
+            } else if (operation.equals("rollback") && args.length == 4) {
+                reply.accept("Policy committed: " + ConnectionGuard.rollbackPolicy(args[2], args[3]));
+            } else if (operation.equals("release") && args.length == 3) {
+                reply.accept("Policy committed: " + ConnectionGuard.releasePolicy(args[2]));
+            } else if (!(operation.equals("status") || operation.equals("history")) || args.length != 2) {
+                reply.accept(messages.getString("ops.policy-version-usage")); return true;
+            }
+            List<String> output = new ArrayList<>();
+            synchronized (ConnectionGuard.class) {
+                com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore store = ConnectionGuard.getRuleStore();
+                if (store == null) throw new IllegalStateException();
+                PolicyReplay.Snapshot current = ConnectionGuard.policySnapshot();
+                output.add("Policy owner=" + (store.locallyOwned() ? "LOCAL_VERSION" : "CONFIG") + " revision=" + store.revision()
+                        + " mode=" + (current.settings.observe ? "OBSERVE" : "ENFORCE") + " rules=" + current.rules.size()
+                        + " activeDecisions=" + ConnectionGuard.activePolicyDecisions());
+                output.add("expected=" + ConnectionGuard.policyActivationToken() + " policy=" + current.fingerprint());
+                if (operation.equals("history")) {
+                    PolicyJournal journal = store.journal();
+                    if (journal == null) output.add("No policy history. Native config and legacy rules apply.");
+                    else for (PolicyJournal.Revision revision : journal.revisions)
+                        output.add("revision=" + revision.id + " operation=" + revision.operation + " createdAt=" + revision.createdAt
+                                + " mode=" + (revision.policy.settings.observe ? "OBSERVE" : "ENFORCE") + " rules=" + revision.policy.rules.size());
+                }
+            }
+            output.forEach(reply);
+        } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-version-rejected")); }
         return true;
     }
     private static boolean shadow(String[] args, Consumer<String> reply, MessageCatalog messages) {

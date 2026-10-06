@@ -11,6 +11,7 @@ import com.github.gerolndnr.connectionguard.core.local.*;
 
 /** Build a complete provider draft before mutating active state. No network or file writes. */
 public final class ProviderConfiguration {
+    public final boolean cloudManagesPolicy;
     public final ArrayList<VpnProvider> providers = new ArrayList<>();
     public final List<String> keys = new ArrayList<>();
     public final Map<String, Integer> dayBudgets = new HashMap<>(), minuteBudgets = new HashMap<>();
@@ -40,6 +41,7 @@ public final class ProviderConfiguration {
         this.messages = messages == null ? com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults(language) : messages;
         if (!this.messages.language().equals(language)) throw new IllegalArgumentException("Message draft does not match selected language (value redacted).");
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
+        cloudManagesPolicy = com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.managesDecisionPolicy(dataDirectory);
         settings = GuardSettings.read(value, providerKeys);
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);

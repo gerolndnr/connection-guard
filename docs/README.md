@@ -27,6 +27,8 @@ After installation:
 
 [Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These development features are not included in stable 0.5.1.
 
+[Local version activation and rollback](POLICY_VERSIONING.md) add separately authorized durable transitions and explicit local/dashboard ownership. Development qualification and saved live observations remain open.
+
 ## Validation scope
 
 [Release qualification](RELEASE_0_5_0.md) binds the final package to its checks and selected native platform builds. Earlier [identity/permission](PERMISSION_VALIDATION.md) and [native challenge](NATIVE_CHALLENGE.md) evidence remains tied to its recorded source and JAR. Verified temporary challenge grants, full replay/rollback and account-wide persistent budgets remain future work. A dashboard time-limited operator rule is not a verified challenge grant.

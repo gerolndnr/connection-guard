@@ -8,6 +8,11 @@ folia-supported: true
 softdepend:
   - LuckPerms
   - floodgate
+permissions:
+  connectionguard.command.policy:
+    default: op
+  connectionguard.command.policy.activate:
+    default: op
 commands:
   connectionguard:
     name: connectionguard
