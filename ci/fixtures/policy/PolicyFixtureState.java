@@ -9,15 +9,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class PolicyFixtureState implements AutoCloseable {
   private ProviderRegistration provider;
   private ObserverRegistration observer;
+  private AdmissionRegistration admission;
   private final AtomicInteger calls=new AtomicInteger(), geoCalls=new AtomicInteger(), actions=new AtomicInteger();
+  private final AtomicInteger admissionCalls=new AtomicInteger();
   private volatile boolean positive=true;
   private volatile CompletableFuture<Optional<GeoResult>> held;
+  private volatile CompletableFuture<AdmissionResponse> heldAdmission;
   public PolicyFixtureState() {
     provider=ConnectionGuardApi.registerProvider(new ProviderDescriptor("policy-fixture","1",String.join("",Collections.nCopies(64,"b")),true),ip->{
       if(!ip.equals("127.0.0.1"))throw new IllegalArgumentException("Unexpected fixture IP");
       calls.incrementAndGet(); return CompletableFuture.completedFuture(positive ? DetectionObservation.positive(DetectionMetadata.empty()) : DetectionObservation.negative(DetectionMetadata.empty()));
     });
     observer=ConnectionGuardApi.registerDecisionObserver("policy-observer",o->System.out.println("POLICY_OBS outcome="+o.getOutcome()+" reason="+o.getReason()+" vpn="+o.getVpnCheck()+" geo="+o.getGeoCheck()+" flags="+o.getFlags()));
+    admission=ConnectionGuardApi.registerAdmissionHook("policy-admission",request->{
+      if(!request.getIp().equals("127.0.0.1"))throw new IllegalArgumentException("Unexpected fixture IP");
+      admissionCalls.incrementAndGet();
+      CompletableFuture<AdmissionResponse> pending=heldAdmission;
+      if(pending!=null){System.out.println("POLICY_ADMISSION_WAITING");return pending;}
+      return CompletableFuture.completedFuture(AdmissionResponse.clear());
+    });
   }
   public void command(String[] args) {
     if(args.length!=1)return;
@@ -27,11 +37,17 @@ public final class PolicyFixtureState implements AutoCloseable {
       case "geo": ConnectionGuard.setGeoProvider(new FixtureGeoProvider());break;
       case "hold": held=new CompletableFuture<>();break;
       case "release": if(held!=null)held.complete(Optional.of(geo()));held=null;break;
+      case "hold-admission":
+        if(heldAdmission!=null)throw new IllegalStateException("Already holding admission");
+        heldAdmission=new CompletableFuture<>();break;
+      case "release-admission":
+        CompletableFuture<AdmissionResponse> pending=heldAdmission;heldAdmission=null;
+        if(pending!=null)pending.complete(AdmissionResponse.clear());break;
       case "action": actions.incrementAndGet();break;
       case "status": break;
       default:return;
     }
-    System.out.println("POLICY_STATUS calls="+calls.get()+" geoCalls="+geoCalls.get()+" actions="+actions.get());
+    System.out.println("POLICY_STATUS calls="+calls.get()+" geoCalls="+geoCalls.get()+" actions="+actions.get()+" admissionCalls="+admissionCalls.get()+" runtimeIdle="+ConnectionGuard.getLookupRuntime().isIdle());
   }
   private GeoResult geo(){return new GeoResult("127.0.0.1","DE","Fixture city","Fixture ISP");}
   private final class FixtureGeoProvider implements GeoProvider {
@@ -42,5 +58,9 @@ public final class PolicyFixtureState implements AutoCloseable {
       return CompletableFuture.completedFuture(Optional.of(geo()));
     }
   }
-  public void close(){if(held!=null)held.complete(Optional.empty());provider.close();observer.close();}
+  public void close(){
+    if(held!=null)held.complete(Optional.empty());
+    if(heldAdmission!=null)heldAdmission.complete(AdmissionResponse.unknown(AdmissionResponse.Reason.CANCELLED));
+    admission.close();provider.close();observer.close();
+  }
 }

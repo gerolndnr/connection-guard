@@ -64,8 +64,9 @@ def verify(artifact, version):
             for policy_type in ("policy/ConnectionPolicy", "policy/ConnectionPolicy$Evaluation", "policy/PolicyJson",
                                 "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
                                 "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
-                                "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context",
-                                "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame"):
+                                "policy/PolicyJournal", "policy/PolicyJournal$Revision", "policy/PolicyJournal$Operation",
+                                "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State",
+                                "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context", "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame"):
                 entry = PACKAGE.replace(".", "/") + "/core/" + policy_type + ".class"
                 label = "error report" if policy_type.startswith("cloud/") else "policy"
                 require(names.count(entry) == 1, f"Missing or duplicate {label} runtime type: {policy_type}")

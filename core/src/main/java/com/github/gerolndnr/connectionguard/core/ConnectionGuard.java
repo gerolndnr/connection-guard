@@ -30,6 +30,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class ConnectionGuard {
+    private static final com.github.gerolndnr.connectionguard.core.policy.DecisionLeases decisionLeases = new com.github.gerolndnr.connectionguard.core.policy.DecisionLeases();
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease acquireDecisionLease() { return decisionLeases.acquire(); }
+    public static long activePolicyDecisions() { return decisionLeases.active(); }
     private static final com.github.gerolndnr.connectionguard.core.policy.PolicyShadow policyShadow = new com.github.gerolndnr.connectionguard.core.policy.PolicyShadow();
     private static final java.util.concurrent.atomic.AtomicLong policyEpoch = new java.util.concurrent.atomic.AtomicLong();
     private static void policyContextChanged() {
@@ -37,8 +40,9 @@ public class ConnectionGuard {
         policyShadow.stop(com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.State.BASE_CHANGED);
     }
     private static volatile AccessRuleStore rules;
-    public static void initializeRules(java.nio.file.Path directory) {
-        try { rules = new AccessRuleStore(directory); }
+    public static synchronized void initializeRules(java.nio.file.Path directory) {
+        decisionLeases.requireIdle();
+        try { rules = new AccessRuleStore(directory, ConnectionGuard.class, () -> settings, ConnectionGuard::validatePolicyPublication); }
         catch (java.io.IOException invalid) { throw new IllegalStateException("Access rule file invalid; correct it before enabling checks (values redacted)."); }
         policyContextChanged();
         com.github.gerolndnr.connectionguard.core.commands.PolicyCommands.configure(directory);
@@ -56,7 +60,7 @@ public class ConnectionGuard {
     public static synchronized String policyGeoSource() { return geoProvider == null ? null : "geo." + providerName(geoProvider); }
     public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot policySnapshot() {
         AccessRuleStore store = rules;
-        return new com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot(settings,
+        return new com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot(getSettings(),
                 store == null ? Collections.emptyList() : store.snapshot());
     }
     public static com.github.gerolndnr.connectionguard.core.policy.ConnectionPolicy.Evaluation evaluatePolicy(
@@ -74,13 +78,56 @@ public class ConnectionGuard {
     public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.View startPolicyShadow(
             com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot candidate, long durationMillis) {
         AccessRuleStore store = rules;
-        return policyShadow.start(settings, store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get(), candidate, durationMillis);
+        return policyShadow.start(getSettings(), store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get(), candidate, durationMillis);
     }
     public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.View policyShadowStatus() {
         AccessRuleStore store = rules;
-        return policyShadow.view(settings, store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get());
+        return policyShadow.view(getSettings(), store == null ? Collections.emptyList() : store.snapshot(), policyEpoch.get());
     }
     public static void stopPolicyShadow() { policyShadow.stop(com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.State.STOPPED); }
+    public static synchronized String policyActivationToken() {
+        return com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.digest(policySnapshot().fingerprint() + "|"
+                + (rules == null ? "none" : rules.revision()) + "|" + policyEpoch.get() + "|" + requiredPositiveFlags
+                + "|" + (activeDraft == null ? "none" : activeDraft.cacheNamespace));
+    }
+    private static void validatePolicyPublication(com.github.gerolndnr.connectionguard.core.policy.PolicyJournal journal) {
+        decisionLeases.requireIdle();
+        if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for provider/cache workers before changing policy.");
+        if (journal != null && journal.local && activeDraft != null && activeDraft.cloudManagesPolicy)
+            throw new IllegalArgumentException("Local policy and dashboard decision settings conflict; reset the managed overlay before startup (values redacted).");
+    }
+    private static void validatePolicyWrite(String expected) {
+        if (rules == null || !policyActivationToken().equals(expected)) throw new IllegalArgumentException("Policy base/conditions changed; review the current token again.");
+        decisionLeases.requireIdle();
+        if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for provider/cache workers before changing policy.");
+        if (activeDraft != null && activeDraft.cloudManagesPolicy)
+            throw new IllegalArgumentException("Dashboard owns decision settings; reset its managed settings before choosing a local policy.");
+    }
+    public static synchronized String activatePolicy(com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot candidate,
+            String candidateHash, String expected) throws java.io.IOException {
+        validatePolicyWrite(expected);
+        if (!candidate.fingerprint().equals(candidateHash)) throw new IllegalArgumentException("Candidate changed after review.");
+        com.github.gerolndnr.connectionguard.core.policy.PolicyJournal next = rules.transition(candidate,
+                com.github.gerolndnr.connectionguard.core.policy.PolicyJournal.Operation.ACTIVATE, true, System.currentTimeMillis());
+        policyContextChanged(); return next.current().id;
+    }
+    public static synchronized String rollbackPolicy(String revision, String expected) throws java.io.IOException {
+        validatePolicyWrite(expected);
+        com.github.gerolndnr.connectionguard.core.policy.PolicyJournal current = rules.journal();
+        if (current == null) throw new IllegalArgumentException("No policy history.");
+        com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot selected = current.find(revision).policy;
+        com.github.gerolndnr.connectionguard.core.policy.PolicyJournal next = rules.transition(selected,
+                com.github.gerolndnr.connectionguard.core.policy.PolicyJournal.Operation.ROLLBACK, true, System.currentTimeMillis());
+        policyContextChanged(); return next.current().id;
+    }
+    public static synchronized String releasePolicy(String expected) throws java.io.IOException {
+        validatePolicyWrite(expected);
+        if (!rules.locallyOwned()) throw new IllegalArgumentException("No local policy owns the settings.");
+        com.github.gerolndnr.connectionguard.core.policy.PolicyJournal next = rules.transition(
+                new com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot(settings, rules.snapshot()),
+                com.github.gerolndnr.connectionguard.core.policy.PolicyJournal.Operation.RELEASE, false, System.currentTimeMillis());
+        policyContextChanged(); return next.current().id;
+    }
     public static boolean hasIdentityRules() {
         return rules != null && rules.snapshot().stream().anyMatch(rule -> rule.getType() == AccessRule.Target.UUID
                 && (rule.getExpiresAt() == 0 || rule.getExpiresAt() > System.currentTimeMillis()));
@@ -108,6 +155,8 @@ public class ConnectionGuard {
         return selected == null ? INITIAL_MESSAGES : selected.messages;
     }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
+        decisionLeases.requireIdle();
+        if (rules != null) rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy);
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {
@@ -144,20 +193,22 @@ public class ConnectionGuard {
         com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.configure(draft);
     }
     private static volatile GuardSettings settings = GuardSettings.defaults();
-    public static GuardSettings getSettings() { return settings; }
+    public static synchronized GuardSettings getSettings() { return rules == null ? settings : rules.effective(settings); }
     public static synchronized void applySettings(GuardSettings next) {
+        if (rules != null) rules.validateConfigReload(next, false);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.validateActivation();
         configureLookup(next.lookup);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;
+        if (rules != null) rules.configured(next);
         policyContextChanged();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.configure(next.webhooks);
     }
     private static volatile com.github.gerolndnr.connectionguard.core.admission.AdmissionController admission =
             new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(settings.admission);
     public static synchronized com.github.gerolndnr.connectionguard.core.admission.LoginAdmission admitLogin(String ip, boolean vpnExempt, boolean geoExempt) {
-        return admitLogin(ip, vpnExempt, geoExempt, settings.observe);
+        return admitLogin(ip, vpnExempt, geoExempt, getSettings().observe);
     }
     public static synchronized com.github.gerolndnr.connectionguard.core.admission.LoginAdmission admitLogin(String ip, boolean vpnExempt, boolean geoExempt, boolean observe) {
         com.github.gerolndnr.connectionguard.core.admission.AdmissionController current = admission;
@@ -188,7 +239,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { uncheckedVpnAdmissions.close(); stopPolicyShadow(); com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { uncheckedVpnAdmissions.close(); stopPolicyShadow(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;
@@ -466,30 +517,35 @@ public class ConnectionGuard {
     }
     private static long elapsed(long started) { return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started); }
 
-    public static void setRequiredPositiveFlags(int requiredPositiveFlags) {
+    public static synchronized void setRequiredPositiveFlags(int requiredPositiveFlags) {
+        decisionLeases.requireIdle();
         ConnectionGuard.requiredPositiveFlags = requiredPositiveFlags;
         policyContextChanged();
     }
 
-    public static void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
+    public static synchronized void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
+        decisionLeases.requireIdle();
         ConnectionGuard.vpnProviders = vpnProviders;
         health.clear(); selectedHealthIds = Collections.emptyMap(); failover = false; if (tor != null) { tor.close(); tor = null; }
         policyContextChanged();
     }
 
-    public static void setFailover(boolean enabled, int attempts) {
+    public static synchronized void setFailover(boolean enabled, int attempts) {
+        decisionLeases.requireIdle();
         if (enabled && requiredPositiveFlags != 1 || attempts < 1 || attempts > 16) throw new IllegalArgumentException("Invalid failover policy.");
         failover = enabled; externalAttempts = attempts;
         policyContextChanged();
     }
 
-    public static void setGeoProvider(GeoProvider geoProvider) {
+    public static synchronized void setGeoProvider(GeoProvider geoProvider) {
+        decisionLeases.requireIdle();
         ConnectionGuard.geoProvider = geoProvider; geoDisabled = false;
         if (geoProvider != null && health.containsKey(quotaKey(geoProvider.getClass().getSimpleName()))) health.get(quotaKey(geoProvider.getClass().getSimpleName())).resetFailures();
         policyContextChanged();
     }
 
-    public static void setCacheProvider(CacheProvider cacheProvider) {
+    public static synchronized void setCacheProvider(CacheProvider cacheProvider) {
+        decisionLeases.requireIdle();
         ConnectionGuard.cacheProvider = cacheProvider;
         policyContextChanged();
     }
@@ -498,12 +554,14 @@ public class ConnectionGuard {
         ConnectionGuard.logger = logger;
     }
 
-    public static void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
+    public static synchronized void setVpnCacheExpirationTime(int vpnCacheExpirationTime) {
+        decisionLeases.requireIdle();
         ConnectionGuard.vpnCacheExpirationTime = vpnCacheExpirationTime;
         policyContextChanged();
     }
 
-    public static void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
+    public static synchronized void setGeoCacheExpirationTime(int geoCacheExpirationTime) {
+        decisionLeases.requireIdle();
         ConnectionGuard.geoCacheExpirationTime = geoCacheExpirationTime;
         policyContextChanged();
     }

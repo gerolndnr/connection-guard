@@ -13,12 +13,12 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 - Redis outages at startup use a bounded Memory cache and background reconnect. Reload/invalidation cannot wait on the reconnect probe.
 - VPN kick messages tell players to ask staff for a scoped `/cg allow` exception.
 
-Hosting-only policy confirmation and the full comparative benchmark acceptance remain open. No stable release or accuracy claim is made by this candidate.
-
-
+- Implement separately authorized local policy activation/rollback with reviewed candidate/base hashes, a bounded private history, one atomic decision-settings/rules document and pending-login guards. Native activation/restart/rollback qualification passes on four pinned loopback platforms; no stable release has been published. Existing dashboard rule writers use the same journal, while conflicting decision-field ownership is rejected.
 - Send bounded anonymous metadata for Connection Guard's own exceptions with regular Cloud sync, without exception messages, player data or foreign frames. `cloud.error-reports: false` or any Cloud off switch disables capture and reporting; older Clouds receive the same pending sync without the optional field. [Data and controls](docs/PRIVACY.md).
 - Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.
 - Add an explicitly enabled, in-memory live policy shadow comparison. It reuses final policy facts, retains counters rather than observed identities, and stops on reload, rule changes, expiry or its sample limit. It cannot activate candidates or roll back a policy.
+
+Hosting-only policy confirmation and the full comparative benchmark acceptance remain open. No stable release or accuracy claim is made by this candidate.
 
 ## 0.5.1 — 2026-10-05
 

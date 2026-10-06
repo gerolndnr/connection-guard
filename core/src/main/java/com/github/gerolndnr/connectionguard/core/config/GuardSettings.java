@@ -37,6 +37,12 @@ public final class GuardSettings {
         this.kickVpn = kickVpn; this.kickGeo = kickGeo; this.geoWhitelist = geoWhitelist;
         this.countries = java.util.Collections.unmodifiableList(new ArrayList<>(countries));
     }
+    /** Replace decision fields only; provider, identity, transport, admission and notification settings stay configured. */
+    public GuardSettings withPolicy(GuardSettings policy) {
+        return new GuardSettings(lookup, admission, policy.observe, trustForwardedIdentity, nativeFloodgateIdentity,
+                nativePaperForwardingIdentity, admissionHooks, policy.vpnFailure, policy.geoFailure, warnings, webhooks,
+                policy.kickVpn, policy.kickGeo, policy.geoWhitelist, policy.countries);
+    }
     public static GuardSettings read(Function<String, Object> value, List<String> providerKeys) {
         com.github.gerolndnr.connectionguard.core.messages.LanguageFiles.selection(value.apply("message-language"));
         List<String> warnings = new ArrayList<>();
