@@ -114,16 +114,26 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.KeylessProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
         ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setNoticeConsole(notice -> platformTasks.global(() -> {
+            if (!com.github.gerolndnr.connectionguard.core.cloud.CloudSync.noticeCurrent(notice)) return;
+            java.util.List<String> lines = notice.consoleLines();
+            for (int i = 0; i < lines.size(); i++) {
+                String color = i == 1 ? "\u00a7b\u00a7l" : i == 3 ? "\u00a7a\u00a7l" : i == 4 ? "\u00a7a\u00a7n" : "\u00a77";
+                org.bukkit.Bukkit.getConsoleSender().sendMessage(color + lines.get(i) + "\u00a7r");
+            }
+        }));
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUKKIT,
                 getServer().getName() + " " + getServer().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 6. Register bukkit listener
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
+        getServer().getPluginManager().registerEvents(new com.github.gerolndnr.connectionguard.spigot.listener.CloudDashboardNoticeListener(), this);
 
         // 7. Register commands
         getCommand("connectionguard").setExecutor(new ConnectionGuardSpigotCommand());

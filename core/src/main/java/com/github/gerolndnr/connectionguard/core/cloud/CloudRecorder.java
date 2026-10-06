@@ -130,6 +130,7 @@ final class CloudRecorder implements DecisionObserver {
     }
 
     static String sourceId(String raw) {
+        if (raw.equals("blackbox") || raw.equals("ipcheck") || raw.equals("zowi")) return "vpn-" + raw;
         String id = raw.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9-]+", "-").replaceAll("^[^a-z]+", "");
         if (id.isEmpty()) id = "source";
         return id.length() > 32 ? id.substring(0, 32) : id;

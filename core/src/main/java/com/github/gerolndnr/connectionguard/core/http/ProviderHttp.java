@@ -43,6 +43,12 @@ public final class ProviderHttp {
     }
 
     public static Optional<JsonObject> readJson(Request request, String provider) {
+        try { return Optional.of(JsonParser.parseString(readText(request, provider)).getAsJsonObject()); }
+        catch (RuntimeException invalid) { throw failure(invalid); }
+    }
+
+    /** Same bounded transport/status handling for native plain-text services. */
+    public static String readText(Request request, String provider) {
         try (Response response = CLIENT.newCall(request).execute()) {
             if (response.code() == 429) {
                 long retry = retryAfter(response); boolean quota = false;
@@ -58,7 +64,7 @@ public final class ProviderHttp {
             if (!response.isSuccessful()) throw new LookupException(FailureReason.HTTP_ERROR);
             if (response.body() == null) throw new LookupException(FailureReason.INVALID_RESPONSE);
             if (response.body().contentLength() > 262144) throw new LookupException(FailureReason.INVALID_RESPONSE);
-            return Optional.of(JsonParser.parseString(new String(readBody(response), StandardCharsets.UTF_8)).getAsJsonObject());
+            return new String(readBody(response), StandardCharsets.UTF_8);
         } catch (InterruptedIOException failure) {
             com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             throw new LookupException(FailureReason.TIMEOUT);

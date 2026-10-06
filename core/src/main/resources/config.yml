@@ -180,7 +180,8 @@ provider:
     # Optional provider IDs in preferred order; unspecified enabled sources follow.
     # Example: [ipqualityscore, iphub, proxycheck, extension.owned, corporate]
     # Local lists always precede APIs; ip-api is always the last network option.
-    order: []
+    # New-install template only; existing files keep their selections and order.
+    order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]
   # Network attempts per lookup, bounded by the original whole-login deadline (1..16).
   # Locally skipped quotas/circuits and local list checks do not consume this limit.
   max-external-attempts: 16
@@ -195,6 +196,23 @@ provider:
       api-version: v2
       # Optional daily-budget/minute-budget limit locally counted requests (0=unlimited).
       api-key: ''
+    # These three HTTPS services receive the player's IP if earlier services fail.
+    # Include recipients in your server privacy information. Disable any with enabled: false.
+    # Conservative LOCAL caps: 60/minute each, not a guarantee of upstream availability.
+    # Blackbox: Cameron Munroe / ipinfo.app; no written terms; documented free & unlimited.
+    # Privacy: https://ipinfo.app/privacy/ . Y ALSO covers hosting/cloud lists and can block them.
+    blackbox:
+      enabled: true
+      minute-budget: 60
+    # ip-check.net publishes no operator, terms or privacy policy (checked 2026-10-06).
+    ipcheck:
+      enabled: true
+      minute-budget: 60
+    # zowi: operated by Zowi, developer of competitor FoxGate. No key is sent.
+    # VPN/proxy/Tor flags block; hosting alone remains review evidence.
+    zowi:
+      enabled: true
+      minute-budget: 60
     # Keyless HTTPS fallback; commercial use allowed. See docs/PROVIDER_RESILIENCE.md.
     ipquery:
       enabled: true

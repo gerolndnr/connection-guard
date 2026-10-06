@@ -13,7 +13,7 @@ The plugin works fully without it. No account is required to use Connection Guar
   - `cloud.enabled: false` in `config.yml`
   - `/cg cloud disable` (remembered across restarts; `/cg cloud enable` undoes it)
   - environment variable `CONNECTIONGUARD_CLOUD=false` or JVM flag `-Dconnectionguard.cloud=false` (for hosts and CI)
-- **Linking.** On first start the console prints a one-time notice and a link like `https://app.connectionguard.net/link/7KQM-4P2X`. It is valid for 24 hours and works once. `/cg cloud link` shows it again. Open it, sign in with Discord, name your network and accept the data processing terms. A short setup assistant follows (what to keep out, a free ProxyCheck key, watch first or protect right away), then asks you to join your own server once to see your first check arrive. It steps aside on servers that already have their own settings in `config.yml`.
+- **Linking.** A fresh installation shows a framed console block with a bright title and setup URL through the platform's native console renderer. When the background API provides the server link, it shows that link on its own line (valid for 24 hours). An unlinked server shows its current link again after a restart or code change; a confirmed linked server has no setup prompt. `/cg cloud link` shows the current link on demand. About two seconds after joining, operators (Paper/Spigot/Folia) or staff with `connectionguard.command.cloud` (including proxies) receive a colored clickable setup hint **once per person per installation**, including across reloads and clean restarts. Only the proxy sends the in-game hint when backend forwarding is enabled. If registration is still in progress, a fresh installation points to the dashboard and `/cg cloud link`; existing identities await confirmed link state. No hint or player task is scheduled when Cloud is disabled. Notice suppression uses bounded UUID hashes in `cloud/staff-dashboard-notices-v1.json`, kept locally and never sent to Cloud. Console/join/command setup links carry `src=console|join|command` for the dashboard's existing setup-source attribution. Open the link, sign in with Discord, name your network and accept the data processing terms. The setup assistant helps choose VPN/country rules and asks you to join your server to see a check.
 - **Fleets.** For networks or hosting panels, create a network token in the dashboard and set `cloud.network-token`. New servers then join the network without a link.
 
 ## What is sent
@@ -32,6 +32,18 @@ From 0.5.2, Cloud sync can also send bounded anonymous metadata for Connection G
 - **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard.
 
 ## Configuring the plugin from the dashboard
+
+The 0.5.2 candidate allowlist additionally accepts explicit Boolean switches
+`provider.vpn.blackbox.enabled`, `provider.vpn.ipcheck.enabled` and
+`provider.vpn.zowi.enabled`. Missing local selections snapshot as `false` and
+are never automatically activated on upgrade. Their health and event IDs are
+`vpn-blackbox`, `vpn-ipcheck`, `vpn-zowi`. A positive `vpn-blackbox` source means
+aggregate VPN/proxy/Tor/hosting/cloud membership and must be labelled that way
+by the dashboard. The existing strict event schema and `VPN_FLAG` enum are
+retained; no extra reason field or personal-data category is sent. Dashboard
+allowlist/display deployment is required before merge and does not change
+provider order automatically.
+[Player-IP recipients and opt-in](PROVIDERS.md#new-keyless-recipients-in-the-052-candidate).
 
 Most everyday settings can be changed in the dashboard under **Settings**, in plain language instead of YAML:
 

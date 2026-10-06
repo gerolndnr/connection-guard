@@ -33,6 +33,9 @@ public final class CloudManagedConfig {
         f.put("provider.vpn.proxycheck.enabled", b());
         f.put("provider.vpn.proxycheck.api-key", new Field(Kind.SECRET, null, 0, 0));
         f.put("provider.vpn.ip-api.enabled", b());
+        f.put("provider.vpn.blackbox.enabled", b());
+        f.put("provider.vpn.ipcheck.enabled", b());
+        f.put("provider.vpn.zowi.enabled", b());
         f.put("provider.vpn.iphub.enabled", b());
         f.put("provider.vpn.iphub.api-key", new Field(Kind.SECRET, null, 0, 0));
         f.put("provider.vpn.vpnapi.enabled", b());
@@ -232,6 +235,9 @@ public final class CloudManagedConfig {
         for (Map.Entry<String, Field> entry : FIELDS.entrySet()) {
             Object value;
             try { value = effective.apply(entry.getKey()); } catch (RuntimeException unreadable) { continue; }
+            // Absent new recipient selections are off, including snapshots of pre-upgrade files.
+            if (value == null && (entry.getKey().equals("provider.vpn.blackbox.enabled")
+                    || entry.getKey().equals("provider.vpn.ipcheck.enabled") || entry.getKey().equals("provider.vpn.zowi.enabled"))) value = false;
             if (local) switch (entry.getKey()) {
                 case "operation.mode": value = policy.observe ? "OBSERVE" : "ENFORCE"; break;
                 case "failure-policy.vpn": value = policy.vpnFailure.name(); break;

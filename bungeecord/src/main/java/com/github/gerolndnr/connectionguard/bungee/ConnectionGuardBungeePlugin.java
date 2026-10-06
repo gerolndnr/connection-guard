@@ -139,16 +139,29 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         ConnectionGuard.initializeCache();
         ConnectionGuard.initializeRules(getDataFolder().toPath());
         com.github.gerolndnr.connectionguard.core.config.OperationModeNotice.show(getDataFolder().toPath(), existingInstallation, draft.settings.observe, ConnectionGuard.getLogger());
+        com.github.gerolndnr.connectionguard.core.config.KeylessProviderNotice.show(getDataFolder().toPath(), existingInstallation, ConnectionGuard.getLogger());
         ConnectionGuard.startTorRefresh();
         ConnectionGuard.startCoverageReporting();
         // Optional dashboard link: background only, never on the login path.
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setReloadHook(this::reloadAllConfigs);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setNoticeConsole(notice -> {
+            if (!com.github.gerolndnr.connectionguard.core.cloud.CloudSync.noticeCurrent(notice)) return;
+            java.util.List<String> lines = notice.consoleLines();
+            for (int i = 0; i < lines.size(); i++) {
+                net.md_5.bungee.api.chat.TextComponent line = new net.md_5.bungee.api.chat.TextComponent(lines.get(i));
+                line.setColor(i == 1 ? net.md_5.bungee.api.ChatColor.AQUA : i == 3 || i == 4 ? net.md_5.bungee.api.ChatColor.GREEN : net.md_5.bungee.api.ChatColor.GRAY);
+                if (i == 1 || i == 3) line.setBold(true);
+                if (i == 4) line.setUnderlined(true);
+                getProxy().getConsole().sendMessage(line);
+            }
+        });
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(getDataFolder().toPath(), path -> getConfig().get(path, null), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.BUNGEE,
                 getProxy().getName() + " " + getProxy().getVersion(), getDescription().getVersion(), getLogger());
 
 
         // 7. Register bungeecord listener and commands
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
+        getProxy().getPluginManager().registerListener(this, new com.github.gerolndnr.connectionguard.bungee.listener.CloudDashboardNoticeListener());
 
         getProxy().getPluginManager().registerCommand(this, new ConnectionGuardBungeeCommand());
 

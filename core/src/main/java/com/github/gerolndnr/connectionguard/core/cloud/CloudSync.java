@@ -33,6 +33,8 @@ public final class CloudSync {
     private static DecisionObservation.Platform lastPlatform;
     private static String lastPlatformVersion, lastPluginVersion;
     private static Logger lastLog;
+    private static volatile java.util.function.Consumer<CloudLinkNotice> noticeConsole;
+    public static void setNoticeConsole(java.util.function.Consumer<CloudLinkNotice> renderer) { noticeConsole = renderer; }
     /** The platform's own reload (/cg reload): re-reads config.yml, layers the managed values, validates, swaps. */
     private static volatile Runnable reloadHook;
     private static final ThreadLocal<CloudSync> applying = new ThreadLocal<>();
@@ -62,6 +64,9 @@ public final class CloudSync {
 
     private volatile CloudCredentials credentials;
     private volatile boolean claimed;
+    private volatile boolean linkStateKnown;
+    private final CloudJoinNotices joinNotices;
+    private boolean noticeSaveWarned;
     private volatile String networkName, linkCode, linkUrl, lastError;
     private volatile long lastSyncAt;
     private JsonObject pending;
@@ -78,6 +83,7 @@ public final class CloudSync {
         this.settings = settings; this.dir = dir; this.platform = platform; this.platformVersion = platformVersion;
         this.pluginVersion = pluginVersion; this.log = log;
         this.client = new CloudClient(settings.endpoint, pluginVersion);
+        this.joinNotices = new CloudJoinNotices(dir);
         errorReportsEnabled = settings.errorReports && !errorsUnsupported;
 
     }
@@ -144,12 +150,14 @@ public final class CloudSync {
         CloudSync sync = current; current = null;
         if (sync == null) return;
         sync.closed = true;
+        sync.saveJoinNotices();
         DecisionObservers.setInternal(null);
         sync.recorder.acceptEvents(false);
         if (sync.scheduled != null) sync.scheduled.cancel(true);
         sync.client.close();
     }
     public static void shutdown() {
+        noticeConsole = null;
         synchronized (ConnectionGuard.class) {
             synchronized (CloudSync.class) {
                 stopLocked();
@@ -170,8 +178,14 @@ public final class CloudSync {
 
     private void begin() {
         credentials = CloudCredentials.load(dir.resolve("credentials.json"));
+        try { joinNotices.load(); }
+        catch (IOException invalid) { log.warning("Could not load local dashboard-notice preferences; once-per-start suppression remains active (details redacted)."); }
         managed = CloudManagedConfig.load(dir.getParent());
         if (credentials != null && !credentials.endpoint.equals(settings.endpoint.toString())) credentials = null;
+        // A fresh anonymous installation is known unlinked before the first background request.
+        // Existing identities and automatic network-token installs await the API's actual state.
+        linkStateKnown = credentials == null && settings.networkToken.isEmpty();
+        if (linkStateKnown) showConsoleNotice();
         firstRunNotice();
         errorReportNotice();
         DecisionObservers.setInternal(recorder);
@@ -352,11 +366,42 @@ public final class CloudSync {
             if (code == null || !link.getPath().endsWith("/link/" + code) || url.length() > 512) throw new IllegalArgumentException("Invalid cloud reply.");
         }
         if (nowClaimed && !claimed) log.info("Connection Guard Cloud: linked to " + (networkName == null ? "your network" : "\"" + networkName + "\"") + ".");
-        if (!nowClaimed && url != null && !url.equals(linkUrl)) {
-            log.info("Link this server to your Connection Guard dashboard: " + url);
-            log.info("The link is valid for 24 hours. Run /cg cloud link to show it again.");
-        }
+        boolean changed = !Objects.equals(url, linkUrl);
         claimed = nowClaimed; linkCode = code; linkUrl = url;
+        linkStateKnown = true;
+        if (!nowClaimed && url != null && changed) showConsoleNotice();
+    }
+
+    private void showConsoleNotice() {
+        CloudLinkNotice notice = new CloudLinkNotice(this, linkUrl, "console");
+        java.util.function.Consumer<CloudLinkNotice> renderer = noticeConsole;
+        if (renderer != null) {
+            try { renderer.accept(notice); return; }
+            catch (RuntimeException | LinkageError unavailable) { PluginErrorReports.record(unavailable, PluginErrorReports.Context.OTHER); }
+        }
+        for (String line : notice.consoleLines()) log.info(line);
+    }
+    public static synchronized boolean noticeCurrent(CloudLinkNotice notice) {
+        CloudSync sync = current;
+        return notice != null && sync != null && sync == notice.owner && sync.active() && sync.linkStateKnown
+                && !sync.claimed && Objects.equals(sync.linkUrl, notice.rawUrl);
+    }
+    public static synchronized boolean awaitingLinkState() { return current != null && !current.linkStateKnown; }
+    /** Called only after join, with permissions and connection state checked by the native adapter. */
+    public static synchronized Optional<CloudLinkNotice> takeJoinNotice(UUID uuid, boolean authorized, boolean proxyBackend) {
+        CloudSync sync = current;
+        if (!authorized || proxyBackend || sync == null || !sync.active() || !sync.linkStateKnown || sync.claimed || !sync.joinNotices.reserve(uuid))
+            return Optional.empty();
+        // Persist on the background worker. Never do filesystem/network I/O in the player callback.
+        try { worker.execute(sync::saveJoinNotices); }
+        catch (RejectedExecutionException retired) { /* A clean stop also flushes local suppression. */ }
+        return Optional.of(new CloudLinkNotice(sync, sync.linkUrl, "join"));
+    }
+    private void saveJoinNotices() {
+        try { joinNotices.save(); }
+        catch (IOException invalid) {
+            if (!noticeSaveWarned) { noticeSaveWarned = true; log.warning("Could not save dashboard-notice preferences; join hints may repeat after restart (details redacted)."); }
+        }
     }
 
     private JsonObject buildSync() throws IOException {
@@ -589,6 +634,7 @@ public final class CloudSync {
         CloudSync sync = current;
         return sync == null || sync.claimed ? Optional.empty() : Optional.ofNullable(sync.linkUrl);
     }
+    public static synchronized Optional<String> linkUrl(String source) { return linkUrl().map(url -> CloudLinkNotice.sourced(url, source)); }
 
     public static synchronized boolean isRunning() { return current != null; }
     public static synchronized boolean isLinked() { return current != null && current.claimed; }

@@ -1,0 +1,3752 @@
+{
+  "schema": 1,
+  "source": "read-only mcbench-work recorded answers, 2026-10-06",
+  "sanitization": "Only exact text verdicts and allowlisted security booleans. All IPs replaced by documentation addresses. No keys, URLs, headers, coordinates, names or original addresses. Capture times and original-body hashes retained.",
+  "cases": [
+    {
+      "id": "fresh_vpn-0146",
+      "cohort": "fresh_vpn",
+      "ip": "192.0.2.5",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.5"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": true
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:00:02.364004+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "2e7449291530e1c33358d6de0a18710824fcae4973cacfadb5bf3ba303a39eca",
+          "recorded_at_utc": "2026-10-06T14:00:02.503396+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:00:03.078396+00:00"
+        },
+        "zowi": {
+          "body_sha256": "6307e14701074eb993e3db4877225964cbc82fae60e4e5b3faa07ef0effdb987",
+          "recorded_at_utc": "2026-10-06T14:00:05.238199+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0168",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.6",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.6"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:47:58.703921+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "5cd0eed3279909d222c89ddb7b0a9215ebb823aa09d350f58e3c2b67a0681585",
+          "recorded_at_utc": "2026-10-06T13:47:58.276097+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:47:59.325138+00:00"
+        },
+        "zowi": {
+          "body_sha256": "554a029c4749259dca8cba5d635429d5ba433dcebfc2e0af16b01f089417cbc2",
+          "recorded_at_utc": "2026-10-06T13:47:59.387472+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0170",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.7",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.7"
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:01:51.666494+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "567b40bbc1c85bc34952e749db7157d65b12c8d4fbca0b401961cea40116d285",
+          "recorded_at_utc": "2026-10-06T14:01:51.561219+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:01:52.206604+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0174",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.8",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.8"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:49:21.763987+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "fd4cfda72622ceb8b0a3618760eb7b0649a676fcf56a1e5c7591541a137732fe",
+          "recorded_at_utc": "2026-10-06T13:49:21.660391+00:00"
+        },
+        "zowi": {
+          "body_sha256": "6ff9bf8dbad694fcb347ecb16b8b1eb4092d1a12e26dec083671b2adc16b5069",
+          "recorded_at_utc": "2026-10-06T13:49:22.192930+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:49:22.402012+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0177",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.9",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.9"
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:00:07.506292+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "b63231b4e696c46d058bc033d13aa66f3f34f218b06ec49e1ea53a285493c2c1",
+          "recorded_at_utc": "2026-10-06T14:00:07.250431+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:00:07.810050+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0178",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.10",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.10"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:59:15.769731+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "c5a05bc6b093622f7ca89f0925d7a6ffe7e777e46822bb86cde1a10f1ac71a07",
+          "recorded_at_utc": "2026-10-06T13:59:15.857816+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:59:16.403637+00:00"
+        },
+        "zowi": {
+          "body_sha256": "c74dde09c04bc54138a9a5567718a958e6e2ead90697617b2f1fac465a92f4bc",
+          "recorded_at_utc": "2026-10-06T13:59:17.132971+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0180",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.11",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.11"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:05:52.999412+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "1013a0a201aa84081b4f70f3da5567ad5f84ad031d68b623303a4db76707c5c0",
+          "recorded_at_utc": "2026-10-06T14:05:51.977437+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:05:53.151052+00:00"
+        },
+        "zowi": {
+          "body_sha256": "f7186142d6e0fc3b8f4fb5bf6fed0f1306f2133e9d530a88751cc0f4d57d22e1",
+          "recorded_at_utc": "2026-10-06T14:05:53.383411+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0183",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.12",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.12"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:54:52.042001+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "e944c97bd508f0e134cfe48a6b70e3fe5198d617423ef66f40b1537122a6f696",
+          "recorded_at_utc": "2026-10-06T13:54:52.374432+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:54:52.625945+00:00"
+        },
+        "zowi": {
+          "body_sha256": "43f7a6884f82240e65aa0a1eb9521aae6ccb937456d5f2dc96e1f6f409865219",
+          "recorded_at_utc": "2026-10-06T13:54:52.695959+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0191",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.13",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.13"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:58:51.035269+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "3ae5cd3945d20f9a60231a214f63025fcadd04399df77ee7442fb31a64340dba",
+          "recorded_at_utc": "2026-10-06T13:58:52.381983+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:58:51.668969+00:00"
+        },
+        "zowi": {
+          "body_sha256": "a07c2f28c83fd636184b1aed77fce328c71372a9df35e93ebda4a9debd6cfdb8",
+          "recorded_at_utc": "2026-10-06T13:58:51.981145+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0202",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.14",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.14"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:54:27.246295+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "1fb89691f11ef783f8e1926526b1975114d11e6e3dea77d521eeb86aa53a0cde",
+          "recorded_at_utc": "2026-10-06T13:54:27.469902+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:54:27.791749+00:00"
+        },
+        "zowi": {
+          "body_sha256": "bd5c98db97e411243d8de2d1afcc2db83a9b82cd736e14d8edb4f232718ece08",
+          "recorded_at_utc": "2026-10-06T13:54:27.941838+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0211",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.15",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.15"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:53:18.102630+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "d27bf347abc35b9efc381c9f3328fa76b8b1d950135877ea1c541504c7124cfb",
+          "recorded_at_utc": "2026-10-06T13:53:17.653232+00:00"
+        },
+        "zowi": {
+          "body_sha256": "561018247ddc5eb1ff416913944a7472fd9339d0da421b78d861dc400e0cbd85",
+          "recorded_at_utc": "2026-10-06T13:53:18.519961+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:53:18.665228+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0224",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.16",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.16"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:04:45.935930+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "426aec26fec138ee449ba4d7d96b82724041b99f2b52d2050ebfc33f107ff803",
+          "recorded_at_utc": "2026-10-06T14:04:45.057067+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:04:46.402861+00:00"
+        },
+        "zowi": {
+          "body_sha256": "a769c60d48e55b6760ffaa1a19dca0defd98446e1f426fd798ac80463bf0969f",
+          "recorded_at_utc": "2026-10-06T14:04:46.750066+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0226",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.17",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.17"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:51:15.483543+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "0a23a5f5ab4657f22bc4e8111025fec1793402e95916bd4cc1035f6052870f5a",
+          "recorded_at_utc": "2026-10-06T13:51:15.473849+00:00"
+        },
+        "zowi": {
+          "body_sha256": "4e121c14ef88346a2db4a380b0c0b2efbfc60077f45750657bb453bc21f42901",
+          "recorded_at_utc": "2026-10-06T13:51:15.999344+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:51:16.022329+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0229",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.18",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.18"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:50:41.587291+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "708084a8bbce5fbbdb110dbebe28738137b971b2fb7630ff1b0c6f5936175db9",
+          "recorded_at_utc": "2026-10-06T13:50:41.565036+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:50:42.152532+00:00"
+        },
+        "zowi": {
+          "body_sha256": "de1296f15b3c80fbe66103069cac80007de1614609b40152da0d1129f99381d1",
+          "recorded_at_utc": "2026-10-06T13:50:42.164999+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0231",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.19",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.19"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:52:20.572521+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "517e0bc6933f6cd2a61b56576921d1ce51f05265be988d203de640c160b5e494",
+          "recorded_at_utc": "2026-10-06T13:52:20.313882+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:52:21.226436+00:00"
+        },
+        "zowi": {
+          "body_sha256": "7f9de8a89483f3afd96d3d7340cb18e82d09758fcc3d6e1666294f251ab0f325",
+          "recorded_at_utc": "2026-10-06T13:52:22.863939+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0242",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.20",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.20"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:50:10.996340+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "663727b8e4c95e7e768b7ee6811f3872b567a94c549bcf99ae4757c35baf1147",
+          "recorded_at_utc": "2026-10-06T13:50:11.276309+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:50:11.481216+00:00"
+        },
+        "zowi": {
+          "body_sha256": "1c5c1ce8563634d86a7bae4cac26a3ceb247f4dba5e30b5c4913d6760c1789c1",
+          "recorded_at_utc": "2026-10-06T13:50:11.495275+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0243",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.21",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.21"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:54:42.455119+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "4999c700ebe64df5ce42e4045fd996cecb6553bdd37d3dcbf7cd07bc02de88de",
+          "recorded_at_utc": "2026-10-06T13:54:42.645383+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:54:43.014358+00:00"
+        },
+        "zowi": {
+          "body_sha256": "a33379016e0cc2c6605b3e407a60eca615b6f1ce6a38d46f49440c30cf7af78b",
+          "recorded_at_utc": "2026-10-06T13:54:43.204819+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0252",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.22",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.22"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:55:32.287644+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "699285936064b4f068d88c9abe4443a47ca052e182f9ce30b79d47cb5d813d11",
+          "recorded_at_utc": "2026-10-06T13:55:32.192750+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:55:32.883531+00:00"
+        },
+        "zowi": {
+          "body_sha256": "de4c19c0afd6c9f22d9243b3345bfd67bcfb19266e5ed61ff50f272188eb13b4",
+          "recorded_at_utc": "2026-10-06T13:55:33.296868+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0258",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.23",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.23"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:47:13.799878+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "db59862fd5c14b01be2a526549f3bc73dd4eb1cf79d056a4405274d46e5dc761",
+          "recorded_at_utc": "2026-10-06T13:47:14.044706+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:47:14.396803+00:00"
+        },
+        "zowi": {
+          "body_sha256": "cba91c3568e123b8247a3bb14cd86ad0e68dc11d6015d97d3a2ad0d162e6d3fe",
+          "recorded_at_utc": "2026-10-06T13:47:14.520413+00:00"
+        }
+      }
+    },
+    {
+      "id": "mobile_cgnat-0260",
+      "cohort": "mobile_cgnat",
+      "ip": "192.0.2.24",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.24"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:51:25.247062+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "3175f062aff189e3b59dd1ebfbe31848654ea95a62fcb16312b60e3f9c41d853",
+          "recorded_at_utc": "2026-10-06T13:51:24.894036+00:00"
+        },
+        "zowi": {
+          "body_sha256": "de652d9a237214a22417a5d39d1a0ecda28658c9e5911583f7ee8e9838f4840d",
+          "recorded_at_utc": "2026-10-06T13:51:25.731830+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:51:25.787067+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0268",
+      "cohort": "proxy",
+      "ip": "192.0.2.25",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.25"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:04:07.425106+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "485239f394835e45e7e4569de5b60605debcf4e4ba478314d0c2d72a32d12f2c",
+          "recorded_at_utc": "2026-10-06T14:04:07.618024+00:00"
+        },
+        "zowi": {
+          "body_sha256": "7b95a6b77163643e4b294f13e188f1bbc23c6b4b9e6a0e4e53892d9e0445efb1",
+          "recorded_at_utc": "2026-10-06T14:04:08.256106+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:04:09.161835+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0271",
+      "cohort": "proxy",
+      "ip": "192.0.2.26",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.26"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:49:46.507859+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "4c0ea364df75f9418fffbf90202f53f834fcfe0a5ab2f6e46115907ae29ef957",
+          "recorded_at_utc": "2026-10-06T13:49:31.763380+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:49:47.114189+00:00"
+        },
+        "zowi": {
+          "body_sha256": "54d793cbe19fdeebcd92930e52fb64cc9f4bc8b0d7039764f3c9e8be79a01bcd",
+          "recorded_at_utc": "2026-10-06T13:49:47.689062+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0289",
+      "cohort": "proxy",
+      "ip": "192.0.2.27",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.27"
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:01:21.630704+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "febc4ed14a6da236c01212a7357e57ef122c73a2a1f7591cd1e198693841a0a2",
+          "recorded_at_utc": "2026-10-06T14:01:21.633494+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:01:22.271465+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0290",
+      "cohort": "proxy",
+      "ip": "192.0.2.28",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.28"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:46:43.893070+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "50961d7fb3923f1faa041356080cca14b4e203c1b0af3c42a745ca87aa85a653",
+          "recorded_at_utc": "2026-10-06T13:46:44.350919+00:00"
+        },
+        "zowi": {
+          "body_sha256": "ac4e790130b01fd778260dea80540bb1e9886adc699e07bae0142558c0dc7693",
+          "recorded_at_utc": "2026-10-06T13:46:44.352290+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:46:44.484354+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0292",
+      "cohort": "proxy",
+      "ip": "192.0.2.29",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.29"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:59:37.187587+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "01a11c222639ce7d4383e42269ea5b0a81ad9d01b298ee963328ef411561a1f8",
+          "recorded_at_utc": "2026-10-06T13:59:37.325180+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0298",
+      "cohort": "proxy",
+      "ip": "192.0.2.30",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.30"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:54:11.944966+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "c9dda432a52a3efccb26ea213f7a9bde4a54b545befe4b517a7c94f96e63cd11",
+          "recorded_at_utc": "2026-10-06T13:54:11.770087+00:00"
+        },
+        "zowi": {
+          "body_sha256": "e51121b5e3189714b2232d0fb7b45a086b51fccb3994dbc6c015210f368beb41",
+          "recorded_at_utc": "2026-10-06T13:54:12.252302+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:54:12.467488+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0299",
+      "cohort": "proxy",
+      "ip": "192.0.2.31",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.31"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:53:37.157387+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "c0fb98966b1e125bc48f99fece94daebed14e3d5a38cc2b4b9aacad73f58e234",
+          "recorded_at_utc": "2026-10-06T13:53:37.130907+00:00"
+        },
+        "zowi": {
+          "body_sha256": "062e066aa36464a39546f1a3a09edb5d4527fbab206e4e445e321ef1ecb7792c",
+          "recorded_at_utc": "2026-10-06T13:53:37.596367+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:53:38.851136+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0302",
+      "cohort": "proxy",
+      "ip": "192.0.2.32",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.32"
+        },
+        "blackbox": "Y",
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "b6fac2a1a1ec115628ab99c987131525f20ee703d7785d1a3fd671649c2e2cf8",
+          "recorded_at_utc": "2026-10-06T14:06:34.653516+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:06:34.458321+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:06:34.940167+00:00"
+        },
+        "zowi": {
+          "body_sha256": "6c741037bb9e4485a3afd34cfb29489a185566fbfd2d0007218a4dd18e96414d",
+          "recorded_at_utc": "2026-10-06T14:06:35.308143+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0322",
+      "cohort": "proxy",
+      "ip": "192.0.2.33",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.33"
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:01:32.731790+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "f612b0fa4007b5d71b6924a456a6544c668913d8e7f9ae8e84078be82843ceb1",
+          "recorded_at_utc": "2026-10-06T14:01:33.071886+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:01:33.293510+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0327",
+      "cohort": "proxy",
+      "ip": "192.0.2.34",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.34"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:53:56.731384+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "290d347918a98bc805b861d1d6c5f7d9577017bbf5487a0b2bb5587afaa088b7",
+          "recorded_at_utc": "2026-10-06T13:53:56.739593+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0333",
+      "cohort": "proxy",
+      "ip": "192.0.2.35",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.35"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:46:53.796090+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "f5a9ce5e5bc360e217c6ca5531e5390bcad823d0e9d3b921b1b3e526f6334997",
+          "recorded_at_utc": "2026-10-06T13:46:54.007297+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:46:54.313794+00:00"
+        },
+        "zowi": {
+          "body_sha256": "b5cb9261ab883840b77853dc0bb329ad027bb29c8ceff60081e4e2eb83bd1b64",
+          "recorded_at_utc": "2026-10-06T13:46:54.314805+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0336",
+      "cohort": "proxy",
+      "ip": "192.0.2.36",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.36"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:05:42.751194+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "c3071f97844053f92ff6d41c7f821ddc3a75b562f7497eb25b87e89264167501",
+          "recorded_at_utc": "2026-10-06T14:05:42.897834+00:00"
+        },
+        "zowi": {
+          "body_sha256": "130fa81c0c071910dd108bfe9bc827c9bd0aa6b846455e2d764ec80ddeaa162c",
+          "recorded_at_utc": "2026-10-06T14:05:43.782439+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:05:52.214511+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0337",
+      "cohort": "proxy",
+      "ip": "192.0.2.37",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.37"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:48:08.332949+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "5c1473b5b12c08fd15caf87d40c42137aedf1002d649a139c3d77c6bb70474c5",
+          "recorded_at_utc": "2026-10-06T13:48:08.767764+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:48:08.898987+00:00"
+        },
+        "zowi": {
+          "body_sha256": "f4a3411368c44d0567b46cfde9b1d7b631a03bad3f3b58cf36eb884044ef7010",
+          "recorded_at_utc": "2026-10-06T13:48:09.194925+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0339",
+      "cohort": "proxy",
+      "ip": "192.0.2.38",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.38"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:01:12.575159+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "254b9b420cbd076e971fc007a1cd915af213e2181c774703cd1cdc3939033a92",
+          "recorded_at_utc": "2026-10-06T14:01:12.669291+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0341",
+      "cohort": "proxy",
+      "ip": "192.0.2.39",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.39"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:55:42.437444+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "cc3b58719e11be91f553cc07a907be84441b18a1bc9c8181da831601cedbef47",
+          "recorded_at_utc": "2026-10-06T13:55:42.466097+00:00"
+        },
+        "zowi": {
+          "body_sha256": "c73b86165151d720fa2d274c2b5e7c53ed3695563aae1b7762a0e2efbcba2636",
+          "recorded_at_utc": "2026-10-06T13:55:42.801022+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:55:42.982552+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0345",
+      "cohort": "proxy",
+      "ip": "192.0.2.40",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.40"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:53:51.625705+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "0b89347856fde42064c120338c286ccde206798de2b8c626619166e93238ca3a",
+          "recorded_at_utc": "2026-10-06T13:53:52.022304+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0348",
+      "cohort": "proxy",
+      "ip": "192.0.2.41",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.41"
+        },
+        "blackbox": "Y",
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "97c4be67fbc0f8d22a0cb5635171f54d6d93d236a1f1572e4026db4b3bce0547",
+          "recorded_at_utc": "2026-10-06T14:06:03.078555+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:06:12.298521+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:06:12.911704+00:00"
+        },
+        "zowi": {
+          "body_sha256": "3e0eb2d31dcbb1270b399003af2f7b4eb1609121a436179645d4e6fbe9e18859",
+          "recorded_at_utc": "2026-10-06T14:06:13.470170+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0353",
+      "cohort": "proxy",
+      "ip": "192.0.2.42",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.42"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": true,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:57:42.343328+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "179401ae0068350b9fdd52397f98ad12f82ba7182d2fbd76a1f5b614b7dcd450",
+          "recorded_at_utc": "2026-10-06T13:57:42.433747+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:57:42.967566+00:00"
+        },
+        "zowi": {
+          "body_sha256": "b3d4bada5645a69728f3f347fffd1398cea2eb0e75d8af7d6d576f05b509119c",
+          "recorded_at_utc": "2026-10-06T13:57:43.019780+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0357",
+      "cohort": "proxy",
+      "ip": "192.0.2.43",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.43"
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:00:43.120078+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "9be27c98c7329383f019c76f960211593e3771102eb8583b4b367bbb6f6cb1c7",
+          "recorded_at_utc": "2026-10-06T14:00:42.583905+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:00:43.459036+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0360",
+      "cohort": "proxy",
+      "ip": "192.0.2.44",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.44"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:00:18.635565+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "16f272ed20f2198d392730c8b00694bbd3d9786f2e8721a32d119cf1ef3a63b9",
+          "recorded_at_utc": "2026-10-06T14:00:19.005668+00:00"
+        }
+      }
+    },
+    {
+      "id": "proxy-0361",
+      "cohort": "proxy",
+      "ip": "192.0.2.45",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.45"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:00:33.159256+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "1339e80ef603b8e29510ea6138d4cb59f296b1a21b9cc33de9a26bfd90c721ae",
+          "recorded_at_utc": "2026-10-06T14:00:33.186140+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0366",
+      "cohort": "residential",
+      "ip": "192.0.2.47",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "192.0.2.47"
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:04:16.383286+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "7157486a283bdb36d3132db4210e4fbdce71a6af82232cb1eafae6d3fdd9086a",
+          "recorded_at_utc": "2026-10-06T14:04:16.743279+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0380",
+      "cohort": "residential",
+      "ip": "192.0.2.48",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.48"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:58:28.672946+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "d79e535a86d48cd2988dc9dba6ef1facb860f36f8dee68c2132b565bee8d946e",
+          "recorded_at_utc": "2026-10-06T13:58:28.728158+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:58:29.509231+00:00"
+        },
+        "zowi": {
+          "body_sha256": "1eca3826f18be728f24a95a1f566a4da67b6b060083a5e9cea58d5ad1558a433",
+          "recorded_at_utc": "2026-10-06T13:58:29.569329+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0383",
+      "cohort": "residential",
+      "ip": "192.0.2.49",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.49"
+        },
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:52:46.685574+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "ee54ea3401d3d818ace68bdcefde581cd6b11cf011763e741de4f9ac9aab786a",
+          "recorded_at_utc": "2026-10-06T13:52:36.768150+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:52:47.331609+00:00"
+        },
+        "zowi": {
+          "body_sha256": "0262b985c67c7321b90dc933525e718480e1617a8c4c4325e36f2ed3e5c9ede3",
+          "recorded_at_utc": "2026-10-06T13:52:47.735255+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0399",
+      "cohort": "residential",
+      "ip": "192.0.2.50",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.50"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:48:22.791162+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "c56da66da957c3c926f11425ec4c57e158f1cfa336fab5a0686f25ad05c5f7cc",
+          "recorded_at_utc": "2026-10-06T13:48:22.765720+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:48:23.304429+00:00"
+        },
+        "zowi": {
+          "body_sha256": "432978068824290be95a80516f40d191ee5f080acfb49367b3953610e8152d42",
+          "recorded_at_utc": "2026-10-06T13:48:23.536943+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0405",
+      "cohort": "residential",
+      "ip": "192.0.2.51",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.51"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:06:23.796336+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "9cac2325f6e5b33beaf56912b9a7754e2b1142c954428f029d841d8cbee762d3",
+          "recorded_at_utc": "2026-10-06T14:06:23.807652+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:06:24.341816+00:00"
+        },
+        "zowi": {
+          "body_sha256": "78fd4ff27baa21cc5e9826ed325390c21a46516be645db622ae1f5f593dcf977",
+          "recorded_at_utc": "2026-10-06T14:06:24.703749+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0406",
+      "cohort": "residential",
+      "ip": "192.0.2.52",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.52"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:59:52.477164+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "128a40ba534527faf801f4da1cf9e010ced8ed1098fb2dac142c464772745a49",
+          "recorded_at_utc": "2026-10-06T13:59:52.586530+00:00"
+        },
+        "zowi": {
+          "body_sha256": "a8ccae46a262bdb45ae9322b7c9514275cb64b00e504e30b6ab4dedbcac0b4eb",
+          "recorded_at_utc": "2026-10-06T13:59:52.914809+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:59:53.015026+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0411",
+      "cohort": "residential",
+      "ip": "192.0.2.53",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.53"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:56:29.621506+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "1b26cc2818e3c189c3e94bf26afe6eef9df808d180850ac93659543e60d47026",
+          "recorded_at_utc": "2026-10-06T13:56:28.342428+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:56:30.195071+00:00"
+        },
+        "zowi": {
+          "body_sha256": "4f155af03f4cb48fa8d5467c3ba1977221d036db66c4870c505bcf4defa008bd",
+          "recorded_at_utc": "2026-10-06T13:56:30.571004+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0428",
+      "cohort": "residential",
+      "ip": "192.0.2.54",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.54"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:57:14.084836+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "ba9141ff042492bee570f24b4d1aa127276a751252e32592f3fad9afc2f4610c",
+          "recorded_at_utc": "2026-10-06T13:57:13.943717+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:57:14.609588+00:00"
+        },
+        "zowi": {
+          "body_sha256": "82053a32469b66faa52204182d3539ff0074f47f14c927f2ab7c4ea3c7e791e5",
+          "recorded_at_utc": "2026-10-06T13:57:14.971350+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0431",
+      "cohort": "residential",
+      "ip": "192.0.2.55",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.55"
+        },
+        "blackbox": "N",
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "c1db0e55a37298a4896c812f2d8d5351959c9ba308181590dc33629facb15547",
+          "recorded_at_utc": "2026-10-06T14:05:23.856993+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:05:23.761293+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:05:24.469164+00:00"
+        },
+        "zowi": {
+          "body_sha256": "777c3b9122977a29caf331e983bf675be1fc845e5a1adf6ebc8123d0353e6dc1",
+          "recorded_at_utc": "2026-10-06T14:05:24.710019+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0435",
+      "cohort": "residential",
+      "ip": "192.0.2.56",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.56"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:57:47.619763+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "a9d9e27b45cc98e3c289cdc573a6a9a3137e59ca9286bc102639b1d59340b40e",
+          "recorded_at_utc": "2026-10-06T13:57:47.326998+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:57:48.175008+00:00"
+        },
+        "zowi": {
+          "body_sha256": "82eefbeefc200e8ae700d18c75cf89587b42aff3ba69ae7d3cabdc0227f6562b",
+          "recorded_at_utc": "2026-10-06T13:57:48.279496+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0442",
+      "cohort": "residential",
+      "ip": "192.0.2.57",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.57"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:59:26.735911+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "0fc8020e7f1768ae408bbbd37b446fb6ab773af477c2af90aaedfa4a3432f930",
+          "recorded_at_utc": "2026-10-06T13:59:26.388582+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:59:27.330636+00:00"
+        },
+        "zowi": {
+          "body_sha256": "59f8e75a09fb7f4f21935205e2235126b05d22d652d1135887dcd27f6a7a5bfb",
+          "recorded_at_utc": "2026-10-06T13:59:27.946093+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0451",
+      "cohort": "residential",
+      "ip": "192.0.2.58",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.58"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:57:31.382435+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "9335ea115b11fabbfc1f1c1669efaafcdee8e8bb5fdf159dd83a595fbe0644e8",
+          "recorded_at_utc": "2026-10-06T13:57:29.923023+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:57:31.854773+00:00"
+        },
+        "zowi": {
+          "body_sha256": "45ad8c3ecb40f01f7fb6f518a5b9541ca749dd5290d23fae3592f2660a03d590",
+          "recorded_at_utc": "2026-10-06T13:57:33.002059+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0455",
+      "cohort": "residential",
+      "ip": "192.0.2.59",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.59"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:56:58.542373+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "0514d3dc016d2ca8ecfd8d1d162a7f8424e3a16c3f88643008b03dd42db4110a",
+          "recorded_at_utc": "2026-10-06T13:56:58.582208+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:56:59.122705+00:00"
+        },
+        "zowi": {
+          "body_sha256": "88c4725f29c19324271cbf34c7093a47ea542947a6caca1f08106fba200fa2e5",
+          "recorded_at_utc": "2026-10-06T13:56:59.435330+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0456",
+      "cohort": "residential",
+      "ip": "192.0.2.60",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.60"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:47:43.306259+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "a8547c8a727278a73201f3b00fcc607fd7928c91aa6eda6534062b39d20160b9",
+          "recorded_at_utc": "2026-10-06T13:47:43.603229+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:47:43.888748+00:00"
+        },
+        "zowi": {
+          "body_sha256": "f3c2d628d11a41fe3f36169a459e52d3a84a9566928569d71112821b41d50d9a",
+          "recorded_at_utc": "2026-10-06T13:47:44.013584+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0457",
+      "cohort": "residential",
+      "ip": "192.0.2.61",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.61"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:02:25.491571+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "dbdb843d66c4cfca8d7a3f9552502060b8cec9ce8134bcbcdb9e7ea16f794ccd",
+          "recorded_at_utc": "2026-10-06T14:02:25.192500+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:02:26.074782+00:00"
+        },
+        "zowi": {
+          "body_sha256": "7f1f7cb67df445524019e1509c25cb46e9b4423e3eca8d76f5f2a803431606f3",
+          "recorded_at_utc": "2026-10-06T14:02:26.411070+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0458",
+      "cohort": "residential",
+      "ip": "192.0.2.62",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.62"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:51:49.652564+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "002e351f0b755ac3509b796fc02194f1f155cf61f478b6202d1ebdb5bb79283f",
+          "recorded_at_utc": "2026-10-06T13:51:49.649371+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:51:50.160112+00:00"
+        },
+        "zowi": {
+          "body_sha256": "c7b7eeda5b5a17617ea47dd5736ea4d123c242c92a194b08ff393981a5593168",
+          "recorded_at_utc": "2026-10-06T13:51:50.201293+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0460",
+      "cohort": "residential",
+      "ip": "192.0.2.63",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.63"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:56:07.559558+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "1f0f28fdb99ba9593f35102703c70c3fd63703e00deab39e4cbc188aadfa7e5d",
+          "recorded_at_utc": "2026-10-06T13:56:07.449497+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:56:08.107630+00:00"
+        },
+        "zowi": {
+          "body_sha256": "49eae1ccd10ce9dad0d4a2b8021557bce83af45eebd328f8054508acceabf34b",
+          "recorded_at_utc": "2026-10-06T13:56:09.463851+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0467",
+      "cohort": "residential",
+      "ip": "192.0.2.64",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.64"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:51:40.004387+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "e6ef17c47cda337ae5f335c4f6784bd4879fa95512c08ec2849dace48c576473",
+          "recorded_at_utc": "2026-10-06T13:51:40.082436+00:00"
+        },
+        "zowi": {
+          "body_sha256": "51ada0ed8773e37878aadb310254686aa48741740164618e737ca9195f9bd1f5",
+          "recorded_at_utc": "2026-10-06T13:51:40.598268+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:51:40.638138+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0469",
+      "cohort": "residential",
+      "ip": "192.0.2.65",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.65"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:55:17.264736+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "7d9f1a51bde9a0e344bcb753650df9220072ad3ae44df9b5b6783f9f36b9d1b3",
+          "recorded_at_utc": "2026-10-06T13:55:16.633801+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:55:17.894110+00:00"
+        },
+        "zowi": {
+          "body_sha256": "de4927e800b13cd689d34eba400a995d19fda01e15d3dbf6625a9a0958df1af6",
+          "recorded_at_utc": "2026-10-06T13:55:18.212487+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0486",
+      "cohort": "residential",
+      "ip": "192.0.2.66",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.66"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:04:34.965962+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "41a93ea9dcc0371cde3277650a65704a8976adff3650dd9c17ceac1571597488",
+          "recorded_at_utc": "2026-10-06T14:04:34.892944+00:00"
+        },
+        "zowi": {
+          "body_sha256": "995b50b593aa1b95a30ffbbf67146d800a9534f5eb1894175a81f45e961ef2cc",
+          "recorded_at_utc": "2026-10-06T14:04:35.621297+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:04:35.690838+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0489",
+      "cohort": "residential",
+      "ip": "192.0.2.67",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.67"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:47:33.217744+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "115c45ed302e1ace10bfa5761ba621ea4f26b1b5a40769ee91506260387099ee",
+          "recorded_at_utc": "2026-10-06T13:47:33.298387+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:47:33.787863+00:00"
+        },
+        "zowi": {
+          "body_sha256": "cedee32b4004b82bbebaab68913e218f1b162cd3f924d7b84511a850c09ac7ac",
+          "recorded_at_utc": "2026-10-06T13:47:34.161283+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0490",
+      "cohort": "residential",
+      "ip": "192.0.2.68",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.68"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:02:13.999645+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "5ba7f27569fad3e5c084d43da3a410c4e1803eb005d7f2c98a6de50fbe4d9dc9",
+          "recorded_at_utc": "2026-10-06T14:02:13.472028+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:02:14.634821+00:00"
+        },
+        "zowi": {
+          "body_sha256": "6cd8792f061218f14442fc11340b58edb308d644bd144200146f5edf93330737",
+          "recorded_at_utc": "2026-10-06T14:02:23.506323+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0492",
+      "cohort": "residential",
+      "ip": "192.0.2.69",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.69"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:03:35.982365+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "d2c250c4ab488fd904a26eeb572174388994a821cf10a9d3ba24b7bfbef0e53a",
+          "recorded_at_utc": "2026-10-06T14:03:36.267713+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:03:36.504246+00:00"
+        },
+        "zowi": {
+          "body_sha256": "e38f6f635ef0c553fe6df4cb4fb4872425e99bbdd4dc282f9afe1fe73ab6f079",
+          "recorded_at_utc": "2026-10-06T14:03:38.271358+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential-0501",
+      "cohort": "residential",
+      "ip": "192.0.2.70",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.70"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:02:35.230188+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "dd7bc4b7c761a6ff240e597cdfd3e7aa861cf4f2f443bdb2df7bbaf15eb75e99",
+          "recorded_at_utc": "2026-10-06T14:02:35.366695+00:00"
+        },
+        "zowi": {
+          "body_sha256": "4327f30d88fa7003a5801689920ea7ad7c61deaa97d5446465557bcc0e4b23f1",
+          "recorded_at_utc": "2026-10-06T14:02:35.626578+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:02:35.847809+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0513",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::47",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          },
+          "ip": "2001:db8::47"
+        },
+        "blackbox": "Y",
+        "ipcheck": "TRUE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "a4f23d736b9009df32cdaa0a3e7393ee5671e1b456523cdd61ef850abc283136",
+          "recorded_at_utc": "2026-10-06T14:06:55.674843+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:06:55.406854+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:06:55.909279+00:00"
+        },
+        "zowi": {
+          "body_sha256": "c64bc1da6ed0dd273fd76089748d8d33e46d803c7329b821b8aae4c77d876ef4",
+          "recorded_at_utc": "2026-10-06T14:06:56.111096+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0514",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::48",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::48"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:50:31.552450+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "9725c46802a97b7710962de7574035c8a978028ce81b8a9037e003c306adf3ea",
+          "recorded_at_utc": "2026-10-06T13:50:30.922830+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:50:32.110484+00:00"
+        },
+        "zowi": {
+          "body_sha256": "de9101e9332f488c4cc264de1c40174138bb1f474045c1ddc6980946af33b54b",
+          "recorded_at_utc": "2026-10-06T13:50:32.330969+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0517",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::49",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::49"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:54:17.365920+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "9121ef457be1c560d9a0b9b4d2e48e4c803fb9ad92bdfea758ea49899f760962",
+          "recorded_at_utc": "2026-10-06T13:54:16.842320+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:54:18.013653+00:00"
+        },
+        "zowi": {
+          "body_sha256": "f02a8b4344f2ce8b899590d59562a9656ae627bd91a600c584a10cd2e5c006c3",
+          "recorded_at_utc": "2026-10-06T13:54:18.294964+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0521",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4a",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4a"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:06:44.271427+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "8a11c5b79ee5ab21ad9161d715f18bf3dce847c0ef28d1574f2bf7a74712d341",
+          "recorded_at_utc": "2026-10-06T14:06:43.333912+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:06:44.910680+00:00"
+        },
+        "zowi": {
+          "body_sha256": "fe18578b9bea692bb0d1b52e915ab4ef6921473141d689888e13dc7a372b322d",
+          "recorded_at_utc": "2026-10-06T14:06:45.457508+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0524",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4b",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4b"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:58:39.393563+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "324cd6956c62b11b75da941ebeaf497d53d6b8337ee6f0f5379456e88b22e142",
+          "recorded_at_utc": "2026-10-06T13:58:39.389776+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:58:39.746050+00:00"
+        },
+        "zowi": {
+          "body_sha256": "75d7a0ef9cb8f2982a65a21881e7249dfbe5f76d15743cc7612fb5db1da31ab7",
+          "recorded_at_utc": "2026-10-06T13:58:39.906301+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0527",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4c",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4c"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:46:13.294944+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "ba933ed9683b358947795511550619742254a44b0fcba882741db4761970ef03",
+          "recorded_at_utc": "2026-10-06T13:46:13.178122+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:46:13.841648+00:00"
+        },
+        "zowi": {
+          "body_sha256": "318d374b52c78b1791983f6de46c6badce21c5f4c6a447c1de8044d98f3d6cf7",
+          "recorded_at_utc": "2026-10-06T13:46:14.337884+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0529",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4d",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4d"
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:00:52.725180+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "ef074d58410de0a447be43a9f8429fb2fb84cb546dbbb8835df8ac1c3ea88814",
+          "recorded_at_utc": "2026-10-06T14:00:51.696724+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:00:53.281661+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0535",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4e",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4e"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:57:58.179016+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "4b66e1e4326a06dea2803b2b1a98b25d6ea0ba1f01b4d11928efb2102fe191de",
+          "recorded_at_utc": "2026-10-06T13:57:58.087943+00:00"
+        },
+        "zowi": {
+          "body_sha256": "863672596ff3fd778501aaec76f34727dc088e9c85a4511e50bc177ddd93d795",
+          "recorded_at_utc": "2026-10-06T13:57:58.689561+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:57:58.789437+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0544",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::4f",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::4f"
+        },
+        "blackbox": "N",
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "a7147e3e5852242a8f54a360912f5aefcd44183cc0b9f6e057b73738b0cedc39",
+          "recorded_at_utc": "2026-10-06T14:02:55.814391+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:02:56.005112+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:02:56.548488+00:00"
+        },
+        "zowi": {
+          "body_sha256": "5d8d1cbb1d7b4d8d7644263e1a5ecc85834b85599d0a0473a74a1304d8c9f6e4",
+          "recorded_at_utc": "2026-10-06T14:02:56.938408+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0551",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::50",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::50"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:55:57.154654+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "a5fe69f54030d9bc6540b0cd6accff310df56a4124e8ae90f67c638a809c912c",
+          "recorded_at_utc": "2026-10-06T13:55:57.407944+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:55:57.755406+00:00"
+        },
+        "zowi": {
+          "body_sha256": "175748e52d7e844258bf36697366820cdd9c4c3c279537fb9352a407e68af6b9",
+          "recorded_at_utc": "2026-10-06T13:55:57.866643+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0554",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::51",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::51"
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T14:02:02.813229+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "0b8602f84b332a95997783cbd3bff719ae9ad7802c1a488554f5dbf428e0f585",
+          "recorded_at_utc": "2026-10-06T14:02:02.703107+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T14:02:03.198851+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0557",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::52",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::52"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:58:18.045371+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "aef307e3b3f18355877202e3f9735c79820fe13ba04a9dbe38adcb98e5efa5a1",
+          "recorded_at_utc": "2026-10-06T13:58:17.434895+00:00"
+        },
+        "zowi": {
+          "body_sha256": "34406b9b98d80ffba4fe9659e5155e7d1ecddca1974a327327f3733362692911",
+          "recorded_at_utc": "2026-10-06T13:58:19.132123+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:58:19.677987+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0560",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::53",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::53"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:03:47.692472+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "fe638ad57b09a8917427db8c99d4ce2062d71048d41a28d9f6c36f1eed18e159",
+          "recorded_at_utc": "2026-10-06T14:03:47.700944+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:03:48.210964+00:00"
+        },
+        "zowi": {
+          "body_sha256": "816220714bb8d84250b687a476683caf7e12d20007578941e6a20e8355828a3a",
+          "recorded_at_utc": "2026-10-06T14:03:48.524630+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0562",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::54",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::54"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "FALSE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:02:45.136302+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "698c5a8022772471f36e74d8a2addc620081a28a1020d835dff20244c992d06b",
+          "recorded_at_utc": "2026-10-06T14:02:45.462592+00:00"
+        },
+        "zowi": {
+          "body_sha256": "da40baa30b41609ee7331150d22fe3278910655f8811a518c25dc00cc234fcde",
+          "recorded_at_utc": "2026-10-06T14:02:45.686132+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:02:45.806831+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0564",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::55",
+      "responses": {
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::55"
+        },
+        "blackbox": "N",
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": false,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "ipquery": {
+          "body_sha256": "5115d68bd8d78e384831edbdf2954a08fae200963a7f03a6d8a75ce308023104",
+          "recorded_at_utc": "2026-10-06T14:03:26.226567+00:00"
+        },
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T14:03:26.048036+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T14:03:26.747686+00:00"
+        },
+        "zowi": {
+          "body_sha256": "1a5d4129ebb2c9550dd95bff4e8d87f517f0cdf964b1000539a66d583af7c19a",
+          "recorded_at_utc": "2026-10-06T14:03:26.924826+00:00"
+        }
+      }
+    },
+    {
+      "id": "residential_v6-0568",
+      "cohort": "residential_v6",
+      "ip": "2001:db8::56",
+      "responses": {
+        "blackbox": "N",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "2001:db8::56"
+        },
+        "ipcheck": "FALSE",
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": false,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "8ce86a6ae65d3692e7305e2c58ac62eebd97d3d943e093f577da25c36988246b",
+          "recorded_at_utc": "2026-10-06T13:51:59.740802+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "6bce6af53aed057760a3d9eafdfa65c8cc3b9e82835874cee240e4599d893f9c",
+          "recorded_at_utc": "2026-10-06T13:51:59.777296+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "4e523a5ae5b4636c75901b79fafbd3912e41dc7987414e688b09d4b436ff22b3",
+          "recorded_at_utc": "2026-10-06T13:52:00.255658+00:00"
+        },
+        "zowi": {
+          "body_sha256": "5f27d1bb593ae1e3335fc47d0455f9439b6c657ccd6b4f8aceb5db90a127bf32",
+          "recorded_at_utc": "2026-10-06T13:52:00.588724+00:00"
+        }
+      }
+    },
+    {
+      "id": "tor-0580",
+      "cohort": "tor",
+      "ip": "192.0.2.87",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          },
+          "ip": "192.0.2.87"
+        },
+        "zowi": {
+          "security": {
+            "vpn": {
+              "detected": false
+            },
+            "proxy": false,
+            "tor": true,
+            "hosting": true,
+            "residential_proxy": {
+              "detected": false
+            }
+          }
+        },
+        "ipcheck": "TRUE"
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T13:56:49.381197+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "528af16d2af91df796e33746e94ea7b720d6351b651cd5da4df024472339a673",
+          "recorded_at_utc": "2026-10-06T13:56:49.561640+00:00"
+        },
+        "zowi": {
+          "body_sha256": "077f6f2c5e64b531296e070adf44536e2e1fb9a77bf32a65c074ac02fab57776",
+          "recorded_at_utc": "2026-10-06T13:56:49.817449+00:00"
+        },
+        "ipcheck": {
+          "body_sha256": "dfe88090c5ed7ac2f32571f0fc822fda4d8cd281fc7138c7cd6db656f6e2d081",
+          "recorded_at_utc": "2026-10-06T13:56:50.011948+00:00"
+        }
+      }
+    }
+  ]
+}

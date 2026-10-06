@@ -31,6 +31,7 @@ class CloudSyncTest {
     private volatile CountDownLatch installEntered, installRelease;
 
     @BeforeEach void start() throws IOException {
+        CloudSync.setNoticeConsole(null);
         CloudSync.resetErrorReportsForTest();
         DecisionObservers.closeAll();
         ConnectionGuard.applySettings(GuardSettings.defaults());
@@ -62,6 +63,7 @@ class CloudSyncTest {
 
     @AfterEach void stop() {
         CloudSync.stop();
+        CloudSync.setNoticeConsole(null);
         CloudSync.setReloadHook(null);
         server.stop(0);
         DecisionObservers.closeAll();
@@ -113,6 +115,115 @@ class CloudSyncTest {
         assertEquals(0, installs);
         assertFalse(CloudSync.isRunning());
         assertEquals(-1, DecisionObservers.captureGeneration(), "no capture work when the cloud is off");
+    }
+
+    @Test void freshInstallAnnouncesSetupAndOnlyNewLinkCodesProduceAnotherBanner() {
+        List<CloudLinkNotice> notices = new CopyOnWriteArrayList<>();
+        CloudSync.setNoticeConsole(notices::add);
+        startSync(Collections.emptyMap());
+        assertEquals(1, notices.size());
+        assertEquals("https://app.connectionguard.net?src=console", notices.get(0).url);
+        assertTrue(CloudSync.noticeCurrent(notices.get(0)));
+        CloudSync.runOnceForTest();
+        assertEquals(2, notices.size());
+        assertFalse(CloudSync.noticeCurrent(notices.get(0)), "stale queued presentation is suppressed");
+        assertEquals("https://app.connectionguard.net/link/7KQM-4P2X?src=console", notices.get(1).url);
+        assertEquals(8, notices.get(1).consoleLines().size());
+        assertEquals(notices.get(1).consoleLines().get(0), notices.get(1).consoleLines().get(7));
+        CloudSync.runOnceForTest();
+        assertEquals(2, notices.size());
+        syncResponse = unclaimed().replace("7KQM-4P2X", "9ABC-2DEF");
+        CloudSync.runOnceForTest();
+        assertEquals(3, notices.size());
+        assertTrue(notices.get(2).url.contains("9ABC-2DEF?src=console"));
+        syncResponse = linkedWithConfig("null");
+        CloudSync.runOnceForTest();
+        assertEquals(3, notices.size());
+        assertFalse(CloudSync.noticeCurrent(notices.get(2)));
+        assertFalse(CloudSync.takeJoinNotice(UUID.randomUUID(), true, false).isPresent());
+    }
+
+    @Test void joinHintIsOncePerStaffAcrossReloadsAndCleanRestartsAndIsLocalOnly() throws Exception {
+        UUID staff = UUID.randomUUID(), other = UUID.randomUUID();
+        startSync(Collections.emptyMap());
+        CloudSync.runOnceForTest();
+        assertFalse(CloudSync.takeJoinNotice(staff, false, false).isPresent());
+        assertFalse(CloudSync.takeJoinNotice(staff, true, true).isPresent());
+        CloudLinkNotice notice = CloudSync.takeJoinNotice(staff, true, false).get();
+        assertEquals("https://app.connectionguard.net/link/7KQM-4P2X?src=join", notice.url);
+        assertFalse(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        startSync(Collections.emptyMap()); // reload reuses the running link
+        assertFalse(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        CloudSync.stop(); // guarantees a clean local flush even if a background save is still queued
+        String stored = new String(Files.readAllBytes(dir.resolve("cloud/staff-dashboard-notices-v1.json")), StandardCharsets.UTF_8);
+        assertFalse(stored.contains(staff.toString()));
+        assertFalse(stored.contains("7KQM-4P2X"));
+        startSync(Collections.emptyMap());
+        assertTrue(CloudSync.awaitingLinkState());
+        assertFalse(CloudSync.takeJoinNotice(other, true, false).isPresent());
+        CloudSync.runOnceForTest();
+        assertFalse(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        assertTrue(CloudSync.takeJoinNotice(other, true, false).isPresent());
+        syncs.clear(); CloudSync.runOnceForTest();
+        String payload = syncs.poll(5, TimeUnit.SECONDS).toString();
+        assertFalse(payload.contains(staff.toString()));
+        assertFalse(payload.contains(other.toString()));
+        assertFalse(payload.contains("staff-dashboard"));
+        assertFalse(payload.contains("src=join"));
+    }
+
+    @Test void returningLinkedInstallWaitsForActualStateAndStaysQuiet() {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); CloudSync.stop();
+        List<CloudLinkNotice> notices = new CopyOnWriteArrayList<>();
+        CloudSync.setNoticeConsole(notices::add);
+        syncResponse = linkedWithConfig("null");
+        startSync(Collections.emptyMap());
+        assertTrue(CloudSync.awaitingLinkState());
+        assertTrue(notices.isEmpty());
+        assertFalse(CloudSync.takeJoinNotice(UUID.randomUUID(), true, false).isPresent());
+        CloudSync.runOnceForTest();
+        assertTrue(CloudSync.isLinked());
+        assertFalse(CloudSync.awaitingLinkState());
+        assertTrue(notices.isEmpty());
+        assertFalse(CloudSync.takeJoinNotice(UUID.randomUUID(), true, false).isPresent());
+    }
+
+    @Test void returningUnlinkedInstallAnnouncesConfirmedLinkOnceOnRestart() {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); CloudSync.stop();
+        List<CloudLinkNotice> notices = new CopyOnWriteArrayList<>();
+        CloudSync.setNoticeConsole(notices::add);
+        startSync(Collections.emptyMap());
+        assertTrue(notices.isEmpty());
+        CloudSync.runOnceForTest(); CloudSync.runOnceForTest();
+        assertEquals(1, notices.size());
+        assertTrue(notices.get(0).url.endsWith("?src=console"));
+    }
+
+    @Test void disabledCloudDoesNotAnnounceOrConsumeStaffHint() throws Exception {
+        List<CloudLinkNotice> notices = new CopyOnWriteArrayList<>();
+        CloudSync.setNoticeConsole(notices::add);
+        UUID staff = UUID.randomUUID();
+        startSync(Collections.singletonMap("cloud.enabled", false));
+        assertFalse(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        assertTrue(notices.isEmpty());
+        startSync(Collections.emptyMap());
+        assertTrue(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        CloudLinkNotice pending = notices.get(0);
+        CloudSync.setDisabledByCommand(true);
+        assertFalse(CloudSync.noticeCurrent(pending));
+        assertFalse(CloudSync.takeJoinNotice(UUID.randomUUID(), true, false).isPresent());
+    }
+
+    @Test void invalidNoticePreferencesCannotDisableCloud() throws Exception {
+        Files.createDirectories(dir.resolve("cloud"));
+        Files.write(dir.resolve("cloud/staff-dashboard-notices-v1.json"), "invalid".getBytes(StandardCharsets.UTF_8));
+        startSync(Collections.emptyMap());
+        assertTrue(CloudSync.isRunning());
+        UUID staff = UUID.randomUUID();
+        assertTrue(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        assertFalse(CloudSync.takeJoinNotice(staff, true, false).isPresent());
+        CloudSync.runOnceForTest();
+        assertEquals(1, installs);
     }
 
     @Test void existingInstallGetsOneErrorReportingNoticeAcrossReloadsAndRestarts() throws Exception {

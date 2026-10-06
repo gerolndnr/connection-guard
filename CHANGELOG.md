@@ -5,7 +5,10 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 ## Unreleased — 0.5.2-SNAPSHOT
 
 - General sequential VPN failover defaults on for every selected keyed, anonymous, custom HTTP or extension source. Configure provider.vpn-failover.enabled/order; disabling restores parallel voting and the stored required-positive-flags. Existing modes, provider selections and keys are retained. A mode/order change invalidates old fact namespaces while preserving selected source quota usage.
-- New installs use ENFORCE with anonymous ProxyCheck v2 (`vpn=1`) → IPQuery → IP-API as the initial free selection; existing enforcement modes remain unchanged.
+- New installs use ENFORCE with local Tor → anonymous ProxyCheck v2 (`vpn=1`) → Blackbox → ip-check.net → zowi → IPQuery → IP-API. Existing provider selections, order and enforcement modes remain unchanged; a durable once-only upgrade recommendation requires explicit opt-in to the new recipients.
+- Add native keyless HTTPS adapters `blackbox`, `ipcheck`, `zowi`, each capped locally at 60 requests/minute by default. Malformed/unknown answers never count as clean; the original 5,000 ms login deadline and attempt limit apply. Blackbox Y also covers hosting/cloud lists and the explanation names this broader reason; zowi hosting-only remains UNKNOWN review evidence.
+- The new fallback services receive player IPs. Blackbox is operated by Cameron Munroe / ipinfo.app, has published privacy information but no written terms; ip-check.net publishes no operator, terms or privacy policy; zowi is operated by the developer of competing FoxGate. Include recipients in server privacy information before opting in. [Recipients, controls and sources](docs/PROVIDERS.md#new-keyless-recipients-in-the-052-candidate).
+- Expose only explicit new-provider enabled switches to managed Cloud settings and stable health/event IDs `vpn-blackbox`, `vpn-ipcheck`, `vpn-zowi`. The existing event schema/enums remain unchanged; the dashboard must label a positive Blackbox source as the broader list. Dashboard allowlist/display deployment is coordinated separately before merge.
 - An embedded Tor bulk snapshot is checked locally before caches/APIs. Periodic list refresh never sends a player's IP. Stale lists remain visible in doctor and retain Tor protection, with documented false-positive/staleness limits.
 - Use ProxyCheck v2 with `vpn=1`, officially supported until 2035, for VPN verdicts including retained v3 configurations. Share the same answer and quota reservation with ProxyCheck geo; retain hosting-only review without a VPN-operator name list. Normalize IPv6 requests and equivalent response keys.
 - Add sanitized recorded responses for all 18 VPN misses in the 140-subject candidate sample and 52 unflagged residential/mobile controls; these regression fixtures do not establish full competitive detection acceptance.
@@ -13,13 +16,14 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 - Retain established HTTP timeout, worker, queue, inflight and circuit defaults pending comparative load/failure evidence; new-install Geo stays Disabled.
 - Redis outages at startup use a bounded Memory cache and background reconnect. Reload/invalidation cannot wait on the reconnect probe.
 - VPN kick messages tell players to ask staff for a scoped `/cg allow` exception.
+- Make the optional Cloud Dashboard prominent with a framed native-colored console notice and a clickable staff/operator join hint, once per installation across clean restarts. Forwarded backends defer in-game hints to the proxy; linked/disabled Cloud stays quiet.
 
 - Implement separately authorized local policy activation/rollback with reviewed candidate/base hashes, a bounded private history, one atomic decision-settings/rules document and pending-login guards. Native activation/restart/rollback qualification passes on four pinned loopback platforms; no stable release has been published. Existing dashboard rule writers use the same journal, while conflicting decision-field ownership is rejected.
 - Send bounded anonymous metadata for Connection Guard's own exceptions with regular Cloud sync, without exception messages, player data or foreign frames. `cloud.error-reports: false` or any Cloud off switch disables capture and reporting; older Clouds receive the same pending sync without the optional field. [Data and controls](docs/PRIVACY.md).
 - Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.
 - Add an explicitly enabled, in-memory live policy shadow comparison. It reuses final policy facts, retains counters rather than observed identities, and stops on reload, rule changes, expiry or its sample limit. It cannot activate candidates or roll back a policy.
 
-Hosting-only policy confirmation and the full comparative benchmark acceptance remain open. No stable release or accuracy claim is made by this candidate.
+The full comparative benchmark acceptance remains open. Hosting-only facts from ProxyCheck/zowi do not block, but the separately approved Blackbox aggregate list includes hosting/cloud. No stable release or accuracy claim is made by this candidate.
 
 ## 0.5.1 — 2026-10-05
 

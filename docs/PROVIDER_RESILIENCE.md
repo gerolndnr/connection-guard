@@ -1,13 +1,13 @@
 # General provider failover and offline protection (0.5.2 candidate)
 
-This candidate is not a stable release. Hosting-only policy and the complete
-`mc-antivpn-bench` acceptance matrix remain release gates.
+This candidate is not a stable release. The complete `mc-antivpn-bench`
+acceptance matrix remains a merge/release gate.
 
 ## Lookup contract
 
 `provider.vpn-failover.enabled: true` enables sequential failover for **all selected
 VPN sources**: anonymous or keyed ProxyCheck, IPHub, VPNAPI, IPQualityScore,
-IPQuery, IP-API, custom HTTP providers and explicitly selected API extensions.
+Blackbox, ip-check.net, zowi, IPQuery, IP-API, custom HTTP providers and explicitly selected API extensions.
 It is enabled by default even in existing files without a strategy selection.
 It does not enable extra sources, replace keys, change an existing ENFORCE/OBSERVE
 mode, or rewrite the file.
@@ -24,11 +24,14 @@ in the presence of failures. No consensus is requested while the chain is active
 provider:
   vpn-failover:
     enabled: true
-    order: []
+    order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]
   max-external-attempts: 16
 ```
 
-An empty order puts local observations first, then ProxyCheck, IPQuery, other
+The displayed order is the **new-install template only**. Existing files are not
+rewritten and absent new sections are disabled. A one-time upgrade notice offers
+the recommendation; review the additional recipients below before adding them.
+An existing empty/missing order retains local observations first, then ProxyCheck, IPQuery, other
 selected sources in their declared order, and IP-API last. Set `order` to provider
 section IDs such as `[ipqualityscore, iphub, corporate, proxycheck]`, or selected
 extension IDs such as `extension.owned`. Unlisted enabled sources remain fallbacks;
@@ -61,8 +64,12 @@ Set it to 1 to limit a lookup to one network attempt; locally skipped circuits o
 quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
-New files enable anonymous ProxyCheck v2 (`vpn=1`), IPQuery and IP-API as the initial free
-selection. Other keyed and custom sources remain explicitly selected by operators.
+New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox, ip-check.net, zowi,
+IPQuery and IP-API. The local Tor snapshot precedes all of them. All three new
+services have a conservative **local** `minute-budget: 60`, independent of any
+upstream service promise. Locally exhausted sources are skipped without sending
+the IP; failures advance within the original **5,000 ms** whole-login budget.
+Other keyed and custom sources remain explicitly selected by operators.
 
 Country checks remain separately configured. New files use geo `Disabled` and
 an empty country blacklist: a VPN-only login does not send an additional geo
@@ -70,6 +77,26 @@ request. Enable a geo source deliberately when configuring country restrictions.
 Existing geo selections are retained.
 
 ## Evidence and provider conditions
+
+The three new keyless recipients and their privacy/terms limitations are disclosed
+in [PROVIDERS.md](PROVIDERS.md#new-keyless-recipients-in-the-052-candidate).
+They receive the queried player's IP only when reached in the selected chain.
+Malformed text/JSON, redirects, oversized replies, 429 and timeouts are UNKNOWN,
+never clean answers. All three use fixed HTTPS endpoints and compressed IPv6;
+ip-check.net's IP query parameter is URL-encoded.
+
+* **Blackbox:** exact `Y` means aggregate-list membership and is positive; exact
+  `N` is negative; `E` and all other text are UNKNOWN. Its lists also cover hosting
+  and cloud. An enforced refusal is described as **Listed by Blackbox
+  (VPN/proxy/Tor/hosting/cloud)**, not as an independently verified VPN flag.
+  Specific VPN/hosting classifications are not fabricated from `Y`.
+* **ip-check.net:** exact `TRUE` is positive, exact `FALSE` is negative; all other
+  text is UNKNOWN. Only ordinary outer spaces/tabs/newlines are tolerated.
+* **zowi:** explicit `security.vpn.detected`, `security.proxy` (boolean or
+  `.detected`) and `security.tor` are positive. A complete all-false set is
+  negative. Missing detection fields cannot establish a clean answer. A
+  hosting-only response is UNKNOWN review evidence and continues failover,
+  with the actual HOSTING fact retained. Residential-proxy data does not vote.
 
 * **ProxyCheck:** [API](https://proxycheck.io/api/),
   [terms](https://proxycheck.io/terms/). 100 keyless IP queries/day;
@@ -146,11 +173,14 @@ ENFORCE values and the legacy missing-mode ENFORCE behavior remain unchanged.
 A persisted notice is emitted once. VPN denial messages append a localized way
 to request a staff `/cg allow` exception, including existing custom translations.
 
-Release requires the owner to confirm hosting-only review and an extra immutable
+The owner has explicitly approved Blackbox's broader aggregate listing as an
+exception to the ProxyCheck/zowi hosting-only review policy. Merge/release requires an extra immutable
 candidate pin compared with 0.5.0 in `mc-antivpn-bench`. Detection must meet the
 best competitor on the same measured cohorts, false positives must not increase,
 burst concrete-check coverage must reach 95%, all four API faults must retain Tor
-denial, cold p50 must remain approximately below 300 ms, warm approximately 4 ms,
+denial, cold p50 must remain approximately below 300 ms; warm latency is advisory
+at the owner's instruction. The new candidate additionally needs keyless/keyed
+692-address comparisons and the original five-second timeout check,
 and stampede/rejected-reload protection must pass. Core simulations and startup
 smokes alone do not establish those comparative results.
 

@@ -29,6 +29,7 @@ dependencies {
     testImplementation("net.luckperms:api:5.4")
     testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
     testImplementation("redis.clients:jedis:5.0.0")
+    testImplementation("org.yaml:snakeyaml:2.2")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

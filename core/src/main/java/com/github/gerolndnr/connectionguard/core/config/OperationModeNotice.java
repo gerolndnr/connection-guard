@@ -16,7 +16,7 @@ public final class OperationModeNotice {
         } catch (FileAlreadyExistsException alreadyShown) { return; }
         catch (IOException unavailable) { logger.warning("Could not persist the operation-mode notice; check plugin directory permissions."); return; }
         logger.warning(existingInstallation ? "Connection Guard upgrade: your " + (observe ? "OBSERVE" : "ENFORCE")
-                + " mode is unchanged. New installations use ENFORCE. Hosting alone is review evidence; inspect /cg doctor."
-                : "Connection Guard new installation: ENFORCE blocks concrete VPN/proxy/Tor evidence. Hosting alone is reviewed. Staff can grant an exception with /cg allow; inspect /cg doctor.");
+                + " mode is unchanged. New installations use ENFORCE. ProxyCheck/zowi hosting-only facts are review evidence; Blackbox listing may also cover hosting/cloud. Inspect /cg doctor."
+                : "Connection Guard new installation: ENFORCE blocks VPN/proxy/Tor evidence and Blackbox aggregate listings (including hosting/cloud). ProxyCheck/zowi hosting-only facts are reviewed. Staff can grant an exception with /cg allow; inspect /cg doctor.");
     }
 }

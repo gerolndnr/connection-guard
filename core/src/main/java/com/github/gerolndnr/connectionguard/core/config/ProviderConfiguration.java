@@ -84,6 +84,9 @@ public final class ProviderConfiguration {
                 case "proxycheck": provider = new ProxyCheckVpnProvider(apiKey, proxyCheckV3); break;
                 case "ip-api": provider = new IpApiVpnProvider(); break;
                 case "ipquery": provider = new IpQueryVpnProvider(); break;
+                case "blackbox": provider = new BlackboxVpnProvider(); break;
+                case "ipcheck": provider = new IpCheckVpnProvider(); break;
+                case "zowi": provider = new ZowiVpnProvider(); break;
                 case "iphub": provider = new IpHubVpnProvider(apiKey); break;
                 case "vpnapi": provider = new VpnApiVpnProvider(apiKey); break;
                 case "ipqualityscore":
@@ -126,7 +129,8 @@ public final class ProviderConfiguration {
             }
             keys.add(key); providers.add(provider);
             int day = GuardSettings.integer(value, base + "daily-budget", key.equals("proxycheck") ? apiKey.isEmpty() ? 100 : 1000 : key.equals("ipqualityscore") ? 30 : 0);
-            int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5 : 0);
+            int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5
+                    : key.equals("blackbox") || key.equals("ipcheck") || key.equals("zowi") ? 60 : 0);
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
             sourceDays.put(key, day); sourceMinutes.put(key, minute);
         }

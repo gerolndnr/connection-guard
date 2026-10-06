@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "source": "NEW 2026-10-06 capture of five existing public VPN cohort subjects selected from the earlier summary; NOT the unavailable original five answer bodies.",
+  "sanitization": "Only exact Blackbox text and IPQuery security booleans; documentation addresses replace IPs; original body hashes and new capture times retained.",
+  "cases": [
+    {
+      "id": "commercial_vpn-0006",
+      "cohort": "commercial_vpn",
+      "ip": "192.0.2.1",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "ip": "192.0.2.1",
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T16:44:01.989313+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "3a488d8f586e85e1e93381819be513f838b97dda2a1eab0c7109da776a1d094a",
+          "recorded_at_utc": "2026-10-06T16:44:02.598431+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0008",
+      "cohort": "commercial_vpn",
+      "ip": "192.0.2.2",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "ip": "192.0.2.2",
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": false
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T16:44:02.820348+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "83d06fd945446abdec56d6820fa89bf8ce3d9408b1c4e493f75fb90043051cde",
+          "recorded_at_utc": "2026-10-06T16:44:03.157728+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0016",
+      "cohort": "commercial_vpn",
+      "ip": "192.0.2.3",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "ip": "192.0.2.3",
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T16:44:03.361034+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "f2e9cf4a359183dfbc6958d4991d6d3e3c9a07ca2eb7e72ff3cd5c45aa8e10e8",
+          "recorded_at_utc": "2026-10-06T16:44:04.023586+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0018",
+      "cohort": "commercial_vpn",
+      "ip": "192.0.2.4",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "ip": "192.0.2.4",
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T16:44:04.436965+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "ff038272ad9e6e5577d88ff59a6828d86211cd1408cac9017768464b8956893c",
+          "recorded_at_utc": "2026-10-06T16:44:04.871770+00:00"
+        }
+      }
+    },
+    {
+      "id": "commercial_vpn-0023",
+      "cohort": "commercial_vpn",
+      "ip": "192.0.2.5",
+      "responses": {
+        "blackbox": "Y",
+        "ipquery": {
+          "ip": "192.0.2.5",
+          "risk": {
+            "is_vpn": false,
+            "is_proxy": false,
+            "is_tor": false,
+            "is_datacenter": true
+          }
+        }
+      },
+      "provenance": {
+        "blackbox": {
+          "body_sha256": "18f5384d58bcb1bba0bcd9e6a6781d1a6ac2cc280c330ecbab6cb7931b721552",
+          "recorded_at_utc": "2026-10-06T16:44:05.185241+00:00"
+        },
+        "ipquery": {
+          "body_sha256": "5105d7e47e3369eccc4845938bc4d62dce4940339e73606cc57e9f9f4990620d",
+          "recorded_at_utc": "2026-10-06T16:44:05.704854+00:00"
+        }
+      }
+    }
+  ]
+}

@@ -24,6 +24,38 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 
 ## How requests accumulate
 
+### New keyless recipients in the 0.5.2 candidate
+
+**Unreleased, pending comparative benchmark acceptance.** Only new configuration
+files select local Tor → ProxyCheck → Blackbox → ip-check.net → zowi → IPQuery →
+IP-API. Existing files keep their providers and order and get a once-only
+recommendation. The local Tor lookup sends no player IP; each reached external
+service receives the queried player's IP. A successful positive or negative
+answer stops the chain. On errors more than one service may receive that IP,
+sequentially, within the unchanged 5,000 ms deadline and attempt limit.
+
+| Config ID / Cloud ID | Recipient and evidence | Operator and published information |
+| --- | --- | --- |
+| `blackbox` / `vpn-blackbox` | `https://blackbox.ipinfo.app/api/v1/<IP>`; Y is listed, N unlisted. **Y includes hosting/cloud lists and can deny them.** Specific VPN/hosting flags are not inferred. | Cameron Munroe / ipinfo.app, named in the [privacy policy](https://ipinfo.app/privacy/). [Documentation](https://blackbox.ipinfo.app/) describes free unlimited v1 use; **no written terms** are published on the reviewed pages. |
+| `ipcheck` / `vpn-ipcheck` | `https://ip-check.net/api/proxy-detect.php?ip=<encoded-IP>`; TRUE/FALSE. | **ip-check.net publishes neither an operator nor terms nor a privacy policy**, on the [reviewed site](https://ip-check.net/), checked 2026-10-06. Do not infer data-handling guarantees. |
+| `zowi` / `vpn-zowi` | `https://api.zowi.gay/<IP>`; explicit VPN/proxy/Tor flags. Hosting-only stays review and continues failover. | **Zowi, developer of competing FoxGate**; see the [first-party service documentation](https://github.com/IDCTeam-Group/FoxGate-Issues/wiki/Services). No separate processing agreement is asserted here. |
+
+The three adapters default to **60 locally counted requests/minute each**. This
+conservative plugin cap is not an upstream rate-limit or availability promise:
+Blackbox advertises unlimited v1 use, and FoxGate's service guide mentions a
+higher keyless cap for zowi. No account, key, purchase or circumvention is added.
+429/Retry-After and broken responses keep the result UNKNOWN, never clean.
+
+Before explicitly enabling a recipient on an existing installation, include it
+in your server's own player privacy information and assess its published terms
+and data handling. Add the appropriate `provider.vpn.<id>.enabled: true` sections
+(and optionally `minute-budget: 60`), retain the services you want, then set
+`provider.vpn-failover.order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]`
+using only IDs present in your file. `/cg reload` validates the complete draft.
+Use `enabled: false` to exclude a service; an order entry never enables it.
+Cloud's off switch controls Cloud, not these detection services.
+[Full behavior and migration](PROVIDER_RESILIENCE.md).
+
 VPN and geo lookups are separate. Multiple enabled VPN providers can each receive a request for an uncached IP. Expiration, restarts, failures and cache clearing affect volume. Repeated connections may use cached data.
 
 Illustrative quota planning, **not a measured workload**: 100 uncached IPs with one VPN and one geo lookup can produce 200 requests. If both use the same provider account, they can draw from the same allowance. Check provider-specific counting rules.
