@@ -29,6 +29,7 @@ messages:
   - ' &7- /cg &fexplain &7<IP> (source and rule explanation)'
   - ' &7- /cg &fallow &7| &fdeny &7| &fexempt &7(scoped rules with expiry)'
   - ' &7- /cg &flocal status &7(local data readiness)'
+  - ' &7- /cg &fcloud &7status | link | sync | settings | reset-settings | enable | disable'
   info:
     text:
     - '&bConnection Guard &7| &7Query result for &b%INPUT%'
@@ -140,6 +141,13 @@ webhook:
   not-supplied: not supplied
   source-label: '{0} source: {1}'
 cloud:
+  usage: '/cg cloud status | link | sync | settings | reset-settings | enable | disable'
+  sync-start: 'Syncing with Connection Guard Cloud…'
+  sync-current: 'Up to date (settings v{0}).'
+  sync-applied: 'Applied dashboard settings v{0}.'
+  sync-wait: 'Please wait {0} s before syncing again.'
+  sync-error: 'Cloud sync failed: {0}.'
+  sync-pending: 'Dashboard settings are still pending; the server is busy. They will be retried automatically.'
   link: 'Link this server: {0}'
   link-expiry: 'Link this server: {0} (valid 24 hours)'
   off-help: Connection Guard Cloud is off. Turn it on with /cg cloud enable.

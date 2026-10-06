@@ -6,7 +6,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-/** /cg cloud status|link|enable|disable. Changes are local only; nothing here waits on the network. */
+/** /cg cloud controls. Network/config work stays on the background Cloud worker. */
 public final class CloudCommands {
     private CloudCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
@@ -15,6 +15,11 @@ public final class CloudCommands {
         if (!permission.test("connectionguard.command.cloud")) { reply.accept(messages.getString("ops.permission")); return true; }
         String action = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "status";
         switch (action) {
+            case "sync":
+                CloudSync.SyncRequest request = CloudSync.requestSync();
+                reply.accept(request.initialMessage);
+                request.completion.thenAccept(message -> { if (message != null) reply.accept(message); });
+                return true;
             case "status":
                 CloudSync.describeLines().forEach(reply);
                 CloudSync.linkUrl("command").ifPresent(url -> reply.accept(messages.text("cloud.link", url)));
@@ -40,7 +45,7 @@ public final class CloudCommands {
                 catch (IOException | IllegalStateException failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("cloud.change-error")); }
                 return true;
             default:
-                reply.accept("/cg cloud status | link | settings | reset-settings | enable | disable");
+                reply.accept(messages.getString("cloud.usage"));
                 return true;
         }
     }

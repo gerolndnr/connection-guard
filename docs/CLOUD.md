@@ -79,7 +79,7 @@ The backend is open source (AGPL-3.0). Point `cloud.endpoint` at your own deploy
 
 ## Commands and permission
 
-`/cg cloud status | link | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
+`/cg cloud status | link | sync | settings | reset-settings | enable | disable` needs `connectionguard.command.cloud`. `/cg doctor` includes the cloud state.
 
 ## Current development coverage
 
@@ -109,3 +109,10 @@ Endpoint/key are bundled and cannot be managed remotely. See
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. This candidate awaits a
 new full benchmark and is not included in stable0.5.1.
+### Apply dashboard changes now (from 0.5.2)
+
+Run `/cg cloud sync` to request one immediate check-in on the background worker. The command acknowledges immediately and then reports the applied settings version, that settings are up to date, or the existing failure state. It uses the same validation, reload and rollback path as automatic sync. Delivered settings are reported back after the existing five-second minimum delay; regular sync continues afterwards. If the server is busy, settings stay pending and retry automatically.
+
+Only linked servers with Cloud running can use this command, with `connectionguard.command.cloud`. At most one manual sync is accepted every ten seconds across callers and reloads, and one request can be queued or running at a time. An unlinked/off server sends no request from the command. A Cloud 429 keeps the pending sequence/batch and honors the retry delay without increasing transport-error backoff. No additional data fields or recipient are introduced by a manual sync.
+
+The server advertises `sync_command` in `status.capabilities`; the dashboard may show the command hint only for capable servers.

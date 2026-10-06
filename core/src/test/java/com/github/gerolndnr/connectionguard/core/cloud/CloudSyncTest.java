@@ -280,7 +280,7 @@ class CloudSyncTest {
         JsonObject body = syncs.poll(5, TimeUnit.SECONDS);
         JsonObject expected = new Gson().fromJson(fixture("sync-request.json"), JsonObject.class);
         assertEquals(expected.keySet(), body.keySet());
-        JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry");
+        JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry"); capabilities.add("sync_command");
         expected.getAsJsonObject("status").add("capabilities", capabilities);
         assertEquals(expected.getAsJsonObject("status").keySet(), body.getAsJsonObject("status").keySet());
         assertEquals(capabilities, body.getAsJsonObject("status").get("capabilities"));

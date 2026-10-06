@@ -27,6 +27,9 @@ public final class CloudSync {
     private static final long MIN_DELAY = 5, MAX_DELAY = 3600, FIRST_DELAY = 10;
     private static volatile CloudSync current;
     private static ScheduledThreadPoolExecutor worker;
+    private static boolean manualSyncRecorded;
+    private static long lastManualSyncNanos;
+    private static final long MANUAL_INTERVAL = TimeUnit.SECONDS.toNanos(10);
     private static CloudSettings lastSettings;
     private static Path dataDirectory;
     private static Function<String, Object> lastConfig;
@@ -55,6 +58,7 @@ public final class CloudSync {
     private final CloudClient client;
     private final CloudRecorder recorder = new CloudRecorder();
     private volatile ScheduledFuture<?> scheduled;
+    private SyncRequest manualRequest; // guarded by CloudSync.class; at most one queued/running request
     private volatile boolean closed;
     private final long startedAt = System.currentTimeMillis();
     private final Set<String> executedCommands = Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
@@ -78,6 +82,7 @@ public final class CloudSync {
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
     private JsonObject configResult;
+    private boolean configDeferred;
 
     private CloudSync(CloudSettings settings, Path dir, DecisionObservation.Platform platform, String platformVersion, String pluginVersion, Logger log) {
         this.settings = settings; this.dir = dir; this.platform = platform; this.platformVersion = platformVersion;
@@ -150,6 +155,10 @@ public final class CloudSync {
         CloudSync sync = current; current = null;
         if (sync == null) return;
         sync.closed = true;
+        if (sync.manualRequest != null) {
+            sync.manualRequest.completion.complete(sync.manualRequest.messages.getString("cloud.off-help"));
+            sync.manualRequest = null;
+        }
         sync.saveJoinNotices();
         DecisionObservers.setInternal(null);
         sync.recorder.acceptEvents(false);
@@ -212,7 +221,7 @@ public final class CloudSync {
 
     private void schedule(long seconds) {
         synchronized (CloudSync.class) {
-            if (!active() || worker == null || worker.isShutdown()) return;
+            if (!active() || worker == null || worker.isShutdown() || manualRequest != null) return;
             if (scheduled != null) scheduled.cancel(false);
             try { scheduled = worker.schedule(this::tick, Math.max(MIN_DELAY, Math.min(MAX_DELAY, seconds)), TimeUnit.SECONDS); }
             catch (RejectedExecutionException stopped) { /* shutting down */ }
@@ -221,8 +230,70 @@ public final class CloudSync {
 
     // ---- loop -----------------------------------------------------------------------------
 
-    private void tick() {
-        if (!active()) return;
+    /** Immediate local acknowledgement, followed by a background completion message. */
+    public static final class SyncRequest {
+        public final String initialMessage;
+        public final CompletableFuture<String> completion = new CompletableFuture<>();
+        private final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
+        private SyncRequest(com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages, String initialMessage) {
+            this.messages = messages; this.initialMessage = initialMessage;
+        }
+        private static SyncRequest rejected(com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages, String message) {
+            SyncRequest request = new SyncRequest(messages, message); request.completion.complete(null); return request;
+        }
+    }
+
+    /** No HTTP, file access or reload on the caller: all work uses the existing single Cloud worker. */
+    public static SyncRequest requestSync() { return requestSync(System.nanoTime()); }
+    static synchronized SyncRequest requestSync(long nowNanos) {
+        com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
+        CloudSync sync = current;
+        if (sync == null || !sync.active() || worker == null || worker.isShutdown())
+            return SyncRequest.rejected(messages, messages.getString("cloud.off-help"));
+        if (sync.credentials == null || !sync.claimed)
+            return SyncRequest.rejected(messages, messages.getString("cloud.registering-help"));
+        long remaining = manualSyncRecorded ? MANUAL_INTERVAL - (nowNanos - lastManualSyncNanos) : 0;
+        if (remaining > 0 || sync.manualRequest != null)
+            return SyncRequest.rejected(messages, messages.text("cloud.sync-wait", Math.max(1, (remaining + 999_999_999L) / 1_000_000_000L)));
+        SyncRequest request = new SyncRequest(messages, messages.getString("cloud.sync-start"));
+        sync.manualRequest = request;
+        if (sync.scheduled != null) { sync.scheduled.cancel(false); sync.scheduled = null; }
+        try {
+            worker.execute(() -> sync.tickWithReply(request));
+            manualSyncRecorded = true; lastManualSyncNanos = nowNanos;
+        } catch (RejectedExecutionException stopped) {
+            sync.manualRequest = null;
+            return SyncRequest.rejected(messages, messages.getString("cloud.off-help"));
+        }
+        return request;
+    }
+    static synchronized void resetManualSyncForTest() { manualSyncRecorded = false; lastManualSyncNanos = 0; }
+    static synchronized long scheduledDelayForTest() {
+        return current == null || current.scheduled == null ? -1 : current.scheduled.getDelay(TimeUnit.MILLISECONDS);
+    }
+    static synchronized int failuresForTest() { return current == null ? 0 : current.failures; }
+    static synchronized void scheduleNowForTest() {
+        if (current == null) return;
+        if (current.scheduled != null) current.scheduled.cancel(false);
+        current.scheduled = worker.schedule(current::tick, 0, TimeUnit.MILLISECONDS);
+    }
+
+    private void tick() { tickWithReply(null); }
+    private void tickWithReply(SyncRequest command) {
+        if (!active()) {
+            if (command != null) command.completion.complete(command.messages.getString("cloud.off-help"));
+            return;
+        }
+        if (command != null) {
+            synchronized (CloudSync.class) {
+                // A command can wait behind an in-flight regular sync. Its cooldown also starts
+                // at actual execution, so a long queue wait cannot produce back-to-back requests.
+                if (!active()) return; // stopLocked already completes the retired command
+                manualSyncRecorded = true; lastManualSyncNanos = System.nanoTime();
+            }
+        }
+        int beforeVersion = managed.version;
+        configDeferred = false;
         long next;
         try {
             com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore rules = ConnectionGuard.getRuleStore();
@@ -245,7 +316,21 @@ public final class CloudSync {
             if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
             // Remote values and underlying exceptions may contain secrets; never retain their text/cause.
         }
+        if (command != null) {
+            synchronized (CloudSync.class) { if (manualRequest == command) manualRequest = null; }
+        }
         schedule(next);
+        if (command != null) {
+            String answer;
+            if (!active()) answer = command.messages.getString("cloud.off-help");
+            else if (credentials == null || !claimed) answer = command.messages.getString("cloud.registering-help");
+            else if (lastError != null) answer = command.messages.text("cloud.sync-error", lastError);
+            else if (configDeferred) answer = command.messages.getString("cloud.sync-pending");
+            else if (configResult != null && !configResult.get("ok").getAsBoolean())
+                answer = command.messages.text("cloud.sync-error", configResult.get("message").getAsString());
+            else answer = command.messages.text(managed.version > beforeVersion ? "cloud.sync-applied" : "cloud.sync-current", managed.version);
+            command.completion.complete(answer);
+        }
     }
 
     private long backoff(int retryIn) {
@@ -332,6 +417,12 @@ public final class CloudSync {
             return MIN_DELAY;
         }
         if (reply.status == 400 || reply.status == 413) { pending = null; lastError = "server rejected a sync"; return backoff(-1); }
+        if (reply.status == 429) {
+            // SYNC_LIMITER is congestion, not a failed link. Preserve the pending seq/batch and
+            // respect its retry delay without increasing exponential transport backoff.
+            lastError = "cloud sync rate limit; retrying in the background";
+            return reply.retryIn() > 0 ? reply.retryIn() : 60;
+        }
         if (!reply.ok()) { failures++; lastError = "cloud request refused"; return backoff(reply.retryIn()); }
         lastError = null;
         if (pending.getAsJsonObject("status").get("config_result").isJsonObject()) configResult = null; // delivered
@@ -464,7 +555,7 @@ public final class CloudSync {
             s.add("vpn_unchecked_allowed", unchecked);
         }
         if (!legacyStatus) {
-            JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry");
+            JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry"); capabilities.add("sync_command");
             s.add("capabilities", capabilities);
         }
         JsonArray warnings = new JsonArray();
@@ -526,6 +617,7 @@ public final class CloudSync {
         } catch (IllegalStateException busy) {
             // Lookups in flight: nothing changed; the next sync delivers the same version again.
             rollback(dataDir, previous);
+            configDeferred = true;
         } catch (RuntimeException invalid) {
             rollback(dataDir, previous);
             configResult = result(version, false, "The server rejected these settings; check /cg doctor and the local configuration (values redacted).");

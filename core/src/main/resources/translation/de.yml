@@ -38,6 +38,7 @@ messages:
   - ' &7- /cg &fexplain &7<IP> (Quellen und Regeln erklären)'
   - ' &7- /cg &fallow &7| &fdeny &7| &fexempt &7(Regeln mit Geltung und Ablauf)'
   - ' &7- /cg &flocal status &7(lokalen Datenstand prüfen)'
+  - ' &7- /cg &fcloud &7status | link | sync | settings | reset-settings | enable | disable'
   invalid-argument: '&bConnection Guard &7| &7Gib den Namen oder die UUID eines verbundenen Spielers oder eine IP-Adresse an.'
   access-denied: Verbindung durch die Zugangsregeln des Servers abgelehnt.
   external-denied: Verbindung durch die konfigurierte Zugangsprüfung abgelehnt.
@@ -143,6 +144,13 @@ webhook:
   not-supplied: nicht angegeben
   source-label: '{0}-Quelle: {1}'
 cloud:
+  usage: '/cg cloud status | link | sync | settings | reset-settings | enable | disable'
+  sync-start: 'Synchronisierung mit Connection Guard Cloud läuft…'
+  sync-current: 'Aktuell (Einstellungen v{0}).'
+  sync-applied: 'Dashboard-Einstellungen v{0} angewendet.'
+  sync-wait: 'Bitte noch {0} s bis zur nächsten Synchronisierung warten.'
+  sync-error: 'Cloud-Synchronisierung fehlgeschlagen: {0}.'
+  sync-pending: 'Dashboard-Einstellungen stehen noch aus; der Server ist beschäftigt. Sie werden automatisch erneut versucht.'
   link: 'Diesen Server verknüpfen: {0}'
   link-expiry: 'Diesen Server verknüpfen: {0} (24 Stunden gültig)'
   off-help: Connection Guard Cloud ist aus. Mit /cg cloud enable einschalten.
