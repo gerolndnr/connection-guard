@@ -167,6 +167,26 @@ class GeneralFailoverRuntimeTest {
         assertTrue(ConnectionGuard.providerHealth().containsKey("vpn.custom-a"));
         assertTrue(ConnectionGuard.providerHealth().containsKey("vpn.custom-b"));
     }
+    @Test void fiftyTwoLoginsBeyondPrimaryBudgetStillReceiveConcreteFallbackChecks() throws Exception {
+        values.put("provider.vpn.custom-a.daily-budget", 1);
+        activate(draft("custom-a", "custom-b")); assertEquals(ProviderVote.Status.NEGATIVE, lookup("192.0.2.110").getStatus());
+        long before = ConnectionGuard.uncheckedVpnAdmissions().snapshot().total;
+        for (int i = 0; i < 52; i++) {
+            String ip = "198.51.100." + (i + 1); VpnResult result = lookup(ip);
+            assertEquals(ProviderVote.Status.POSITIVE, result.getStatus());
+            assertEquals(FailureReason.BUDGET_EXHAUSTED, result.getVotes().get(0).getReason());
+            try (com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture capture =
+                    com.github.gerolndnr.connectionguard.core.extensions.DecisionCapture.begin(
+                            com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.VELOCITY,
+                            com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Phase.LOGIN, ip, null,
+                            com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.IdentityTrust.UNTRUSTED)) {
+                capture.facts(result, new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0), false, true, System.currentTimeMillis());
+                capture.denied(com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Reason.VPN_FLAG);
+            }
+        }
+        assertEquals(1, calls("custom-a")); assertEquals(52, calls("custom-b"));
+        assertEquals(before, ConnectionGuard.uncheckedVpnAdmissions().snapshot().total);
+    }
     @Test void aStrictAttemptLimitCanStillSkipAnAlreadyOpenCircuitLocally() throws Exception {
         fault = "429"; values.put("provider.max-external-attempts", 1);
         activate(draft("custom-a", "custom-b"));

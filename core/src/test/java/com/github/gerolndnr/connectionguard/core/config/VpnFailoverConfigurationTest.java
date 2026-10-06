@@ -23,6 +23,19 @@ class VpnFailoverConfigurationTest {
     private ProviderConfiguration draft(Map<String, Object> values, String... keys) {
         return new ProviderConfiguration(values::get, Arrays.asList(keys), directory);
     }
+    @Test void shippedAndMissingLookupDefaultsRemainTheEstablishedValues() throws Exception {
+        com.github.gerolndnr.connectionguard.core.lookup.LookupSettings missing = GuardSettings.defaults().lookup;
+        assertEquals(2500, missing.httpTimeoutMillis); assertEquals(8, missing.workers);
+        assertEquals(64, missing.queueCapacity); assertEquals(128, missing.maxInflight); assertEquals(30000, missing.circuitPauseMillis);
+        try (java.io.InputStream input = getClass().getResourceAsStream("/config.yml")) {
+            assertNotNull(input); java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[4096]; int size;
+            while ((size = input.read(buffer)) != -1) bytes.write(buffer, 0, size);
+            String shipped = new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+            for (String value : Arrays.asList("http-timeout-ms: 2500", "workers: 8", "queue-capacity: 64", "max-inflight: 128", "pause-ms: 30000"))
+                assertTrue(shipped.contains(value), "Shipped lookup defaults differ: " + value);
+        }
+    }
     @Test void missingOptionEnablesFailoverWithoutProxyCheckOrFreeProviders() {
         ProviderConfiguration result = draft(keyed(), "vpnapi", "iphub");
         assertTrue(result.failover); assertEquals(1, result.threshold); assertEquals(16, result.externalAttempts);
