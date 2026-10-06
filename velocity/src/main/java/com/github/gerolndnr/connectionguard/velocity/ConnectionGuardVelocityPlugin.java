@@ -132,12 +132,24 @@ public class ConnectionGuardVelocityPlugin {
         });
         String pluginVersion = proxyServer.getPluginManager().fromInstance(this)
                 .flatMap(container -> container.getDescription().getVersion()).orElse("unknown");
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.setNoticeConsole(notice -> {
+            if (!com.github.gerolndnr.connectionguard.core.cloud.CloudSync.noticeCurrent(notice)) return;
+            java.util.List<String> lines = notice.consoleLines();
+            for (int i = 0; i < lines.size(); i++) {
+                net.kyori.adventure.text.Component line = net.kyori.adventure.text.Component.text(lines.get(i),
+                        i == 1 ? net.kyori.adventure.text.format.NamedTextColor.AQUA : i == 3 || i == 4 ? net.kyori.adventure.text.format.NamedTextColor.GREEN : net.kyori.adventure.text.format.NamedTextColor.GRAY);
+                if (i == 1 || i == 3) line = line.decorate(net.kyori.adventure.text.format.TextDecoration.BOLD);
+                if (i == 4) line = line.decorate(net.kyori.adventure.text.format.TextDecoration.UNDERLINED);
+                proxyServer.getConsoleCommandSource().sendMessage(line);
+            }
+        });
         com.github.gerolndnr.connectionguard.core.cloud.CloudSync.start(dataDirectory, path -> getCgVelocityConfig().getConfig().get(path), com.github.gerolndnr.connectionguard.api.v1.DecisionObservation.Platform.VELOCITY,
                 proxyServer.getVersion().getName() + " " + proxyServer.getVersion().getVersion(), pluginVersion, ConnectionGuard.getLogger());
 
 
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
+        proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.CloudDashboardNoticeListener());
 
         CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")
                 .aliases("cg")

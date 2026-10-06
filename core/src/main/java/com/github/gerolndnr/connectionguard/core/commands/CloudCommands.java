@@ -17,12 +17,12 @@ public final class CloudCommands {
         switch (action) {
             case "status":
                 CloudSync.describeLines().forEach(reply);
-                CloudSync.linkUrl().ifPresent(url -> reply.accept(messages.text("cloud.link", url)));
+                CloudSync.linkUrl("command").ifPresent(url -> reply.accept(messages.text("cloud.link", url)));
                 return true;
             case "link":
                 if (!CloudSync.isRunning()) reply.accept(messages.getString("cloud.off-help"));
                 else if (CloudSync.isLinked()) reply.accept(messages.getString("cloud.already-linked"));
-                else reply.accept(CloudSync.linkUrl().map(url -> messages.text("cloud.link-expiry", url))
+                else reply.accept(CloudSync.linkUrl("command").map(url -> messages.text("cloud.link-expiry", url))
                             .orElse(messages.getString("cloud.registering-help")));
                 return true;
             case "settings":
