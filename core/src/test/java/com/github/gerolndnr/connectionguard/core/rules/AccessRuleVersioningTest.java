@@ -16,7 +16,7 @@ class AccessRuleVersioningTest {
     private final GuardSettings configured = GuardSettings.defaults();
     private GuardSettings enforced() {
         Map<String, Object> fields = new HashMap<>(); fields.put("behavior.vpn.kick-player", true);
-        fields.put("failure-policy.geo", "CLOSED"); fields.put("behavior.geo.countries", Arrays.asList("DE"));
+        fields.put("failure-policy.geo", "CLOSED"); fields.put("behavior.geo.type", "WHITELIST"); fields.put("behavior.geo.list", Arrays.asList("DE"));
         return GuardSettings.read(fields::get, Collections.emptyList());
     }
     private PolicyReplay.Snapshot candidate(List<AccessRule> rules) { return new PolicyReplay.Snapshot(enforced(), rules); }
@@ -29,6 +29,7 @@ class AccessRuleVersioningTest {
         AccessRuleStore restarted = new AccessRuleStore(directory);
         assertEquals(committed.current().id, restarted.revision()); assertTrue(restarted.locallyOwned());
         assertTrue(restarted.effective(configured).kickVpn); assertEquals(GuardSettings.FailurePolicy.CLOSED, restarted.effective(configured).geoFailure);
+        assertTrue(restarted.effective(configured).geoWhitelist); assertEquals(Collections.singletonList("DE"), restarted.effective(configured).countries);
         assertEquals(grant.getExpiresAt(), restarted.snapshot().get(0).getExpiresAt());
         assertSame(configured.lookup, restarted.effective(configured).lookup);
         assertSame(configured.admission, restarted.effective(configured).admission);

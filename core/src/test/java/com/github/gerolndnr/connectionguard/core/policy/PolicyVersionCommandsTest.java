@@ -106,16 +106,19 @@ class PolicyVersionCommandsTest {
     @Test void concurrentBeginVersusActivationNeverCapturesHalfARevision() throws Exception {
         CyclicBarrier barrier = new CyclicBarrier(2); ExecutorService executor = Executors.newFixedThreadPool(2);
         String expected = ConnectionGuard.policyActivationToken();
+        PolicyReplay.Snapshot withDeny = new PolicyReplay.Snapshot(candidate.settings, Collections.singletonList(
+                new AccessRule("atomic-deny", AccessRule.Effect.DENY, AccessRule.Scope.GEO, "192.0.2.1", 0, "Synthetic atomic rule")));
         try {
             Future<DecisionCapture> captured = executor.submit(() -> { barrier.await(); return capture(); });
             Future<Boolean> committed = executor.submit(() -> { barrier.await();
-                try { ConnectionGuard.activatePolicy(candidate, candidate.fingerprint(), expected); return true; }
+                try { ConnectionGuard.activatePolicy(withDeny, withDeny.fingerprint(), expected); return true; }
                 catch (IllegalStateException busy) { return false; }
             });
             try (DecisionCapture active = captured.get(2, TimeUnit.SECONDS)) {
                 boolean changed = committed.get(2, TimeUnit.SECONDS);
                 assertEquals(!changed, active.observe());
-                assertEquals(changed ? Reason.VPN_FLAG : null, denial(active.settings()));
+                assertEquals(changed ? Reason.ACCESS_RULE : null, denial(active.settings()));
+                assertEquals(changed ? 1 : 0, ConnectionGuard.getRuleStore().snapshot().size());
                 assertEquals(1, ConnectionGuard.activePolicyDecisions());
             }
             assertEquals(0, ConnectionGuard.activePolicyDecisions());

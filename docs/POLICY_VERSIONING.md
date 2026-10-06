@@ -13,7 +13,7 @@ Development implementation in `0.5.2-SNAPSHOT`; absent from stable `0.5.1`. Nati
 
 Use the exact SHA-256 candidate hash from `inspect` and the current `expected` token from `status`, after reviewing the candidate and current conditions. Tokens identify a base, not an authorization credential. Read commands require `connectionguard.command.policy`; writes additionally require `connectionguard.command.policy.activate`. Bukkit defaults both to operators. Proxy permission systems must grant the selected nodes. The candidate path restrictions and strict 256 KiB JSON validation are unchanged. Activation allows at most 512 rules; an empty `rules` list deliberately replaces all current rules with none.
 
-An edit to current rules, provider configuration, threshold, cache source conditions or decision settings invalidates the reviewed token. Editing the candidate file invalidates its reviewed hash. Rejected commands report redacted diagnostics and preserve active state. Recheck the files and conditions before issuing a new token; never automatically retry an uncertain write response.
+An edit to current rules, provider configuration, threshold, cache source conditions or decision settings invalidates the reviewed token. Editing the candidate's decision content invalidates its reviewed hash; whitespace alone does not. Rejected commands report redacted diagnostics and preserve active state. Recheck the files and conditions before issuing a new token; never automatically retry an uncertain write response.
 
 ## Persistence and recovery
 
