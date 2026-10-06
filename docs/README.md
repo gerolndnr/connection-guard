@@ -18,6 +18,7 @@ After installation:
 - [Choose providers and understand free quotas](PROVIDERS.md).
 - [Investigate flagged players and permission exemptions](TROUBLESHOOTING.md).
 - [Understand provider outages and caching](PROVIDER_FAILURES.md).
+- [Understand Cloud data and anonymous error reporting](PRIVACY.md).
 
 ## New in 0.5.0
 

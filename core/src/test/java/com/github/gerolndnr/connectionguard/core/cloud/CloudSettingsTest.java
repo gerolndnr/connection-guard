@@ -1,5 +1,6 @@
 package com.github.gerolndnr.connectionguard.core.cloud;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,7 @@ class CloudSettingsTest {
 
     @Test void onByDefault() {
         CloudSettings s = read(new HashMap<>(), new HashMap<>(), false);
-        assertTrue(s.enabled);
+        assertTrue(s.enabled); assertTrue(s.errorReports);
         assertEquals("https://api.connectionguard.net", s.endpoint.toString());
     }
 
@@ -41,4 +42,13 @@ class CloudSettingsTest {
         Map<String, Object> bad = new HashMap<>(); bad.put("cloud.network-token", "not-a-token");
         assertThrows(IllegalArgumentException.class, () -> read(bad, new HashMap<>(), false));
     }
+    @Test void errorReportsDefaultOnButEveryCloudOptOutOverridesIt() {
+        assertFalse(read(Collections.singletonMap("cloud.error-reports", false), Collections.emptyMap(), false).errorReports);
+        assertFalse(read(Collections.singletonMap("cloud.enabled", false), Collections.emptyMap(), false).errorReports);
+        assertFalse(read(Collections.emptyMap(), Collections.singletonMap(CloudSettings.ENV_SWITCH, "false"), false).errorReports);
+        assertFalse(read(Collections.emptyMap(), Collections.singletonMap(CloudSettings.PROPERTY_SWITCH, "false"), false).errorReports);
+        assertFalse(read(Collections.emptyMap(), Collections.emptyMap(), true).errorReports);
+        assertThrows(IllegalArgumentException.class, () -> read(Collections.singletonMap("cloud.error-reports", "wrong"), Collections.emptyMap(), false));
+    }
+
 }

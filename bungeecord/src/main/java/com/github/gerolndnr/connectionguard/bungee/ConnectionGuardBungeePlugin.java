@@ -38,6 +38,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     @Override
     public void onEnable() {
+        try { enableGuard(); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.STARTUP); throw failure; }
+    }
+    private void enableGuard() {
         connectionGuardBungeePlugin = this;
         vpnProviderMap = new HashMap<>();
 
@@ -61,6 +65,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         }
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+        com.github.gerolndnr.connectionguard.core.cloud.CloudSync.prepareErrorReports(getDataFolder().toPath(), path -> getConfig().get(path, null));
             com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.overlay(getDataFolder().toPath(), config::set);
         } catch (IOException e) {
             getLogger().info("Connection Guard | " + e.getMessage());
@@ -152,6 +157,10 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     }
 
     public void reloadAllConfigs() {
+        try { reloadGuardConfigs(); }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.RELOAD); throw failure; }
+    }
+    private void reloadGuardConfigs() {
         synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {
             try {
                 Configuration next = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);

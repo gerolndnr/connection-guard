@@ -100,7 +100,7 @@ class ArtifactRegressionTest(unittest.TestCase):
             "policy/PolicyReplay", "policy/PolicyReplay$Snapshot", "policy/PolicyReplay$Case", "policy/PolicyReplay$Cases",
             "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
             "policy/PolicyJournal", "policy/PolicyJournal$Revision", "policy/PolicyJournal$Operation",
-            "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State", "commands/PolicyCommands")]
+            "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State", "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context", "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame")]
         selected.append("policy/examples.json")
         with tempfile.TemporaryDirectory() as directory:
             for name in selected:
@@ -113,7 +113,7 @@ class ArtifactRegressionTest(unittest.TestCase):
                             for entry, data in resources.items():
                                 if mutation != "missing" or entry != name: output.writestr(entry, data)
                             if mutation == "duplicate": output.writestr(name, resources[name])
-                    with self.assertRaisesRegex(ValueError, "policy"):
+                    with self.assertRaisesRegex(ValueError, "policy|error report"):
                         verify(broken, version)
 
     def test_changed_policy_examples_fail_source_binding(self):
