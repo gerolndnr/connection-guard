@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.5.2-SNAPSHOT — unreleased provider-resilience candidate
+## Unreleased — 0.5.2-SNAPSHOT
 
-- New installs use ENFORCE and sequential keyless ProxyCheck v3 → IPQuery → IP-API failover, stopping at the first valid verdict. Existing configurations and modes remain unchanged.
+- General sequential VPN failover defaults on for every selected keyed, anonymous, custom HTTP or extension source. Configure provider.vpn-failover.enabled/order; disabling restores parallel voting and the stored required-positive-flags. Existing modes, provider selections and keys are retained. A mode/order change invalidates old fact namespaces while preserving selected source quota usage.
+- New installs use ENFORCE with anonymous ProxyCheck v3 → IPQuery → IP-API as the initial free selection; existing enforcement modes remain unchanged.
 - An embedded Tor bulk snapshot is checked locally before caches/APIs. Periodic list refresh never sends a player's IP. Stale lists remain visible in doctor and retain Tor protection, with documented false-positive/staleness limits.
 - Parse ProxyCheck v3 explicit VPN/proxy/Tor and known VPN operator evidence, while hosting alone remains review-only; normalize IPv6 requests and equivalent response keys.
 - Surface local/remote quota exhaustion and circuit outages; allow a single early transient recovery probe while honoring Retry-After.
@@ -13,8 +14,6 @@ Hosting-only policy confirmation and the full comparative benchmark acceptance r
 
 
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
-
-## Unreleased — 0.5.2-SNAPSHOT
 
 - Add bounded local synthetic policy replay using the same VPN/geo evaluator as live platform checks. Candidate comparisons perform no lookups, actions or activation; literal DENY rules added during a pending lookup take precedence over earlier permission exemptions.
 - Add an explicitly enabled, in-memory live policy shadow comparison. It reuses final policy facts, retains counters rather than observed identities, and stops on reload, rule changes, expiry or its sample limit. It cannot activate candidates or roll back a policy.

@@ -11,6 +11,7 @@ import java.util.function.Function;
 public final class GuardSettings {
     public enum FailurePolicy { OPEN, CLOSED, OBSERVE }
     public final LookupSettings lookup;
+    public final VpnFailoverSettings vpnFailover;
     public final com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks;
     public final com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission;
     public final com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings admissionHooks;
@@ -27,8 +28,9 @@ public final class GuardSettings {
     public final List<String> warnings;
     private GuardSettings(LookupSettings lookup, com.github.gerolndnr.connectionguard.core.admission.AdmissionSettings admission, boolean observe, boolean trust, boolean floodgate, boolean paperForwarding, com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings hooks, FailurePolicy vpn,
                           FailurePolicy geo, List<String> warnings, com.github.gerolndnr.connectionguard.core.webhook.WebhookSettings webhooks,
-                          boolean kickVpn, boolean kickGeo, boolean geoWhitelist, List<String> countries) {
+                          boolean kickVpn, boolean kickGeo, boolean geoWhitelist, List<String> countries, VpnFailoverSettings vpnFailover) {
         this.webhooks = webhooks;
+        this.vpnFailover = vpnFailover;
         this.lookup = lookup; this.admission = admission; this.observe = observe; this.trustForwardedIdentity = trust; this.nativeFloodgateIdentity = floodgate; this.nativePaperForwardingIdentity = paperForwarding;
         this.admissionHooks = hooks;
         this.vpnFailure = vpn; this.geoFailure = geo; this.warnings = java.util.Collections.unmodifiableList(warnings);
@@ -45,11 +47,6 @@ public final class GuardSettings {
                 integer(value, "lookup.circuit.failures", defaults.circuitFailures), integer(value, "lookup.circuit.pause-ms", (int) defaults.circuitPauseMillis));
         String mode = string(value, "operation.mode", "ENFORCE").toUpperCase(Locale.ROOT);
         if (!mode.equals("OBSERVE") && !mode.equals("ENFORCE")) throw new IllegalArgumentException("operation.mode must be OBSERVE or ENFORCE.");
-        String strategy = string(value, "provider.vpn-strategy", "CONSENSUS");
-        if (!strategy.equalsIgnoreCase("CONSENSUS") && !strategy.equalsIgnoreCase("FAILOVER")) throw new IllegalArgumentException("provider.vpn-strategy must be CONSENSUS or FAILOVER.");
-        int attempts = integer(value, "provider.max-external-attempts", 3);
-        if (attempts < 1 || attempts > 16) throw new IllegalArgumentException("provider.max-external-attempts must be 1..16.");
-        if (strategy.equalsIgnoreCase("FAILOVER") && integer(value, "required-positive-flags", 1) != 1) throw new IllegalArgumentException("FAILOVER requires required-positive-flags: 1 (no consensus).");
         int enabled = 0;
         for (String key : providerKeys) if (bool(value, "provider.vpn." + key + ".enabled", false)) {
             if (key.equals("local")) continue;
@@ -61,11 +58,13 @@ public final class GuardSettings {
         }
         com.github.gerolndnr.connectionguard.core.local.LocalDataSettings local = new com.github.gerolndnr.connectionguard.core.local.LocalDataSettings(value);
         com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings extensions = new com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings(value);
+        VpnFailoverSettings vpnFailover = new VpnFailoverSettings(value, providerKeys, extensions);
         enabled += local.votingProviders() + extensions.voting();
         int allSources = enabled + (local.vpnEnabled ? local.sources.size() - local.votingProviders() : 0) + extensions.sources.size() - extensions.voting();
         if (allSources > 16) throw new IllegalArgumentException("At most 16 VPN/enrichment providers may be enabled.");
         int threshold = integer(value, "required-positive-flags", 1);
         if (threshold < 1 || threshold > 16 || (enabled > 0 && threshold > enabled)) throw new IllegalArgumentException("required-positive-flags must be 1..enabled voting provider count (maximum 16).");
+        if (vpnFailover.enabled && threshold > 1) warnings.add("Sequential VPN failover uses the first concrete vote (effective threshold 1); required-positive-flags is retained for when provider.vpn-failover.enabled is false.");
         if (enabled == 0) warnings.add("No VPN provider enabled: VPN classification is UNKNOWN.");
         if (bool(value, "behavior.vpn.use-permission-exemption", false) || bool(value, "behavior.geo.use-permission-exemption", false)) {
             if (!CGLuckPermsHelper.isAvailable()) warnings.add("Permission exemptions enabled but LuckPerms is unavailable; checks remain active.");
@@ -125,7 +124,7 @@ public final class GuardSettings {
                 new com.github.gerolndnr.connectionguard.core.extensions.AdmissionHookSettings(value),
                 policy(value, "failure-policy.vpn"), policy(value, "failure-policy.geo"), warnings, webhooks,
                 bool(value, "behavior.vpn.kick-player", false), bool(value, "behavior.geo.kick-player", false),
-                geo.equalsIgnoreCase("WHITELIST"), countries);
+                geo.equalsIgnoreCase("WHITELIST"), countries, vpnFailover);
     }
     public static GuardSettings defaults() { return read(path -> null, java.util.Collections.emptyList()); }
     private static FailurePolicy policy(Function<String, Object> value, String path) {

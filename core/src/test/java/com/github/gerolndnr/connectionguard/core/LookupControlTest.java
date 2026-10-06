@@ -13,7 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Timeout(5)
 class LookupControlTest {
-    @BeforeEach void setup() {
+    @BeforeEach void setup() throws Exception {
+        retireFixtureRuntime();
         ConnectionGuard.configureLookup(new LookupSettings(200, 100, 2, 4, 8, 3, 100));
         ConnectionGuard.setCacheProvider(new NoCacheProvider());
         ConnectionGuard.setRequiredPositiveFlags(1);
@@ -21,10 +22,21 @@ class LookupControlTest {
         Logger logger = Logger.getAnonymousLogger(); logger.setLevel(Level.OFF); ConnectionGuard.setLogger(logger);
     }
     @AfterEach void reset() throws Exception {
-        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
-        while (!ConnectionGuard.getLookupRuntime().isIdle() && System.nanoTime() < limit) Thread.sleep(2);
-        assertTrue(ConnectionGuard.getLookupRuntime().isIdle(), "Test left transport work or deadlines active.");
+        retireFixtureRuntime();
         ConnectionGuard.configureLookup(LookupSettings.defaults());
+    }
+    private static void retireFixtureRuntime() throws Exception {
+        LookupRuntime previous = ConnectionGuard.getLookupRuntime();
+        long limit = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (System.nanoTime() < limit) {
+            previous.retireIfIdle();
+            // isIdle alone is insufficient after shutdown: an idle executor may
+            // still be terminating. The production replacement guard correctly
+            // rejects that short window. Do not force-close outstanding work.
+            if (!previous.isOpen() && previous.retireIfIdle()) return;
+            Thread.sleep(2);
+        }
+        fail("Test left transport work, deadlines or retiring executors active.");
     }
     void provider(VpnProvider provider) { ConnectionGuard.setVpnProviders(new ArrayList<>(Collections.singletonList(provider))); }
     @Test void aHundredCallersShareOneProviderRequestAndCancellationIsIsolated() throws Exception {

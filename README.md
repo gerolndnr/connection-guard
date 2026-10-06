@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
-> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.5.2-SNAPSHOT. Stable 0.5.0/0.5.1 setup instructions below retain their original defaults; new candidate installs use ENFORCE, sequential keyless failover and disabled geo lookups. Existing configuration files are preserved. Full comparative acceptance is pending.
+> Development candidate: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) describes 0.5.2-SNAPSHOT. Stable 0.5.0/0.5.1 setup instructions below retain their original defaults; new candidate installs use ENFORCE and disabled geo lookups. General sequential VPN failover defaults on for selected providers, with or without keys; disable provider.vpn-failover.enabled to restore parallel voting. Existing modes, keys and selections are preserved. Full comparative acceptance is pending.
 
 
 # Connection Guard

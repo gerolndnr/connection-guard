@@ -70,6 +70,9 @@ public final class OperationsCommands {
                 + "; " + messages.getString("ops.cache-health"));
         if (ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider)
             lines.add(((com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider) ConnectionGuard.getCacheProvider()).describe());
+        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = ConnectionGuard.getActiveDraft();
+        if (draft != null) lines.add("VPN strategy=" + (draft.failover ? "FAILOVER" : "CONSENSUS")
+                + " effectiveThreshold=" + draft.threshold + " maxExternalAttempts=" + draft.externalAttempts + " order=" + draft.keys);
         lines.add(ConnectionGuard.torStatus());
         lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())

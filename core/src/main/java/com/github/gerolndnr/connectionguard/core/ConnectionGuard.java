@@ -89,6 +89,7 @@ public class ConnectionGuard {
     private static volatile ProviderConfiguration activeDraft;
     private static final java.util.concurrent.atomic.AtomicLong nextHostingNotice = new java.util.concurrent.atomic.AtomicLong();
     private static boolean failover;
+    private static volatile Map<String, String> selectedHealthIds = Collections.emptyMap();
     private static boolean geoDisabled;
     public static boolean isGeoDisabled() { return geoDisabled; }
     private static int externalAttempts = 3;
@@ -112,6 +113,7 @@ public class ConnectionGuard {
         applySettings(draft.settings);
         tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts;
         vpnProviders = draft.providers;
+        selectedHealthIds = Collections.unmodifiableMap(new java.util.HashMap<>(draft.healthIds));
         geoProvider = draft.geo; geoDisabled = draft.geo == null;
         requiredPositiveFlags = draft.threshold;
         vpnCacheExpirationTime = draft.vpnTtl;
@@ -450,7 +452,7 @@ public class ConnectionGuard {
     private static String quotaKey(String name) {
         if (name.startsWith("IpApi")) return "IP-API";
         if (name.startsWith("ProxyCheck")) return "ProxyCheck";
-        return name;
+        return selectedHealthIds.getOrDefault(name, name);
     }
     private static long elapsed(long started) { return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started); }
 
@@ -461,7 +463,7 @@ public class ConnectionGuard {
 
     public static void setVpnProviders(ArrayList<VpnProvider> vpnProviders) {
         ConnectionGuard.vpnProviders = vpnProviders;
-        health.clear(); failover = false; if (tor != null) { tor.close(); tor = null; }
+        health.clear(); selectedHealthIds = Collections.emptyMap(); failover = false; if (tor != null) { tor.close(); tor = null; }
         policyContextChanged();
     }
 

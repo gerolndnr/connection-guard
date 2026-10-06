@@ -155,7 +155,9 @@ behavior:
 # You can use multiple services at the same time (just enable multiple at once) to minimize
 # the number of provider votes required. Provider votes are not necessarily independent. This determines how many enabled services have
 # to report that an ip is a proxy/vpn, before the plugin will treat it as a proxy/vpn.
-# Default value: 1
+# Applies when provider.vpn-failover.enabled is false (legacy parallel voting).
+# With failover enabled the first concrete voting answer decides, using an effective threshold of 1.
+# The configured value is retained for switching back. Default value: 1
 # Missing or failed provider responses do not count as positive votes. If the
 # threshold is not met, failure-policy decides how UNKNOWN is handled; an incomplete
 # verdict is not cached, so a later connection can retry after provider recovery.
@@ -167,10 +169,19 @@ required-positive-flags: 1
 # IP is a vpn and which is not. Some work better than others and some have daily/monthly limits.
 
 provider:
-  # FAILOVER tries one provider at a time; stops on the first valid verdict.
-  # Failures may transmit the IP to further providers. CONSENSUS preserves legacy parallel voting.
-  vpn-strategy: FAILOVER
-  max-external-attempts: 3
+  # Applies to every enabled VPN provider: with/without a key, custom HTTP and selected extensions.
+  vpn-failover:
+    # Default true, including existing files without a strategy selection.
+    # False restores parallel voting and required-positive-flags, with the same enabled providers.
+    enabled: true
+    # Optional provider IDs in preferred order; unspecified enabled sources follow.
+    # Example: [ipqualityscore, iphub, proxycheck, extension.owned, corporate]
+    # Local lists always precede APIs; ip-api is always the last network option.
+    order: []
+  # Network attempts per lookup, bounded by the original whole-login deadline (1..16).
+  # Locally skipped quotas/circuits and local list checks do not consume this limit.
+  max-external-attempts: 16
+  # Legacy vpn-strategy: FAILOVER|CONSENSUS remains accepted if the new switch is absent.
   vpn:
     # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
     # VPN/Geo currently use separate queries; the plugin counts requests locally.

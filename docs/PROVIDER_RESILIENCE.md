@@ -1,38 +1,68 @@
-# Keyless failover and offline protection (0.5.2 candidate)
+# General provider failover and offline protection (0.5.2 candidate)
 
 This candidate is not a stable release. Hosting-only policy and the complete
 `mc-antivpn-bench` acceptance matrix remain release gates.
 
 ## Lookup contract
 
-New configuration files select `provider.vpn-strategy: FAILOVER` with
-`required-positive-flags: 1`. ProxyCheck is first, IPQuery second, IP-API last.
-Each source is tried sequentially. The first concrete POSITIVE or NEGATIVE
-response stops the chain; providers are never polled for consensus in this mode.
-UNKNOWN, exhausted quota, open circuits, 429, transport errors and malformed
-responses advance to the next source, within the original whole-login deadline.
-An unavailable source skipped locally receives no IP. A failed network attempt
-can therefore disclose the same IP to a second or third provider. Set
-`provider.max-external-attempts: 1` for at most one attempt per lookup; later
-lookups can use a fallback once the failing source's circuit opens.
+`provider.vpn-failover.enabled: true` enables sequential failover for **all selected
+VPN sources**: anonymous or keyed ProxyCheck, IPHub, VPNAPI, IPQualityScore,
+IPQuery, IP-API, custom HTTP providers and explicitly selected API extensions.
+It is enabled by default even in existing files without a strategy selection.
+It does not enable extra sources, replace keys, change an existing ENFORCE/OBSERVE
+mode, or rewrite the file.
 
-Existing configuration files are not rewritten. Missing strategy keeps their
-legacy CONSENSUS behavior and selected providers. To enable the new chain, set:
+The first concrete voting POSITIVE or NEGATIVE answer stops the chain. UNKNOWN,
+quota exhaustion, open circuits, 429, transport errors and invalid/incomplete
+answers advance to the next source within the same original whole-login deadline.
+Non-voting enrichment cannot supply a threshold vote or terminate the chain.
+A locally skipped source receives no IP. A failed network attempt can disclose the
+IP to another source; this is one request at a time, not guaranteed one recipient
+in the presence of failures. No consensus is requested while the chain is active.
 
 ```yaml
 provider:
-  vpn-strategy: FAILOVER
-  max-external-attempts: 3
-  vpn:
-    proxycheck:
-      enabled: true
-      api-version: v3
-      api-key: ''
-    ipquery:
-      enabled: true
-    ip-api:
-      enabled: true
+  vpn-failover:
+    enabled: true
+    order: []
+  max-external-attempts: 16
 ```
+
+An empty order puts local observations first, then ProxyCheck, IPQuery, other
+selected sources in their declared order, and IP-API last. Set `order` to provider
+section IDs such as `[ipqualityscore, iphub, corporate, proxycheck]`, or selected
+extension IDs such as `extension.owned`. Unlisted enabled sources remain fallbacks;
+disabled sources are never activated by this list. Local observations still precede
+APIs and IP-API remains last. Duplicate, unknown or invalid IDs reject the complete
+reload draft. Each source retains its own configured budgets when reordered.
+Changing the order or mode changes the fact-cache namespace.
+
+To restore the previous **parallel voting** behavior, change just:
+
+```yaml
+provider:
+  vpn-failover:
+    enabled: false
+required-positive-flags: 2 # use your previous value, normally 1
+```
+
+The existing provider selections and configured quorum remain stored. In the chain,
+the effective quorum is 1; a stored higher quorum produces a diagnostic notice and
+applies again when the chain is disabled. `/cg doctor` reports the active mode,
+effective threshold, order and maximum attempts. The dashboard quorum alone cannot
+switch off sequential failover; change this local option before using a multi-provider
+quorum. No new dashboard control is advertised by this plugin-only change.
+
+The earlier candidate's explicit `provider.vpn-strategy: CONSENSUS` or `FAILOVER`
+remains accepted if the boolean option is absent. The new boolean takes precedence.
+Malformed legacy values are rejected. The default attempt limit covers up to all
+16 allowed sources; an explicitly stored `max-external-attempts: 3` stays 3.
+Set it to 1 to limit a lookup to one network attempt; locally skipped circuits or
+quotas can still lead to a different usable source. Restarting a process resets
+local usage counters; changing the order or switch does not reset retained counters.
+
+New files enable anonymous ProxyCheck v3, IPQuery and IP-API as the initial free
+selection. Other keyed and custom sources remain explicitly selected by operators.
 
 Country checks remain separately configured. New files use geo `Disabled` and
 an empty country blacklist: a VPN-only login does not send an additional geo

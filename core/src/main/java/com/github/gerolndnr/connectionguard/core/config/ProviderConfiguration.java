@@ -14,6 +14,7 @@ public final class ProviderConfiguration {
     public final ArrayList<VpnProvider> providers = new ArrayList<>();
     public final List<String> keys = new ArrayList<>();
     public final Map<String, Integer> dayBudgets = new HashMap<>(), minuteBudgets = new HashMap<>();
+    public final Map<String, String> healthIds = new HashMap<>();
     public final GuardSettings settings;
     public final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
     public final GeoProvider geo;
@@ -45,8 +46,8 @@ public final class ProviderConfiguration {
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
         settings = GuardSettings.read(value, providerKeys);
         dataPath = dataDirectory;
-        failover = GuardSettings.string(value, "provider.vpn-strategy", "CONSENSUS").equalsIgnoreCase("FAILOVER");
-        externalAttempts = GuardSettings.integer(value, "provider.max-external-attempts", 3);
+        failover = settings.vpnFailover.enabled;
+        externalAttempts = settings.vpnFailover.maxExternalAttempts;
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
@@ -60,7 +61,7 @@ public final class ProviderConfiguration {
         String proxyCheckVersion = GuardSettings.string(value, "provider.vpn.proxycheck.api-version", "v2");
         if (!proxyCheckVersion.equalsIgnoreCase("v2") && !proxyCheckVersion.equalsIgnoreCase("v3")) throw new IllegalArgumentException("ProxyCheck api-version must be v2 or v3.");
         boolean proxyCheckV3 = proxyCheckVersion.equalsIgnoreCase("v3");
-        threshold = GuardSettings.integer(value, "required-positive-flags", 1);
+        threshold = failover ? 1 : GuardSettings.integer(value, "required-positive-flags", 1);
         vpnTtl = GuardSettings.integer(value, "provider.cache.expiration.vpn", 1440);
         geoTtl = GuardSettings.integer(value, "provider.cache.expiration.geo", 4320);
         String cache = GuardSettings.string(value, "provider.cache.type", "SQLite");
@@ -69,7 +70,7 @@ public final class ProviderConfiguration {
                 + "\n" + GuardSettings.integer(value, "provider.cache.redis.port", 6379) + "\n"
                 + GuardSettings.string(value, "provider.cache.redis.username", "") + "\n" + GuardSettings.string(value, "provider.cache.redis.password", "") + "\n" + GuardSettings.bool(value, "provider.cache.redis.tls", false);
         List<String> orderedKeys = new ArrayList<>(providerKeys);
-        if (failover) orderedKeys.sort(Comparator.comparingInt(key -> key.equals("proxycheck") ? 0 : key.equals("ipquery") ? 1 : key.equals("ip-api") ? 3 : 2));
+        Map<String, Integer> sourceDays = new HashMap<>(), sourceMinutes = new HashMap<>();
         if (failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
         for (String key : orderedKeys) {
             if (key.equals("local")) continue;
@@ -122,18 +123,34 @@ public final class ProviderConfiguration {
                             GuardSettings.string(value, base + "response-format.vpn-provider-field.field-name", ""), details);
             }
             keys.add(key); providers.add(provider);
-            String id = provider.getClass().getSimpleName() + "#" + (providers.size() - 1);
             int day = GuardSettings.integer(value, base + "daily-budget", key.equals("proxycheck") ? apiKey.isEmpty() ? 100 : 1000 : key.equals("ipqualityscore") ? 30 : 0);
             int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5 : 0);
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
-            dayBudgets.put(id, day); minuteBudgets.put(id, minute);
+            sourceDays.put(key, day); sourceMinutes.put(key, minute);
         }
         if (!failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
         List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> selected = new ArrayList<>();
         for (com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings.Source source : new com.github.gerolndnr.connectionguard.core.extensions.ExtensionSettings(value).sources) {
             com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider adapter = new com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider(source);
             keys.add(adapter.sourceName()); providers.add(adapter); selected.add(adapter);
-            dayBudgets.put(adapter.sourceName(), source.dayBudget); minuteBudgets.put(adapter.sourceName(), source.minuteBudget);
+            sourceDays.put(adapter.sourceName(), source.dayBudget); sourceMinutes.put(adapter.sourceName(), source.minuteBudget);
+        }
+        if (failover) {
+            List<String> originalKeys = new ArrayList<>(keys);
+            List<VpnProvider> originalProviders = new ArrayList<>(providers);
+            List<Integer> positions = new ArrayList<>();
+            for (int i = 0; i < providers.size(); i++) positions.add(i);
+            positions.sort(Comparator.comparingInt(i -> settings.vpnFailover.rank(originalKeys.get(i), originalProviders.get(i) instanceof LocalVpnProvider)));
+            keys.clear(); providers.clear();
+            for (int i : positions) { keys.add(originalKeys.get(i)); providers.add(originalProviders.get(i)); }
+        }
+        for (int i = 0; i < providers.size(); i++) {
+            VpnProvider provider = providers.get(i);
+            String key = keys.get(i);
+            String name = provider.sourceName() == null ? provider.getClass().getSimpleName() : provider.sourceName();
+            String id = name + (provider.stableSourceId() ? "" : "#" + i);
+            dayBudgets.put(id, sourceDays.getOrDefault(key, 0)); minuteBudgets.put(id, sourceMinutes.getOrDefault(key, 0));
+            healthIds.put(id, key.startsWith("extension.") || provider instanceof LocalVpnProvider ? key : "vpn." + key);
         }
         extensionProviders = Collections.unmodifiableList(selected);
         String geoService = GuardSettings.string(value, "provider.geo.service", "IP-API");
@@ -149,7 +166,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema7-failover:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema8-general-failover:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));
