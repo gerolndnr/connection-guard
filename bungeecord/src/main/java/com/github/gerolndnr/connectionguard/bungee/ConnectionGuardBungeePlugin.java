@@ -113,7 +113,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
                         .version("3.46.0.0")
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
-                ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath()));
+                ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath())));
                 break;
             case "redis":
                 Library jedisLibrary = Library.builder()
@@ -183,7 +183,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
     public void onDisable() {
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
-        if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();
+        ConnectionGuard.closeCache();
     }
 
     public Configuration getConfig() {

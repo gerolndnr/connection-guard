@@ -23,6 +23,15 @@ abstract class SerialCacheProvider implements CacheProvider {
         }); } catch (RejectedExecutionException full) { result.completeExceptionally(new LookupException(FailureReason.CACHE_ERROR)); }
         return result;
     }
+    /** Persistence is best effort under queue pressure; this is not a backend failure. */
+    protected CompletableFuture<Void> submitWrite(Operation<Void> operation) {
+        CompletableFuture<Void> result=new CompletableFuture<>();
+        try {executor.execute(()->{
+            try{result.complete(operation.run());}
+            catch(Exception failure){com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure,com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.CACHE);result.completeExceptionally(new LookupException(FailureReason.CACHE_ERROR));}
+        });}catch(RejectedExecutionException pressure){result.complete(null);}
+        return result;
+    }
     protected CompletableFuture<Boolean> stop(Operation<Boolean> operation) {
         CompletableFuture<Boolean> result = submit(operation);
         executor.shutdown();
