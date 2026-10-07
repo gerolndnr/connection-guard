@@ -31,6 +31,9 @@ class WebhookCaptureTest {
         Field field=CGWebHookHelper.class.getDeclaredField("dispatcher");field.setAccessible(true);return (WebhookDispatcher)field.get(null);
     }
     private static void idle()throws Exception {
+        long captureLimit=System.nanoTime()+TimeUnit.SECONDS.toNanos(4);
+        while(DecisionObservers.pendingCaptures()>0 && System.nanoTime()<captureLimit)Thread.sleep(1);
+        assertEquals(0,DecisionObservers.pendingCaptures());
         Field field=WebhookDispatcher.class.getDeclaredField("executor");field.setAccessible(true);
         ThreadPoolExecutor executor=(ThreadPoolExecutor)field.get(owner());
         // Queue/active counts can both be zero while the worker holds its first task
