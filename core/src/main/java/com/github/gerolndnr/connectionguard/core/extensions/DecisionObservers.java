@@ -14,6 +14,7 @@ public final class DecisionObservers {
     private static volatile long generation;
     private static volatile ThreadPoolExecutor workers;
     private static final AtomicLong dropped = new AtomicLong(), failed = new AtomicLong(), delivered = new AtomicLong();
+    private static final AtomicLong pendingCaptures = new AtomicLong();
     private DecisionObservers() { }
     public static synchronized ObserverRegistration register(String id, DecisionObserver observer) {
         if (id == null || !id.matches("[a-z][a-z0-9-]{0,31}")) throw new IllegalArgumentException("Invalid observer ID (value redacted).");
@@ -28,7 +29,7 @@ public final class DecisionObservers {
         for (String id : settings.ids) { Entry entry = entries.get(id); if (entry != null) next.add(entry); }
         if (!next.isEmpty() && (workers == null || workers.isTerminated())) workers = newWorkers();
         generation++; selected = Collections.unmodifiableList(next);
-        if (workers != null) workers.getQueue().clear();
+        if (workers != null) clearQueued(workers);
     }
     /** Installs or removes (null) the built-in observer. Shares the bounded best-effort workers. */
     public static synchronized void setInternal(DecisionObserver observer) {
@@ -37,7 +38,7 @@ public final class DecisionObservers {
         if (internal != null) internal.close();
         internal = observer == null ? null : new Entry("internal", observer, false);
         if (internal != null && (workers == null || workers.isTerminated())) workers = newWorkers();
-        if (workers != null) workers.getQueue().clear();
+        if (workers != null) clearQueued(workers);
         generation++;
     }
     private static ThreadPoolExecutor newWorkers() {
@@ -73,6 +74,28 @@ public final class DecisionObservers {
             } catch (RejectedExecutionException full) { dropped.incrementAndGet(); }
         }
     }
+    /** Build best-effort reports on the observer workers, after the admission result is fixed. */
+    static void deferCapture(Runnable build) {
+        ThreadPoolExecutor pool;
+        synchronized(DecisionObservers.class){
+            if(workers==null || workers.isTerminated())workers=newWorkers();
+            pool=workers;pendingCaptures.incrementAndGet();
+        }
+        CaptureTask task=new CaptureTask(build);
+        try{pool.execute(task);}
+        catch(RejectedExecutionException pressure){task.discard();}
+    }
+    public static long pendingCaptures(){return pendingCaptures.get();}
+    private static final class CaptureTask implements Runnable {
+        final Runnable build;final java.util.concurrent.atomic.AtomicBoolean settled=new java.util.concurrent.atomic.AtomicBoolean();
+        CaptureTask(Runnable build){this.build=build;}
+        private void settle(){if(settled.compareAndSet(false,true))pendingCaptures.decrementAndGet();}
+        void discard(){settle();dropped.incrementAndGet();}
+        @Override public void run(){try{build.run();}catch(RuntimeException | LinkageError | AssertionError invalid){failed.incrementAndGet();}finally{settle();}}
+    }
+    private static void clearQueued(ThreadPoolExecutor pool){
+        for(Runnable queued:new ArrayList<>(pool.getQueue()))if(pool.remove(queued) && queued instanceof CaptureTask)((CaptureTask)queued).discard();
+    }
     public static long dropped() { return dropped.get(); }
     public static long failed() { return failed.get(); }
     static void recordFailure() { failed.incrementAndGet(); }
@@ -84,11 +107,11 @@ public final class DecisionObservers {
     public static synchronized void closeAll() {
         generation++; selected = Collections.emptyList(); internal = null;
         for (Entry entry : new ArrayList<>(entries.values())) entry.close();
-        if (workers != null) workers.getQueue().clear();
+        if (workers != null) clearQueued(workers);
     }
     public static synchronized void shutdown() {
         closeAll();
-        if (workers != null) workers.shutdownNow();
+        if (workers != null) for(Runnable queued:workers.shutdownNow())if(queued instanceof CaptureTask)((CaptureTask)queued).discard();
         // Retain the executor: config reload cannot create pools around callbacks ignoring interruption.
     }
     public static synchronized String describe() {

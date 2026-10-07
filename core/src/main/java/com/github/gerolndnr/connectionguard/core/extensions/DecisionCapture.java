@@ -132,16 +132,27 @@ public final class DecisionCapture implements AutoCloseable {
         if (denied == null && !processingError) ConnectionGuard.uncheckedVpnAdmissions().allowed(uncheckedVpnReason);
         policyLease.close();
         if (!captureEnabled || invalidObservation) return;
+        final long duration=Math.max(0,(System.nanoTime()-started)/1000000);
+        final EnumSet<Flag> capturedFlags=flags.clone();
+        final List<Source> capturedSources=new ArrayList<>(sources);
+        final List<Rule> capturedRules=new ArrayList<>(rules);
+        final Outcome capturedOutcome=denied!=null?Outcome.DENY:processingError?Outcome.ERROR:Outcome.ALLOW;
+        final Reason capturedReason=denied!=null?denied:identityUnavailable?Reason.IDENTITY_UNAVAILABLE:processingError?Reason.INTERNAL_ERROR:overload?Reason.OVERLOAD
+            :!flags.isEmpty()?Reason.FLAG_ALLOWED:admissionUnresolved || unresolved || vpnCheck==Check.UNKNOWN || geoCheck==Check.UNKNOWN?Reason.UNKNOWN_ALLOWED:Reason.CHECKS_COMPLETE;
+        final Check capturedVpn=vpnCheck,capturedGeo=geoCheck;
+        final long capturedAt=observedAt;
+        final boolean capturedError=processingError;
+        final List<AdmissionObservation> capturedAdmission=admissionChecks;
+        DecisionObservers.deferCapture(()->emit(capturedOutcome,capturedReason,capturedVpn,capturedGeo,capturedAt,duration,capturedError,capturedFlags,capturedSources,capturedRules,capturedAdmission));
+    }
+    private void emit(Outcome outcome,Reason reason,Check vpnCheck,Check geoCheck,long observedAt,long duration,boolean processingError,
+            Set<Flag> flags,List<Source> sources,List<Rule> rules,List<AdmissionObservation> admissionChecks){
         // Observation construction must never change admission or retain exception details.
         DecisionObservation event;
         try {
-            Outcome outcome = denied != null ? Outcome.DENY : processingError ? Outcome.ERROR : Outcome.ALLOW;
-            Reason reason = denied != null ? denied : identityUnavailable ? Reason.IDENTITY_UNAVAILABLE : processingError ? Reason.INTERNAL_ERROR : overload ? Reason.OVERLOAD
-                    : !flags.isEmpty() ? Reason.FLAG_ALLOWED : admissionUnresolved || unresolved || vpnCheck == Check.UNKNOWN || geoCheck == Check.UNKNOWN
-                    ? Reason.UNKNOWN_ALLOWED : Reason.CHECKS_COMPLETE;
             event = new DecisionObservation(platform, phase,
                     observe() ? Mode.OBSERVE : Mode.ENFORCE, identityTrust, uuid, ip, outcome, reason, vpnCheck, geoCheck,
-                    observedAt, Math.max(0, (System.nanoTime() - started) / 1000000), processingError,
+                    observedAt, duration, processingError,
                     flags, sources, rules, admissionChecks);
         } catch (RuntimeException | LinkageError invalid) {
             if (generation >= 0) DecisionObservers.recordFailure();

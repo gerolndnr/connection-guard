@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — 0.6.2 everyday joins
+
+- Put a bounded 10,000-entry Memory tier in front of SQLite and coherent Redis. Fresh cache hits and local-list results complete on the caller thread; persistence reads happen only on Memory misses. Keep fact age, source expiry, namespace isolation and invalidation fences.
+- Use SQLite WAL/NORMAL, reusable statements, separate reads and coalesced background transactions every second or 100 pending facts. Write pressure drops best-effort copies without reporting CACHE_ERROR; clean shutdown flushes accepted writes. A crash can lose the last uncommitted cache batch.
+- Track Redis invalidations using an optional Redis 6+ client-tracking connection. Unsupported server/ACL configurations retain remote reads while Redis is online; offline bounded Memory fallback and reconnect behavior remain. Explicit connected clears wait for the remote deletion.
+- Build decision reports/webhook payloads on the bounded observer workers after releasing the login policy lease. Preserve the final decision, duration and inline unchecked-admission counters; reports remain best effort under pressure.
+- Bundle and isolate the existing BoostedYAML 1.3.6 runtime; construct Libby only on demand for optional database drivers.
+- Initialize optional SQLite/Redis libraries and persistence off the Velocity enable thread. Early logins use Memory and continue the normal source chain; /cg doctor shows persistence as starting or unavailable. Preserve early fact timestamps when handing them to persistence. Memory/Disabled cache modes are unchanged.
+- These are development changes for the next release after 0.6.1. Same-run, three-round comparative performance, detection, failure and Redis acceptance is required before publication. [Performance scope](docs/PERFORMANCE.md).
+
 ## Unreleased — competitor migrations
 
 - Automatically detect FoxGate, ProxyShield, VPNGuard, KauriVPN and AdvancedAntiVPN configuration folders. Preview compatible mode/country/provider-key settings and explicit IP/CIDR/range/UUID/ASN admin rules; reviewed console application stages a validated migration for the next restart.

@@ -15,6 +15,9 @@ public interface CacheProvider {
     CompletableFuture<Optional<GeoResult>> getGeoResult(String ipAddress);
     CompletableFuture<Void> addVpnResult(VpnResult vpnResult);
     CompletableFuture<Void> addGeoResult(GeoResult geoResult);
+    /** Transfer already dated facts between cache tiers without restarting their TTL. */
+    default CompletableFuture<Void> restoreVpnResult(VpnResult result) { return addVpnResult(result); }
+    default CompletableFuture<Void> restoreGeoResult(GeoResult result) { return addGeoResult(result); }
     CompletableFuture<Boolean> removeVpnResult(String ipAddress);
     CompletableFuture<Boolean> removeGeoResult(String ipAddress);
     CompletableFuture<Boolean> removeAllVpnResults();

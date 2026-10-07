@@ -86,7 +86,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
                         .version("3.46.0.0")
                         .build();
                 libraryManager.loadLibrary(sqliteLibrary);
-                ConnectionGuard.setCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath()));
+                ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider(new SQLiteCacheProvider(new File(getDataFolder(), "cache.db").getAbsolutePath())));
                 break;
             case "redis":
                 Library jedisLibrary = Library.builder()
@@ -159,7 +159,7 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         if (platformTasks != null) platformTasks.close();
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
-        if (ConnectionGuard.getCacheProvider() != null) ConnectionGuard.getCacheProvider().disband();
+        ConnectionGuard.closeCache();
     }
 
     public YamlConfiguration getLanguageConfig() {

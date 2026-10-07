@@ -253,6 +253,14 @@ public class ConnectionGuard {
         initializeCache(30, TimeUnit.SECONDS);
     }
 
+    /** Clean stops wait for bounded persistence, never on the login path. */
+    public static void closeCache() {
+        if(cacheProvider==null)return;
+        try { if(!Boolean.TRUE.equals(cacheProvider.disband().get(5,TimeUnit.SECONDS)))throw new IllegalStateException(); }
+        catch(InterruptedException interrupted){Thread.currentThread().interrupt();}
+        catch(Exception failure){if(logger!=null)logger.warning("Cache shutdown did not finish; recent cache facts may need another lookup after restart (details redacted).");}
+    }
+
     static void initializeCache(long timeout, TimeUnit unit) {
         try {
             if (Boolean.TRUE.equals(cacheProvider.setup().get(timeout, unit))) {

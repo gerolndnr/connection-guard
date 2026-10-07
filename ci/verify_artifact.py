@@ -126,6 +126,11 @@ def verify(artifact, version):
                     f"Missing or duplicate bStats runtime dependency: {dependency}")
         require(not any(name.startswith("org/bstats/") and name.endswith(".class") for name in names),
                 "bStats runtime dependency was not relocated.")
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0,6,2):
+            for dependency in ("YamlDocument", "settings/general/GeneralSettings", "libs/org/snakeyaml/engine/v2/api/Load"):
+                entry=library_prefix+"dev/dejvokep/boostedyaml/"+dependency+".class"
+                require(names.count(entry)==1, "Missing or duplicate bundled Velocity YAML dependency: "+dependency)
+            require(not any(name.startswith("dev/dejvokep/boostedyaml/") and name.endswith(".class") for name in names), "Velocity YAML was not relocated.")
         for notice in ("Apache-2.0.txt", "THIRD-PARTY-NOTICES.txt", "bStats-MIT.txt"):
             require("META-INF/connection-guard/" + notice in names, f"Missing HTTP dependency notice: {notice}")
         for dependency in ("okhttp3/OkHttpClient.class", "okio/Buffer.class", "kotlin/jvm/internal/Intrinsics.class"):

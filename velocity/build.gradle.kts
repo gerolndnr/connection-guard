@@ -21,7 +21,8 @@ repositories {
 dependencies {
     implementation(project(":core"))
     shadow("com.velocitypowered:velocity-api:3.3.0-SNAPSHOT")
-    shadow("dev.dejvokep:boosted-yaml:1.3.5")
+    // Same version previously loaded through Libby; config must be ready before logins.
+    implementation("dev.dejvokep:boosted-yaml:1.3.6")
     implementation("net.byteflux:libby-velocity:1.3.1")
     // The factory is injected before plugin initialization, so it must already be in the JAR.
     implementation("org.bstats:bstats-velocity:3.0.2")

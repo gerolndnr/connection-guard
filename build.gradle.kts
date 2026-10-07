@@ -7,7 +7,7 @@ plugins {
     id("xyz.jpenilla.run-paper").version("2.3.0")
 }
 
-version = "0.6.1-SNAPSHOT"
+version = "0.6.2-SNAPSHOT"
 
 allprojects {
     tasks.withType<AbstractArchiveTask>().configureEach {
@@ -45,6 +45,7 @@ tasks {
         relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
         relocate("com.google.gson", "com.github.gerolndnr.connectionguard.libs.com.google.gson")
         relocate("org.yaml.snakeyaml", "com.github.gerolndnr.connectionguard.libs.org.yaml.snakeyaml")
+        relocate("dev.dejvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.dejvokep.boostedyaml")
         relocate("org.bstats", "com.github.gerolndnr.connectionguard.libs.org.bstats")
     }
 
