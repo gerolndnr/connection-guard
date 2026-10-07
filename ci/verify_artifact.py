@@ -126,7 +126,7 @@ def verify(artifact, version):
                     f"Missing or duplicate bStats runtime dependency: {dependency}")
         require(not any(name.startswith("org/bstats/") and name.endswith(".class") for name in names),
                 "bStats runtime dependency was not relocated.")
-        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0,6,2):
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0,6,1):
             for dependency in ("YamlDocument", "settings/general/GeneralSettings", "libs/org/snakeyaml/engine/v2/api/Load"):
                 entry=library_prefix+"dev/dejvokep/boostedyaml/"+dependency+".class"
                 require(names.count(entry)==1, "Missing or duplicate bundled Velocity YAML dependency: "+dependency)

@@ -45,4 +45,4 @@ Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Di
 
 - [Migrate from FoxGate, ProxyShield, VPNGuard, KauriVPN or AdvancedAntiVPN](MIGRATIONS.md): automatic discovery, reviewed imports, backups and semantic differences.
 
-- [Cache tiers and performance qualification](PERFORMANCE.md): unreleased 0.6.2 candidate, startup status, persistence and evidence limits.
+- [Cache tiers and performance qualification](PERFORMANCE.md): unreleased 0.6.1 candidate, startup status, persistence and evidence limits.

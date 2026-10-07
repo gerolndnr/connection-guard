@@ -68,7 +68,7 @@ VPN and geo lookups are separate. Multiple enabled VPN providers can each receiv
 
 Illustrative quota planning, **not a measured workload**: 100 uncached IPs with one VPN and one geo lookup can produce 200 requests. If both use the same provider account, they can draw from the same allowance. Check provider-specific counting rules.
 
-SQLite is the simple initial cache. The unreleased 0.6.2 candidate reads a bounded Memory tier first and uses SQLite only on misses and for background persistence; see [cache behavior and performance scope](PERFORMANCE.md). Shipped expirations are 1,440 minutes for VPN and 4,320 minutes for geo. Results can become stale after an IP changes use. Choose expiration for your policy; frequent clearing increases requests.
+SQLite is the simple initial cache. The unreleased 0.6.1 candidate reads a bounded Memory tier first and uses SQLite only on misses and for background persistence; see [cache behavior and performance scope](PERFORMANCE.md). Shipped expirations are 1,440 minutes for VPN and 4,320 minutes for geo. Results can become stale after an IP changes use. Choose expiration for your policy; frequent clearing increases requests.
 
 ## What happens during an outage?
 
