@@ -92,6 +92,16 @@ public final class StartingCacheProvider implements CacheProvider {
         if(ready!=null)return ready.addGeoResult(value);
         early.addGeoResult(value);stage("geo:"+value.getIpAddress(),CacheCodec.encode(value));return CompletableFuture.completedFuture(null);
     }
+    @Override public synchronized CompletableFuture<Void> restoreVpnResult(VpnResult value){
+        if(closed)return CompletableFuture.completedFuture(null);
+        if(ready!=null)return ready.restoreVpnResult(value);
+        early.rememberVpn(value);stage("vpn:"+value.getIpAddress(),CacheCodec.encode(value));return CompletableFuture.completedFuture(null);
+    }
+    @Override public synchronized CompletableFuture<Void> restoreGeoResult(GeoResult value){
+        if(closed)return CompletableFuture.completedFuture(null);
+        if(ready!=null)return ready.restoreGeoResult(value);
+        early.rememberGeo(value);stage("geo:"+value.getIpAddress(),CacheCodec.encode(value));return CompletableFuture.completedFuture(null);
+    }
     private CompletableFuture<Boolean> edited(boolean vpn,String ip){
         String prefix=vpn?"vpn:":"geo:";
         if(ip==null)writes.keySet().removeIf(key->key.startsWith(prefix));else writes.remove(prefix+ip);

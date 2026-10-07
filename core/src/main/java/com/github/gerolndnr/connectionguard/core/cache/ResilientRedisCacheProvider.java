@@ -88,8 +88,8 @@ public final class ResilientRedisCacheProvider implements CacheProvider {
     }
     @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) { return read(() -> memory.getVpnResult(ip), () -> remote.getVpnResult(ip), memory::rememberVpn); }
     @Override public CompletableFuture<Optional<GeoResult>> getGeoResult(String ip) { return read(() -> memory.getGeoResult(ip), () -> remote.getGeoResult(ip), memory::rememberGeo); }
-    @Override public synchronized CompletableFuture<Void> addVpnResult(VpnResult value) { CompletableFuture<Void> ready = memory.addVpnResult(value); mirror(() -> remote.addVpnResult(value)); return ready; }
-    @Override public synchronized CompletableFuture<Void> addGeoResult(GeoResult value) { CompletableFuture<Void> ready = memory.addGeoResult(value); mirror(() -> remote.addGeoResult(value)); return ready; }
+    @Override public synchronized CompletableFuture<Void> addVpnResult(VpnResult value) { CompletableFuture<Void> ready = memory.addVpnResult(value); mirror(() -> remote.restoreVpnResult(value)); return ready; }
+    @Override public synchronized CompletableFuture<Void> addGeoResult(GeoResult value) { CompletableFuture<Void> ready = memory.addGeoResult(value); mirror(() -> remote.restoreGeoResult(value)); return ready; }
     @Override public synchronized CompletableFuture<Void> restoreVpnResult(VpnResult value) { memory.rememberVpn(value);mirror(()->remote.restoreVpnResult(value));return CompletableFuture.completedFuture(null); }
     @Override public synchronized CompletableFuture<Void> restoreGeoResult(GeoResult value) { memory.rememberGeo(value);mirror(()->remote.restoreGeoResult(value));return CompletableFuture.completedFuture(null); }
     private synchronized CompletableFuture<Boolean> invalidate(Supplier<CompletableFuture<Boolean>> local,Supplier<CompletableFuture<Boolean>> deletion) {

@@ -67,6 +67,15 @@ class TieredCacheProviderTest {
             CompletableFuture<VpnResult> result=ConnectionGuard.getVpnResult(ip);result.thenAccept(value->completion.set(Thread.currentThread()));assertTrue(result.isDone());assertSame(caller,completion.get());assertEquals(0,ConnectionGuard.getLookupRuntime().getActiveWorkers());
         }finally{cache.disband().get();ConnectionGuard.setCacheProvider(new NoCacheProvider());}
     }
+    @Test void freshWriteAndPersistentMirrorShareExactlyOneTimestamp()throws Exception{
+        MemoryCacheProvider storage=new MemoryCacheProvider();AtomicLong mirrored=new AtomicLong();
+        CacheProvider backend=new NoCacheProvider(){
+            @Override public CompletableFuture<Void> addVpnResult(VpnResult value){fail("A second tier must not re-date facts");return CompletableFuture.completedFuture(null);}
+            @Override public CompletableFuture<Void> restoreVpnResult(VpnResult value){mirrored.set(value.getCachedOn());return storage.restoreVpnResult(value);}
+        };
+        TieredCacheProvider cache=new TieredCacheProvider(backend);cache.setup();VpnResult value=new VpnResult(ip,true);cache.addVpnResult(value);
+        assertTrue(mirrored.get()>0);assertEquals(value.getCachedOn(),mirrored.get());assertEquals(mirrored.get(),cache.getVpnResult(ip).get().get().getCachedOn());assertEquals(mirrored.get(),storage.getVpnResult(ip).get().get().getCachedOn());cache.disband().get();
+    }
     @Test void expiredSourceFactsDoNotBecomeFreshWhenHydrated()throws Exception{
         TieredCacheProvider cache=create();try{VpnResult value=new VpnResult(ip,true);value.setValidUntil(System.currentTimeMillis()+50);cache.addVpnResult(value);Thread.sleep(75);assertFalse(cache.getVpnResult(ip).get().isPresent());}finally{cache.disband().get();}
     }

@@ -42,5 +42,11 @@ class StartingCacheProviderTest {
         CountDownLatch release=new CountDownLatch(1);StartingCacheProvider cache=new StartingCacheProvider(()->{try{release.await();}catch(InterruptedException e){throw new IllegalStateException(e);}return new NoCacheProvider(){@Override public CompletableFuture<Boolean> removeAllVpnResults(){CompletableFuture<Boolean> result=new CompletableFuture<>();result.completeExceptionally(new IllegalStateException());return result;}};});
         cache.setup();CompletableFuture<Boolean> edit=cache.removeVpnResult(ip);release.countDown();assertFalse(edit.get(3,TimeUnit.SECONDS));assertFalse(cache.getVpnResult(ip).get().isPresent());cache.disband().get();
     }
+    @Test void restoredFactAgeIsIdenticalBeforeAndAfterStartupAndRestart()throws Exception{
+        CountDownLatch release=new CountDownLatch(1);StartingCacheProvider cache=new StartingCacheProvider(()->{try{release.await();}catch(InterruptedException e){throw new IllegalStateException(e);}return new TieredCacheProvider(new SQLiteCacheProvider(directory.resolve("age.db").toString()));});
+        cache.setNamespace("age");cache.setup();VpnResult value=new VpnResult(ip,true);long dated=System.currentTimeMillis()-60000;value.setCachedOn(dated);cache.restoreVpnResult(value);
+        assertEquals(dated,cache.getVpnResult(ip).get().get().getCachedOn());release.countDown();ready(cache);assertEquals(dated,cache.getVpnResult(ip).get().get().getCachedOn());cache.disband().get();
+        SQLiteCacheProvider disk=new SQLiteCacheProvider(directory.resolve("age.db").toString());disk.setNamespace("age");disk.setup().get();try{assertEquals(dated,disk.getVpnResult(ip).get().get().getCachedOn());}finally{disk.disband().get();}
+    }
     private void ready(StartingCacheProvider cache)throws Exception{for(int i=0;i<300 && !cache.describe().contains("persistence=ready");i++)Thread.sleep(10);assertTrue(cache.describe().contains("persistence=ready"));}
 }
