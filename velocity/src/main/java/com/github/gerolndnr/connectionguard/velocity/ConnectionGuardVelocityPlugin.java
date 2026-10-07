@@ -46,10 +46,11 @@ public class ConnectionGuardVelocityPlugin {
     private final Path dataDirectory;
     private final Metrics.Factory metricsFactory;
     private Metrics metrics;
-    // Config has to be in an external class, because the YAML library is loaded at runtime.
+    // Validated config is ready before listeners; its YAML runtime is bundled and isolated.
     private CGVelocityConfig cgVelocityConfig;
     private static ConnectionGuardVelocityPlugin connectionGuardVelocityPlugin;
     private HashMap<String, VpnProvider> vpnProviderMap;
+    private VelocityLibraryManager<ConnectionGuardVelocityPlugin> libraryManager;
 
     @Inject
     public ConnectionGuardVelocityPlugin(ProxyServer proxyServer, Logger logger, @DataDirectory Path dataDirectory, Metrics.Factory metricsFactory) {
@@ -73,22 +74,12 @@ public class ConnectionGuardVelocityPlugin {
 
         com.github.gerolndnr.connectionguard.core.migration.MigrationBootstrap.beforeStart(dataDirectory, logger::warn);
 
-        // 2. Download libraries used for vpn and geo checks and config
-        VelocityLibraryManager<ConnectionGuardVelocityPlugin> libraryManager = new VelocityLibraryManager<>(logger, dataDirectory, proxyServer.getPluginManager(), this);
-        Library boostedYamlLibrary = Library.builder()
-                .groupId("dev.dejvokep")
-                .artifactId("boosted-yaml")
-                .version("1.3.6")
-                .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
-                .build();
-        libraryManager.addMavenCentral();
+        // Config's YAML dependency is bundled; optional database drivers load only when needed.
         com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(id -> {
-            if (id.equals("h2")) {
-                libraryManager.loadLibrary(Library.builder().groupId("com.h2database").artifactId("h2").version("2.4.240").build());
-            } else if (id.equals("sqlite")) libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+            if (id.equals("h2")) loadLibrary(Library.builder().groupId("com.h2database").artifactId("h2").version("2.4.240").build());
+            else if (id.equals("sqlite")) loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
             else throw new IllegalArgumentException("Unknown migration driver.");
         });
-        libraryManager.loadLibrary(boostedYamlLibrary);
 
         // 3. Create and load configs
         boolean existingInstallation = java.nio.file.Files.exists(dataDirectory.resolve("config.yml"));
@@ -100,7 +91,7 @@ public class ConnectionGuardVelocityPlugin {
         switch (cgVelocityConfig.getConfig().getString("provider.cache.type").toLowerCase()) {
             case "sqlite":
                 ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider(() -> {
-                    libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+                    loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
                     return new com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider(new SQLiteCacheProvider(new File(dataDirectory.toFile(), "cache.db").getAbsolutePath()));
                 }));
                 break;
@@ -111,7 +102,7 @@ public class ConnectionGuardVelocityPlugin {
                 final String redisPassword=cgVelocityConfig.getConfig().getString("provider.cache.redis.password");
                 final boolean redisTls=GuardSettings.bool(path -> getCgVelocityConfig().getConfig().get(path), "provider.cache.redis.tls", false);
                 ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider(() -> {
-                    libraryManager.loadLibrary(Library.builder().groupId("redis.clients").artifactId("jedis").version("5.0.0").build());
+                    loadLibrary(Library.builder().groupId("redis.clients").artifactId("jedis").version("5.0.0").build());
                     return new ResilientRedisCacheProvider(new RedisCacheProvider(redisHost,redisPort,redisUser,redisPassword,redisTls));
                 }));
                 break;
@@ -173,6 +164,15 @@ public class ConnectionGuardVelocityPlugin {
             com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(unavailable, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.OTHER);
             logger.warn("bStats initialization failed; connection checks remain active.");
         }
+    }
+
+    /** Optional drivers serialize on their own lock, never on a login/config monitor. */
+    private synchronized void loadLibrary(Library library) {
+        if(libraryManager==null){
+            libraryManager=new VelocityLibraryManager<>(logger,dataDirectory,proxyServer.getPluginManager(),this);
+            libraryManager.addMavenCentral();
+        }
+        libraryManager.loadLibrary(library);
     }
 
     @Subscribe
