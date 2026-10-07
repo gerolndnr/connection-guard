@@ -43,7 +43,15 @@ java {
     }
 }
 
+// Compile the exact frozen 0.6.0 validator separately; never include it in production artifacts.
+val legacyIntel060 = sourceSets.create("legacyIntel060") {
+    compileClasspath += sourceSets.main.get().output + configurations.compileClasspath.get()
+}
+
 tasks.named<Test>("test") {
+    dependsOn(tasks.named(legacyIntel060.classesTaskName))
+    systemProperty("cg.legacyIntel060.classes", legacyIntel060.output.classesDirs.asPath)
+    systemProperty("cg.legacyIntel060.source", file("src/legacyIntel060/java/com/github/gerolndnr/connectionguard/core/local/IntelSnapshot.java").absolutePath)
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
     // Production Intel refresh is outside tests; fixtures use owned loopback transport.

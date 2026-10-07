@@ -20,7 +20,9 @@ class KeylessProviderConfigurationTest {
     @Test void actualNewInstallYamlSelectsTheRequestedOrderGeoOffAndEstablishedLimits() {
         Map<String, Object> yaml = new Yaml().load(getClass().getResourceAsStream("/config.yml"));
         ProviderConfiguration draft = new ProviderConfiguration(path -> value(yaml, path), keys(yaml));
-        assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "zowi", "ipquery", "ip-api"), draft.keys);
+        assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "zowi", "ipquery"), draft.keys);
+        assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ip-api.enabled"));
+        assertEquals(Boolean.TRUE, value(yaml, "provider.vpn.blackbox.require-confirmation"));
         assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ipcheck.enabled"));
         assertEquals(60, value(yaml, "provider.vpn.ipcheck.minute-budget"));
         assertNull(draft.geo); assertFalse(draft.settings.observe); assertEquals(5000, draft.settings.lookup.deadlineMillis);
@@ -66,4 +68,15 @@ class KeylessProviderConfigurationTest {
         KeylessProviderNotice.show(directory, false, logger); KeylessProviderNotice.show(directory, true, logger);
         assertTrue(messages.isEmpty()); assertTrue(Files.exists(directory.resolve("keyless-providers-v052.notice")));
     }
+    @Test void confirmationIsDefaultedWithoutRewritingOldConfigAndExplicitOptOutChangesCacheIdentity() {
+        Map<String,Object> old=new HashMap<>();old.put("provider.vpn.blackbox.enabled",true);old.put("provider.geo.service","Disabled");
+        ProviderConfiguration defaults=new ProviderConfiguration(old::get,Collections.singletonList("blackbox"));
+        old.put("provider.vpn.blackbox.require-confirmation",true);
+        assertEquals(defaults.cacheNamespace,new ProviderConfiguration(old::get,Collections.singletonList("blackbox")).cacheNamespace);
+        old.put("provider.vpn.blackbox.require-confirmation",false);
+        assertNotEquals(defaults.cacheNamespace,new ProviderConfiguration(old::get,Collections.singletonList("blackbox")).cacheNamespace);
+        old.put("provider.vpn.blackbox.require-confirmation","false");
+        assertThrows(IllegalArgumentException.class,()->new ProviderConfiguration(old::get,Collections.singletonList("blackbox")));
+    }
+
 }

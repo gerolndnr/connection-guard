@@ -9,6 +9,29 @@ license/account acceptance is performed. Attribution declares your actual data s
 grant a license or validate the accuracy of that source.
 
 
+## 0.6.1 candidate: optional Intel proxies
+
+This change is unreleased pending the independent benchmark. The manifest's required
+`lists` remains exactly VPN, TOR, RELAY and HOSTING for 0.6.0 compatibility. New
+plugins optionally read `additional_lists.PROXY` with file `proxy.txt`, lowercase
+SHA-256, a positive byte size up to 4MiB and a bounded positive network count.
+Older plugins ignore this top-level extension. The plugin verifies the same signed
+manifest before fetching the optional file from the fixed Intel host; no lookup IP
+is sent. `addresses` is informational; parsed network count is verified.
+
+An absent extension leaves readiness unchanged. Bad metadata, unavailable downloads,
+invalid contents/hash/count or a corrupt saved proxy file produce **PROXY=SKIPPED**,
+while validated base lists remain usable. Accepted proxy data shares their atomic
+pointer, signature revalidation, publication expiry and rollback checks. Proxy hits
+are positive with Type.PROXY and take priority over RELAY ALLOW. HOSTING alone
+remains UNKNOWN; it confirms a Blackbox Y when confirmation is enabled.
+
+`/cg local status`, `/cg providers` and `/cg doctor` display **PROXY=ABSENT/LOADED/SKIPPED**,
+per-list entry counts and signed `as_of`. `/cg explain <IP>` includes PROXY membership,
+publication time and evidence reason. Source events use existing PROXY and `data_as_of`
+fields. Optional availability changes invalidate cache identity as well as content
+changes, avoiding reuse of decisions made before the proxy index was available.
+
 ## Built-in Connection Guard Intel (0.6.0)
 
 New installations enable `provider.local.connectionguard-intel` with a daily background
