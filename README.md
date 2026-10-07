@@ -85,3 +85,7 @@ Contributions and documentation improvements are welcome. [Development guide](CO
 Connection Guard uses [OkHttp](https://github.com/square/okhttp), [Okio](https://github.com/square/okio), [Kotlin](https://github.com/JetBrains/kotlin), [Gson](https://github.com/google/gson), [sqlite-jdbc](https://github.com/xerial/sqlite-jdbc) and [Jedis](https://github.com/redis/jedis). License notices for bundled dependencies are included in the release JAR. The original README was adapted from [electron-markdownify](https://github.com/amitmerchant1990/electron-markdownify).
 
 [LNDNR's Anti-VPN & Geo-Blocking](https://www.spigotmc.org/resources/116744/) is the predecessor. Current documentation and downloads are linked above.
+
+### Switch from another anti-VPN plugin
+
+[Automatic competitor migrations](docs/MIGRATIONS.md) detect FoxGate, ProxyShield, VPNGuard, KauriVPN and AdvancedAntiVPN. Preview compatible settings and explicit rules with `/cg migrate preview <source>`; applying requires a reviewed console command and restart. Connection Guard retains its own failover/local detection and preserves customized CG settings. Non-equivalent modules and unknown databases require review; no cached verdict becomes a permanent bypass. Available in the next development build; stable 0.6.0 does not include migrations.

@@ -27,13 +27,15 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
     private void executeGuard(Invocation invocation) {
         final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         CommandSource commandSender = invocation.source();
+
         String[] args = invocation.arguments();
 
         Component noPermissionMessage = LegacyComponentSerializer.legacyAmpersand().deserialize(
                 messages.getString("command.no-permission")
         );
 
-        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(Component.text(text)))) return;
+        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(Component.text(text)),
+                commandSender instanceof com.velocitypowered.api.proxy.ConsoleCommandSource)) return;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -253,6 +255,13 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             List<String> proposals = new ArrayList<>();
             String[] strings = invocation.arguments();
             CommandSource commandSender = invocation.source();
+            if (strings.length > 1 && strings[0].equalsIgnoreCase("migrate")) {
+                if (!commandSender.hasPermission("connectionguard.command.migrate")) return java.util.Collections.emptyList();
+                List<String> options = strings.length == 2 ? java.util.Arrays.asList("preview", "apply", "cancel")
+                        : strings.length == 3 && strings[1].equalsIgnoreCase("preview") ? com.github.gerolndnr.connectionguard.core.migration.CompetitorMigration.SOURCES
+                        : java.util.Collections.emptyList();
+                return options.stream().filter(option -> option.startsWith(strings[strings.length - 1].toLowerCase(java.util.Locale.ROOT))).collect(java.util.stream.Collectors.toList());
+            }
             for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
 
 

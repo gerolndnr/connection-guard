@@ -35,7 +35,8 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
                 messages.getString("command.no-permission")
         );
 
-        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(new TextComponent(text)))) return;
+        if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(new TextComponent(text)),
+                !(commandSender instanceof net.md_5.bungee.api.connection.ProxiedPlayer))) return;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -260,6 +261,14 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     @Override
     public Iterable<String> onTabComplete(CommandSender commandSender, String[] strings) {
         List<String> proposals = new ArrayList<>();
+        if (strings.length > 1 && strings[0].equalsIgnoreCase("migrate")) {
+            if (!commandSender.hasPermission("connectionguard.command.migrate")) return java.util.Collections.emptyList();
+            List<String> options = strings.length == 2 ? java.util.Arrays.asList("preview", "apply", "cancel")
+                    : strings.length == 3 && strings[1].equalsIgnoreCase("preview") ? com.github.gerolndnr.connectionguard.core.migration.CompetitorMigration.SOURCES
+                    : java.util.Collections.emptyList();
+            return options.stream().filter(option -> option.startsWith(strings[strings.length - 1].toLowerCase(java.util.Locale.ROOT))).collect(java.util.stream.Collectors.toList());
+        }
+
         for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
         if (strings.length == 1) {
             if (commandSender.hasPermission("connectionguard.command.help"))

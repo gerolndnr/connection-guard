@@ -50,6 +50,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         // 1. Set logger
         ConnectionGuard.setLogger(getLogger());
 
+        com.github.gerolndnr.connectionguard.core.migration.MigrationBootstrap.beforeStart(getDataFolder().toPath(), getLogger()::warning);
+
         // 2. Copy and load configs
         File translationFolder = getDataFolder().toPath().resolve("translation").toFile();
         if (!translationFolder.exists()) {
@@ -80,6 +82,14 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
         // 3. Download libraries used for vpn and geo checks
         BungeeLibraryManager libraryManager = new BungeeLibraryManager(this);
+        libraryManager.addMavenCentral();
+        com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(id -> {
+            if (id.equals("h2")) {
+                if (Integer.parseInt(System.getProperty("java.specification.version", "1.8").replace("1.", "")) < 11) throw new IllegalStateException("H2 migration requires Java 11+.");
+                libraryManager.loadLibrary(Library.builder().groupId("com.h2database").artifactId("h2").version("2.4.240").build());
+            } else if (id.equals("sqlite")) libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+            else throw new IllegalArgumentException("Unknown migration driver.");
+        });
 
         Library bstatsLibrary = Library.builder()
                 // Weird replaceAll is necessary, because the gradle shadow relocate method will

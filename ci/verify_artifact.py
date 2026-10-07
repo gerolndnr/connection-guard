@@ -114,6 +114,12 @@ def verify(artifact, version):
                 require(names.count(entry) == 1, f"Missing or duplicate Cloud JSON runtime dependency: {dependency}")
             require(not any(name.startswith("com/google/gson/") and name.endswith(".class") for name in names),
                     "Cloud JSON runtime dependency was not relocated.")
+        if PACKAGE.replace(".", "/") + "/core/migration/CompetitorMigration.class" in names:
+            for dependency in ("Yaml", "LoaderOptions", "DumperOptions", "constructor/SafeConstructor", "nodes/MappingNode"):
+                entry = library_prefix + "org/yaml/snakeyaml/" + dependency + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate migration YAML dependency: {dependency}")
+            require(not any(name.startswith("org/yaml/snakeyaml/") and name.endswith(".class") for name in names),
+                    "Migration YAML dependency was not relocated.")
         for dependency in ("org/bstats/MetricsBase.class", "org/bstats/json/JsonObjectBuilder.class",
                            "org/bstats/velocity/Metrics.class", "org/bstats/velocity/Metrics$Factory.class"):
             require(names.count(library_prefix + dependency) == 1,

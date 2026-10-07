@@ -14,10 +14,14 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy", "migrate");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
+        return handle(args, permission, reply, false);
+    }
+    public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply, boolean console) {
         final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
+        if (MigrationCommands.handle(args, permission, reply, console)) return true;
         if (CloudCommands.handle(args, permission, reply)) return true;
         if (LocalDataCommands.handle(args, permission, reply)) return true;
         if (RulesCommands.handle(args, permission, reply)) return true;
