@@ -1,4 +1,4 @@
-# Cache tiers and everyday joins (unreleased 0.6.2 candidate)
+# Cache tiers and everyday joins (unreleased 0.6.1 candidate)
 
 This change is built on the 0.6.1 false-positive candidate `feffbfb` and the merged competitor migrations. It is not in stable 0.6.0. It does not change the provider sequence, votes, request limits, identity checks or failure policies. The same path is used on every server; there are no benchmark host/address/environment shortcuts.
 
