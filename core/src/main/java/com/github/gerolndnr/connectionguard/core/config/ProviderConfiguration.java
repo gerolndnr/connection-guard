@@ -103,7 +103,7 @@ public final class ProviderConfiguration {
                 case "proxycheck": provider = new ProxyCheckVpnProvider(apiKey, proxyCheckV3); break;
                 case "ip-api": provider = new IpApiVpnProvider(); break;
                 case "ipquery": provider = new IpQueryVpnProvider(); break;
-                case "blackbox": provider = new BlackboxVpnProvider(); break;
+                case "blackbox": provider = new BlackboxVpnProvider(GuardSettings.bool(value,base+"require-confirmation",true),intelSnapshot); break;
                 case "ipcheck": provider = new IpCheckVpnProvider(); break;
                 case "zowi": provider = new ZowiVpnProvider(); break;
                 case "iphub": provider = new IpHubVpnProvider(apiKey); break;
@@ -193,7 +193,7 @@ public final class ProviderConfiguration {
         if (day < 0 || minute < 0) throw new IllegalArgumentException("Geo budgets must be nonnegative.");
         if (geo != null) { dayBudgets.put(id, day); minuteBudgets.put(id, minute); }
         try {
-            String input = "schema10-signed-intel:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
+            String input = "schema11-proxy-blackbox-confirmation:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));

@@ -58,6 +58,9 @@ public final class IntelDataStore {
             verify(manifest,LocalDataStore.read(dir.resolve("manifest.json.sig"),256));
             Map<LocalSource.Kind,byte[]> files=new EnumMap<>(LocalSource.Kind.class);
             for(LocalSource.Kind kind:IntelSnapshot.kinds())files.put(kind,LocalDataStore.read(dir.resolve(kind.name().toLowerCase(Locale.ROOT)+".txt"),4*1024*1024));
+            if(IntelSnapshot.proxyFile(IntelSnapshot.manifest(manifest,now))!=null)try {
+                files.put(LocalSource.Kind.PROXY,LocalDataStore.read(dir.resolve("proxy.txt"),4*1024*1024));
+            }catch(IOException|RuntimeException unavailable){/* A missing/broken optional list cannot remove base protection. */}
             return IntelSnapshot.parse(settings,manifest,files,Long.parseLong(fetched.getAsString()),now);
         }catch(RuntimeException invalid){throw new IOException("Saved Intel generation invalid; active data preserved (contents redacted).");}
     }
@@ -80,6 +83,10 @@ public final class IntelDataStore {
                 JsonObject file=json.getAsJsonObject("lists").getAsJsonObject(kind.name());
                 files.put(kind,LocalListDownloader.bytes(base.newBuilder().addPathSegment(file.get("file").getAsString()).build(),IntelSnapshot.number(file,"bytes",4*1024*1024),client));
             }
+            JsonObject proxy=IntelSnapshot.proxyFile(json);
+            if(proxy!=null)try {
+                files.put(LocalSource.Kind.PROXY,LocalListDownloader.bytes(base.newBuilder().addPathSegment("proxy.txt").build(),IntelSnapshot.number(proxy,"bytes",4*1024*1024),client));
+            }catch(IOException unavailable){/* Optional transport failures are reported by the snapshot. */}
             now=System.currentTimeMillis();IntelSnapshot next=IntelSnapshot.parse(settings,manifest,files,now,now);
             if(next.readiness(now)!=com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE)throw new IOException("Intel publication is already stale.");
             commit(next,manifest,signature,files);return next;
@@ -89,6 +96,7 @@ public final class IntelDataStore {
         LocalDataStore.checkParents(root);Files.createDirectories(root);LocalDataStore.privateMode(root,"rwx------");
         Path dir=root.resolve(next.generation);LocalDataStore.checkParents(dir);Files.createDirectories(dir);LocalDataStore.privateMode(dir,"rwx------");
         for(LocalSource.Kind kind:IntelSnapshot.kinds())LocalDataStore.writeAtomic(dir.resolve(kind.name().toLowerCase(Locale.ROOT)+".txt"),files.get(kind));
+        if(next.proxyState==IntelSnapshot.ProxyState.LOADED)LocalDataStore.writeAtomic(dir.resolve("proxy.txt"),files.get(LocalSource.Kind.PROXY));
         LocalDataStore.writeAtomic(dir.resolve("manifest.json"),manifest);LocalDataStore.writeAtomic(dir.resolve("manifest.json.sig"),signature);
         JsonObject pointer=new JsonObject();pointer.addProperty("generation",next.generation);pointer.addProperty("fetchedAt",next.fetchedAt);
         LocalDataStore.writeAtomic(root.resolve("current.json"),pointer.toString().getBytes(StandardCharsets.UTF_8));
@@ -96,7 +104,7 @@ public final class IntelDataStore {
         try(DirectoryStream<Path> old=Files.newDirectoryStream(root)){
             for(Path entry:old)if(!entry.equals(dir)&&entry.getFileName().toString().matches("[a-f0-9]{64}")&&Files.isDirectory(entry,LinkOption.NOFOLLOW_LINKS)&&!Files.isSymbolicLink(entry)){
                 try(DirectoryStream<Path> contents=Files.newDirectoryStream(entry)){
-                    for(Path file:contents)if(file.getFileName().toString().matches("(?:vpn|tor|relay|hosting)\\.txt|manifest\\.json(?:\\.sig)?")&&!Files.isSymbolicLink(file))try{Files.deleteIfExists(file);}catch(IOException ignored){}
+                    for(Path file:contents)if(file.getFileName().toString().matches("(?:vpn|tor|relay|hosting|proxy)\\.txt|manifest\\.json(?:\\.sig)?")&&!Files.isSymbolicLink(file))try{Files.deleteIfExists(file);}catch(IOException ignored){}
                 }catch(IOException ignored){}
                 try{Files.deleteIfExists(entry);}catch(IOException ignored){}
             }

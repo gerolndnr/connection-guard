@@ -37,4 +37,17 @@ class IntelCloudContractTest {
         assertEquals(new java.math.BigDecimal("1.25"),m.getExactRisk());assertEquals(1791283200000L,m.getDataAsOf().longValue());
         assertThrows(IllegalArgumentException.class,()->m.withDataAsOf(0L));assertThrows(IllegalArgumentException.class,()->m.withDataAsOf(-1L));
     }
+    @Test void proxyUsesExistingCloudTypeAndSignedPublicationTime() {
+        JsonObject source=event(new DetectionMetadata(Collections.singletonMap(DetectionMetadata.Type.PROXY,true),null,null,null,null,null,null).withDataAsOf(1791283200000L),DetectionObservation.Status.POSITIVE);
+        assertEquals("[\"PROXY\"]",source.get("types").toString());assertEquals(1791283200000L,source.get("data_as_of").getAsLong());
+    }
+    @Test void unconfirmedBlackboxDecisionHasHumanReasonWithoutExtendingStrictCloudFields() {
+        Source source=new Source("blackbox",Scope.VPN,DetectionObservation.unknown(DetectionObservation.Reason.NO_EVIDENCE),1,true,false);
+        assertEquals("Blackbox listed the address, not confirmed",source.getReasonDescription());
+        DecisionObservation o=new DecisionObservation(Platform.VELOCITY,Phase.LOGIN,Mode.ENFORCE,IdentityTrust.UNTRUSTED,null,"192.0.2.1",Outcome.ALLOW,Reason.CHECKS_COMPLETE,Check.NEGATIVE,Check.UNKNOWN,System.currentTimeMillis(),1,false,Collections.emptySet(),Collections.singletonList(source),Collections.emptyList());
+        JsonObject wire=CloudRecorder.event(o).getAsJsonArray("sources").get(0).getAsJsonObject();
+        assertEquals("vpn-blackbox",wire.get("id").getAsString());assertEquals("UNKNOWN",wire.get("status").getAsString());assertEquals("NO_EVIDENCE",wire.get("reason").getAsString());assertFalse(wire.has("reason_detail"));
+        assertEquals("INVALID_RESPONSE",new Source("blackbox",Scope.VPN,DetectionObservation.unknown(DetectionObservation.Reason.INVALID_RESPONSE),1,true,false).getReasonDescription());
+    }
+
 }

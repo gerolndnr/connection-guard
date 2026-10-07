@@ -3,6 +3,15 @@
 > Released in **0.6.0**: [provider resilience and migration](PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
 
+**Unreleased 0.6.1 candidate:** Blackbox Y requires fresh local Intel HOSTING
+confirmation; otherwise the next normal provider decides. Set
+`provider.vpn.blackbox.require-confirmation: false` for legacy aggregate blocking.
+VPN IP-API is disabled only in new files; existing selections remain unchanged.
+Its HTTP-only/non-commercial restrictions still apply if explicitly enabled.
+Intel can optionally load signed PROXY data without changing 0.6.0's required
+manifest list set. [Candidate behavior and controls](PROVIDER_RESILIENCE.md#unreleased-061-candidate-defaults-and-confirmation).
+
+
 Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
 
 Connection Guard is MIT-licensed software. It uses external IP intelligence providers, each with its own accuracy, availability, terms and quotas. No Connection Guard account is required. A selected provider's API key is a separate credential.
@@ -26,7 +35,7 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 
 ### New keyless recipients in 0.6.0
 
-**Unreleased, pending comparative benchmark acceptance.** Only new configuration
+**0.6.0 defaults.** Only new configuration
 files select local Tor → signed Connection Guard Intel → ProxyCheck → Blackbox → zowi → IPQuery → IP-API. ip-check.net is **disabled by default**; explicit opt-in places it between Blackbox and zowi. Existing files keep their providers and order and get a once-only
 recommendation. The local Tor lookup sends no player IP; each reached external
 service receives the queried player's IP. A successful positive or negative

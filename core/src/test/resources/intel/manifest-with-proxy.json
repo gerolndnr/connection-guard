@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "evaluation_only": false,
+  "as_of": "2026-10-07T00:00:00Z",
+  "lists": {
+    "VPN": {
+      "file": "vpn.txt",
+      "sha256": "6a991194c978ae5d49b5989402e0a45aaeacc8cba3a85487c56fc602326ebb69",
+      "bytes": 13,
+      "networks": 1,
+      "addresses": 16
+    },
+    "TOR": {
+      "file": "tor.txt",
+      "sha256": "932bbe444ddbef4c03eb657b1488015db33e831734a720dd7a7c67803472c5c8",
+      "bytes": 14,
+      "networks": 1,
+      "addresses": 16
+    },
+    "RELAY": {
+      "file": "relay.txt",
+      "sha256": "84f70bdd6b2595839fb8cbad44ba19c98ad3c906b62d973eaeae1e9357133fb9",
+      "bytes": 14,
+      "networks": 1,
+      "addresses": 16
+    },
+    "HOSTING": {
+      "file": "hosting.txt",
+      "sha256": "a8e48cc48e56d2aa71a53aedfef602b106a722d3766b052eb482810cb8c31ac9",
+      "bytes": 14,
+      "networks": 1,
+      "addresses": 16
+    }
+  },
+  "additional_lists": {
+    "PROXY": {
+      "file": "proxy.txt",
+      "sha256": "84f70bdd6b2595839fb8cbad44ba19c98ad3c906b62d973eaeae1e9357133fb9",
+      "bytes": 14,
+      "networks": 1,
+      "addresses": 16
+    }
+  }
+}
