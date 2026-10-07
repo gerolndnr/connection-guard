@@ -36,9 +36,12 @@ public final class OperationsCommands {
                 com.github.gerolndnr.connectionguard.core.lookup.GeoLookup geo = com.github.gerolndnr.connectionguard.core.lookup.LookupFreshness.geo(rawGeo, asOf);
                 reply.accept("VPN=" + result.getStatus() + " threshold=" + ConnectionGuard.getRequiredPositiveFlags()
                         + " cached=" + result.isFromCache() + " ageMs=" + (result.getCachedOn() == 0 ? "unavailable" : Math.max(0, System.currentTimeMillis() - result.getCachedOn())));
+                if (ConnectionGuard.getActiveDraft() != null && ConnectionGuard.getActiveDraft().intelSettings.enabled) reply.accept(ConnectionGuard.getActiveDraft().intelSnapshot.describe(asOf));
                 for (ProviderVote vote : result.getVotes()) reply.accept(vote.getProvider() + "=" + vote.getStatus() + " reason=" + vote.getReason()
                         + (vote.getProvider().equals("blackbox") && vote.getStatus() == ProviderVote.Status.POSITIVE
                             ? " evidence=" + com.github.gerolndnr.connectionguard.core.vpn.BlackboxVpnProvider.LISTED_REASON : "")
+                        + (vote.getProvider().equals("blackbox") && vote.getStatus() == ProviderVote.Status.UNKNOWN && vote.getReason() == com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NO_EVIDENCE
+                            ? " evidence=" + com.github.gerolndnr.connectionguard.core.vpn.BlackboxVpnProvider.UNCONFIRMED_REASON : "")
                         + (vote.getProvider().equals("connectionguard-intel") && vote.getDetails().getDataAsOf() != null
                             ? " evidence=Connection Guard Intel " + vote.getDetails().getClassifications() + " (" + java.time.Instant.ofEpochMilli(vote.getDetails().getDataAsOf()) + ")" : "")
                         + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
@@ -56,6 +59,7 @@ public final class OperationsCommands {
         if (args.length != 1) { reply.accept(messages.text("ops.usage", operation)); return true; }
         if (operation.equals("stats")) { reply.accept(ConnectionGuard.lookupStats()); reply.accept("login-checks active=" + com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.active()); reply.accept(ConnectionGuard.admissionStats()); reply.accept(com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.describe()); reply.accept(com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.describe()); reply.accept(com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.describe()); }
         if (operation.equals("providers")) {
+            if (ConnectionGuard.getActiveDraft() != null && ConnectionGuard.getActiveDraft().intelSettings.enabled) reply.accept(ConnectionGuard.getActiveDraft().intelSnapshot.describe(System.currentTimeMillis()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().extensionProviders.forEach(provider -> reply.accept(provider.describe()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
             if (ConnectionGuard.providerHealth().isEmpty()) reply.accept(messages.getString("ops.no-provider-attempts"));

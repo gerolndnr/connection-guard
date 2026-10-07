@@ -4,6 +4,12 @@ Website and downloads: [Connection Guard](https://connectionguard.net) · [Downl
 
 ## Unreleased — 0.6.1
 
+- Require fresh local Connection Guard Intel HOSTING membership to confirm a Blackbox `Y` by default. Otherwise return UNKNOWN and continue normal failover. `provider.vpn.blackbox.require-confirmation: false` restores the broader 0.6.0 behavior. Explain and decision source observations identify an unconfirmed listing; no extra confirmation HTTP request is made.
+- Disable VPN IP-API only in the new-install template. Existing choices remain untouched; HTTP-only IP-API remains an explicit non-commercial opt-in, last in failover.
+- Load optional signed `additional_lists.PROXY` data without changing the four required manifest lists. Fresh proxy membership is positive and takes priority over RELAY ALLOW. Invalid or unavailable optional data is skipped with visible status while valid base lists still activate. All accepted files share the atomic generation and rollback protection; no player IP is sent to Intel.
+- Show proxy availability, entry counts and signed publication time in local/provider diagnostics; preserve existing Cloud PROXY type/data-time fields. Invalidate older cached Blackbox decisions and partition cache identity when optional proxy availability changes.
+- Add signed loopback/response regressions and a contract test that executes the byte-for-byte frozen 0.6.0 manifest validator. Final independent candidate detection/failure/performance acceptance remains pending; these tests do not establish a comparative accuracy claim.
+
 ## 0.6.0 — 2026-10-06
 
 Published at the maintainer's request; the full exact-artifact competitive benchmark remains pending. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.0).

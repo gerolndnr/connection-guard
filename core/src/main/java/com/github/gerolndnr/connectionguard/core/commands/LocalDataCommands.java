@@ -90,6 +90,8 @@ public final class LocalDataCommands {
             if (ConnectionGuard.getActiveDraft() != current) throw new IllegalStateException("Configuration changed.");
             ConnectionGuard.applyProviders(draft);
         }
+        if (draft.intelSnapshot.proxyState == IntelSnapshot.ProxyState.SKIPPED)
+            alert("Connection Guard Intel optional PROXY list rejected/unavailable; verified VPN/TOR/RELAY/HOSTING retained. See /cg local status.");
     }
     private LocalDataCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {

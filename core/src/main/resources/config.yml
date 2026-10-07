@@ -203,10 +203,14 @@ provider:
     # Include recipients in your server privacy information. Disable any with enabled: false.
     # Conservative LOCAL caps: 60/minute each, not a guarantee of upstream availability.
     # Blackbox: Cameron Munroe / ipinfo.app; no written terms; documented free & unlimited.
-    # Privacy: https://ipinfo.app/privacy/ . Y ALSO covers hosting/cloud lists and can block them.
+    # Privacy: https://ipinfo.app/privacy/ . Y ALSO covers hosting/cloud lists.
     blackbox:
       enabled: true
       minute-budget: 60
+      # Only a fresh local Connection Guard Intel HOSTING match confirms Y.
+      # Unconfirmed Y is UNKNOWN: the next normal provider decides, without a separate query.
+      # false restores 0.6.0's broader blocking, including listed consumer connections.
+      require-confirmation: true
     # ip-check.net publishes no operator, terms or privacy policy (checked 2026-10-06).
     # Explicit opt-in only, including new installations. Review before enabling.
     ipcheck:
@@ -223,7 +227,7 @@ provider:
       minute-budget: 0
     # Last resort: keyless HTTP, 45/minute; provider terms restrict free use to non-commercial environments.
     ip-api:
-      enabled: true
+      enabled: false
     # IPHub requires an api key, which can be aquired for free (1.000 free daily queries) on https://iphub.info/
     iphub:
       enabled: false
@@ -291,7 +295,7 @@ provider:
           field-name: "data#vpnProvider"
   local:
     # Built-in signed lists hosted by Connection Guard at https://intel.connectionguard.net/.
-    # Daily background manifest/signature + VPN/Tor/Relay/Hosting fetch; NO player IP is sent.
+    # Daily background manifest/signature + VPN/Tor/Relay/Hosting and optional Proxy fetch; NO player IP is sent.
     # New-install template only. Existing installations must explicitly opt in.
     # Trust key is bundled in the plugin; no runtime URL/key override. Missing/stale = UNKNOWN.
     connectionguard-intel:
@@ -299,8 +303,8 @@ provider:
       update-hours: 24
       max-age-hours: 72
       # ALLOW: a relay-only hit is a negative VPN verdict in failover (not an exemption).
-      # Explicit Intel VPN/Tor hits take priority. VPN classifies relay membership positively.
-      # HOSTING is enrichment/review only in both modes.
+      # Explicit Intel VPN/Tor/Proxy hits take priority. VPN classifies relay membership positively.
+      # HOSTING alone is review only; it can confirm a Blackbox Y when require-confirmation is true.
       relay: ALLOW
     # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
     # MMDBs are always operator-imported, with their embedded build date and your source's license.

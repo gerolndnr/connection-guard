@@ -98,6 +98,11 @@ jobs:
           python3 -m cgbench.cli run-core --suite datasets/failure-recovery-v1.json --artifact ../build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-failure-benchmark"
           python3 ../ci/verify_benchmark.py "$RUNNER_TEMP/connection-guard-failure-benchmark/receipt.json" failure-recovery-v1.json
 
+      - name: Verify signed Intel and Blackbox behavior against the actual shaded JAR
+        run: |
+          python3 ci/intel_smoke.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" \
+            --work-dir "$RUNNER_TEMP/connection-guard-intel"
+
       - name: Retain controlled core benchmark evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -106,6 +111,7 @@ jobs:
           path: |
             ${{ runner.temp }}/connection-guard-core-benchmark/
             ${{ runner.temp }}/connection-guard-failure-benchmark/
+            ${{ runner.temp }}/connection-guard-intel/
           if-no-files-found: warn
           retention-days: 14
 

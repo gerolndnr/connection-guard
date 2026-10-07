@@ -96,6 +96,13 @@ public final class DecisionObservation {
         public String getId() { return id; }
         public Scope getScope() { return scope; }
         public DetectionObservation getObservation() { return observation; }
+        /** Human-readable interpretation of the existing bounded source codes; no new wire field. */
+        public String getReasonDescription() {
+            if (id.equals("blackbox") && observation.getStatus() == DetectionObservation.Status.UNKNOWN
+                    && observation.getReason() == DetectionObservation.Reason.NO_EVIDENCE)
+                return "Blackbox listed the address, not confirmed";
+            return observation.getReason().name();
+        }
         public long getDurationMillis() { return durationMillis; }
         public boolean isVoting() { return voting; }
         public boolean isFromCache() { return fromCache; }

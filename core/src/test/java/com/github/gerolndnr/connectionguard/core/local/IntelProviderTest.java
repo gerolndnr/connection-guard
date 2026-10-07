@@ -145,4 +145,69 @@ class IntelProviderTest {
         }
     }
 
+    private void proxy(String networks) throws Exception {
+        byte[] bytes=networks.getBytes(StandardCharsets.UTF_8);responses.put("/proxy.txt",bytes);
+        JsonObject file=new JsonObject();file.addProperty("file","proxy.txt");file.addProperty("sha256",LocalSource.hash(bytes));file.addProperty("bytes",bytes.length);file.addProperty("networks",networks.split("\n").length);
+        JsonObject additional=new JsonObject();additional.add("PROXY",file);manifest.add("additional_lists",additional);sign();
+    }
+    @Test void absentOptionalListKeepsBaseReadinessAndHostingReview() throws Exception {
+        IntelSnapshot snapshot=update();assertEquals(IntelSnapshot.ProxyState.ABSENT,snapshot.proxyState);
+        assertEquals(0,snapshot.recordCount(LocalSource.Kind.PROXY));assertEquals(FailureReason.NONE,snapshot.readiness(now));
+        assertEquals(ProviderVote.Status.UNKNOWN,snapshot.vpn("192.0.2.97",now).getStatus());
+        assertFalse(snapshot.vpn("198.51.100.1",now).getDetails().getClassifications().containsKey(DetectionDetails.Type.PROXY));
+    }
+    @Test void signedOptionalProxyIsLocalPositiveSurvivesRestartAndBeatsRelayAllow() throws Exception {
+        proxy("192.0.2.64/28\n2001:db8:2::/48\n");IntelSnapshot snapshot=update();
+        assertEquals(IntelSnapshot.ProxyState.LOADED,snapshot.proxyState);assertEquals(2,snapshot.recordCount(LocalSource.Kind.PROXY));
+        assertEquals(FailureReason.NONE,snapshot.readiness(now));int downloads=requests.size();
+        VpnResult ipv6=snapshot.vpn("2001:db8:2::1",now);assertTrue(ipv6.isVpn());
+        assertTrue(ipv6.getVpnProviderName().get().startsWith("Listed as [PROXY] (Connection Guard Intel, "));
+        VpnResult overlap=snapshot.vpn("192.0.2.65",now);assertTrue(overlap.isVpn());
+        assertEquals(Boolean.TRUE,overlap.getDetails().get(DetectionDetails.Type.PROXY));assertEquals(Boolean.TRUE,overlap.getDetails().get(DetectionDetails.Type.RELAY));
+        assertEquals(downloads,requests.size());assertFalse(snapshot.vpn("192.0.2.97",now).isVpn());
+        assertTrue(store.load(now).vpn("192.0.2.65",now).isVpn());
+        assertEquals(snapshot.asOf,ipv6.getDetails().getDataAsOf());
+        assertTrue(snapshot.describe(now).contains("PROXY=2"));assertTrue(snapshot.describe(now).contains("PROXY=LOADED"));
+        assertTrue(snapshot.describe(now).contains("as_of="+Instant.ofEpochMilli(snapshot.asOf)));
+        assertEquals(ProviderVote.Status.UNKNOWN,snapshot.vpn("192.0.2.65",snapshot.validUntil()).getStatus());
+    }
+    @ParameterizedTest @ValueSource(strings={"hash","file","oversize","count","count-bound","missing-sha","missing-body","bad-utf8","broken-entry","broken-additional","bad-network"})
+    void optionalFailuresActivateBaseAndReportProxySkipped(String fault) throws Exception {
+        IntelSnapshot previous=update();generation(now+1000);proxy("192.0.2.64/28\n");JsonObject file=manifest.getAsJsonObject("additional_lists").getAsJsonObject("PROXY");
+        switch(fault){
+            case "hash":file.addProperty("sha256",String.join("",Collections.nCopies(64,"0")));break;
+            case "file":file.addProperty("file","../proxy.txt");break;
+            case "oversize":file.addProperty("bytes",4*1024*1024+1);break;
+            case "count":file.addProperty("networks",2);break;
+            case "count-bound":file.addProperty("networks",NetworkIndex.MAX_RECORDS+1);break;
+            case "missing-sha":file.remove("sha256");break;
+            case "missing-body":responses.remove("/proxy.txt");break;
+            case "bad-utf8":byte[] invalid={(byte)0xff};responses.put("/proxy.txt",invalid);file.addProperty("bytes",1);file.addProperty("sha256",LocalSource.hash(invalid));break;
+            case "broken-entry":manifest.getAsJsonObject("additional_lists").addProperty("PROXY","invalid");break;
+            case "broken-additional":manifest.addProperty("additional_lists","invalid");break;
+            case "bad-network":byte[] invalidNetwork="not-an-IP\n".getBytes(StandardCharsets.UTF_8);responses.put("/proxy.txt",invalidNetwork);file.addProperty("bytes",invalidNetwork.length);file.addProperty("sha256",LocalSource.hash(invalidNetwork));break;
+        }
+        sign();IntelSnapshot snapshot=update();assertNotEquals(previous.generation,snapshot.generation);
+        assertEquals(IntelSnapshot.ProxyState.SKIPPED,snapshot.proxyState);assertEquals(FailureReason.NONE,snapshot.readiness(now));
+        assertTrue(snapshot.vpn("192.0.2.1",now).isVpn());assertTrue(snapshot.vpn("192.0.2.33",now).isVpn());
+        assertEquals(ProviderVote.Status.NEGATIVE,snapshot.vpn("192.0.2.65",now).getStatus());
+        assertEquals(Boolean.TRUE,snapshot.vpn("192.0.2.97",now).getDetails().get(DetectionDetails.Type.HOSTING));
+        assertEquals(snapshot.generation,store.load(now).generation);assertEquals(IntelSnapshot.ProxyState.SKIPPED,store.load(now).proxyState);
+        assertTrue(snapshot.describe(now).contains("PROXY=SKIPPED"));assertEquals(0,snapshot.recordCount(LocalSource.Kind.PROXY));
+        assertFalse(Files.exists(directory.resolve("local-data/connectionguard-intel/"+snapshot.generation+"/proxy.txt")));
+    }
+    @Test void corruptedOptionalFileOnRestartRetainsBaseAndReportsTheSkip() throws Exception {
+        proxy("192.0.2.64/28\n");IntelSnapshot snapshot=update();
+        Path file=directory.resolve("local-data/connectionguard-intel/"+snapshot.generation+"/proxy.txt");Files.write(file,new byte[]{1});
+        IntelSnapshot loaded=store.load(now);assertEquals(IntelSnapshot.ProxyState.SKIPPED,loaded.proxyState);assertTrue(loaded.vpn("192.0.2.1",now).isVpn());
+        Files.delete(file);assertEquals(IntelSnapshot.ProxyState.SKIPPED,store.load(now).proxyState);
+    }
+    @Test void optionalListsDoNotWeakenAtomicCommitOrRollbackProtection() throws Exception {
+        proxy("192.0.2.64/28\n");IntelSnapshot good=update();Path pointer=directory.resolve("local-data/connectionguard-intel/current.json");byte[] before=Files.readAllBytes(pointer);
+        generation(now+1000);proxy("198.51.100.0/28\n");String next=LocalSource.hash(responses.get("/manifest.json"));
+        Path file=directory.resolve("local-data/connectionguard-intel/"+next+"/proxy.txt");Files.createDirectories(file);Files.write(file.resolve("blocker"),new byte[]{1});
+        assertThrows(java.io.IOException.class,this::update);assertArrayEquals(before,Files.readAllBytes(pointer));assertTrue(store.load(now).vpn("192.0.2.65",now).isVpn());
+        generation(now-2000);proxy("198.51.100.0/28\n");assertThrows(java.io.IOException.class,this::update);assertEquals(good.generation,store.load(now).generation);
+    }
+
 }

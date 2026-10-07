@@ -1,5 +1,29 @@
 # General provider failover and offline protection (0.6.0)
 
+## Unreleased 0.6.1 candidate defaults and confirmation
+
+The candidate keeps local Tor → Intel → ProxyCheck → Blackbox → zowi → IPQuery.
+IP-API now defaults **off only in new files**, with no migration of existing
+provider selections. It remains available as HTTP-only, non-commercial opt-in
+and is always last when enabled. ip-check.net remains off by default.
+
+Blackbox `Y` is positive only when fresh local **Connection Guard Intel HOSTING**
+membership confirms the address. Without that membership it is UNKNOWN with
+“Blackbox listed the address, not confirmed”; ordinary failover continues and
+the next decisive normal provider decides. There is no separate confirmation
+request, no changed service order and no added IP recipient. Missing/stale Intel
+cannot confirm. `N` remains negative and malformed replies remain UNKNOWN.
+`provider.vpn.blackbox.require-confirmation: false` restores 0.6.0 aggregate
+blocking. The default true also applies when an existing Blackbox section omits
+this setting; the operator file is not rewritten. Confirmed results cannot
+outlive the Intel HOSTING data they depend on.
+
+The optional [Intel proxy list](LOCAL_DATA.md#061-candidate-optional-intel-proxies)
+can block locally before APIs. Detection/performance claims require the final
+independent candidate benchmark; the historical 0.6.0 defaults below remain
+identified by version.
+
+
 0.6.0 is published at the maintainer's explicit request. The complete
 `mc-antivpn-bench` acceptance matrix remains pending and is required before
 claiming comparative detection, false-positive or burst-coverage results.
@@ -65,7 +89,7 @@ Set it to 1 to limit a lookup to one network attempt; locally skipped circuits o
 quotas can still lead to a different usable source. Restarting a process resets
 local usage counters; changing the order or switch does not reset retained counters.
 
-New files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox and zowi,
+In 0.6.0, new files enable anonymous ProxyCheck v2 (`vpn=1`), Blackbox and zowi,
 IPQuery and IP-API. ip-check.net is disabled unless explicitly enabled. The bundled Tor snapshot and then signed Connection Guard Intel precede all of them. All three new
 services have a conservative **local** `minute-budget: 60`, independent of any
 upstream service promise. Locally exhausted sources are skipped without sending
@@ -86,7 +110,7 @@ Malformed text/JSON, redirects, oversized replies, 429 and timeouts are UNKNOWN,
 never clean answers. All three use fixed HTTPS endpoints and compressed IPv6;
 ip-check.net's IP query parameter is URL-encoded.
 
-* **Blackbox:** exact `Y` means aggregate-list membership and is positive; exact
+* **Blackbox (0.6.0):** exact `Y` means aggregate-list membership and is positive; exact
   `N` is negative; `E` and all other text are UNKNOWN. Its lists also cover hosting
   and cloud. An enforced refusal is described as **Listed by Blackbox
   (VPN/proxy/Tor/hosting/cloud)**, not as an independently verified VPN flag.

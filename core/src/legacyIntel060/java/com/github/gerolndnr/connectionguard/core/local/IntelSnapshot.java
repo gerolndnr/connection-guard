@@ -8,21 +8,18 @@ import java.util.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.*;
 
-/** Four required authenticated indexes and an optional proxy index, in one generation. */
+/** Four authenticated immutable indexes, published as one generation. */
 public final class IntelSnapshot {
-    public enum ProxyState { ABSENT, LOADED, SKIPPED }
     public static final String ID="connectionguard-intel";
     public final String generation;
     public final long asOf, fetchedAt;
     private final Map<LocalSource.Kind,LocalSnapshot> lists;
-    public final ProxyState proxyState;
     public final IntelSettings settings;
-    private IntelSnapshot(IntelSettings settings,String generation,long asOf,long fetchedAt,Map<LocalSource.Kind,LocalSnapshot> lists,ProxyState proxyState){
+    private IntelSnapshot(IntelSettings settings,String generation,long asOf,long fetchedAt,Map<LocalSource.Kind,LocalSnapshot> lists){
         this.settings=settings;this.generation=generation;this.asOf=asOf;this.fetchedAt=fetchedAt;
         this.lists=Collections.unmodifiableMap(new EnumMap<>(lists));
-        this.proxyState=proxyState;
     }
-    public static IntelSnapshot missing(IntelSettings settings){return new IntelSnapshot(settings,"missing",0,0,new EnumMap<>(LocalSource.Kind.class),ProxyState.ABSENT);}
+    public static IntelSnapshot missing(IntelSettings settings){return new IntelSnapshot(settings,"missing",0,0,new EnumMap<>(LocalSource.Kind.class));}
     static JsonObject manifest(byte[] bytes,long now){
         if(bytes.length==0||bytes.length>65536)throw new IllegalArgumentException("Intel manifest exceeds its bound.");
         try {
@@ -49,59 +46,33 @@ public final class IntelSnapshot {
         int n=Integer.parseInt(e.getAsString());if(n>max)throw new IllegalArgumentException();return n;
     }
     static List<LocalSource.Kind> kinds(){return Arrays.asList(LocalSource.Kind.VPN,LocalSource.Kind.TOR,LocalSource.Kind.RELAY,LocalSource.Kind.HOSTING);}
-    static boolean hasProxy(JsonObject json){
-        if(!json.has("additional_lists"))return false;
-        JsonElement extra=json.get("additional_lists");
-        return !extra.isJsonObject()||extra.getAsJsonObject().has("PROXY");
-    }
-    /** Invalid optional metadata never affects validation of the four required lists. */
-    static JsonObject proxyFile(JsonObject json){
-        if(!hasProxy(json))return null;
-        try {
-            JsonObject file=json.getAsJsonObject("additional_lists").getAsJsonObject("PROXY");
-            if(!file.get("file").isJsonPrimitive()||!file.get("file").getAsJsonPrimitive().isString()||!file.get("file").getAsString().equals("proxy.txt"))throw new IllegalArgumentException();
-            if(!file.get("sha256").isJsonPrimitive()||!file.get("sha256").getAsJsonPrimitive().isString()||!file.get("sha256").getAsString().matches("[a-f0-9]{64}"))throw new IllegalArgumentException();
-            number(file,"bytes",4*1024*1024);number(file,"networks",NetworkIndex.MAX_RECORDS);
-            return file;
-        }catch(RuntimeException invalid){return null;}
-    }
-    private static LocalSnapshot parseList(IntelSettings settings,LocalSource.Kind kind,JsonObject file,byte[] bytes,long asOf,long fetchedAt,long now){
-        if(bytes==null||bytes.length!=number(file,"bytes",4*1024*1024)||!LocalSource.hash(bytes).equals(file.get("sha256").getAsString()))throw new IllegalArgumentException("Intel list hash/size mismatch.");
-        LocalSource source=new LocalSource("cg-intel-"+kind.name().toLowerCase(Locale.ROOT),kind,"https://intel.connectionguard.net/","Per-source attribution in signed manifest","Connection Guard Intel; upstream source terms apply",settings.maxAgeHours,"");
-        LocalSnapshot snapshot=LocalSnapshot.parse(source,bytes,asOf,fetchedAt,"SIGNED_MANIFEST",now);
-        if(snapshot.recordCount()!=number(file,"networks",NetworkIndex.MAX_RECORDS))throw new IllegalArgumentException("Intel network count mismatch.");
-        return snapshot;
-    }
     static IntelSnapshot parse(IntelSettings settings,byte[] manifest,Map<LocalSource.Kind,byte[]> contents,long fetchedAt,long now){
         JsonObject json=manifest(manifest,now);long asOf=Instant.parse(json.get("as_of").getAsString()).toEpochMilli();
         Map<LocalSource.Kind,LocalSnapshot> parsed=new EnumMap<>(LocalSource.Kind.class);
         for(LocalSource.Kind kind:kinds()){
-            parsed.put(kind,parseList(settings,kind,json.getAsJsonObject("lists").getAsJsonObject(kind.name()),contents.get(kind),asOf,fetchedAt,now));
+            JsonObject file=json.getAsJsonObject("lists").getAsJsonObject(kind.name());byte[] bytes=contents.get(kind);
+            if(bytes==null||bytes.length!=number(file,"bytes",4*1024*1024)||!LocalSource.hash(bytes).equals(file.get("sha256").getAsString()))throw new IllegalArgumentException("Intel list hash/size mismatch.");
+            LocalSource source=new LocalSource("cg-intel-"+kind.name().toLowerCase(Locale.ROOT),kind,"https://intel.connectionguard.net/","Per-source attribution in signed manifest","Connection Guard Intel; upstream source terms apply",settings.maxAgeHours,"");
+            LocalSnapshot snapshot=LocalSnapshot.parse(source,bytes,asOf,fetchedAt,"SIGNED_MANIFEST",now);
+            if(snapshot.recordCount()!=number(file,"networks",NetworkIndex.MAX_RECORDS))throw new IllegalArgumentException("Intel network count mismatch.");
+            parsed.put(kind,snapshot);
         }
-        ProxyState proxy=hasProxy(json)?ProxyState.SKIPPED:ProxyState.ABSENT;
-        JsonObject file=proxyFile(json);
-        if(file!=null)try {
-            parsed.put(LocalSource.Kind.PROXY,parseList(settings,LocalSource.Kind.PROXY,file,contents.get(LocalSource.Kind.PROXY),asOf,fetchedAt,now));
-            proxy=ProxyState.LOADED;
-        }catch(RuntimeException invalid){/* Optional list is isolated from authenticated base data. */}
-        return new IntelSnapshot(settings,LocalSource.hash(manifest),asOf,fetchedAt,parsed,proxy);
+        return new IntelSnapshot(settings,LocalSource.hash(manifest),asOf,fetchedAt,parsed);
     }
-    public int recordCount(LocalSource.Kind kind){LocalSnapshot list=lists.get(kind);return list==null?0:list.recordCount();}
-    public boolean contains(LocalSource.Kind kind,String ip,long now){return readiness(now)==FailureReason.NONE&&lists.containsKey(kind)&&lists.get(kind).contains(new NetworkIndex.Address(ip));}
     public FailureReason readiness(long now){return asOf==0?FailureReason.NO_EVIDENCE:now>=validUntil()?FailureReason.STALE_DATA:FailureReason.NONE;}
     public long validUntil(){return asOf==0?0:asOf+settings.maxAgeHours*3600000L;}
     public VpnResult vpn(String ip,long now){
         FailureReason ready=readiness(now);Map<DetectionDetails.Type,Boolean> types=new EnumMap<>(DetectionDetails.Type.class);
         if(ready==FailureReason.NONE){
             NetworkIndex.Address literal=new NetworkIndex.Address(ip);
-            for(Map.Entry<LocalSource.Kind,LocalSnapshot> list:lists.entrySet())if(list.getValue().contains(literal))types.put(DetectionDetails.Type.valueOf(list.getKey().name()),true);
+            for(LocalSource.Kind kind:kinds())if(lists.get(kind).contains(literal))types.put(DetectionDetails.Type.valueOf(kind.name()),true);
         }
-        boolean positive=types.containsKey(DetectionDetails.Type.VPN)||types.containsKey(DetectionDetails.Type.TOR)||types.containsKey(DetectionDetails.Type.PROXY)||settings.relay==IntelSettings.Relay.VPN&&types.containsKey(DetectionDetails.Type.RELAY);
+        boolean positive=types.containsKey(DetectionDetails.Type.VPN)||types.containsKey(DetectionDetails.Type.TOR)||settings.relay==IntelSettings.Relay.VPN&&types.containsKey(DetectionDetails.Type.RELAY);
         boolean relayAllowed=!positive&&types.containsKey(DetectionDetails.Type.RELAY)&&settings.relay==IntelSettings.Relay.ALLOW;
         VpnResult result=new VpnResult(ip,positive,positive?Optional.of("Listed as "+types.keySet()+" (Connection Guard Intel, "+Instant.ofEpochMilli(asOf)+")"):Optional.empty());
         result.setDetails(new DetectionDetails(types,null,null,null,null,null,null).withDataAsOf(asOf==0?null:asOf));
         if(!positive&&!relayAllowed)result.setUnknown(ready==FailureReason.NONE?FailureReason.NO_EVIDENCE:ready);
         result.setSourceVersion(generation.equals("missing")?null:generation);result.setValidUntil(ready==FailureReason.NONE?validUntil():0);return result;
     }
-    public String describe(long now){return ID+" state="+readiness(now)+" as_of="+(asOf==0?"UNKNOWN":Instant.ofEpochMilli(asOf))+" generation="+generation+" relay="+settings.relay+" fetchAgeMs="+(fetchedAt==0?"UNKNOWN":Math.max(0,now-fetchedAt))+" entries={VPN="+recordCount(LocalSource.Kind.VPN)+", TOR="+recordCount(LocalSource.Kind.TOR)+", RELAY="+recordCount(LocalSource.Kind.RELAY)+", HOSTING="+recordCount(LocalSource.Kind.HOSTING)+", PROXY="+recordCount(LocalSource.Kind.PROXY)+"} PROXY="+proxyState+(proxyState==ProxyState.SKIPPED?" (optional list rejected/unavailable; base lists retained)":"");}
+    public String describe(long now){return ID+" state="+readiness(now)+" as_of="+(asOf==0?"UNKNOWN":Instant.ofEpochMilli(asOf))+" generation="+generation+" relay="+settings.relay+" fetchAgeMs="+(fetchedAt==0?"UNKNOWN":Math.max(0,now-fetchedAt));}
 }
