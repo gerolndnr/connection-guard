@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — competitor migrations
+
+- Automatically detect FoxGate, ProxyShield, VPNGuard, KauriVPN and AdvancedAntiVPN configuration folders. Preview compatible mode/country/provider-key settings and explicit IP/CIDR/range/UUID/ASN admin rules; reviewed console application stages a validated migration for the next restart.
+- Read known SQLite and Kauri H2 admin-list schemas locally, without importing provider caches, name-prefix bypasses, foreign commands or remote database credentials. Unknown formats/conditional modules require an explicit complete local export; Java 11+ is required for the on-demand H2 reader.
+- Keep CG failover/local detection, validated runtime limits and individually configured CG fields. Disclose changed scoring/hosting/identity/country-source semantics and final enabled IP recipients before apply; no equivalent/improved benchmark result is claimed.
+- Preserve source files and private backups; detect stale plans/active competitor JARs and recover interrupted commits without overwriting external edits. Existing Cloud overlays/versioned policies require explicit release. [Migration guide](docs/MIGRATIONS.md).
+
+
 Website and downloads: [Connection Guard](https://connectionguard.net) · [Download and docs](https://connectionguard.net/download).
 
 ## Unreleased — 0.6.1

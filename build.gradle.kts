@@ -44,6 +44,7 @@ tasks {
         relocate("org.jetbrains.annotations", "com.github.gerolndnr.connectionguard.libs.org.jetbrains.annotations")
         relocate("com.alessiodp.libby", "com.github.gerolndnr.connectionguard.libs.com.alessiodp.libby")
         relocate("com.google.gson", "com.github.gerolndnr.connectionguard.libs.com.google.gson")
+        relocate("org.yaml.snakeyaml", "com.github.gerolndnr.connectionguard.libs.org.yaml.snakeyaml")
         relocate("org.bstats", "com.github.gerolndnr.connectionguard.libs.org.bstats")
     }
 

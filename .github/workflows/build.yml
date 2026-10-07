@@ -90,6 +90,9 @@ jobs:
       - name: Verify release regression guards
         run: python3 ci/test_release_gate.py
 
+      - name: Exercise migrations using the combined JAR on Java 8
+        run: python3 ci/fixtures/migrations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-migrations"
+
       - name: Qualify the benchmark against the actual built JAR
         working-directory: benchmarks
         run: |

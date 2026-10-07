@@ -27,7 +27,8 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
         );
 
         if (OperationsCommands.handle(args, commandSender::hasPermission,
-                text -> ConnectionGuardSpigotPlugin.getInstance().tasks().reply(commandSender, text))) return true;
+                text -> ConnectionGuardSpigotPlugin.getInstance().tasks().reply(commandSender, text),
+                commandSender instanceof org.bukkit.command.ConsoleCommandSender || commandSender instanceof org.bukkit.command.RemoteConsoleCommandSender)) return true;
         if (args.length == 0) {
             if (!commandSender.hasPermission("connectionguard.command.help")) {
                 commandSender.sendMessage(noPermissionMessage);
@@ -164,6 +165,14 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
         List<String> proposals = new ArrayList<>();
+        if (strings.length > 1 && strings[0].equalsIgnoreCase("migrate")) {
+            if (!commandSender.hasPermission("connectionguard.command.migrate")) return java.util.Collections.emptyList();
+            List<String> options = strings.length == 2 ? java.util.Arrays.asList("preview", "apply", "cancel")
+                    : strings.length == 3 && strings[1].equalsIgnoreCase("preview") ? com.github.gerolndnr.connectionguard.core.migration.CompetitorMigration.SOURCES
+                    : java.util.Collections.emptyList();
+            return options.stream().filter(option -> option.startsWith(strings[strings.length - 1].toLowerCase(java.util.Locale.ROOT))).collect(java.util.stream.Collectors.toList());
+        }
+
         for (String operation : OperationsCommands.NAMES) if (commandSender.hasPermission("connectionguard.command." + operation)) proposals.add(operation);
         if (strings.length == 1) {
             if (commandSender.hasPermission("connectionguard.command.help"))

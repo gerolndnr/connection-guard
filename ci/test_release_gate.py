@@ -89,6 +89,25 @@ class RuntimeEvidenceTest(unittest.TestCase):
 
 
 class ArtifactRegressionTest(unittest.TestCase):
+    def test_missing_or_duplicate_migration_yaml_fails_before_runtime(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        entry = PACKAGE.replace(".", "/") + "/libs/org/yaml/snakeyaml/constructor/SafeConstructor.class"
+        self.assertIn(entry, resources)
+        with tempfile.TemporaryDirectory() as directory:
+            for mutation in ("missing", "duplicate"):
+                broken = Path(directory) / "broken-migration.jar"
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    with zipfile.ZipFile(broken, "w") as output:
+                        for name, data in resources.items():
+                            if mutation != "missing" or name != entry: output.writestr(name, data)
+                        if mutation == "duplicate": output.writestr(entry, resources[entry])
+                with self.assertRaisesRegex(ValueError, "migration YAML"):
+                    verify(broken, version)
+
     def test_missing_or_duplicate_general_failover_settings_fail_before_runtime(self):
         artifact = next((ROOT / "build/libs").glob("*-all.jar"))
         with zipfile.ZipFile(artifact) as jar:

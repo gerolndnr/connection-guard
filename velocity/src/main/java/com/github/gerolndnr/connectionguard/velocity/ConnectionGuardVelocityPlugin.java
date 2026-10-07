@@ -71,6 +71,8 @@ public class ConnectionGuardVelocityPlugin {
         // 1. Set logger
         ConnectionGuard.setLogger(java.util.logging.Logger.getLogger(logger.getName()));
 
+        com.github.gerolndnr.connectionguard.core.migration.MigrationBootstrap.beforeStart(dataDirectory, logger::warn);
+
         // 2. Download libraries used for vpn and geo checks and config
         VelocityLibraryManager<ConnectionGuardVelocityPlugin> libraryManager = new VelocityLibraryManager<>(logger, dataDirectory, proxyServer.getPluginManager(), this);
         Library boostedYamlLibrary = Library.builder()
@@ -80,6 +82,12 @@ public class ConnectionGuardVelocityPlugin {
                 .relocate("dev.defvokep.boostedyaml", "com.github.gerolndnr.connectionguard.libs.dev.defvokep.boostedyaml")
                 .build();
         libraryManager.addMavenCentral();
+        com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(id -> {
+            if (id.equals("h2")) {
+                libraryManager.loadLibrary(Library.builder().groupId("com.h2database").artifactId("h2").version("2.4.240").build());
+            } else if (id.equals("sqlite")) libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+            else throw new IllegalArgumentException("Unknown migration driver.");
+        });
         libraryManager.loadLibrary(boostedYamlLibrary);
 
         // 3. Create and load configs

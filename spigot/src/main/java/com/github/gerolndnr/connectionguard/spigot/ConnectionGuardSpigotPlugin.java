@@ -48,6 +48,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
     private void enableGuard() {
         platformTasks = new PlatformTasks(this);
         getLogger().info("Platform task dispatch: " + platformTasks.mode());
+        com.github.gerolndnr.connectionguard.core.migration.MigrationBootstrap.beforeStart(getDataFolder().toPath(), getLogger()::warning);
+
         // 1. Save Default Config & set logger
         boolean existingInstallation = java.nio.file.Files.exists(getDataFolder().toPath().resolve("config.yml"));
         saveDefaultConfig();
@@ -67,6 +69,13 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
 
 
         libraryManager.addMavenCentral();
+        com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(id -> {
+            if (id.equals("h2")) {
+                if (Integer.parseInt(System.getProperty("java.specification.version", "1.8").replace("1.", "")) < 11) throw new IllegalStateException("H2 migration requires Java 11+.");
+                libraryManager.loadLibrary(Library.builder().groupId("com.h2database").artifactId("h2").version("2.4.240").build());
+            } else if (id.equals("sqlite")) libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+            else throw new IllegalArgumentException("Unknown migration driver.");
+        });
 
         // 3. Download libraries used for specified cache provider and register cache provider afterward
         switch (getConfig().getString("provider.cache.type").toLowerCase()) {

@@ -42,3 +42,5 @@ After installation:
 ## Help
 
 Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Discord](https://discord.gg/8q4HFCh2RK). Include plugin, server/proxy and Java versions, reproduction steps and sanitized settings. Remove secrets and personal connection data.
+
+- [Migrate from FoxGate, ProxyShield, VPNGuard, KauriVPN or AdvancedAntiVPN](MIGRATIONS.md): automatic discovery, reviewed imports, backups and semantic differences.

@@ -20,6 +20,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Cloud uses Gson on every native adapter; include it instead of relying on a server copy.
     implementation("com.google.code.gson:gson:2.11.0")
+    // Safe, bounded competitor config reader, bundled on all three native adapters.
+    implementation("org.yaml:snakeyaml:2.2")
     shadow("org.xerial:sqlite-jdbc:3.46.0.0")
     shadow("redis.clients:jedis:5.0.0")
     shadow("net.luckperms:api:5.4")
@@ -29,7 +31,7 @@ dependencies {
     testImplementation("net.luckperms:api:5.4")
     testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
     testImplementation("redis.clients:jedis:5.0.0")
-    testImplementation("org.yaml:snakeyaml:2.2")
+    testImplementation("com.h2database:h2:2.1.214")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
