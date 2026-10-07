@@ -1,0 +1,23 @@
+# Cache tiers and everyday joins (unreleased 0.6.2 candidate)
+
+This change is built on the 0.6.1 false-positive candidate `feffbfb` and the merged competitor migrations. It is not in stable 0.6.0. It does not change the provider sequence, votes, request limits, identity checks or failure policies. The same path is used on every server; there are no benchmark host/address/environment shortcuts.
+
+## Fact caches
+
+Memory and Disabled modes retain their existing behavior. SQLite uses a serialized-copy Memory tier of at most 10,000 facts (VPN and geo together). A fresh hit completes immediately on the calling thread; a miss can asynchronously read SQLite and hydrate Memory. Hydration and startup transfer preserve `cachedOn` and source `validUntil`, rather than renewing trust. Config namespace changes and late-read epochs prevent old answers from being reintroduced.
+
+SQLite keeps the existing v2 table and default 24-hour VPN / 72-hour geo expirations. WAL and NORMAL mode, reusable statements, a separate bounded reader lane and batched transactions remove per-answer disk commits from login handling. Flush runs every second or at 100 pending facts; the pending map coalesces keys and holds at most 10,000 writes. Overflow drops oldest best-effort copies without a backend error. A clean stop flushes accepted writes. A crash can lose the latest uncommitted batch and require another lookup. `/cg clear`, allow-rule edits and invalidation remove pending copies as well as stored facts. Failed persistent deletions block reads rather than resurrecting facts.
+
+Redis uses Memory first when server-assisted tracking is active. A separate authenticated connection subscribes to invalidations of this cache namespace, including remote updates/deletes and expiration. It requires Redis 6+ and suitable CLIENT ID/TRACKING and subscription ACLs; CG changes no Redis server configuration. If tracking is unavailable, online lookups keep reading Redis directly to avoid holding incoherent local facts. During an outage the existing bounded Memory fallback and background reconnect remain; it does not promise persistence of facts accepted while Redis is unavailable. A connected explicit clear acknowledges its remote delete. Tracking loss clears local copies before reconnecting.
+
+## Startup and reporting
+
+Velocity loads validated config/rules before registering listeners. Optional SQLite/Jedis loading and cache setup happen on a daemon. Until ready, Memory answers early known facts; a miss proceeds through the ordinary local/API chain. `/cg doctor` reports `Cache persistence=starting`, `ready` or an unavailable Memory fallback, and includes Redis health where applicable. Startup deletes are coalesced into a scoped VPN/geo clear and acknowledged after persistence applies them. Startup and clean stop preserve dated early facts; a driver failure leaves Memory active with a redacted warning. No cache-ready console message extends the normal quiet window.
+
+The final allow/kick, failure-coverage counter and policy-lease release remain synchronous. Best-effort decision observations and webhook JSON are built afterward on the existing bounded observer workers. Final metadata and duration are captured at decision close; worker delay is not counted as login duration. Queue pressure is visible in observer drop counts and never holds a login.
+
+## Evidence and release gate
+
+JFR on Velocity 3.4.0-566/JDK21 identified awaited SQLite driver/native initialization during enable and a database worker hop on virtually every persisted cache hit. Owned synthetic handler probes compare identical dated facts with Cloud/telemetry off, without external providers or real Minecraft accounts. They measure handler cost, not a full player join, competitor detection or the benchmark's five-second quiet interval. Local measurements and exact artifact hashes are attached to the PR/handoff. No leaderboard or accuracy improvement is claimed from them.
+
+Before release, measure the exact candidate with all competitors on one runner for three rounds: repeat p50 <=1.5ms, cold p95 <=287ms, startup <=6.50s (added enable <=0.25s), one lookup per 100 same-IP joins, at least 999 checked/refused by a valid local fact in the 1,000-player wave. Detection must retain the 0.6.1 reference 375/382 with 2/310 false positives, and the failure/Tor/Redis/reload cases must pass. Only that independent comparison can establish whether all five rows are best.

@@ -17,7 +17,7 @@ public final class SQLiteCacheProvider implements CacheProvider {
     private final LinkedHashMap<String,Write> pending=new LinkedHashMap<>();
     private Connection writes,reads;
     private PreparedStatement select,insert;
-    private CompletableFuture<Boolean> readiness;
+    private CompletableFuture<Boolean> readiness, stopped;
     private volatile boolean closed;
     private long dropped;
     private static Thread daemon(Runnable task,String name){Thread thread=new Thread(task,name);thread.setDaemon(true);return thread;}
@@ -75,11 +75,13 @@ public final class SQLiteCacheProvider implements CacheProvider {
         if(pending.size()==100)try{writer.execute(this::flush);}catch(RejectedExecutionException stopped){next.done.complete(null);}
         return next.done;
     }
-    @Override public CompletableFuture<Void> addVpnResult(VpnResult value){value.setCachedOn(System.currentTimeMillis());return write(key("vpn",value.getIpAddress()),CacheCodec.encode(value),value.getCachedOn()+ConnectionGuard.getVpnCacheExpirationTime()*60000L);}
-    @Override public CompletableFuture<Void> addGeoResult(GeoResult value){value.setCachedOn(System.currentTimeMillis());return write(key("geo",value.getIpAddress()),CacheCodec.encode(value),value.getCachedOn()+ConnectionGuard.getGeoCacheExpirationTime()*60000L);}
+    @Override public CompletableFuture<Void> addVpnResult(VpnResult value){value.setCachedOn(System.currentTimeMillis());return restoreVpnResult(value);}
+    @Override public CompletableFuture<Void> restoreVpnResult(VpnResult value){return write(key("vpn",value.getIpAddress()),CacheCodec.encode(value),value.getCachedOn()+ConnectionGuard.getVpnCacheExpirationTime()*60000L);}
+    @Override public CompletableFuture<Void> addGeoResult(GeoResult value){value.setCachedOn(System.currentTimeMillis());return restoreGeoResult(value);}
+    @Override public CompletableFuture<Void> restoreGeoResult(GeoResult value){return write(key("geo",value.getIpAddress()),CacheCodec.encode(value),value.getCachedOn()+ConnectionGuard.getGeoCacheExpirationTime()*60000L);}
     private void flush(){
         List<Write> batch;
-        synchronized(this){if(pending.isEmpty() || writes==null)return;batch=new ArrayList<>(pending.values());pending.clear();}
+        synchronized(this){if(pending.isEmpty() || writes==null || insert==null)return;batch=new ArrayList<>(pending.values());pending.clear();}
         try {
             writes.setAutoCommit(false);
             for(Write value:batch){insert.setString(1,value.key);insert.setString(2,value.payload);insert.setLong(3,value.expiry);insert.addBatch();}
@@ -104,8 +106,8 @@ public final class SQLiteCacheProvider implements CacheProvider {
     @Override public CompletableFuture<Boolean> removeAllVpnResults(){return remove(null,namespace+":vpn:");}
     @Override public CompletableFuture<Boolean> removeAllGeoResults(){return remove(null,namespace+":geo:");}
     @Override public synchronized CompletableFuture<Boolean> disband(){
-        if(closed)return CompletableFuture.completedFuture(true);closed=true;
-        CompletableFuture<Boolean> result=new CompletableFuture<>();
+        if(stopped!=null)return stopped;closed=true;
+        CompletableFuture<Boolean> result=new CompletableFuture<>();stopped=result;
         writer.execute(()->{
             flush();reader.shutdown();
             try {

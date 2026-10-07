@@ -99,31 +99,21 @@ public class ConnectionGuardVelocityPlugin {
         // 4. Register specified cache provider
         switch (cgVelocityConfig.getConfig().getString("provider.cache.type").toLowerCase()) {
             case "sqlite":
-                Library sqliteLibrary = Library.builder()
-                        .groupId("org.xerial")
-                        .artifactId("sqlite-jdbc")
-                        .version("3.46.0.0")
-                        .build();
-                libraryManager.loadLibrary(sqliteLibrary);
-                ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider(new SQLiteCacheProvider(new File(dataDirectory.toFile(), "cache.db").getAbsolutePath())));
+                ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider(() -> {
+                    libraryManager.loadLibrary(Library.builder().groupId("org.xerial").artifactId("sqlite-jdbc").version("3.46.0.0").build());
+                    return new com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider(new SQLiteCacheProvider(new File(dataDirectory.toFile(), "cache.db").getAbsolutePath()));
+                }));
                 break;
             case "redis":
-                Library jedisLibrary = Library.builder()
-                        .groupId("redis.clients")
-                        .artifactId("jedis")
-                        .version("5.0.0")
-                        .build();
-                libraryManager.loadLibrary(jedisLibrary);
-                ConnectionGuard.setCacheProvider(
-                        new ResilientRedisCacheProvider(new RedisCacheProvider(
-                                getCgVelocityConfig().getConfig().getString("provider.cache.redis.hostname"),
-                                getCgVelocityConfig().getConfig().getInt("provider.cache.redis.port"),
-                                getCgVelocityConfig().getConfig().getString("provider.cache.redis.username"),
-                                getCgVelocityConfig().getConfig().getString("provider.cache.redis.password"),
-                                GuardSettings.bool(path -> getCgVelocityConfig().getConfig().get(path), "provider.cache.redis.tls", false)
-                        ))
-
-                );
+                final String redisHost=cgVelocityConfig.getConfig().getString("provider.cache.redis.hostname");
+                final int redisPort=cgVelocityConfig.getConfig().getInt("provider.cache.redis.port");
+                final String redisUser=cgVelocityConfig.getConfig().getString("provider.cache.redis.username");
+                final String redisPassword=cgVelocityConfig.getConfig().getString("provider.cache.redis.password");
+                final boolean redisTls=GuardSettings.bool(path -> getCgVelocityConfig().getConfig().get(path), "provider.cache.redis.tls", false);
+                ConnectionGuard.setCacheProvider(new com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider(() -> {
+                    libraryManager.loadLibrary(Library.builder().groupId("redis.clients").artifactId("jedis").version("5.0.0").build());
+                    return new ResilientRedisCacheProvider(new RedisCacheProvider(redisHost,redisPort,redisUser,redisPassword,redisTls));
+                }));
                 break;
             case "memory":
                 ConnectionGuard.setCacheProvider(new MemoryCacheProvider());

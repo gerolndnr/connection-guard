@@ -33,6 +33,8 @@ public final class MemoryCacheProvider implements CacheProvider {
         if (!closed) { result.setCachedOn(System.currentTimeMillis()); entries.put("geo:" + result.getIpAddress(), CacheCodec.encode(result)); }
         return CompletableFuture.completedFuture(null);
     }
+    @Override public synchronized CompletableFuture<Void> restoreVpnResult(VpnResult value) { rememberVpn(value); return CompletableFuture.completedFuture(null); }
+    @Override public synchronized CompletableFuture<Void> restoreGeoResult(GeoResult value) { rememberGeo(value); return CompletableFuture.completedFuture(null); }
     /** Hydration never restarts the persisted TTL. Serialized copies isolate mutable callers. */
     synchronized void rememberVpn(VpnResult result) { if(!closed)entries.put("vpn:"+result.getIpAddress(),CacheCodec.encode(result)); }
     synchronized void rememberGeo(GeoResult result) { if(!closed)entries.put("geo:"+result.getIpAddress(),CacheCodec.encode(result)); }

@@ -39,6 +39,16 @@ class RedisMemoryCoherenceTest {
             assertFalse(cache.getVpnResult(ip).get().isPresent());
         }finally{cache.disband().get();}
     }
+    @Test void localClearAcknowledgesRemoteDeletionAndEvictsOtherServersMemory()throws Exception{
+        String ns="clear-"+UUID.randomUUID(),ip="192.0.2.25",key="cg:v2:"+ns+":vpn:"+ip;
+        ResilientRedisCacheProvider one=new ResilientRedisCacheProvider(new RedisCacheProvider("127.0.0.1",port(),null,null));one.setNamespace(ns);
+        ResilientRedisCacheProvider two=new ResilientRedisCacheProvider(new RedisCacheProvider("127.0.0.1",port(),null,null));two.setNamespace(ns);
+        try(Jedis admin=new Jedis("127.0.0.1",port())){
+            ready(one);ready(two);one.addVpnResult(new VpnResult(ip,true));long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);while(!admin.exists(key) && System.nanoTime()<until)Thread.sleep(5);
+            assertTrue(two.getVpnResult(ip).get().isPresent());assertTrue(two.getVpnResult(ip).isDone());
+            assertTrue(one.removeVpnResult(ip).get());assertFalse(admin.exists(key));awaitEmpty(two,ip);assertFalse(one.getVpnResult(ip).get().isPresent());
+        }finally{one.disband().get();two.disband().get();}
+    }
     private void awaitEmpty(ResilientRedisCacheProvider cache,String ip)throws Exception{
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(2);
         while(cache.getVpnResult(ip).get().isPresent() && System.nanoTime()<end)Thread.sleep(5);

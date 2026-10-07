@@ -80,15 +80,12 @@ public class RedisCacheProvider extends SerialCacheProvider {
         final String key = key("geo", ip); final long ttl = ConnectionGuard.getGeoCacheExpirationTime() * 60000L;
         return submit(() -> CacheCodec.geo(client().get(key), ip, ttl));
     }
-    @Override public CompletableFuture<Void> addVpnResult(VpnResult result) {
-        final String key = key("vpn", result.getIpAddress()); result.setCachedOn(System.currentTimeMillis());
-        final String payload = CacheCodec.encode(result); final long ttl = ConnectionGuard.getVpnCacheExpirationTime() * 60L;
-        return submitWrite(() -> { client().setex(key, ttl, payload); return null; });
-    }
-    @Override public CompletableFuture<Void> addGeoResult(GeoResult result) {
-        final String key = key("geo", result.getIpAddress()); result.setCachedOn(System.currentTimeMillis());
-        final String payload = CacheCodec.encode(result); final long ttl = ConnectionGuard.getGeoCacheExpirationTime() * 60L;
-        return submitWrite(() -> { client().setex(key, ttl, payload); return null; });
+    @Override public CompletableFuture<Void> addVpnResult(VpnResult result) { result.setCachedOn(System.currentTimeMillis());return restoreVpnResult(result); }
+    @Override public CompletableFuture<Void> addGeoResult(GeoResult result) { result.setCachedOn(System.currentTimeMillis());return restoreGeoResult(result); }
+    @Override public CompletableFuture<Void> restoreVpnResult(VpnResult result) { return store(key("vpn",result.getIpAddress()),CacheCodec.encode(result),result.getCachedOn()+ConnectionGuard.getVpnCacheExpirationTime()*60000L); }
+    @Override public CompletableFuture<Void> restoreGeoResult(GeoResult result) { return store(key("geo",result.getIpAddress()),CacheCodec.encode(result),result.getCachedOn()+ConnectionGuard.getGeoCacheExpirationTime()*60000L); }
+    private CompletableFuture<Void> store(String key,String payload,long expires) {
+        return submitWrite(()->{long left=expires-System.currentTimeMillis();if(left>0)client().setex(key,Math.max(1,(left+999)/1000),payload);return null;});
     }
     @Override public CompletableFuture<Boolean> removeVpnResult(String ip) {
         final String key = key("vpn", ip); return submit(() -> { client().del(key); return true; });

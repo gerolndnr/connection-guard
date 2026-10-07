@@ -17,6 +17,8 @@ public final class ResilientRedisCacheProvider implements CacheProvider {
     private volatile boolean available, closed;
     private boolean started, warned, dirty;
     private long generation;
+    private int pendingInvalidations;
+    private boolean invalidationFailed;
     private String namespace;
     public ResilientRedisCacheProvider(CacheProvider remote) { this.remote = Objects.requireNonNull(remote); }
     @Override public synchronized void setNamespace(String next) {
@@ -30,7 +32,7 @@ public final class ResilientRedisCacheProvider implements CacheProvider {
     }
     private void reconnect() {
         final long expected; final boolean clear;
-        synchronized (this) { if (closed) return; expected = generation; clear = dirty; }
+        synchronized (this) { if (closed || pendingInvalidations>0) return; expected = generation; clear = dirty; }
         try {
             if (!Boolean.TRUE.equals(remote.setup().get(1500, TimeUnit.MILLISECONDS))) throw new IllegalStateException();
             if(remote instanceof RedisCacheProvider)((RedisCacheProvider)remote).track(this::remoteInvalidation,this::trackingLost,()->{synchronized(this){memory.removeAllVpnResults();memory.removeAllGeoResults();}}).get(1500,TimeUnit.MILLISECONDS);
@@ -39,7 +41,7 @@ public final class ResilientRedisCacheProvider implements CacheProvider {
                     || !Boolean.TRUE.equals(remote.removeAllGeoResults().get(1500, TimeUnit.MILLISECONDS)))) throw new IllegalStateException();
             synchronized (this) {
                 if (closed || generation != expected) return;
-                dirty = false;
+                dirty = false;invalidationFailed=false;
                 boolean recovered = !available; available = true;
                 if (recovered && warned && ConnectionGuard.getLogger() != null) ConnectionGuard.getLogger().info("Redis reconnected; memory cache remains available.");
                 warned = false;
@@ -88,13 +90,29 @@ public final class ResilientRedisCacheProvider implements CacheProvider {
     @Override public CompletableFuture<Optional<GeoResult>> getGeoResult(String ip) { return read(() -> memory.getGeoResult(ip), () -> remote.getGeoResult(ip), memory::rememberGeo); }
     @Override public synchronized CompletableFuture<Void> addVpnResult(VpnResult value) { CompletableFuture<Void> ready = memory.addVpnResult(value); mirror(() -> remote.addVpnResult(value)); return ready; }
     @Override public synchronized CompletableFuture<Void> addGeoResult(GeoResult value) { CompletableFuture<Void> ready = memory.addGeoResult(value); mirror(() -> remote.addGeoResult(value)); return ready; }
-    private synchronized CompletableFuture<Boolean> invalidate(Supplier<CompletableFuture<Boolean>> local) {
-        dirty = true; available = false; generation++; return local.get();
+    @Override public synchronized CompletableFuture<Void> restoreVpnResult(VpnResult value) { memory.rememberVpn(value);mirror(()->remote.restoreVpnResult(value));return CompletableFuture.completedFuture(null); }
+    @Override public synchronized CompletableFuture<Void> restoreGeoResult(GeoResult value) { memory.rememberGeo(value);mirror(()->remote.restoreGeoResult(value));return CompletableFuture.completedFuture(null); }
+    private synchronized CompletableFuture<Boolean> invalidate(Supplier<CompletableFuture<Boolean>> local,Supplier<CompletableFuture<Boolean>> deletion) {
+        boolean connected=available || pendingInvalidations>0;
+        dirty=true;available=false;generation++;local.get();
+        if(!connected || closed)return CompletableFuture.completedFuture(true); // Recovery clears this namespace before reading it.
+        final String scope=namespace;pendingInvalidations++;
+        CompletableFuture<Boolean> applied;
+        try{applied=deletion.get();}catch(RuntimeException failure){applied=new CompletableFuture<>();applied.completeExceptionally(failure);}
+        return applied.handle((ok,error)->{
+            synchronized(this){
+                pendingInvalidations--;
+                if(error!=null || !Boolean.TRUE.equals(ok))invalidationFailed=true;
+                if(pendingInvalidations==0 && !invalidationFailed && !closed && Objects.equals(scope,namespace)){dirty=false;available=true;}
+            }
+            if(error!=null)failed();
+            return error==null && Boolean.TRUE.equals(ok);
+        });
     }
-    @Override public CompletableFuture<Boolean> removeVpnResult(String ip) { return invalidate(() -> memory.removeVpnResult(ip)); }
-    @Override public CompletableFuture<Boolean> removeGeoResult(String ip) { return invalidate(() -> memory.removeGeoResult(ip)); }
-    @Override public CompletableFuture<Boolean> removeAllVpnResults() { return invalidate(memory::removeAllVpnResults); }
-    @Override public CompletableFuture<Boolean> removeAllGeoResults() { return invalidate(memory::removeAllGeoResults); }
+    @Override public CompletableFuture<Boolean> removeVpnResult(String ip) { return invalidate(() -> memory.removeVpnResult(ip),()->remote.removeVpnResult(ip)); }
+    @Override public CompletableFuture<Boolean> removeGeoResult(String ip) { return invalidate(() -> memory.removeGeoResult(ip),()->remote.removeGeoResult(ip)); }
+    @Override public CompletableFuture<Boolean> removeAllVpnResults() { return invalidate(memory::removeAllVpnResults,remote::removeAllVpnResults); }
+    @Override public CompletableFuture<Boolean> removeAllGeoResults() { return invalidate(memory::removeAllGeoResults,remote::removeAllGeoResults); }
     @Override public synchronized CompletableFuture<Boolean> disband() {
         closed = true; available = false; retries.shutdownNow(); memory.disband(); return remote.disband();
     }

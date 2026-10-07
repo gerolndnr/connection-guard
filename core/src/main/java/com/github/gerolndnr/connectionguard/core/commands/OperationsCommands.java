@@ -91,6 +91,8 @@ public final class OperationsCommands {
             lines.add(((com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider) ConnectionGuard.getCacheProvider()).describe());
         if(ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider)
             lines.add(((com.github.gerolndnr.connectionguard.core.cache.TieredCacheProvider)ConnectionGuard.getCacheProvider()).describe());
+        if(ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider)
+            lines.add(((com.github.gerolndnr.connectionguard.core.cache.StartingCacheProvider)ConnectionGuard.getCacheProvider()).describe());
         com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration draft = ConnectionGuard.getActiveDraft();
         if (draft != null) lines.add("VPN strategy=" + (draft.failover ? "FAILOVER" : "CONSENSUS")
                 + " effectiveThreshold=" + draft.threshold + " maxExternalAttempts=" + draft.externalAttempts + " order=" + draft.keys);

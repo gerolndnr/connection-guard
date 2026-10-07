@@ -46,6 +46,12 @@ public final class TieredCacheProvider implements CacheProvider {
         if(closed)return CompletableFuture.completedFuture(null);
         epoch++;memory.addGeoResult(value);mirror(()->persistent.addGeoResult(value));return CompletableFuture.completedFuture(null);
     }
+    @Override public synchronized CompletableFuture<Void> restoreVpnResult(VpnResult value) {
+        if(!closed){epoch++;memory.rememberVpn(value);mirror(()->persistent.restoreVpnResult(value));}return CompletableFuture.completedFuture(null);
+    }
+    @Override public synchronized CompletableFuture<Void> restoreGeoResult(GeoResult value) {
+        if(!closed){epoch++;memory.rememberGeo(value);mirror(()->persistent.restoreGeoResult(value));}return CompletableFuture.completedFuture(null);
+    }
     private void mirror(Supplier<CompletableFuture<Void>> operation) {
         try {operation.get().exceptionally(failure->null);}catch(RuntimeException failure){/* Memory remains authoritative. */}
     }
