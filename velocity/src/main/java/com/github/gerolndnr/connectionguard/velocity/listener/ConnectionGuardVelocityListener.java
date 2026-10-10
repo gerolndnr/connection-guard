@@ -8,7 +8,6 @@ import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
-import com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper;
 import com.github.gerolndnr.connectionguard.velocity.ConnectionGuardVelocityPlugin;
 import com.velocitypowered.api.event.EventTask;
 import com.velocitypowered.api.event.ResultedEvent;
@@ -74,6 +73,7 @@ public class ConnectionGuardVelocityListener {
         final String ipAddress = Exemptions.normalize(rawIp);
         final boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY, DecisionObservation.Phase.LOGIN, ipAddress, uuid, identity.observationTrust(), startedNanos);
+        decision.playerName(playerUsername);
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(ipAddress, uuid, trusted, AccessRule.Scope.GEO);
@@ -147,13 +147,6 @@ public class ConnectionGuardVelocityListener {
                         );
                     }
 
-                    // Check if WebHook should be executed
-                    if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                        String webhookMessage = decision.messages().getString("messages.vpn-webhook")
-                                .replace("%NAME%", playerUsername)
-                                .replace("%IP%", ipAddress);
-                        CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
-                    }
 
                     // Check if player should be kicked
                     if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
@@ -199,16 +192,6 @@ public class ConnectionGuardVelocityListener {
                             );
                         }
 
-                        // Check if WebHook should be executed
-                        if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                            String webhookMessage = decision.messages().getString("messages.geo-webhook")
-                                    .replace("%NAME%", playerUsername)
-                                    .replace("%IP%", ipAddress)
-                                    .replace("%COUNTRY%", geoResult.getCountryName())
-                                    .replace("%CITY%", geoResult.getCityName())
-                                    .replace("%ISP%", geoResult.getIspName());
-                            CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.GEO, webhookMessage);
-                        }
 
                         // Check if player should be kicked
                         if (policy.denial == DecisionObservation.Reason.GEO_FLAG) {

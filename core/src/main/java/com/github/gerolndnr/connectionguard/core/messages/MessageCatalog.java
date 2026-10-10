@@ -56,6 +56,8 @@ public final class MessageCatalog {
         // Historical documented player templates may add supported placeholders absent in defaults.
         if(key.startsWith("messages.vpn-"))allowed.addAll(Arrays.asList("%NAME%","%IP%"));
         if(key.startsWith("messages.geo-"))allowed.addAll(Arrays.asList("%NAME%","%IP%","%COUNTRY%","%CITY%","%ISP%"));
+        if(key.equals("messages.vpn-webhook") || key.equals("messages.geo-webhook"))
+            allowed.addAll(Arrays.asList("%UUID%","%IS_VPN%","%LOCATION%","%COUNTRY%","%CITY%","%ISP%","%TIME%"));
         if(key.equals("messages.info.text"))allowed.addAll(Arrays.asList("%INPUT%","%IP%","%IS_VPN%","%CITY%","%COUNTRY%","%ISP%"));
         if(schema instanceof String) { if(!(raw instanceof String))throw invalid(); validateText(key,(String)raw,allowed); return raw; }
         if(!(raw instanceof List) || ((List<?>)raw).size()>32)throw invalid();

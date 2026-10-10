@@ -43,6 +43,18 @@ public final class CGWebHookHelper {
     }
     public static void sendDecision(DecisionObservation event, WebhookSettings settings, int threshold,
                                     com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
+        sendDecision(event,settings,threshold,messages,WebhookContext.EMPTY);
+    }
+    public static void sendDecision(DecisionObservation event, WebhookSettings settings, int threshold,
+                                    com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages, WebhookContext context) {
+        if(event.getMode()!=Mode.OBSERVE) for(Scope scope:Arrays.asList(Scope.VPN,Scope.GEO)) {
+            WebhookSettings.Destination destination=scope==Scope.VPN ? settings.vpn : settings.geo;
+            if(destination.isLegacyText() && event.getFlags().contains(scope==Scope.VPN ? Flag.VPN : Flag.GEO)) {
+                try { sendLegacy(settings,scope,WebhookTemplate.render(messages.getString(scope==Scope.VPN
+                        ? "messages.vpn-webhook" : "messages.geo-webhook"),event,context)); }
+                catch(RuntimeException | LinkageError invalid){recordInvalid();}
+            }
+        }
         for (Notification notification : plan(event, settings)) {
             try {
                 send(notification.destination.endpoint(), CGWebHookRequest.embedded(event, notification.scopes, notification.includeIp, threshold, messages),

@@ -19,6 +19,7 @@ public final class WebhookSettings {
         fingerprint = digest(mode + "\n" + vpn.signature() + "\n" + geo.signature());
     }
     public boolean hasEmbeds() { return vpn.enabled && vpn.format == Format.EMBED || geo.enabled && geo.format == Format.EMBED; }
+    public boolean hasText() { return vpn.isLegacyText() || geo.isLegacyText(); }
     public String fingerprint() { return fingerprint; }
     static String digest(String value) {
         try {

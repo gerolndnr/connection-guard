@@ -49,6 +49,46 @@ Rich messages omit player names, UUIDs, raw provider text, ISP/operator strings,
 
 When both VPN and geo select an EMBED for the identical URL string, one combined message is generated: both scopes appear, address inclusion requires both opt-ins, and the longer cooldown applies. Different URLs retain independent privacy settings. Mixing TEXT and EMBED retains their separate delivery paths; use EMBED for both scopes to combine them.
 
+## Custom messages and variables
+
+Development 0.6.1 expands the existing TEXT templates; there is no fixed compact layout to choose. You decide the wording, selected fields and their order. Existing templates remain valid and are not overwritten.
+
+Keep your existing webhook enabled with its private URL, and select TEXT in `config.yml`:
+
+```yaml
+behavior:
+  vpn:
+    send-webhook:
+      format: TEXT
+```
+
+In the existing `translation/<message-language>.yml` file (for example `translation/en.yml`), edit this field under the existing `messages` section:
+
+```yaml
+messages:
+  vpn-webhook: '%NAME% | %UUID% | VPN: %IS_VPN% | IP: %IP% | Location: %LOCATION% | Time: %TIME%'
+```
+
+Then `/cg reload`. Do not add duplicate YAML sections. For geo alerts, select TEXT under `behavior.geo.send-webhook` and customize `messages.geo-webhook` in the same message file. Both templates accept every variable below. Remove a variable to leave that data out, or use YAML multiline text for a different layout.
+
+| Variable | Captured value |
+| --- | --- |
+| `%NAME%` | Reported player name at this login phase; not independent authentication proof. |
+| `%UUID%` | Captured trusted platform/forwarded UUID; UNKNOWN if absent, untrusted or identity proof was lost. No offline UUID is fabricated. |
+| `%IS_VPN%` | `true` for a positive VPN/proxy/Tor check, `false` for a completed negative check, `UNKNOWN` for incomplete, exempt or unperformed checks. |
+| `%IP%` | The checked connection address. |
+| `%LOCATION%` | City and ISO country from an existing completed geo check; country alone from an unambiguous existing known VPN-source fact; otherwise UNKNOWN. |
+| `%COUNTRY%` | Available ISO country code, otherwise UNKNOWN. |
+| `%CITY%` | Available city from an existing geo check, otherwise UNKNOWN. |
+| `%ISP%` | Available ISP from an existing geo check, otherwise UNKNOWN. |
+| `%TIME%` | Captured decision time in UTC ISO-8601, also for cached decisions; not provider publication or webhook delivery time. |
+
+The template itself is your explicit choice to send those fields to the webhook recipient. `include-ip` controls rich EMBED only and does not redact TEXT variables. Keep identity/address/location variables out of templates for recipients that should not receive them, and reflect the chosen data in your server disclosure. Name/city display data stays internal to notifications; the Cloud sync and addon observation contracts are unchanged.
+
+No extra lookup runs to fill a message; Geo remains Disabled unless you separately enabled it. Missing or conflicting facts stay UNKNOWN, and exemptions/errors do not turn into a negative VPN result. Substitutions run once literally, so values containing dollar signs, backslashes or placeholder-looking text cannot insert another value. Controls/bidi text, Discord size limits and mention suppression still apply.
+
+TEXT keeps its existing trigger behavior: only positive VPN/geo flags notify. Ordinary clean logins, manual rules and failure denials do not start a new text alert; EMBED event selection remains separate. OBSERVE suppresses both formats. Rendering uses the same immutable message/settings draft and runs after the guard's decision on the bounded report worker; an invalid reload preserves the previous active configuration and queued old drafts are retired. Same-endpoint text cooldowns and no automatic retry remain unchanged.
+
 ## Existing text configuration
 
 Missing `format` preserves TEXT and your existing `messages.vpn-webhook` / `messages.geo-webhook` templates. Existing text placeholders still behave as configured and may include names or addresses. `include-ip` and rich event selection do not rewrite those templates; choose EMBED for the typed privacy defaults, or remove unwanted placeholders in TEXT. Text is bounded to 2000 UTF-16 units, strips malformed/control/bidi text and suppresses mentions. Missing cooldown now defaults to 1000 ms. Rich DENY notifications can report strict failures/manual denials which never trigger the legacy positive-result text path.

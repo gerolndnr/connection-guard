@@ -146,6 +146,32 @@ class WebhookCaptureTest {
         CGWebHookHelper.sendWebHook("https://example.invalid/synthetic-private-token","@everyone synthetic").get(2,TimeUnit.SECONDS);idle();
         assertEquals("@everyone synthetic",bodies.get(0).get("content").getAsString());assertEquals(0,bodies.get(0).getAsJsonObject("allowed_mentions").getAsJsonArray("parse").size());
     }
+    @Test void legacyTextCapturesThePlayerAndEmitsOnceWithoutAnAddonObserver()throws Exception {
+        Map<String,Object> fields=new HashMap<>();fields.put("behavior.vpn.send-webhook.enabled",true);
+        fields.put("behavior.vpn.send-webhook.url","https://example.invalid/synthetic-private-token");fields.put("behavior.vpn.send-webhook.format","TEXT");
+        fields.put("behavior.vpn.send-webhook.cooldown-ms",0);ConnectionGuard.applySettings(GuardSettings.read(fields::get,Collections.emptyList()));
+        DecisionCapture capture=begin();capture.playerName("FixtureUser");
+        capture.facts(new com.github.gerolndnr.connectionguard.core.vpn.VpnResult("192.0.2.55",true),
+                new com.github.gerolndnr.connectionguard.core.lookup.GeoLookup(Optional.empty(),com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE,false,0),false,true,1000);
+        flagged(capture);capture.close();idle();assertEquals(1,bodies.size());
+        assertEquals("FixtureUser (192.0.2.55) tried to connect with a vpn.",bodies.get(0).get("content").getAsString());
+        assertFalse(bodies.get(0).has("embeds"));assertEquals(0,bodies.get(0).getAsJsonObject("allowed_mentions").getAsJsonArray("parse").size());
+    }
+    @Test void customTextReportsAllRequestedVariablesAndReloadRetiresItsCapturedDraft()throws Exception {
+        Map<String,Object> fields=new HashMap<>();fields.put("behavior.vpn.send-webhook.enabled",true);
+        fields.put("behavior.vpn.send-webhook.url","https://example.invalid/synthetic-private-token");fields.put("behavior.vpn.send-webhook.format","TEXT");
+        fields.put("behavior.vpn.send-webhook.cooldown-ms",0);ConnectionGuard.applySettings(GuardSettings.read(fields::get,Collections.emptyList()));
+        String template="%NAME% | %UUID% | VPN: %IS_VPN% | %IP% | %LOCATION% | %TIME%";
+        com.github.gerolndnr.connectionguard.core.messages.MessageCatalog catalog=com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.read("en",key->key.equals("messages.vpn-webhook")?template:null);
+        DecisionObservation event=new DecisionObservation(Platform.VELOCITY,Phase.LOGIN,Mode.ENFORCE,IdentityTrust.AUTHENTICATED,
+                UUID.fromString("12345678-1234-1234-1234-123456789abc"),"192.0.2.55",Outcome.DENY,Reason.VPN_FLAG,Check.POSITIVE,Check.KNOWN,
+                1000,5,false,EnumSet.of(Flag.VPN),Collections.emptyList(),Collections.emptyList());
+        GuardSettings selected=ConnectionGuard.getSettings();CGWebHookHelper.sendDecision(event,selected.webhooks,1,catalog,
+                WebhookContext.EMPTY.withPlayerName("FixtureUser").withLocation("DE","Berlin","Fixture ISP"));idle();assertEquals(1,bodies.size());
+        assertEquals("FixtureUser | 12345678-1234-1234-1234-123456789abc | VPN: true | 192.0.2.55 | Berlin, DE | 1970-01-01T00:00:01Z",bodies.get(0).get("content").getAsString());
+        ConnectionGuard.applySettings(GuardSettings.read(fields::get,Collections.emptyList()));
+        CGWebHookHelper.sendDecision(event,selected.webhooks,1,catalog,WebhookContext.EMPTY.withPlayerName("OldDraft"));idle();assertEquals(1,bodies.size());
+    }
     @Test void repeatedDeliveryFailureWarningsAreBoundedAndRedacted()throws Exception {
         List<String> messages=new ArrayList<>();Logger logger=Logger.getAnonymousLogger();logger.setUseParentHandlers(false);
         logger.addHandler(new Handler(){public void publish(LogRecord record){messages.add(record.getMessage());}public void flush(){}public void close(){}});
