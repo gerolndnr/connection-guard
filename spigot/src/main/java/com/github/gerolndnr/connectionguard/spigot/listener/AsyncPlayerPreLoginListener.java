@@ -8,7 +8,6 @@ import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
-import com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper;
 import com.github.gerolndnr.connectionguard.spigot.ConnectionGuardSpigotPlugin;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -42,6 +41,7 @@ public class AsyncPlayerPreLoginListener implements Listener {
                         ConnectionGuard.getSettings().nativeFloodgateIdentity, connection.forwardedProof(uuid, preLoginEvent.getName()));
         boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUKKIT, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
+        decision.playerName(preLoginEvent.getName());
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.GEO);
@@ -111,13 +111,6 @@ public class AsyncPlayerPreLoginListener implements Listener {
                     ConnectionGuardSpigotPlugin.getInstance().tasks().consoleCommand(ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.vpn.execute-command.command").replace("%NAME%", preLoginEvent.getName()).replace("%IP%", ipAddress));
                 }
 
-                // Check if WebHook should be executed
-                if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                    String webhookMessage = decision.messages().getString("messages.vpn-webhook")
-                            .replace("%NAME%", preLoginEvent.getName())
-                            .replace("%IP%", ipAddress);
-                    CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
-                }
 
                 // Check if player should be kicked
                 if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
@@ -159,16 +152,6 @@ public class AsyncPlayerPreLoginListener implements Listener {
                         ConnectionGuardSpigotPlugin.getInstance().tasks().consoleCommand(ConnectionGuardSpigotPlugin.getInstance().getConfig().getString("behavior.geo.execute-command.command").replace("%NAME%", preLoginEvent.getName()).replace("%IP%", ipAddress).replace("%COUNTRY%", geoResult.getCountryName()));
                     }
 
-                    // Check if WebHook should be executed
-                    if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                        String webhookMessage = decision.messages().getString("messages.geo-webhook")
-                                .replace("%NAME%", preLoginEvent.getName())
-                                .replace("%IP%", ipAddress)
-                                .replace("%COUNTRY%", geoResult.getCountryName())
-                                .replace("%CITY%", geoResult.getCityName())
-                                .replace("%ISP%", geoResult.getIspName());
-                        CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.GEO, webhookMessage);
-                    }
 
                     // Check if player should be kicked
                     if (policy.denial == DecisionObservation.Reason.GEO_FLAG) {

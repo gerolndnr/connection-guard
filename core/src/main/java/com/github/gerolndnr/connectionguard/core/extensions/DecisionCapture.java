@@ -22,6 +22,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
     private final long generation, started;
     private final boolean captureEnabled;
+    private com.github.gerolndnr.connectionguard.core.webhook.WebhookContext webhookContext = com.github.gerolndnr.connectionguard.core.webhook.WebhookContext.EMPTY;
     private final int positiveThreshold;
     private final boolean geoDisabled;
     private final com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease policyLease;
@@ -38,7 +39,7 @@ public final class DecisionCapture implements AutoCloseable {
         this.started = startedNanos;
         this.platform = platform; this.phase = phase; this.ip = ip; this.uuid = uuid; this.identityTrust = trust;
         settings = ConnectionGuard.getSettings(); messages = ConnectionGuard.getMessages(); generation = DecisionObservers.captureGeneration();
-        captureEnabled = generation >= 0 || !settings.observe && settings.webhooks.hasEmbeds();
+        captureEnabled = generation >= 0 || !settings.observe && (settings.webhooks.hasEmbeds() || settings.webhooks.hasText());
         positiveThreshold = ConnectionGuard.getRequiredPositiveFlags();
         geoDisabled = ConnectionGuard.isGeoDisabled();
         String selectedGeo = ConnectionGuard.policyGeoSource();
@@ -57,6 +58,9 @@ public final class DecisionCapture implements AutoCloseable {
     public GuardSettings settings() { return settings; }
     public String policyGeoSource() { return geoSource.equals("geo.none") ? null : geoSource; }
     public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages() { return messages; }
+    public void playerName(String name) {
+        if(!settings.observe && settings.webhooks.hasText()) record(()->webhookContext=webhookContext.withPlayerName(name));
+    }
     public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
     public void denied(Reason reason) { denied = reason; }
     public void error() { processingError = true; }
@@ -102,6 +106,8 @@ public final class DecisionCapture implements AutoCloseable {
                             vote.getValidUntil(), vote.getSourceVersion()), vote.getDurationMillis(), vote.isVoting(), vpn.isFromCache()));
             if (!geoExempt && !geoDisabled) {
                 GeoResult value = geo.getResult().orElse(null);
+                if(!settings.observe && settings.webhooks.hasText() && value!=null)
+                    webhookContext=webhookContext.withLocation(value.getCountryName(),value.getCityName(),value.getIspName());
                 DetectionMetadata details = value == null ? DetectionMetadata.empty() : new DetectionMetadata(null,
                         value.getAsn(), "Unknown".equalsIgnoreCase(value.getIspName()) ? null : value.getIspName(), null,
                         value.getCountryName().matches("[A-Z]{2}") ? value.getCountryName() : null, null, null);
@@ -143,10 +149,12 @@ public final class DecisionCapture implements AutoCloseable {
         final long capturedAt=observedAt;
         final boolean capturedError=processingError;
         final List<AdmissionObservation> capturedAdmission=admissionChecks;
-        DecisionObservers.deferCapture(()->emit(capturedOutcome,capturedReason,capturedVpn,capturedGeo,capturedAt,duration,capturedError,capturedFlags,capturedSources,capturedRules,capturedAdmission));
+        final com.github.gerolndnr.connectionguard.core.webhook.WebhookContext capturedWebhookContext=webhookContext;
+        DecisionObservers.deferCapture(()->emit(capturedOutcome,capturedReason,capturedVpn,capturedGeo,capturedAt,duration,capturedError,capturedFlags,capturedSources,capturedRules,capturedAdmission,capturedWebhookContext));
     }
     private void emit(Outcome outcome,Reason reason,Check vpnCheck,Check geoCheck,long observedAt,long duration,boolean processingError,
-            Set<Flag> flags,List<Source> sources,List<Rule> rules,List<AdmissionObservation> admissionChecks){
+            Set<Flag> flags,List<Source> sources,List<Rule> rules,List<AdmissionObservation> admissionChecks,
+            com.github.gerolndnr.connectionguard.core.webhook.WebhookContext webhookContext){
         // Observation construction must never change admission or retain exception details.
         DecisionObservation event;
         try {
@@ -159,7 +167,7 @@ public final class DecisionCapture implements AutoCloseable {
             com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid();
             return;
         }
-        try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold,messages); }
+        try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold,messages,webhookContext); }
         catch (RuntimeException | LinkageError invalid) { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid(); }
         // A notification failure must not prevent a separately selected observer from receiving facts.
         if (generation >= 0) DecisionObservers.publish(event,generation);

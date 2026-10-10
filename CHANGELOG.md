@@ -2,6 +2,11 @@
 
 ## Unreleased — 0.6.1
 
+### Custom webhook message variables
+
+- Expand existing TEXT templates (`messages.vpn-webhook` and `messages.geo-webhook`) with `%UUID%`, `%IS_VPN%`, `%LOCATION%`, `%COUNTRY%`, `%CITY%`, `%ISP%` and UTC `%TIME%`, alongside `%NAME%` and `%IP%`. Operators choose exactly which fields to send and their order; preserve customized files, existing triggers, EMBED output and privacy controls.
+- Render once literally from captured identity/check/location facts after the admission decision. Unknown or unchecked data stays UNKNOWN; no extra geo/API lookup, offline UUID fabrication or new Cloud/addon data field. Keep safe reload retirement, bounded delivery and mention suppression. [Template setup](docs/WEBHOOKS.md#custom-messages-and-variables).
+
 ### Everyday joins
 
 - Put a bounded 10,000-entry Memory tier in front of SQLite and coherent Redis. Fresh cache hits and local-list results complete on the caller thread; persistence reads happen only on Memory misses. Keep fact age, source expiry, namespace isolation and invalidation fences.

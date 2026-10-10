@@ -182,15 +182,32 @@ def main():
         assert int(fixture()['queued'])==1
         vpn['url']='https://127.0.0.1:'+str(http.server_port)+'/fixture/new';reload();gate.set();state['gate']=None;idle();assert count()==9
         send('CGAfterReload');check(10);assert received[-1]['path']=='/fixture/new';result['cases'].append('actual-reload-retires-queued-old-recipient-without-delaying-admission')
-        state['status']=503;settings['integrations']['observers']={'enabled':True,'ids':['webhook-observer']};reload();before=int(fixture()['events']);send('CGFailedPost');check(11)
+        # Actual TEXT custom-message reload on native offline login; no extra geo lookup.
+        language_file=instance.directory/'plugins/connection-guard/translation/en.yml'
+        original_messages=yaml.safe_load(language_file.read_text())
+        custom_messages=copy.deepcopy(original_messages)
+        custom_messages['messages']['vpn-webhook']='%NAME% | %UUID% | %IS_VPN% | %IP% | %LOCATION% | %TIME%'
+        language_file.write_text(yaml.safe_dump(custom_messages,allow_unicode=True))
+        vpn['format']='TEXT';vpn['url']='https://127.0.0.1:'+str(http.server_port)+'/fixture/custom';reload()
+        send('CGCustomText');wait_count(11);idle();text_body=received[-1]['body']
+        assert set(text_body)=={'content','allowed_mentions'} and text_body['allowed_mentions']['parse']==[]
+        assert re.fullmatch(r'CGCustomText \| UNKNOWN \| true \| 127\.0\.0\.1 \| PT \| \d{4}-\d{2}-\d{2}T[^|]+Z',text_body['content']),text_body
+        result['cases'].append('native-custom-text-six-variables-with-country-and-unverified-uuid')
+        rejected=copy.deepcopy(custom_messages);rejected['messages']['vpn-webhook']='%SECRET%'
+        language_file.write_text(yaml.safe_dump(rejected,allow_unicode=True))
+        instance.write(settings);instance.command('cg reload','Reload rejected; active settings preserved.')
+        send('CGTextKept');wait_count(12);idle();assert received[-1]['body']['content'].startswith('CGTextKept | UNKNOWN | true | 127.0.0.1 | PT | ')
+        result['cases'].append('native-invalid-template-reload-preserves-selected-custom-text')
+        language_file.write_text(yaml.safe_dump(original_messages,allow_unicode=True));vpn['format']='EMBED';vpn['url']='https://127.0.0.1:'+str(http.server_port)+'/fixture/new';reload()
+        state['status']=503;settings['integrations']['observers']={'enabled':True,'ids':['webhook-observer']};reload();before=int(fixture()['events']);send('CGFailedPost');check(13)
         deadline=time.monotonic()+2;value=fixture()
         while int(value['events'])<before+1 and time.monotonic()<deadline:time.sleep(.01);value=fixture()
         assert int(value['events'])==before+1 and value['outcome']=='DENY'
         result['cases'].append('failed-http-delivery-does-not-change-guard-or-observer')
-        state['status']=204;gate=threading.Event();state['gate']=gate;send('CGPostTimeout');wait_count(12);value=idle();assert int(value['failed'])>=3 and count()==12;gate.set();state['gate']=None
+        state['status']=204;gate=threading.Event();state['gate']=gate;send('CGPostTimeout');wait_count(14);value=idle();assert int(value['failed'])>=3 and count()==14;gate.set();state['gate']=None
         result['cases'].append('ambiguous-http-timeout-has-no-automatic-retry')
         state['status']=429;state['body']='{"retry_after":60.125,"global":true,"message":"synthetic-private-token"}';state['headers']={}
-        send('CGRateOne');check(13);vpn['url']='https://127.0.0.1:'+str(http.server_port)+'/fixture/rate-other';reload();send('CGRateOther');idle();assert count()==13
+        send('CGRateOne');check(15);vpn['url']='https://127.0.0.1:'+str(http.server_port)+'/fixture/rate-other';reload();send('CGRateOther');idle();assert count()==15
         result['cases'].append('actual-json-global-429-pauses-a-different-recipient-without-retry')
         assert 'synthetic-private-token' not in ''.join(instance.transcript) and 'synthetic-provider-isp' not in ''.join(instance.transcript)
         result['https_requests']=count();result['observer_was_initially_unselected']=True;result['guard_idle_at_end']=fixture()['lookupIdle']=='true'

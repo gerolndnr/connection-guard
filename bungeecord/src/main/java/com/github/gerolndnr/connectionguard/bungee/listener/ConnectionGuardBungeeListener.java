@@ -9,7 +9,6 @@ import com.github.gerolndnr.connectionguard.core.admission.LoginAdmission;
 import com.github.gerolndnr.connectionguard.core.geo.GeoResult;
 import com.github.gerolndnr.connectionguard.core.luckperms.CGLuckPermsHelper;
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
-import com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -50,6 +49,7 @@ public class ConnectionGuardBungeeListener implements Listener {
                         ConnectionGuard.getSettings().nativeFloodgateIdentity);
         boolean trusted = identity.isTrusted();
         DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.BUNGEE, DecisionObservation.Phase.LOGIN, clientIp, uuid, identity.observationTrust(), startedNanos);
+        decision.playerName(identityName);
         try {
             Optional<AccessRule> vpnAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.VPN);
             Optional<AccessRule> geoAccess = ConnectionGuard.accessRule(clientIp, uuid, trusted, AccessRule.Scope.GEO);
@@ -125,13 +125,6 @@ public class ConnectionGuardBungeeListener implements Listener {
                                         .replace("%IP%", ipAddress));
                     }
 
-                    // Check if WebHook should be executed
-                    if (!decision.observe() && decision.settings().webhooks.vpn.isLegacyText()) {
-                        String webhookMessage = decision.messages().getString("messages.vpn-webhook")
-                                .replace("%NAME%", identityName)
-                                .replace("%IP%", ipAddress);
-                        CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.VPN, webhookMessage);
-                    }
 
                     // Check if player should be kicked
                     if (policy.denial == DecisionObservation.Reason.VPN_FLAG) {
@@ -179,16 +172,6 @@ public class ConnectionGuardBungeeListener implements Listener {
                                             .replace("%IP%", ipAddress));
                         }
 
-                        // Check if WebHook should be executed
-                        if (!decision.observe() && decision.settings().webhooks.geo.isLegacyText()) {
-                            String webhookMessage = decision.messages().getString("messages.geo-webhook")
-                                    .replace("%NAME%", identityName)
-                                    .replace("%IP%", ipAddress)
-                                    .replace("%COUNTRY%", geoResult.getCountryName())
-                                    .replace("%CITY%", geoResult.getCityName())
-                                    .replace("%ISP%", geoResult.getIspName());
-                            CGWebHookHelper.sendLegacy(decision.settings().webhooks, DecisionObservation.Scope.GEO, webhookMessage);
-                        }
 
                         // Check if player should be kicked
                         if (policy.denial == DecisionObservation.Reason.GEO_FLAG) {

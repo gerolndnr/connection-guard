@@ -107,6 +107,8 @@ behavior:
       url: ''
       # EMBED uses actual completed decision facts; missing setting keeps legacy TEXT.
       format: EMBED
+      # TEXT: customize messages.vpn-webhook / messages.geo-webhook in translation/<message-language>.yml.
+      # Variables: %NAME%, %UUID%, %IS_VPN%, %IP%, %LOCATION%, %COUNTRY%, %CITY%, %ISP%, %TIME%.
       # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
       include-ip: false
       events: [FLAG, DENY, ERROR]
@@ -136,6 +138,8 @@ behavior:
       url: ''
       # EMBED uses actual completed decision facts; missing setting keeps legacy TEXT.
       format: EMBED
+      # TEXT: customize messages.vpn-webhook / messages.geo-webhook in translation/<message-language>.yml.
+      # Variables: %NAME%, %UUID%, %IS_VPN%, %IP%, %LOCATION%, %COUNTRY%, %CITY%, %ISP%, %TIME%.
       # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
       include-ip: false
       events: [FLAG, DENY, ERROR]
