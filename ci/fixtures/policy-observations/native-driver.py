@@ -125,6 +125,38 @@ def main():
         (policy / 'candidate.json').write_text(json.dumps(candidate))
         runtime.command('cg policy test observations candidate captured','Saved local observations: 1; changed outcomes: 1;')
         assert state() == after; passed('native_identity_rule_replay_never_activates_or_adds_actions')
+        # Qualify the combined D1 workflow: comparison never commits; explicit transitions do.
+        candidate['rules'] = []; (policy / 'candidate.json').write_text(json.dumps(candidate))
+        saved_bytes = archive.read_bytes()
+        runtime.command('cg policy shadow start candidate 5m','Shadow ACTIVE: compared 0;')
+        denied('CGSavedShadow')
+        runtime.command('cg policy shadow status','Shadow ACTIVE: compared 1; changed outcomes: 1;')
+        runtime.command('cg policy shadow stop','Shadow STOPPED: compared 1;')
+        assert archive.read_bytes() == saved_bytes; passed('native_saved_replay_and_live_shadow_keep_actual_denial_and_archive')
+        fingerprint = re.search(r'candidate=([a-f0-9]{64})', runtime.command('cg policy inspect candidate','candidate='))[1]
+        runtime.command('cg policy status','Policy owner=')
+        token = re.search(r'expected=([a-f0-9]{64})', runtime.wait('expected='))[1]
+        runtime.command('cg policy activate candidate ' + fingerprint + ' ' + token,'Policy committed:')
+        runtime.wait('Policy owner='); runtime.wait('expected=')
+        original_revision = json.loads((data / 'access-rules.json').read_text())['revisions'][1]['id']
+        offset = len(runtime.transcript); before = state()
+        if backend:
+            clients.write('connect CGCaptureAllow'); clients.wait('CLIENT CGCaptureAllow login')
+            wait_until(runtime, lambda: any('POLICY_JOIN CGCaptureAllow' in line for line in runtime.transcript[offset:]))
+            clients.write('close CGCaptureAllow'); clients.wait('CLIENT CGCaptureAllow end')
+        else: assert login(runtime.port,'CGCaptureAllow') == 'LOGIN_SUCCESS'
+        observed = wait_until(runtime, lambda: [line for line in runtime.transcript[offset:] if 'POLICY_OBS ' in line])
+        assert len(observed) == 1 and 'reason=FLAG_ALLOWED' in observed[0] and 'outcome=ALLOW' in observed[0]
+        after = state(); assert after['calls'] == before['calls'] + 1 and after['actions'] == before['actions']
+        runtime.command('cg policy test observations candidate captured','Saved local observations: 1; changed outcomes: 0;')
+        assert state() == after and archive.read_bytes() == saved_bytes
+        passed('native_only_explicit_reviewed_activation_changes_admission_then_replay_matches')
+        runtime.command('cg policy status','Policy owner=')
+        token = re.search(r'expected=([a-f0-9]{64})', runtime.wait('expected='))[1]
+        runtime.command('cg policy rollback ' + original_revision + ' ' + token,'Policy committed:')
+        runtime.wait('Policy owner='); runtime.wait('expected=')
+        denied('CGCaptureRolled'); assert archive.read_bytes() == saved_bytes
+        passed('native_explicit_rollback_restores_actual_denial_and_preserves_observations')
         archive.write_text('{invalid}')
         runtime.command('cg doctor','Local policy observation capture status=unavailable')
         denied('CGCorruptSaved'); passed('native_corrupt_optional_archive_keeps_admission_active')
@@ -136,6 +168,7 @@ def main():
         passed('native_invalid_reload_keeps_existing_capture_and_live_policy')
         runtime.close()
         if clients: clients.close(); clients = None
+        assert runtime.process.returncode == 0, 'Owned runtime did not stop cleanly'
         assert not archive.exists(); passed('native_shutdown_discards_unsaved_sample')
         result['status'] = 'passed'
     finally:
@@ -143,6 +176,7 @@ def main():
         if runtime and runtime.process.poll() is None: runtime.close()
         if reservation: reservation.close()
         result['stopped'] = runtime is not None and runtime.process.poll() is not None
+        result['runtime_exit_code'] = runtime.process.returncode if runtime is not None else None
         (work / 'receipt.json').write_text(json.dumps(result,indent=2) + '\n')
     print(json.dumps(result,indent=2))
 if __name__ == '__main__': main()

@@ -27,7 +27,7 @@ and only the owned synthetic `policy-fixture` source is selected. Proxies use
 256 MiB, backends 768 MiB, sequentially and with subsequent shutdown. Minecraft
 EULA acceptance must be consciously authorized before using a backend.
 
-Eleven cases per native stack:
+Fourteen cases per native stack:
 
 1. Default off keeps an actual synthetic login denial and creates no archive.
 2. Active capture adds no provider requests, actions or observer event.
@@ -40,6 +40,9 @@ Eleven cases per native stack:
 9. A corrupt optional observation file leaves live admission functioning.
 10. Rejected invalid configuration preserves capture and the active live policy.
 11. Shutdown discards unsaved observations.
+12. Saved replay and live shadow comparison preserve the actual denial/archive.
+13. Only explicit reviewed activation changes admission; replay then compares the new current policy.
+14. Explicit rollback restores the actual denial while preserving observations.
 
 The initial native run exposed a real capture-schema rejection for valid empty
 Geo inputs from the disabled provider. The regression test and corrected native
