@@ -80,6 +80,7 @@ def main():
             reservation = socket.socket(); reservation.bind(('127.0.0.1',0))
             runtime = Proxy(work / 'proxy', artifact, settings, addon=addon, reserved_backend_port=reservation.getsockname()[1])
         runtime.ready()
+        runtime.command('cg reload', 'Config has been reloaded!')
         if backend: clients = Clients(runtime)
         data = runtime.directory / 'plugins' / ('connection-guard' if args.platform == 'velocity' else 'ConnectionGuard')
         policy = data / 'policy'; policy.mkdir(exist_ok=True); archive = policy / 'observations.json'
@@ -109,6 +110,7 @@ def main():
         before_bytes = archive.read_bytes()
         if clients: clients.close(); clients = None
         restart_process(runtime, work)
+        runtime.command('cg reload', 'Config has been reloaded!')
         if backend: clients = Clients(runtime)
         runtime.command('cg policy capture status','saved file=yes')
         assert archive.read_bytes() == before_bytes; passed('native_restart_keeps_archive_and_does_not_resume_capture')
