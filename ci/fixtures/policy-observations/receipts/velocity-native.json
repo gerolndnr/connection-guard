@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "source": "3a22093343ae7be20ae3435adc6c8c23fc93b908",
-  "artifact_sha256": "8b68b0478e6acf6850ef5b8ea2840340b25e0304a4350fce84cf22082bb02a39",
+  "source": "b0e0d2e4c0370cd78abba4bbca653757c71ba5fd",
+  "artifact_sha256": "24c7d85503108762727e13765ffc5a38b5b5388f06171f1e574b71faa6b384ff",
   "runtime": "velocity.jar",
   "runtime_sha256": "fb599cbda6a6d01decce5e281f71f51cae7cacffcfafca32a09601f407b0583e",
   "java": 21,
   "synthetic_offline_clients": true,
   "real_account_authentication": false,
   "telemetry": false,
-  "addon_sha256": "9ca7b2c9f101d83ddf6283ce52ff23e1021ffebca7cf7c90d2dc93c286761d38",
-  "driver_sha256": "9deaa4d8f8cb7ecc3f6759ae2b03e361413e707f6b78664e86d8efc1d7578267",
+  "addon_sha256": "4b197db2f7ed06e89434f3d112ebc0320ee53517ae753548f8b2964631bdee77",
+  "driver_sha256": "8fcfda02ef788ec6253e86bb6ab6fc467770e9eacb99d2b470113c5bbf8ca402",
   "cases": [
     "native_default_off_keeps_real_login_and_has_no_archive",
     "native_active_capture_does_not_add_requests_actions_or_observations",
@@ -19,10 +19,14 @@
     "native_existing_archive_is_preserved",
     "native_explicit_identity_mode_keeps_local_address",
     "native_identity_rule_replay_never_activates_or_adds_actions",
+    "native_saved_replay_and_live_shadow_keep_actual_denial_and_archive",
+    "native_only_explicit_reviewed_activation_changes_admission_then_replay_matches",
+    "native_explicit_rollback_restores_actual_denial_and_preserves_observations",
     "native_corrupt_optional_archive_keeps_admission_active",
     "native_invalid_reload_keeps_existing_capture_and_live_policy",
     "native_shutdown_discards_unsaved_sample"
   ],
   "status": "passed",
-  "stopped": true
+  "stopped": true,
+  "runtime_exit_code": 0
 }

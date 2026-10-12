@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "kind": "offline-actual-jar-policy-observations",
-  "artifact_sha256": "8b68b0478e6acf6850ef5b8ea2840340b25e0304a4350fce84cf22082bb02a39",
+  "artifact_sha256": "24c7d85503108762727e13765ffc5a38b5b5388f06171f1e574b71faa6b384ff",
   "cases": [
     "default_off_has_no_capture_file",
     "capture_requires_separate_permission",
