@@ -147,7 +147,10 @@ def main():
         else: assert login(runtime.port,'CGCaptureAllow') == 'LOGIN_SUCCESS'
         observed = wait_until(runtime, lambda: [line for line in runtime.transcript[offset:] if 'POLICY_OBS ' in line])
         assert len(observed) == 1 and 'reason=FLAG_ALLOWED' in observed[0] and 'outcome=ALLOW' in observed[0]
-        after = state(); assert after['calls'] == before['calls'] + 1 and after['actions'] == before['actions']
+        # Disabling kicks in ENFORCE retains the configured live flag command.
+        # Only comparison is action-free; explicitly activated live policy keeps its semantics.
+        wait_until(runtime, lambda: state()['actions'] == before['actions'] + 1)
+        after = state(); assert after['calls'] == before['calls'] + 1 and after['actions'] == before['actions'] + 1
         runtime.command('cg policy test observations candidate captured','Saved local observations: 1; changed outcomes: 0;')
         assert state() == after and archive.read_bytes() == saved_bytes
         passed('native_only_explicit_reviewed_activation_changes_admission_then_replay_matches')

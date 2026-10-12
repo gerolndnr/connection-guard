@@ -44,6 +44,10 @@ Fourteen cases per native stack:
 13. Only explicit reviewed activation changes admission; replay then compares the new current policy.
 14. Explicit rollback restores the actual denial while preserving observations.
 
+The activated ENFORCE candidate disables kicks but retains the explicitly configured
+live flag command. Replay itself executes no command, and OBSERVE remains the separate
+choice for suppressing live flag actions.
+
 The initial native run exposed a real capture-schema rejection for valid empty
 Geo inputs from the disabled provider. The regression test and corrected native
 receipts cover this boundary; it does not change live detection behavior.
