@@ -18,10 +18,11 @@ public final class PolicyCommands {
         if (args.length == 0 || !args[0].equalsIgnoreCase("policy")) return false;
         MessageCatalog messages = ConnectionGuard.getMessages();
         if (!permission.test("connectionguard.command.policy")) { reply.accept(messages.getString("ops.permission")); return true; }
+        if (args.length >= 2 && args[1].equalsIgnoreCase("capture")) return capture(args, permission, reply, messages);
         if (args.length >= 2 && Arrays.asList("status", "history", "inspect", "activate", "rollback", "release").contains(args[1].toLowerCase(Locale.ROOT)))
             return versions(args, permission, reply, messages);
         if (args.length >= 2 && args[1].equalsIgnoreCase("shadow")) return shadow(args, reply, messages);
-        if (args.length < 2 || args.length > 4 || !args[1].equalsIgnoreCase("test")) {
+        if (args.length < 2 || args.length > 5 || !args[1].equalsIgnoreCase("test")) {
             reply.accept(messages.getString("ops.policy-usage")); return true;
         }
         String casesName = args.length > 2 ? args[2] : "examples";
@@ -31,19 +32,30 @@ public final class PolicyCommands {
                 if (input == null) throw new IOException(); cases = PolicyReplay.readCases(input);
             }
             PolicyReplay.Snapshot active = ConnectionGuard.policySnapshot(), candidate = active;
-            if (args.length == 4) try (InputStream input = open(args[3])) { candidate = PolicyReplay.readCandidate(input); }
+            if (args.length >= 4) try (InputStream input = open(args[3])) { candidate = PolicyReplay.readCandidate(input); }
+            boolean historical = args.length == 5 && args[4].equalsIgnoreCase("captured");
+            if (args.length == 5 && !(historical || args[4].equalsIgnoreCase("now")) || historical && !cases.observed)
+                throw new IllegalArgumentException("Invalid replay time selection.");
             long asOf = System.currentTimeMillis();
+            if (cases.observed && asOf >= cases.capturedAt && asOf - cases.capturedAt >= PolicyObservationCapture.RETENTION_MILLIS) {
+                ConnectionGuard.policyObservationCaptureStatus();
+                reply.accept(messages.getString("ops.policy-capture-expired")); return true;
+            }
+            if (cases.identitiesRedacted && (active.hasIdentityRules() || candidate.hasIdentityRules()))
+                throw new IllegalArgumentException("Redacted observations cannot evaluate IP/UUID rules.");
             List<String> output = new ArrayList<>(); int changedOutcome = 0, changedFlags = 0, changedRules = 0;
             for (PolicyReplay.Case entry : cases.cases) {
-                ConnectionPolicy.Evaluation old = entry.evaluate(active, asOf), next = entry.evaluate(candidate, asOf);
+                long caseTime = historical ? entry.observedAt : asOf;
+                ConnectionPolicy.Evaluation old = entry.evaluate(active, caseTime), next = entry.evaluate(candidate, caseTime);
                 if (!Objects.equals(old.denial, next.denial)) changedOutcome++;
                 if (old.vpnFlag != next.vpnFlag || old.geoFlag != next.geoFlag) changedFlags++;
                 if (!selected(old).equals(selected(next))) changedRules++;
                 output.add(entry.id + ": " + outcome(old) + " -> " + outcome(next) + "; VPN=" + next.vpn.getStatus()
                         + " threshold=" + next.vpn.getPositiveThreshold() + " geo=" + next.geo.getReason()
-                        + " flags=" + flags(next) + " rules=" + selected(old) + " -> " + selected(next));
+                        + " flags=" + flags(next) + " rules=" + selected(old) + " -> " + selected(next)
+                        + (cases.observed ? " observedAt=" + entry.observedAt + " evaluatedAt=" + caseTime : ""));
                 if (cases.cases.size() == 1) {
-                    for (com.github.gerolndnr.connectionguard.core.lookup.ProviderVote source : entry.sources(asOf))
+                    for (com.github.gerolndnr.connectionguard.core.lookup.ProviderVote source : entry.sources(caseTime))
                         output.add("source=" + source.getProvider() + " status=" + source.getStatus() + " reason=" + source.getReason()
                                 + " version=" + source.getSourceVersion() + " validUntil=" + source.getValidUntil());
                     for (EvidencePolicy.Decision trace : Arrays.asList(next.vpnRule, next.geoRule))
@@ -51,11 +63,54 @@ public final class PolicyCommands {
                 }
             }
             // Buffer the entire comparison before reporting success; malformed evidence produces no partial comparison.
-            reply.accept(messages.text("ops.policy-summary", cases.cases.size(), changedOutcome, changedFlags, changedRules));
+            reply.accept(messages.text(cases.observed ? "ops.policy-observation-summary" : "ops.policy-summary", cases.cases.size(), changedOutcome, changedFlags, changedRules));
             reply.accept("asOf=" + java.time.Instant.ofEpochMilli(asOf) + " capturedAt=" + (cases.capturedAt == 0 ? "unavailable" : java.time.Instant.ofEpochMilli(cases.capturedAt))
-                    + " ageMs=" + (cases.capturedAt == 0 || cases.capturedAt > asOf ? "unavailable" : asOf - cases.capturedAt));
+                    + " ageMs=" + (cases.capturedAt == 0 || cases.capturedAt > asOf ? "unavailable" : asOf - cases.capturedAt)
+                    + (cases.observed ? " replayTime=" + (historical ? "CAPTURED" : "NOW") + " identityRedacted=" + cases.identitiesRedacted : ""));
             reply.accept(messages.getString("ops.policy-limits")); output.forEach(reply);
-        } catch (IOException | RuntimeException invalid) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(invalid, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.COMMAND); reply.accept(messages.getString("ops.policy-rejected")); }
+        } catch (IOException | RuntimeException invalid) { reply.accept(messages.getString("ops.policy-rejected")); }
+        return true;
+    }
+    private static boolean capture(String[] args, Predicate<String> permission, Consumer<String> reply, MessageCatalog messages) {
+        if (args.length < 3 || args.length > 5) { reply.accept(messages.getString("ops.policy-capture-usage")); return true; }
+        String operation = args[2].toLowerCase(Locale.ROOT);
+        boolean write = Arrays.asList("start", "stop", "clear", "discard").contains(operation);
+        if (write && !permission.test("connectionguard.command.policy.capture")) { reply.accept(messages.getString("ops.permission")); return true; }
+        try {
+            PolicyObservationCapture.View view;
+            if (operation.equals("start")) {
+                long duration;
+                switch (args.length >= 4 ? args[3].toLowerCase(Locale.ROOT) : "15m") {
+                    case "5m": duration = 300_000; break;
+                    case "15m": duration = 900_000; break;
+                    case "1h": duration = 3_600_000; break;
+                    default: throw new IllegalArgumentException();
+                }
+                boolean identities = args.length == 5 && args[4].equalsIgnoreCase("identities");
+                if (args.length == 5 && !(identities || args[4].equalsIgnoreCase("facts"))) throw new IllegalArgumentException();
+                view = ConnectionGuard.startPolicyObservationCapture(duration, identities);
+                if (identities) reply.accept(messages.getString("ops.policy-capture-sensitive"));
+            } else if (operation.equals("status") && args.length == 3) {
+                view = ConnectionGuard.policyObservationCaptureStatus();
+            } else if (operation.equals("stop") && args.length == 3) {
+                view = ConnectionGuard.stopPolicyObservationCapture();
+                reply.accept(messages.text("ops.policy-capture-saved", view.samples, view.skippedIdentity, view.skippedUnsupported));
+            } else if (operation.equals("clear") && args.length == 3) {
+                boolean cleared = ConnectionGuard.clearPolicyObservations();
+                reply.accept(messages.getString(cleared ? "ops.policy-capture-cleared" : "ops.policy-capture-empty")); return true;
+            } else if (operation.equals("discard") && args.length == 3) {
+                ConnectionGuard.discardPolicyObservationCapture();
+                reply.accept(messages.getString("ops.policy-capture-discarded")); return true;
+            } else { reply.accept(messages.getString("ops.policy-capture-usage")); return true; }
+            reply.accept(messages.text("ops.policy-capture-status", view.state.name(), view.samples, view.savedSamples,
+                    view.skippedIdentity, view.skippedUnsupported, view.sizeBytes, view.remainingMillis, view.saved ? "yes" : "no"));
+            reply.accept("identityMode=" + (view.includeIdentity ? "IDENTITIES" : "FACTS") + " savedIdentityMode="
+                    + (view.savedIncludesIdentity ? "IDENTITIES" : "FACTS") + " skippedBusy=" + view.skippedBusy);
+            reply.accept(messages.getString("ops.policy-capture-limits"));
+        } catch (IOException | RuntimeException invalid) {
+            // This local-only command must not create a Cloud error-report event.
+            reply.accept(messages.getString("ops.policy-capture-rejected"));
+        }
         return true;
     }
     private static boolean versions(String[] args, Predicate<String> permission, Consumer<String> reply, MessageCatalog messages) {

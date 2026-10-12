@@ -17,6 +17,8 @@ permissions:
     default: op
   connectionguard.command.policy.activate:
     default: op
+  connectionguard.command.policy.capture:
+    default: op
 commands:
   connectionguard:
     name: connectionguard

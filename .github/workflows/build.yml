@@ -93,6 +93,13 @@ jobs:
       - name: Exercise migrations using the combined JAR on Java 8
         run: python3 ci/fixtures/migrations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-migrations"
 
+      - name: Exercise local observation capture and replay using the combined JAR on Java 8
+        env:
+          CONNECTIONGUARD_CLOUD: 'false'
+          CONNECTIONGUARD_INTEL_REFRESH: 'false'
+          CONNECTIONGUARD_TOR_REFRESH: 'false'
+        run: python3 ci/fixtures/policy-observations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-observations"
+
       - name: Qualify the benchmark against the actual built JAR
         working-directory: benchmarks
         run: |
@@ -115,6 +122,7 @@ jobs:
             ${{ runner.temp }}/connection-guard-core-benchmark/
             ${{ runner.temp }}/connection-guard-failure-benchmark/
             ${{ runner.temp }}/connection-guard-intel/
+            ${{ runner.temp }}/connection-guard-observations/receipt.json
           if-no-files-found: warn
           retention-days: 14
 

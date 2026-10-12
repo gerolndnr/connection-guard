@@ -29,7 +29,7 @@ After installation:
 
 [bStats platform statistics and opt-out](BSTATS.md) explains the separate reporting settings and the Velocity initialization correction after 0.5.0.
 
-[Local policy replay and shadow comparison](POLICY_REPLAY.md) compare saved synthetic cases or existing final login facts with a complete candidate without activating it. These features are included in 0.6.0; replay/shadow estimates are bounded by the recorded facts and never activate a policy.
+[Local policy replay, explicit local observation capture and shadow comparison](POLICY_REPLAY.md) compare synthetic cases or existing final login facts with a complete candidate without activating it. Capture is off by default, local-only and limited to 32 cases/seven-day retention; literal-rule replay requires the explicitly selected local identities mode.
 
 [Local version activation and rollback](POLICY_VERSIONING.md) add separately authorized durable transitions and explicit local/dashboard ownership. These tools are included in 0.6.0; historical native evidence remains bound to its original artifact, and full competitive qualification of 0.6.0 remains pending.
 

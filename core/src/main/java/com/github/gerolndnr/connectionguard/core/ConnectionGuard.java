@@ -34,6 +34,7 @@ public class ConnectionGuard {
     public static synchronized com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease acquireDecisionLease() { return decisionLeases.acquire(); }
     public static long activePolicyDecisions() { return decisionLeases.active(); }
     private static final com.github.gerolndnr.connectionguard.core.policy.PolicyShadow policyShadow = new com.github.gerolndnr.connectionguard.core.policy.PolicyShadow();
+    private static final com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture policyObservationCapture = new com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture();
     private static final java.util.concurrent.atomic.AtomicLong policyEpoch = new java.util.concurrent.atomic.AtomicLong();
     private static void policyContextChanged() {
         policyEpoch.incrementAndGet();
@@ -46,6 +47,7 @@ public class ConnectionGuard {
         catch (java.io.IOException invalid) { throw new IllegalStateException("Access rule file invalid; correct it before enabling checks (values redacted)."); }
         policyContextChanged();
         com.github.gerolndnr.connectionguard.core.commands.PolicyCommands.configure(directory);
+        policyObservationCapture.configure(directory);
     }
     public static AccessRuleStore getRuleStore() { return rules; }
     public static Optional<AccessRule> accessRule(String ip, java.util.UUID uuid, boolean trusted, AccessRule.Scope scope) {
@@ -73,8 +75,23 @@ public class ConnectionGuard {
                 vpn, geo, selectedGeoSource, asOf);
         policyShadow.record(selected, selectedRules, policyEpoch.get(), ip, uuid, trusted, vpnExempt, geoExempt,
                 vpn, geo, selectedGeoSource, asOf, live);
+        policyObservationCapture.record(selectedRules, ip, uuid, trusted, vpnExempt, geoExempt, vpn, geo, selectedGeoSource, asOf, failover);
         return live;
     }
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture.View startPolicyObservationCapture(long durationMillis) throws java.io.IOException {
+        return policyObservationCapture.start(durationMillis);
+    }
+    public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture.View startPolicyObservationCapture(long durationMillis, boolean includeIdentity) throws java.io.IOException {
+        return policyObservationCapture.start(durationMillis, includeIdentity);
+    }
+    public static com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture.View policyObservationCaptureStatus() throws java.io.IOException {
+        return policyObservationCapture.status();
+    }
+    public static com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture.View stopPolicyObservationCapture() throws java.io.IOException {
+        return policyObservationCapture.stop();
+    }
+    public static void discardPolicyObservationCapture() { policyObservationCapture.discard(); }
+    public static synchronized boolean clearPolicyObservations() throws java.io.IOException { return policyObservationCapture.clear(); }
     public static synchronized com.github.gerolndnr.connectionguard.core.policy.PolicyShadow.View startPolicyShadow(
             com.github.gerolndnr.connectionguard.core.policy.PolicyReplay.Snapshot candidate, long durationMillis) {
         AccessRuleStore store = rules;
@@ -240,7 +257,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { com.github.gerolndnr.connectionguard.core.commands.MigrationCommands.shutdown(); com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(null); clearProxyCheckHandoffs(); uncheckedVpnAdmissions.close(); stopPolicyShadow(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { com.github.gerolndnr.connectionguard.core.commands.MigrationCommands.shutdown(); com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(null); clearProxyCheckHandoffs(); uncheckedVpnAdmissions.close(); stopPolicyShadow(); policyObservationCapture.close(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;

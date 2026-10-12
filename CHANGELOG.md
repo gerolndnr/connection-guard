@@ -2,6 +2,10 @@
 
 ## Unreleased — 0.6.1
 
+### Local policy observation replay
+
+- Add an explicit `/cg policy capture` workflow for local provider-fact samples. Default facts mode redacts real IPs/UUIDs and preserves resolved trust/exemptions; explicit identities mode enables literal-rule replay with private local identifiers. Capture stays off until started, is bounded to one hour/32 cases/256 KiB and seven-day cleanup, writes atomically after stop, and is never synced/reported. Replay chooses current or captured timestamps, preserves failover/quorum/reasons, and rejects identity rules in redacted mode. Recording never performs disk I/O or waits for a competing recorder. [Capture, replay and privacy limits](docs/POLICY_REPLAY.md).
+
 ### Custom webhook message variables
 
 - Expand existing TEXT templates (`messages.vpn-webhook` and `messages.geo-webhook`) with `%UUID%`, `%IS_VPN%`, `%LOCATION%`, `%COUNTRY%`, `%CITY%`, `%ISP%` and UTC `%TIME%`, alongside `%NAME%` and `%IP%`. Operators choose exactly which fields to send and their order; preserve customized files, existing triggers, EMBED output and privacy controls.

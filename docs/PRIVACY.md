@@ -16,6 +16,14 @@ recommendation has been consumed, not player information.
 
 To show the dashboard join hint only once per authorized staff member and installation, the plugin stores SHA-256 hashes derived from staff UUIDs in `cloud/staff-dashboard-notices-v1.json`. The bounded private file contains neither plaintext UUIDs nor link codes. It stays on the server and is never included in Cloud sync or error reports. Deleting it while the plugin is stopped resets suppression. No player-name/IP field, Cloud event or external request is added by the join hint; see [linking notices](CLOUD.md).
 
+## Optional local policy observations (unreleased 0.6.1)
+
+Policy observation capture is disabled until an operator explicitly runs `/cg policy capture start`. Default `facts` mode replaces real addresses/UUIDs with documentation placeholders while keeping resolved trust/exemption booleans and provider-derived verdict/ISP/operator/country/classification facts. These are redacted local observations, not a guarantee of anonymity: timings and metadata may correlate with other server logs. IP/UUID rules cannot be simulated in this mode.
+
+The additional explicit `/cg policy capture start 15m identities` choice retains the normalized actual connection IP and available UUID for address/identity-rule simulation. The command discloses this choice and status identifies the mode. Neither mode retains player names, cities, request URLs, raw provider responses or credentials. Capture adds no recipient or external request. No sample, capture command failure or replay input is sent to Cloud, error reports, webhooks or addon observers.
+
+At most 32 cases/256 KiB are recorded during a window of at most one hour. The sample is saved only by the explicit stop command using a validated atomic private file `policy/observations.json`. POSIX files use owner-only read/write permissions; other platforms inherit local ACLs. Unsaved samples are discarded on shutdown. Seven-day cleanup runs locally while the plugin is active and on the next startup after downtime; failed cleanup is retried and status exposes invalid/unremovable files. Operators can discard/clear data earlier and must account for optional identity retention in their own server data notice. [Workflow and replay limits](POLICY_REPLAY.md).
+
 ## Anonymous exception metadata, from 0.6.0
 
 [Published error-report disclosure](https://connectionguard.net/privacy#error-reports).
