@@ -153,4 +153,16 @@ class PolicyObservationBoundsTest {
             capture.stop(); assertTrue(read().cases.size() <= 32);
         } finally { pool.shutdownNow(); }
     }
+    @Test void interruptedStagingAndLeftoverPublicationLinksCannotOutliveTheArchive() throws Exception {
+        Path policy = Files.createDirectory(directory.resolve("policy"));
+        Path interrupted = policy.resolve(".cg-observations-123.tmp");
+        Files.write(interrupted, "Private interrupted sample".getBytes(StandardCharsets.UTF_8));
+        capture.configure(directory);
+        assertFalse(Files.exists(interrupted)); assertFalse(capture.status().saved);
+        capture.start(1000); record(vpn(ProviderVote.Status.POSITIVE), true); capture.stop();
+        Path archive = policy.resolve("observations.json"), leftover = policy.resolve(".cg-observations-456.tmp");
+        Files.createLink(leftover, archive);
+        wall.addAndGet(PolicyObservationCapture.RETENTION_MILLIS); capture.status();
+        assertFalse(Files.exists(leftover)); assertFalse(Files.exists(archive));
+    }
 }

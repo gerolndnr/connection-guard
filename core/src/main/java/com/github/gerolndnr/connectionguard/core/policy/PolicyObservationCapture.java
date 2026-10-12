@@ -37,7 +37,7 @@ public final class PolicyObservationCapture implements AutoCloseable {
     public synchronized void configure(Path directory) {
         close(); dataDirectory = directory.toAbsolutePath().normalize();
         // Invalid optional archives never stop admission. Status exposes them for operator review.
-        try { refreshSaved(); } catch (IOException | RuntimeException invalid) { }
+        try { refreshSaved(); } catch (IOException | RuntimeException invalid) { retryCleanup(); }
     }
     public synchronized View start(long durationMillis) throws IOException { return start(durationMillis, false); }
     public synchronized View start(long durationMillis, boolean includeIdentity) throws IOException {
@@ -80,6 +80,8 @@ public final class PolicyObservationCapture implements AutoCloseable {
     public synchronized boolean clear() throws IOException {
         if (current != null) throw new IllegalStateException("Stop or discard the current capture first.");
         Path saved = savedFile(false);
+        Path directory = dataDirectory.resolve("policy");
+        if (Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) cleanupStaging(directory);
         if (saved == null) return false;
         Files.delete(saved); last = View.disabled(); cancelCleanup(); return true;
     }
@@ -162,6 +164,8 @@ public final class PolicyObservationCapture implements AutoCloseable {
     }
     private PolicyReplay.Cases refreshSaved() throws IOException {
         Path file = savedFile(false);
+        Path directory = dataDirectory.resolve("policy");
+        if (Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) cleanupStaging(directory);
         if (file == null) { cancelCleanup(); return null; }
         PolicyReplay.Cases saved;
         try (InputStream input = Files.newInputStream(file, StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS)) { saved = PolicyReplay.readCases(input); }
@@ -188,8 +192,11 @@ public final class PolicyObservationCapture implements AutoCloseable {
         try { refreshSaved(); }
         catch (IOException | RuntimeException failure) {
             // Retry privately while running; status exposes corrupt/unremovable files for operator review.
-            if (retention != null && !retention.isShutdown()) cleanup = retention.schedule(this::cleanupTick, 1, TimeUnit.MINUTES);
+            retryCleanup();
         }
+    }
+    private void retryCleanup() {
+        ensureRetention(); cancelCleanup(); cleanup = retention.schedule(this::cleanupTick, 1, TimeUnit.MINUTES);
     }
     private void cancelCleanup() { if (cleanup != null) { cleanup.cancel(false); cleanup = null; } }
     private void cancelSessionTimers() {
@@ -226,7 +233,10 @@ public final class PolicyObservationCapture implements AutoCloseable {
             // Publish the complete private file exclusively; a concurrent writer wins safely.
             Files.createLink(directory.resolve(FILE_NAME), temporary);
         } catch (UnsupportedOperationException unsupported) { throw new IOException("Exclusive atomic observation-file creation unavailable."); }
-        finally { try { Files.deleteIfExists(temporary); } catch (IOException ignored) { /* A committed publication must not be reported as failed. */ } }
+        finally {
+            try { Files.deleteIfExists(temporary); }
+            catch (IOException ignored) { retryCleanup(); /* Do not report a committed publication as failed. */ }
+        }
     }
     private static void cleanupStaging(Path directory) throws IOException {
         List<Path> abandoned = new ArrayList<>();
