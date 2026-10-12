@@ -33,6 +33,10 @@ public final class UncheckedVpnAdmissions implements AutoCloseable {
 
     public static FailureReason unresolved(VpnResult vpn, boolean exempt) {
         if (exempt || vpn == null || vpn.getStatus() != ProviderVote.Status.UNKNOWN) return null;
+        // A missing local hint must not hide a concrete quota refusal later in the same chain.
+        for (ProviderVote vote : vpn.getVotes())
+            if (vote.isVoting() && vote.getStatus() == ProviderVote.Status.UNKNOWN && vote.getReason() == FailureReason.BUDGET_EXHAUSTED)
+                return FailureReason.BUDGET_EXHAUSTED;
         // Each login contributes once even if several sources failed. The first voting failure in
         // configured order preserves a quota failure when all of its fallbacks are unavailable.
         for (ProviderVote vote : vpn.getVotes())

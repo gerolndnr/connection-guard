@@ -177,6 +177,36 @@ class ArtifactRegressionTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "policy|error report"):
                         verify(broken, version)
 
+    def test_missing_duplicate_or_changed_api_profile_runtime_and_overlays_fail(self):
+        artifact = next((ROOT / "build/libs").glob("*-all.jar"))
+        with zipfile.ZipFile(artifact) as jar:
+            version = json.loads(jar.read("velocity-plugin.json"))["version"]
+            resources = {name: jar.read(name) for name in jar.namelist()}
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) < (0, 6, 1):
+            return
+        prefix = PACKAGE.replace(".", "/") + "/core/"
+        entries = [prefix + name + ".class" for name in ("config/ApiLookupPolicy", "config/ApiLookupPolicy$Mode",
+            "lookup/ApiLookupBudget", "lookup/ApiLookupBudget$View", "commands/ProfileCommands")]
+        entries += ["profiles/" + name + ".yml" for name in ("local-only", "budgeted-api", "observe")]
+        with tempfile.TemporaryDirectory() as directory:
+            for entry in entries:
+                self.assertIn(entry, resources)
+                for mutation in ("missing", "duplicate"):
+                    broken = Path(directory) / "broken-api-profile.jar"
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", UserWarning)
+                        with zipfile.ZipFile(broken, "w") as output:
+                            for name, data in resources.items():
+                                if mutation != "missing" or name != entry: output.writestr(name, data)
+                            if mutation == "duplicate": output.writestr(entry, resources[entry])
+                    with self.assertRaisesRegex(ValueError, "API profile|lookup profile"):
+                        verify(broken, version)
+                if entry.endswith(".yml"):
+                    with zipfile.ZipFile(broken, "w") as output:
+                        for name, data in resources.items(): output.writestr(name, b"changed: true\n" if name == entry else data)
+                    with self.assertRaisesRegex(ValueError, "lookup profile"):
+                        verify(broken, version)
+
     def test_changed_policy_examples_fail_source_binding(self):
         artifact = next((ROOT / "build/libs").glob("*-all.jar"))
         with zipfile.ZipFile(artifact) as jar:

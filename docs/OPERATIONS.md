@@ -36,6 +36,8 @@ Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `
 
 Commands and permissions:
 
+- Development 0.6.1: `/cg profile list|show <local-only|budgeted-api|observe> [daily-limit]` — read-only overlays, `connectionguard.command.profile`; [profile choices](LOOKUP_PROFILES.md). Optional shared `lookup.api-daily-budget` and explicit `lookup.api-policy` preserve existing mode/source choices by default. Doctor/providers report the conservative UTC reservation cap and its use.
+
 - `/cg doctor` — configuration/mode/limits/cache selection/forwarding warnings, no external request; `connectionguard.command.doctor`.
 - `/cg policy test [cases-name] [candidate-name]` — [offline synthetic or saved local replay](POLICY_REPLAY.md), no provider calls or player actions; `connectionguard.command.policy`.
 - `/cg policy capture start [5m|15m|1h] [facts|identities]|status|stop|discard|clear` — explicitly enabled, bounded local observation capture; write operations require `connectionguard.command.policy.capture`.

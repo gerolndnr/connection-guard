@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy", "migrate");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy", "migrate", "profile");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
         return handle(args, permission, reply, false);
@@ -26,6 +26,7 @@ public final class OperationsCommands {
         if (LocalDataCommands.handle(args, permission, reply)) return true;
         if (RulesCommands.handle(args, permission, reply)) return true;
         if (PolicyCommands.handle(args, permission, reply)) return true;
+        if (ProfileCommands.handle(args, permission, reply)) return true;
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
         String operation = args[0].toLowerCase(Locale.ROOT);
         if (!permission.test("connectionguard.command." + operation)) { reply.accept(messages.getString("ops.permission")); return true; }
@@ -63,6 +64,7 @@ public final class OperationsCommands {
         if (args.length != 1) { reply.accept(messages.text("ops.usage", operation)); return true; }
         if (operation.equals("stats")) { reply.accept(ConnectionGuard.lookupStats()); reply.accept("login-checks active=" + com.github.gerolndnr.connectionguard.core.lookup.LoginChecks.active()); reply.accept(ConnectionGuard.admissionStats()); reply.accept(com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.describe()); reply.accept(com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.describe()); reply.accept(com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.describe()); }
         if (operation.equals("providers")) {
+            reply.accept(ConnectionGuard.apiLookupStatus());
             if (ConnectionGuard.getActiveDraft() != null && ConnectionGuard.getActiveDraft().intelSettings.enabled) reply.accept(ConnectionGuard.getActiveDraft().intelSnapshot.describe(System.currentTimeMillis()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().extensionProviders.forEach(provider -> reply.accept(provider.describe()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
@@ -91,6 +93,7 @@ public final class OperationsCommands {
         lines.add("Mode=" + (ConnectionGuard.getSettings().observe ? "OBSERVE" : "ENFORCE")
                 + " vpnFailure=" + ConnectionGuard.getSettings().vpnFailure + " geoFailure=" + ConnectionGuard.getSettings().geoFailure);
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);
+        lines.add(ConnectionGuard.apiLookupStatus());
         lines.add("Cache=" + (ConnectionGuard.getCacheProvider() == null ? "unavailable" : ConnectionGuard.getCacheProvider().getClass().getSimpleName())
                 + "; " + messages.getString("ops.cache-health"));
         if (ConnectionGuard.getCacheProvider() instanceof com.github.gerolndnr.connectionguard.core.cache.ResilientRedisCacheProvider)

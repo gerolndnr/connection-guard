@@ -1,0 +1,5 @@
+# Merge into the existing config and /cg reload.
+# Changes only enforcement mode, preserving source choices, API policy and daily cap.
+# Observe flags and UNKNOWN; guard kicks/flag commands remain suppressed.
+operation:
+  mode: OBSERVE

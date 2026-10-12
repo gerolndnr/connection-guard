@@ -43,6 +43,15 @@ lookup:
   workers: 8
   queue-capacity: 64
   max-inflight: 128
+  # CONFIGURED preserves selected APIs/strategies; LOCAL_ONLY suppresses API/custom/extension lookups.
+  # Does not enable local datasets or change ENFORCE/OBSERVE. Missing local evidence stays UNKNOWN.
+  # Cloud, webhooks, remote cache and list updates use their separate settings.
+  api-policy: CONFIGURED
+  # Optional shared VPN/Geo external-call reservation cap per UTC day (0 = no extra cap).
+  # Per-source limits still apply; shared ProxyCheck VPN+Geo uses one reservation.
+  # Local/cache hits do not consume it. Reload/clear/profile changes do not replenish it.
+  # Conservative local estimate: queued/cancelled work may reserve without sending HTTP.
+  api-daily-budget: 0
   circuit:
     failures: 3
     pause-ms: 30000
