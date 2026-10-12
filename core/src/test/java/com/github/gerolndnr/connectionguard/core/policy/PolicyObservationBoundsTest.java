@@ -78,6 +78,18 @@ class PolicyObservationBoundsTest {
         assertEquals(Reason.LOOKUP_UNAVAILABLE, saved.evaluate(policy, saved.observedAt + 10).denial);
         assertEquals(Long.valueOf(wall.get()), saved.sources(saved.observedAt).get(0).getDetails().getDataAsOf());
     }
+    @Test void disabledAndExemptGeoInputsAreCapturedWithoutInventingCountryOrFailure() throws Exception {
+        capture.start(1000);
+        for (boolean exempt : Arrays.asList(false, true)) capture.record(Collections.emptyList(), IP, null, false, false, exempt,
+                vpn(ProviderVote.Status.POSITIVE), new GeoLookup(Optional.empty(), FailureReason.NONE, false, 0), null, wall.get(), true);
+        assertEquals(2, capture.status().samples); assertEquals(0, capture.status().skippedUnsupported);
+        capture.stop(); PolicyReplay.Cases saved = read();
+        for (PolicyReplay.Case entry : saved.cases) {
+            ConnectionPolicy.Evaluation replay = entry.evaluate(new PolicyReplay.Snapshot(GuardSettings.defaults(), Collections.emptyList()), wall.get());
+            assertFalse(replay.geo.getResult().isPresent()); assertEquals(FailureReason.NONE, replay.geo.getReason());
+            assertFalse(replay.geoFlag); assertEquals(ProviderVote.Status.POSITIVE, replay.vpn.getStatus());
+        }
+    }
     @Test void failedSaveKeepsThePreviousFileAndAllowsExplicitRetryWithoutMoreSamples() throws Exception {
         capture.start(1000); record(vpn(ProviderVote.Status.NEGATIVE), true);
         Files.createDirectory(directory.resolve("policy")); Path file = directory.resolve("policy/observations.json");

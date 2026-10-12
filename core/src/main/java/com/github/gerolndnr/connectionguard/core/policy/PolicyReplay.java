@@ -88,7 +88,10 @@ public final class PolicyReplay {
             if (geoSource != null && !geoSource.matches("geo\\.[A-Za-z0-9_#.-]{1,96}")) throw PolicyJson.invalid();
             String country = PolicyJson.optionalText(g, "country");
             FailureReason reason = FailureReason.valueOf(PolicyJson.text(g, "reason"));
-            if ((country != null) != (reason == FailureReason.NONE)) throw PolicyJson.invalid();
+            // Live Disabled/exempt Geo inputs legitimately contain no country and no failure.
+            // Preserve that absence in captures; synthetic inputs keep their existing strict contract.
+            if (country != null && reason != FailureReason.NONE || country == null && reason == FailureReason.NONE && !observed)
+                throw PolicyJson.invalid();
             long cachedAt = PolicyJson.number(g, "cached_at", Long.MAX_VALUE);
             long validUntil = PolicyJson.number(g, "valid_until", Long.MAX_VALUE);
             String sourceVersion = PolicyJson.optionalText(g, "source_version");
