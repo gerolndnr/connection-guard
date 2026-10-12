@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "kind": "offline-actual-jar-policy-observations",
+  "artifact_sha256": "24c7d85503108762727e13765ffc5a38b5b5388f06171f1e574b71faa6b384ff",
+  "cases": [
+    "default_off_has_no_capture_file",
+    "capture_requires_separate_permission",
+    "authenticated_inputs_captured_without_login_io",
+    "default_sample_redacts_real_address_and_uuid",
+    "saved_replay_has_no_provider_requests",
+    "redacted_placeholder_cannot_match_literal_rule",
+    "explicit_identity_mode_preserves_required_local_inputs",
+    "identity_mode_replays_address_denial",
+    "historical_command_does_not_activate_candidate",
+    "restart_preserves_archive_without_resuming_capture",
+    "shutdown_discards_unsaved_sample"
+  ],
+  "java": "/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/bin/java",
+  "driver_sha256": "c3cf59bdf936fb22bd7dd04bdb657536aea7142ce9ff2b9e6030a329db25fe87",
+  "fixture_sha256": "49192f7baf964a2b70267b33873e28bc793193237ef8b3fe095a082baba6d2e1",
+  "provider_requests": 0,
+  "synthetic_inputs": true,
+  "native_login_tested": false,
+  "competitive_accuracy_tested": false
+}

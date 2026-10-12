@@ -82,6 +82,12 @@ public final class OperationsCommands {
                     + " revision=" + store.revision() + " activeDecisions=" + ConnectionGuard.activePolicyDecisions()
                     + (store.locallyOwned() ? "; release the local revision before changing config/dashboard decision fields" : ""));
         }
+        try {
+            com.github.gerolndnr.connectionguard.core.policy.PolicyObservationCapture.View capture = ConnectionGuard.policyObservationCaptureStatus();
+            lines.add("Local policy observation capture=" + capture.state + " samples=" + capture.samples
+                    + " saved=" + capture.saved + " savedSamples=" + capture.savedSamples
+                    + " skippedIdentity=" + capture.skippedIdentity + " skippedUnsupported=" + capture.skippedUnsupported);
+        } catch (java.io.IOException | RuntimeException unavailable) { lines.add("Local policy observation capture status=unavailable"); }
         lines.add("Mode=" + (ConnectionGuard.getSettings().observe ? "OBSERVE" : "ENFORCE")
                 + " vpnFailure=" + ConnectionGuard.getSettings().vpnFailure + " geoFailure=" + ConnectionGuard.getSettings().geoFailure);
         lines.add("Lookup deadlineMs=" + ConnectionGuard.getSettings().lookup.deadlineMillis + " httpTimeoutMs=" + ConnectionGuard.getSettings().lookup.httpTimeoutMillis);

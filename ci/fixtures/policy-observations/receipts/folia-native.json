@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "source": "b0e0d2e4c0370cd78abba4bbca653757c71ba5fd",
+  "artifact_sha256": "24c7d85503108762727e13765ffc5a38b5b5388f06171f1e574b71faa6b384ff",
+  "runtime": "folia-1.21.11-14.jar",
+  "runtime_sha256": "f52c408490a0225611e67907a3ca19f7e6da2c6bc899e715d5f46844e7103c39",
+  "java": 21,
+  "synthetic_offline_clients": true,
+  "real_account_authentication": false,
+  "telemetry": false,
+  "addon_sha256": "468de96b83d4e85a45692f5613526a5abc12d079b5b422ef43018de30b23509e",
+  "driver_sha256": "8fcfda02ef788ec6253e86bb6ab6fc467770e9eacb99d2b470113c5bbf8ca402",
+  "cases": [
+    "native_default_off_keeps_real_login_and_has_no_archive",
+    "native_active_capture_does_not_add_requests_actions_or_observations",
+    "native_stop_saves_redacted_final_evaluation_inputs",
+    "native_captured_replay_has_no_extra_lookup_or_candidate_action",
+    "native_restart_keeps_archive_and_does_not_resume_capture",
+    "native_existing_archive_is_preserved",
+    "native_explicit_identity_mode_keeps_local_address",
+    "native_identity_rule_replay_never_activates_or_adds_actions",
+    "native_saved_replay_and_live_shadow_keep_actual_denial_and_archive",
+    "native_only_explicit_reviewed_activation_changes_admission_then_replay_matches",
+    "native_explicit_rollback_restores_actual_denial_and_preserves_observations",
+    "native_corrupt_optional_archive_keeps_admission_active",
+    "native_invalid_reload_keeps_existing_capture_and_live_policy",
+    "native_shutdown_discards_unsaved_sample"
+  ],
+  "status": "passed",
+  "stopped": true,
+  "runtime_exit_code": 0
+}

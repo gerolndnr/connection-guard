@@ -155,7 +155,7 @@ provider:
 ```
 
 Disable every other enabled custom/native API source when choosing local-only operation. Geo can be `Disabled`
-(UNKNOWN) or `Local`; IP-API/ProxyCheck still query their APIs if selected. Keep a threshold that your actual voting
+(no lookup/location) or `Local`; IP-API/ProxyCheck still query their APIs if selected. Keep a threshold that your actual voting
 sources can satisfy. Local absence remains UNKNOWN even with an API-free configuration; review the failure policy
 and initially use OBSERVE. New settings do not replace an existing operator's ENFORCE choice.
 

@@ -78,6 +78,11 @@ def verify(artifact, version):
             require(jar.read("policy/examples.json") == (ROOT / "core/src/main/resources/policy/examples.json").read_bytes(),
                     "Bundled policy examples differ from the checked source.")
 
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0, 6, 1):
+            for capture_type in ("PolicyObservationCapture", "PolicyObservationCapture$Session", "PolicyObservationCapture$View", "PolicyObservationCapture$State"):
+                entry = PACKAGE.replace(".", "/") + "/core/policy/" + capture_type + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate policy observation type: {capture_type}")
+
         counts = {}
         expected_modules = dict(MAJORS)
         if re.search(r"^integrations:\s*$", jar.read("config.yml").decode("utf-8"), re.MULTILINE):

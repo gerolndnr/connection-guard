@@ -159,6 +159,9 @@ class ArtifactRegressionTest(unittest.TestCase):
             "policy/PolicyShadow", "policy/PolicyShadow$Session", "policy/PolicyShadow$State", "policy/PolicyShadow$View",
             "policy/PolicyJournal", "policy/PolicyJournal$Revision", "policy/PolicyJournal$Operation",
             "policy/DecisionLeases", "policy/DecisionLeases$Lease", "rules/AccessRuleStore$State", "commands/PolicyCommands", "cloud/PluginErrorReports", "cloud/PluginErrorReports$Context", "cloud/PluginErrorReports$Pending", "cloud/PluginErrorReports$Report", "cloud/PluginErrorReports$Frame")]
+        if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0, 6, 1):
+            selected.extend(prefix + "policy/" + name + ".class" for name in
+                            ("PolicyObservationCapture", "PolicyObservationCapture$Session", "PolicyObservationCapture$View", "PolicyObservationCapture$State"))
         selected.append("policy/examples.json")
         with tempfile.TemporaryDirectory() as directory:
             for name in selected:
