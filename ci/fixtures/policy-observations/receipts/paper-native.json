@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "source": "3a22093343ae7be20ae3435adc6c8c23fc93b908",
+  "artifact_sha256": "8b68b0478e6acf6850ef5b8ea2840340b25e0304a4350fce84cf22082bb02a39",
+  "runtime": "paper-1.21.11-132.jar",
+  "runtime_sha256": "5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba",
+  "java": 21,
+  "synthetic_offline_clients": true,
+  "real_account_authentication": false,
+  "telemetry": false,
+  "addon_sha256": "f067ad3059c2b19da533de0b244446ce06474d9cd7ae61d323d729e0d01a7fa7",
+  "driver_sha256": "9deaa4d8f8cb7ecc3f6759ae2b03e361413e707f6b78664e86d8efc1d7578267",
+  "cases": [
+    "native_default_off_keeps_real_login_and_has_no_archive",
+    "native_active_capture_does_not_add_requests_actions_or_observations",
+    "native_stop_saves_redacted_final_evaluation_inputs",
+    "native_captured_replay_has_no_extra_lookup_or_candidate_action",
+    "native_restart_keeps_archive_and_does_not_resume_capture",
+    "native_existing_archive_is_preserved",
+    "native_explicit_identity_mode_keeps_local_address",
+    "native_identity_rule_replay_never_activates_or_adds_actions",
+    "native_corrupt_optional_archive_keeps_admission_active",
+    "native_invalid_reload_keeps_existing_capture_and_live_policy",
+    "native_shutdown_discards_unsaved_sample"
+  ],
+  "status": "passed",
+  "stopped": true
+}
