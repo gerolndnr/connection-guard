@@ -3,13 +3,13 @@
 > Released in **0.6.0**: [provider resilience and migration](PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
 
-**Unreleased 0.6.1 candidate:** Blackbox Y requires fresh local Intel HOSTING
+**0.6.1:** Blackbox Y requires fresh local Intel HOSTING
 confirmation; otherwise the next normal provider decides. Set
 `provider.vpn.blackbox.require-confirmation: false` for legacy aggregate blocking.
 VPN IP-API is disabled only in new files; existing selections remain unchanged.
 Its HTTP-only/non-commercial restrictions still apply if explicitly enabled.
 Intel can optionally load signed PROXY data without changing 0.6.0's required
-manifest list set. [Candidate behavior and controls](PROVIDER_RESILIENCE.md#unreleased-061-candidate-defaults-and-confirmation).
+manifest list set. [Candidate behavior and controls](PROVIDER_RESILIENCE.md#061-defaults-and-confirmation).
 
 
 Website guide: [Block VPNs on a Minecraft server](https://connectionguard.net/guides/block-vpn-minecraft-server).
@@ -33,7 +33,7 @@ The free IP-API endpoint allows **45 requests per minute per source IP**, uses H
 
 ## How requests accumulate
 
-### Unreleased 0.6.1 template
+### 0.6.1 template
 
 Local Tor/Intel precede **zowi → Blackbox (fresh Intel HOSTING confirmation) → IPQuery**.
 ProxyCheck defaults off; an operator-owned key is an optional **late fallback**,
@@ -84,7 +84,7 @@ VPN and geo lookups are separate. Multiple enabled VPN providers can each receiv
 
 Illustrative quota planning, **not a measured workload**: 100 uncached IPs with one VPN and one geo lookup can produce 200 requests. If both use the same provider account, they can draw from the same allowance. Check provider-specific counting rules.
 
-SQLite is the simple initial cache. The unreleased 0.6.1 candidate reads a bounded Memory tier first and uses SQLite only on misses and for background persistence; see [cache behavior and performance scope](PERFORMANCE.md). Shipped expirations are 1,440 minutes for VPN and 4,320 minutes for geo. Results can become stale after an IP changes use. Choose expiration for your policy; frequent clearing increases requests.
+SQLite is the simple initial cache. The 0.6.1 release reads a bounded Memory tier first and uses SQLite only on misses and for background persistence; see [cache behavior and performance scope](PERFORMANCE.md). Shipped expirations are 1,440 minutes for VPN and 4,320 minutes for geo. Results can become stale after an IP changes use. Choose expiration for your policy; frequent clearing increases requests.
 
 ## What happens during an outage?
 

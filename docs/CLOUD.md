@@ -63,7 +63,7 @@ How it works:
 - **Never configurable remotely:** console commands on a hit (`execute-command`), the cache type and Redis connection, identity and forwarding, transport/worker tuning, overload limits, integrations, local-list definitions and custom-provider definitions. These stay in `config.yml` only.
 - **Back to `config.yml`:** use "Reset to config.yml" in the dashboard, or `/cg cloud reset-settings` on the server (works even with the cloud off). `/cg cloud settings` lists which values come from the dashboard; `/cg doctor` shows the cloud state.
 
-## Unreleased 0.6.1: provider order from the dashboard
+## 0.6.1: provider order from the dashboard
 
 The plugin snapshot unlocks the dashboard's existing Order control, sequential/
 parallel switch, services-per-player limit, IPQuery and IPQualityScore switches,

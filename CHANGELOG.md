@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased — 0.6.1
+## 0.6.1 — 2026-10-13
+
+Published at the maintainer's request. The full independent competitive benchmark of this combined artifact remains pending; no improved detection/FPR or latency claim is made. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).
 - Dashboard-gated provider order, sequential/parallel strategy,1..16external-attempt limit and IPQuery/IPQualityScore controls. Normal in-place reload validates the whole change, reports invalid order IDs safely, preserves local/last ordering, retains managed values on reload and separates reordered cache facts. API-key snapshots stay redacted; existing files are never rewritten.
 
-- New-install 0.6.1 provider order: local Tor/Intel, zowi, confirmed Blackbox, IPQuery; ProxyCheck off by default and optional as a late fallback. Existing config choices/order/keys unchanged; ip-check.net/IP-API off, zowi's local 60/minute cap and 5,000-ms deadline retained. Explicit standalone ProxyCheck Geo remains available on its selected API version. Exact candidate latency/detection acceptance remains required before release.
+- New-install 0.6.1 provider order: local Tor/Intel, zowi, confirmed Blackbox, IPQuery; ProxyCheck off by default and optional as a late fallback. Existing config choices/order/keys unchanged; ip-check.net/IP-API off, zowi's local 60/minute cap and 5,000-ms deadline retained. Explicit standalone ProxyCheck Geo remains available on its selected API version. Exact combined detection/latency/burst acceptance remains pending.
 
 
 ### API budget and lookup profiles
@@ -29,7 +31,7 @@
 - Build decision reports/webhook payloads on the bounded observer workers after releasing the login policy lease. Preserve the final decision, duration and inline unchecked-admission counters; reports remain best effort under pressure.
 - Bundle and isolate the existing BoostedYAML 1.3.6 runtime; construct Libby only on demand for optional database drivers.
 - Initialize optional SQLite/Redis libraries and persistence off the Velocity enable thread. Early logins use Memory and continue the normal source chain; /cg doctor shows persistence as starting or unavailable. Preserve early fact timestamps when handing them to persistence. Memory/Disabled cache modes are unchanged.
-- These are development changes for 0.6.1. Same-run, three-round comparative performance, detection, failure and Redis acceptance is required before publication. [Performance scope](docs/PERFORMANCE.md).
+- These changes ship in 0.6.1 at the maintainer's request. Full independent, same-run comparative performance/detection/failure acceptance of the combined artifact remains pending. [Performance scope](docs/PERFORMANCE.md).
 
 ### Competitor migrations
 

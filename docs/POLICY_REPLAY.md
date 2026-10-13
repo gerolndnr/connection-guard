@@ -16,7 +16,7 @@ This command reads saved evidence. It makes **no provider requests**, changes no
 
 Saved evidence does not prove today's provider accuracy. Replay does not reproduce provider/threshold configuration changes, fresh identity or LuckPerms resolution, overload refusal, admission hooks, ban/challenge outcomes or real account authentication. Synthetic files declare identity/exemption assumptions; saved local cases preserve the resolved inputs within their disclosed capture mode. Old source facts expire at the same boundary as live facts. The captured VPN quorum is preserved; unknown sources never silently reduce it. Source hashes identify saved data, not a current provider version. Changed decisions are **not** a false-positive rate.
 
-## Explicit local observation capture (unreleased 0.6.1)
+## Explicit local observation capture (0.6.1)
 
 Capture is **off by default**. An operator with `connectionguard.command.policy` and `connectionguard.command.policy.capture` starts a finite window:
 

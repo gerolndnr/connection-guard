@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
 
-> Released in **0.6.0**: [provider resilience and migration](docs/PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
+> Release **0.6.1**: confirmed Blackbox handling, reviewed competitor migrations, memory-first caches, custom webhook messages, local policy replay, API budgets and dashboard provider ordering. Existing configurations retain their provider choices, keys and mode. The exact combined competitive benchmark remains pending; no comparative accuracy or latency claim is made.
 
 
 # Connection Guard
@@ -11,9 +11,9 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
-**Source build: 0.6.1-SNAPSHOT.**
+**Source build: 0.6.1.**
 
-**Published stable release: [0.6.0](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.0).** [Changes and upgrade guide](CHANGELOG.md).
+**Published stable release: [0.6.1](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).** [Changes and upgrade guide](CHANGELOG.md).
 
 **MIT licensed.** No Connection Guard account or GitHub star is required. An optional free dashboard is available, on by default and off with one setting; see [docs/CLOUD.md](docs/CLOUD.md). External detection providers have their own quotas and usage terms; free software does not imply unlimited free lookups.
 
@@ -45,7 +45,7 @@ The combined JAR is available from [GitHub](https://github.com/gerolndnr/connect
 
 Review the generated configuration before accepting live players. **New 0.6.0 installations use ENFORCE and can deny flagged connections immediately.** To evaluate before acting, explicitly select OBSERVE. Existing configurations retain their chosen mode and settings. [Choose your policy](docs/CONFIGURATION.md).
 
-**Unreleased 0.6.1 template:** local Tor/Intel → zowi → Blackbox (fresh Intel HOSTING confirmation required) → IPQuery. ProxyCheck is disabled by default and can be enabled with your own key as a late fallback; ip-check.net and IP-API remain opt-in. Existing installations keep their selections, order and keys. zowi is operated by the developer of FoxGate and retains the conservative local 60/minute cap; exhausted sources fall through, with no equivalent-coverage guarantee. Geo stays Disabled; expressly selected ProxyCheck Geo still works on its selected standalone API version. [Providers, quotas and recipients](docs/PROVIDERS.md) · [Behavior and candidate test limits](docs/PROVIDER_RESILIENCE.md). Website guides: [Block VPNs](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries](https://connectionguard.net/guides/block-countries-minecraft-server).
+**New 0.6.1 template:** local Tor/Intel → zowi → Blackbox (fresh Intel HOSTING confirmation required) → IPQuery. ProxyCheck is disabled by default and can be enabled with your own key as a late fallback; ip-check.net and IP-API remain opt-in. Existing installations keep their selections, order and keys. zowi is operated by the developer of FoxGate and retains the conservative local 60/minute cap; exhausted sources fall through, with no equivalent-coverage guarantee. Geo stays Disabled; expressly selected ProxyCheck Geo still works on its selected standalone API version. [Providers, quotas and recipients](docs/PROVIDERS.md) · [Behavior and candidate test limits](docs/PROVIDER_RESILIENCE.md). Website guides: [Block VPNs](https://connectionguard.net/guides/block-vpn-minecraft-server) · [Block countries](https://connectionguard.net/guides/block-countries-minecraft-server).
 
 ## Commands and permissions
 

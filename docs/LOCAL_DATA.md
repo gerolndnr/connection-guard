@@ -9,9 +9,9 @@ license/account acceptance is performed. Attribution declares your actual data s
 grant a license or validate the accuracy of that source.
 
 
-## 0.6.1 candidate: optional Intel proxies
+## 0.6.1: optional Intel proxies
 
-This change is unreleased pending the independent benchmark. The manifest's required
+Released in0.6.1 at the maintainer's request; independent combined benchmark acceptance remains pending. The manifest's required
 `lists` remains exactly VPN, TOR, RELAY and HOSTING for 0.6.0 compatibility. New
 plugins optionally read `additional_lists.PROXY` with file `proxy.txt`, lowercase
 SHA-256, a positive byte size up to 4MiB and a bounded positive network count.
