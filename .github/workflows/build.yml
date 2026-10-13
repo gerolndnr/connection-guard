@@ -114,6 +114,13 @@ jobs:
           CONNECTIONGUARD_TOR_REFRESH: 'false'
         run: python3 ci/fixtures/provider-order/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-provider-order"
 
+      - name: Exercise gated dashboard provider order using the combined JAR on Java 8
+        env:
+          CONNECTIONGUARD_CLOUD: 'false'
+          CONNECTIONGUARD_INTEL_REFRESH: 'false'
+          CONNECTIONGUARD_TOR_REFRESH: 'false'
+        run: python3 ci/fixtures/dashboard-order/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-dashboard-order"
+
       - name: Qualify the benchmark against the actual built JAR
         working-directory: benchmarks
         run: |
@@ -137,6 +144,7 @@ jobs:
             ${{ runner.temp }}/connection-guard-failure-benchmark/
             ${{ runner.temp }}/connection-guard-api-profiles/
             ${{ runner.temp }}/connection-guard-provider-order/
+            ${{ runner.temp }}/connection-guard-dashboard-order/
             ${{ runner.temp }}/connection-guard-intel/
             ${{ runner.temp }}/connection-guard-observations/receipt.json
           if-no-files-found: warn
