@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "source": "352c7bf6fec0de1f434dcf492d878054299e2dc5",
+  "tests": {
+    "tests": 1010,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_runs": [
+    {
+      "tests": 1010,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tests": 1010,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "archives": {
+    "build/libs/connection-guard-0.6.1-SNAPSHOT-all.jar": "9a7b2604dfad3e4a6e7766ac6e31c715809f55c0ba14d36247edb02926dd13ff",
+    "adapters/libertybans/build/libs/connection-guard-libertybans-0.1.0-dev.jar": "9ca8005f41e64c946f50e6f8170e92ffce7f5ee1e753c61533856a6ae3a1bd60",
+    "adapters/limbo/build/libs/connection-guard-limbo-0.1.0-dev.jar": "6e678dd85c2371f129edd4d967bc2b248186794f1eb32b7380363c0df51076b4"
+  },
+  "archives_reproduced": true,
+  "redis_real_loopback": true,
+  "redis_sha256": "709bafa95cb3bfda7eaeea580f5a6aac24fa113e1945f489e57ccf12c7f648c3",
+  "cloud_contract_tests_loopback_only": true,
+  "script_sha256": "1275f1a653714852d1685240bd45c212f281b724c1634cce57f38061c9e13ea8"
+}
