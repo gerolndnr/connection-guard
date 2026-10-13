@@ -20,7 +20,7 @@ Reviewed 2 October 2026. Check the linked official information before deployment
 
 | Provider | Integration | Official information |
 | --- | --- | --- |
-| ProxyCheck | VPN/proxy and geo; default VPN provider | [Pricing](https://proxycheck.io/pricing/) and [API documentation](https://proxycheck.io/api/) |
+| ProxyCheck | VPN/proxy and geo; optional late fallback in the 0.6.1 template | [Pricing](https://proxycheck.io/pricing/) and [API documentation](https://proxycheck.io/api/) |
 | IP-API | VPN/proxy and geo; final VPN fallback, geo requires opt-in | [JSON documentation](https://ip-api.com/docs/api:json) |
 | IPHub | VPN/proxy; API key configured in the plugin | [API documentation](https://iphub.info/api) |
 | VPNAPI | VPN/proxy; API key configured in the plugin | [Official site](https://vpnapi.io/) |
@@ -32,6 +32,22 @@ ProxyCheck currently advertises **1,000 daily queries** for its registered free 
 The free IP-API endpoint allows **45 requests per minute per source IP**, uses HTTP and **does not allow commercial use**. Persistent overuse can trigger a temporary ban. Choose a suitable supported provider for your use; Connection Guard does not automatically purchase a plan.
 
 ## How requests accumulate
+
+### Unreleased 0.6.1 template
+
+Local Tor/Intel precede **zowi → Blackbox (fresh Intel HOSTING confirmation) → IPQuery**.
+ProxyCheck defaults off; an operator-owned key is an optional **late fallback**,
+not the first network source. Explicitly selected standalone ProxyCheck Geo still
+uses its selected v2/v3 API and retained key, without enabling VPN or another
+recipient. Geo remains Disabled on new installs. ip-check.net and IP-API remain off.
+Order: `[zowi, blackbox, ipquery, proxycheck, ipcheck, ip-api]`; entries alone do not
+enable sources. Existing choices/order/keys and missing-order compatibility remain.
+
+zowi is run by the developer of FoxGate; its conservative local 60/minute cap is
+unchanged. Burst exhaustion uses the other selected providers, whose detection
+coverage can differ. Review the recipient information below. The recommendation
+is an explicit operator choice; independent detection/FPR and login latency of
+this exact candidate require new measurements. [Details](PROVIDER_RESILIENCE.md).
 
 ### New keyless recipients in 0.6.0
 
@@ -58,7 +74,7 @@ Before explicitly enabling a recipient on an existing installation, include it
 in your server's own player privacy information and assess its published terms
 and data handling. Add the appropriate `provider.vpn.<id>.enabled: true` sections
 (and optionally `minute-budget: 60`), retain the services you want, then set
-`provider.vpn-failover.order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]`
+`provider.vpn-failover.order: [zowi, blackbox, ipquery, proxycheck, ipcheck, ip-api]`
 using only IDs present in your file. `/cg reload` validates the complete draft.
 Use `enabled: false` to exclude a service; an order entry never enables it.
 Cloud's off switch controls Cloud, not these detection services.

@@ -9,11 +9,14 @@ import java.util.concurrent.CompletableFuture;
 
 /** Keyless commercial-use endpoint. Absent security flags are UNKNOWN, never clean. */
 public final class IpQueryVpnProvider implements VpnProvider {
+    private final transient okhttp3.HttpUrl endpoint;
+    public IpQueryVpnProvider() { this(okhttp3.HttpUrl.get("https://api.ipquery.io/")); }
+    IpQueryVpnProvider(okhttp3.HttpUrl endpoint) { this.endpoint = Objects.requireNonNull(endpoint); }
     @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) {
         return ProviderHttp.submit(() -> {
             try {
                 Optional<JsonObject> json = ProviderHttp.readJson(new Request.Builder()
-                        .url("https://api.ipquery.io/" + ProviderAddresses.compressed(ip)).build(), "IPQuery");
+                        .url(endpoint.toString() + ProviderAddresses.compressed(ip)).build(), "IPQuery");
                 return json.isPresent() ? parse(ip, json.get()) : Optional.empty();
             } catch (RuntimeException invalid) { throw ProviderHttp.failure(invalid); }
         });

@@ -67,10 +67,10 @@ class KeylessFailoverRuntimeTest {
         ConnectionGuard.applyProviders(new ProviderConfiguration(empty::get, Collections.emptyList()));
     }
     private void activate() throws Exception {
-        idle(); ProviderConfiguration draft = new ProviderConfiguration(values::get, Arrays.asList("blackbox", "ipcheck", "zowi"));
+        idle(); ProviderConfiguration draft = new ProviderConfiguration(values::get, Arrays.asList("blackbox", "ipcheck", "zowi", "ipquery"));
         for (int i = 0; i < draft.providers.size(); i++) {
             String id = draft.keys.get(i); HttpUrl endpoint = HttpUrl.get("http://127.0.0.1:"+server.getAddress().getPort()+"/"+id);
-            draft.providers.set(i, id.equals("blackbox") ? new BlackboxVpnProvider(!Boolean.FALSE.equals(values.get("provider.vpn.blackbox.require-confirmation")),confirmationIntel==null?draft.intelSnapshot:confirmationIntel,endpoint) : id.equals("ipcheck") ? new IpCheckVpnProvider(endpoint) : new ZowiVpnProvider(endpoint));
+            draft.providers.set(i, id.equals("blackbox") ? new BlackboxVpnProvider(!Boolean.FALSE.equals(values.get("provider.vpn.blackbox.require-confirmation")),confirmationIntel==null?draft.intelSnapshot:confirmationIntel,endpoint) : id.equals("ipcheck") ? new IpCheckVpnProvider(endpoint) : id.equals("ipquery") ? new IpQueryVpnProvider(HttpUrl.get(endpoint.toString()+"/")) : new ZowiVpnProvider(endpoint));
         }
         ConnectionGuard.applyProviders(draft);
     }
@@ -84,6 +84,37 @@ class KeylessFailoverRuntimeTest {
         assertTrue(result.isVpn()); assertEquals(ProviderVote.Status.UNKNOWN, result.getVotes().get(0).getStatus());
         assertEquals(1, calls("blackbox")); assertEquals(1, calls("ipcheck")); assertEquals(0, calls("zowi")); assertEquals(0, calls("unexpected"));
         if (fault.equals("429")) { assertEquals(FailureReason.RATE_LIMIT, result.getVotes().get(0).getReason()); assertTrue(ConnectionGuard.providerHealth().get("vpn.blackbox").snapshot().paused); }
+    }
+    private void newOrder() {
+        values.put("provider.vpn.ipcheck.enabled", false);
+        values.put("provider.vpn.ipquery.enabled", true);
+        values.put("provider.vpn.blackbox.require-confirmation", true);
+        values.put("provider.vpn-failover.order", Arrays.asList("zowi", "blackbox", "ipquery"));
+        answers.put("blackbox", "Y");
+        answers.put("ipquery", "{\"risk\":{\"is_vpn\":true,\"is_proxy\":false,\"is_tor\":false}}");
+        answers.put("zowi", "{\"security\":{\"vpn\":{\"detected\":false},\"proxy\":false,\"tor\":false,\"hosting\":false}}");
+    }
+    @Test void newDefaultOrderZowiCleanStopsBeforeBlackboxAndIpQuery() throws Exception {
+        newOrder(); activate(); VpnResult result = query("192.0.2.81");
+        assertEquals(ProviderVote.Status.NEGATIVE,result.getStatus());
+        assertEquals(1,calls("zowi")); assertEquals(0,calls("blackbox")); assertEquals(0,calls("ipquery"));
+    }
+    @Test void newDefaultOrderTimeoutAndUnconfirmedBlackboxContinueToIpQuery() throws Exception {
+        newOrder(); delayed="zowi"; values.put("lookup.http-timeout-ms",100);
+        activate(); VpnResult result=query("192.0.2.82");
+        assertTrue(result.isVpn()); assertEquals(3,result.getVotes().size());
+        assertEquals(FailureReason.TIMEOUT,result.getVotes().get(0).getReason());
+        assertEquals(FailureReason.NO_EVIDENCE,result.getVotes().get(1).getReason());
+        assertEquals(ProviderVote.Status.UNKNOWN,result.getVotes().get(1).getStatus());
+        assertEquals(1,calls("zowi"));assertEquals(1,calls("blackbox"));assertEquals(1,calls("ipquery"));
+    }
+    @Test void newDefaultOrderRetainsSixtyMinuteCapThenUsesOrdinaryFallback() throws Exception {
+        newOrder();activate();
+        for(int i=1;i<=60;i++) assertEquals(ProviderVote.Status.NEGATIVE,query("203.0.113."+i).getStatus());
+        VpnResult result=query("203.0.113.61");assertTrue(result.isVpn());
+        assertEquals(FailureReason.BUDGET_EXHAUSTED,result.getVotes().get(0).getReason());
+        assertEquals(FailureReason.NO_EVIDENCE,result.getVotes().get(1).getReason());
+        assertEquals(60,calls("zowi"));assertEquals(1,calls("blackbox"));assertEquals(1,calls("ipquery"));
     }
     @Test void anActualNegativeStopsWithoutSendingTheIpToMoreRecipients() throws Exception {
         activate(); assertEquals(ProviderVote.Status.NEGATIVE, query("192.0.2.42").getStatus());

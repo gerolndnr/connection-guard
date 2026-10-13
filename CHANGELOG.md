@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased — 0.6.1
+- New-install 0.6.1 provider order: local Tor/Intel, zowi, confirmed Blackbox, IPQuery; ProxyCheck off by default and optional as a late fallback. Existing config choices/order/keys unchanged; ip-check.net/IP-API off, zowi's local 60/minute cap and 5,000-ms deadline retained. Explicit standalone ProxyCheck Geo remains available on its selected API version. Exact candidate latency/detection acceptance remains required before release.
+
 
 ### API budget and lookup profiles
 

@@ -20,7 +20,7 @@ class KeylessProviderConfigurationTest {
     @Test void actualNewInstallYamlSelectsTheRequestedOrderGeoOffAndEstablishedLimits() {
         Map<String, Object> yaml = new Yaml().load(getClass().getResourceAsStream("/config.yml"));
         ProviderConfiguration draft = new ProviderConfiguration(path -> value(yaml, path), keys(yaml));
-        assertEquals(Arrays.asList("connectionguard-intel", "proxycheck", "blackbox", "zowi", "ipquery"), draft.keys);
+        assertEquals(Arrays.asList("connectionguard-intel", "zowi", "blackbox", "ipquery"), draft.keys);
         assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ip-api.enabled"));
         assertEquals(Boolean.TRUE, value(yaml, "provider.vpn.blackbox.require-confirmation"));
         assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ipcheck.enabled"));
@@ -28,10 +28,21 @@ class KeylessProviderConfigurationTest {
         assertNull(draft.geo); assertFalse(draft.settings.observe); assertEquals(5000, draft.settings.lookup.deadlineMillis);
         assertEquals(1500, draft.settings.lookup.httpTimeoutMillis); assertEquals(8, draft.settings.lookup.workers);
         assertEquals(64, draft.settings.lookup.queueCapacity); assertEquals(128, draft.settings.lookup.maxInflight); assertEquals(30000, draft.settings.lookup.circuitPauseMillis);
-        for (int pos = 2; pos <= 3; pos++) {
+        assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.proxycheck.enabled"));
+        assertEquals(Arrays.asList("zowi", "blackbox", "ipquery", "proxycheck", "ipcheck", "ip-api"), value(yaml,"provider.vpn-failover.order"));
+        assertEquals(16, draft.externalAttempts);
+        for (int pos = 1; pos <= 2; pos++) {
             String id = draft.keys.get(pos); assertEquals(id, ConnectionGuard.providerId(draft.providers.get(pos), pos));
             assertEquals(Integer.valueOf(60), draft.minuteBudgets.get(id)); assertEquals("vpn."+id, draft.healthIds.get(id));
         }
+    }
+    @Test void optingProxyCheckBackInPlacesItAfterIpQueryAndRetainsKey() {
+        Map<String,Object> yaml=new Yaml().load(getClass().getResourceAsStream("/config.yml"));
+        @SuppressWarnings("unchecked") Map<String,Object> vpn=(Map<String,Object>)value(yaml,"provider.vpn.proxycheck");
+        vpn.put("enabled",true);vpn.put("api-key","operator-owned-test-key");
+        ProviderConfiguration draft=new ProviderConfiguration(path->value(yaml,path),keys(yaml));
+        assertEquals(Arrays.asList("connectionguard-intel","zowi","blackbox","ipquery","proxycheck"),draft.keys);
+        assertEquals("operator-owned-test-key",value(yaml,"provider.vpn.proxycheck.api-key"));
     }
     @Test void upgradeRetainsExplicitIpCheckRecipientObserveAndTimeoutChoices() {
         Map<String, Object> existing = new HashMap<>();
