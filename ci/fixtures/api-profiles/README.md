@@ -39,3 +39,14 @@ The shutdown warning is **not** a measurement of five-minute scheduling. Existin
 unit tests separately cover fixed reporting windows. Native results do not qualify
 real accounts, every platform build, production latency or provider accuracy/FPR.
 See [operator profile choices and privacy scope](../../../docs/LOOKUP_PROFILES.md).
+
+Bound local receipts are in `receipts/`: 1,004 Redis-enabled regression tests,
+three reproduced archives, seven actual Java 8 archive cases and eight native
+cases on each named platform. Native receipts bind the production archive at
+`830f984`; subsequent fixture retirement/documentation changes preserve its
+`07bc227d80d7d63579905d7e58556e9e04eeb1ec39baf0cbbc8522c103ac6d56`
+hash. The test retirement fix waits for physical executor termination before
+reconfiguration; it does not weaken the product's runtime replacement guard.
+The final PR CI independently re-runs its own archive cases and complete tests.
+These receipts do not establish five-minute native scheduling, provider accuracy,
+production performance or independent competitor acceptance.
