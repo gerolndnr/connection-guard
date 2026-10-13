@@ -245,9 +245,13 @@ def main():
         report=until(lambda: applied(3,True),'empty native managed order')
         assert report['status']['config']['provider.vpn-failover.order']==[]
         admit('CGOrderEmpty')
+        with lock: assert state['provider_calls']==2
+        # Returning to the same effective chain may reuse its still-valid fact namespace.
+        instance.command('cg clear 127.0.0.1','gelöscht')
+        admit('CGOrderCold')
         with lock: assert state['provider_calls']==3
         assert digest(config)==local_hash
-        record('native-empty-order-is-valid-and-rebuilds-declared-fallbacks')
+        record('native-empty-order-restores-declared-chain-and-valid-cache-namespace')
         instance.command('end' if args.platform=='bungee' else 'stop','');instance.close()
         assert instance.process.returncode==0;result['native_exit_code']=instance.process.returncode
         record('native-clean-shutdown')
@@ -263,6 +267,8 @@ def main():
             (work / 'client.log').write_text(''.join(clients.transcript))
         if instance:
             instance.close()
+            result['stopped'] = instance.process.poll() is not None
+            result['native_exit_code'] = instance.process.returncode
         http.shutdown()
         http.server_close()
         (work / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
