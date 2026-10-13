@@ -5,6 +5,11 @@ import java.util.function.Function;
 
 /** General source selection, independent of provider credentials or subscription. */
 public final class VpnFailoverSettings {
+    /** Snapshot fallback for an absent field; does not migrate a legacy runtime's ordering. */
+    public static final List<String> TEMPLATE_ORDER = Collections.unmodifiableList(Arrays.asList("zowi", "blackbox", "ipquery", "proxycheck", "ipcheck", "ip-api"));
+    public static final class InvalidOrder extends IllegalArgumentException {
+        public InvalidOrder() { super("Provider order contains invalid, unknown or duplicate source IDs; values redacted."); }
+    }
     public final boolean enabled;
     public final int maxExternalAttempts;
     public final List<String> order;
@@ -28,11 +33,11 @@ public final class VpnFailoverSettings {
         List<String> selected = new ArrayList<>();
         if (raw != null) {
             if (!(raw instanceof List) || ((List<?>) raw).size() > 16)
-                throw new IllegalArgumentException("provider.vpn-failover.order must be a list of at most 16 provider IDs.");
+                throw new InvalidOrder();
             for (Object item : (List<?>) raw) {
                 if (!(item instanceof String) || !((String) item).matches("[a-zA-Z0-9_.-]{1,80}")
                         || !available.contains(item) || selected.contains(item))
-                    throw new IllegalArgumentException("Invalid, unknown or duplicate failover provider ID (value redacted).");
+                    throw new InvalidOrder();
                 selected.add((String) item);
             }
         }

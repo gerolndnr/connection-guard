@@ -378,6 +378,18 @@ class CloudSyncTest {
         assertEquals("The server rejected these settings; check /cg doctor and the local configuration (values redacted).", result.get("message").getAsString());
     }
 
+    @Test void unknownProviderOrderRefusesWholeChangeAndReportsSpecificSafeReason() throws Exception {
+        Map<String,Object> base=new HashMap<>();base.put("provider.geo.service","Disabled");base.put("provider.vpn.proxycheck.enabled",true);
+        com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration active=new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(base::get,Collections.singletonList("proxycheck"));
+        ConnectionGuard.applyProviders(active);
+        CloudSync.setReloadHook(()->{Map<String,Object> candidate=new HashMap<>(base);CloudManagedConfig.overlay(dir,candidate::put);ConnectionGuard.applyProviders(new com.github.gerolndnr.connectionguard.core.config.ProviderConfiguration(candidate::get,Collections.singletonList("proxycheck")));});
+        startSync(base);CloudSync.runOnceForTest();
+        syncResponse=linkedWithConfig("{\"version\":5,\"reset\":false,\"keep_secrets\":[],\"values\":{\"operation.mode\":\"OBSERVE\",\"provider.vpn-failover.order\":[\"unknown\"]}}");
+        CloudSync.runOnceForTest();assertSame(active,ConnectionGuard.getActiveDraft());assertTrue(CloudManagedConfig.load(dir).values.isEmpty());
+        syncResponse=linkedWithConfig("null");syncs.clear();CloudSync.runOnceForTest();JsonObject result=syncs.poll(5,TimeUnit.SECONDS).getAsJsonObject("status").getAsJsonObject("config_result");
+        assertFalse(result.get("ok").getAsBoolean());assertTrue(result.get("message").getAsString().contains("unknown or duplicate source IDs"));
+    }
+
     @Test void retriesLaterWhileLookupsAreInFlight() throws Exception {
         CloudSync.setReloadHook(() -> { throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers."); });
         startSync(Collections.emptyMap());

@@ -60,8 +60,40 @@ How it works:
 - **Dashboard values take priority over `config.yml`.** They are stored in `plugins/<plugin>/cloud/managed-config.json` (owner-readable only) and layered over `config.yml` in memory on every load and reload. **`config.yml` itself is never written**, and every setting you did not change in the dashboard still comes from it.
 - **Same validation as `/cg reload`.** A change is applied without a restart through the normal reload. If the server rejects it (for example, more required votes than enabled providers), the previous settings stay active and the dashboard shows the reason.
 - **API keys and webhook URLs** are sent once, encrypted at rest in the cloud until the server confirms them, and then deleted from the cloud. Afterwards the dashboard only shows whether a key is set and its last four characters.
-- **Never configurable remotely:** console commands on a hit (`execute-command`), the cache type and Redis connection, identity and forwarding, lookup tuning, overload limits, integrations, local lists and custom providers. These stay in `config.yml` only.
+- **Never configurable remotely:** console commands on a hit (`execute-command`), the cache type and Redis connection, identity and forwarding, transport/worker tuning, overload limits, integrations, local-list definitions and custom-provider definitions. These stay in `config.yml` only.
 - **Back to `config.yml`:** use "Reset to config.yml" in the dashboard, or `/cg cloud reset-settings` on the server (works even with the cloud off). `/cg cloud settings` lists which values come from the dashboard; `/cg doctor` shows the cloud state.
+
+## Unreleased 0.6.1: provider order from the dashboard
+
+The plugin snapshot unlocks the dashboard's existing Order control, sequential/
+parallel switch, services-per-player limit, IPQuery and IPQualityScore switches,
+and the protected IPQualityScore key. Older plugins keep these gated controls
+read-only. This package changes the plugin contract, not the deployed dashboard.
+
+Managed paths: `provider.vpn-failover.order` (up to16IDs, each up to64characters),
+`provider.vpn-failover.enabled`, `provider.max-external-attempts` (1..16),
+`provider.vpn.ipquery.enabled`, `provider.vpn.ipqualityscore.enabled` and
+`provider.vpn.ipqualityscore.api-key`. Choosing an order never enables a service.
+Unknown or duplicate IDs reject the entire change with a safe dashboard reason;
+existing active settings and overlay are preserved. Declared custom/extension
+sources remain accepted; their definitions and URLs still belong to config.yml.
+
+Partial lists are valid: other enabled sources follow under existing ranking
+rules, local Tor/Intel always precede APIs and IP-API stays last even if listed.
+An empty list is valid. The configured list is reported exactly, including local
+legacy extension IDs longer than64characters; such IDs cannot be rewritten by
+the dashboard's narrower64-character input contract. They are not truncated.
+
+Dashboard values take precedence in memory on every normal reload, with no
+restart or config.yml rewrite. Reordering rebuilds the chain and separates its
+cache namespace so old answers are not reused. `/cg cloud settings` reports the
+managed paths; reset restores local settings. An absent order in an older file
+is displayed as the bundled new-install template recommendation, as requested;
+the legacy runtime's missing-order behavior is unchanged until an operator
+actually saves a managed order. Missing new provider switches snapshot as off.
+API keys use the existing keep/clear/redacted-state contract; the full key never
+appears in snapshots. Existing per-source budgets and the optional process-wide
+API cap are not reset by an order change. No new player event or data type.
 
 ## What else the dashboard can do on your server
 

@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased — 0.6.1
+- Dashboard-gated provider order, sequential/parallel strategy,1..16external-attempt limit and IPQuery/IPQualityScore controls. Normal in-place reload validates the whole change, reports invalid order IDs safely, preserves local/last ordering, retains managed values on reload and separates reordered cache facts. API-key snapshots stay redacted; existing files are never rewritten.
+
 - New-install 0.6.1 provider order: local Tor/Intel, zowi, confirmed Blackbox, IPQuery; ProxyCheck off by default and optional as a late fallback. Existing config choices/order/keys unchanged; ip-check.net/IP-API off, zowi's local 60/minute cap and 5,000-ms deadline retained. Explicit standalone ProxyCheck Geo remains available on its selected API version. Exact candidate latency/detection acceptance remains required before release.
 
 

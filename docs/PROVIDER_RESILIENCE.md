@@ -6,7 +6,8 @@ The 0.6.1 candidate template selects local Tor/Intel → zowi → Blackbox
 (fresh Intel HOSTING confirmation required) → IPQuery. ProxyCheck defaults
 **off only in new files** and remains an explicitly selected late fallback;
 retain your own key when enabling it. IP-API and ip-check.net remain off.
-There is no migration of existing provider selections or order. It remains available as HTTP-only, non-commercial opt-in
+There is no migration of existing provider selections or order. IP-API remains
+available as HTTP-only, non-commercial opt-in
 and is always last when enabled. ip-check.net remains off by default.
 
 Blackbox `Y` is positive only when fresh local **Connection Guard Intel HOSTING**
@@ -102,9 +103,9 @@ required-positive-flags: 2 # use your previous value, normally 1
 The existing provider selections and configured quorum remain stored. In the chain,
 the effective quorum is 1; a stored higher quorum produces a diagnostic notice and
 applies again when the chain is disabled. `/cg doctor` reports the active mode,
-effective threshold, order and maximum attempts. The dashboard quorum alone cannot
-switch off sequential failover; change this local option before using a multi-provider
-quorum. No new dashboard control is advertised by this plugin-only change.
+effective threshold, order and maximum attempts. The unreleased 0.6.1 dashboard contract can switch sequential failover off before
+using a multi-provider quorum, edit the partial order and adjust the maximum
+attempts. Existing per-source limits remain local. [Managed paths and gating](CLOUD.md#unreleased-061-provider-order-from-the-dashboard).
 
 The earlier candidate's explicit `provider.vpn-strategy: CONSENSUS` or `FAILOVER`
 remains accepted if the boolean option is absent. The new boolean takes precedence.
