@@ -9,6 +9,8 @@ softdepend:
   - LuckPerms
   - floodgate
 permissions:
+  connectionguard.command.profile:
+    default: op
   connectionguard.command.migrate:
     default: op
   connectionguard.command.cloud:

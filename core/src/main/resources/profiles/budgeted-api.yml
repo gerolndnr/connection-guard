@@ -1,0 +1,7 @@
+# Merge into the existing config and /cg reload. Choose the cap consciously.
+# 1000 is this explicit example's cap, never the default for existing/new installations.
+# Makes already enabled API sources eligible; adds no new source or credential.
+# Preserve per-source quotas, operation.mode, strategy, threshold and timeouts.
+lookup:
+  api-policy: CONFIGURED
+  api-daily-budget: 1000

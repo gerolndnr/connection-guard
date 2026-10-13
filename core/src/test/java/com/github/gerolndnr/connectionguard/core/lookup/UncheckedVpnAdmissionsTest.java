@@ -13,6 +13,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UncheckedVpnAdmissionsTest {
+    @Test void missingLocalHintsNeverHideALaterQuotaFailureInTheSameUnknownLogin() {
+        VpnResult result=new VpnResult("192.0.2.41",false);result.setUnknown(FailureReason.NO_EVIDENCE);
+        result.setVotes(Arrays.asList(new ProviderVote("local",ProviderVote.Status.UNKNOWN,FailureReason.NO_EVIDENCE,0),
+                new ProviderVote("api",ProviderVote.Status.UNKNOWN,FailureReason.BUDGET_EXHAUSTED,0)));
+        assertEquals(FailureReason.BUDGET_EXHAUSTED,UncheckedVpnAdmissions.unresolved(result,false));
+        result.setStatus(ProviderVote.Status.NEGATIVE);assertNull(UncheckedVpnAdmissions.unresolved(result,false));
+    }
     private static VpnResult unknown() {
         VpnResult result = new VpnResult("192.0.2.41", false);
         result.setUnknown(FailureReason.BUDGET_EXHAUSTED);

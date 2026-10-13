@@ -1,0 +1,6 @@
+# Merge this overlay into the existing config and /cg reload.
+# Keep existing operation.mode, source choices, local datasets, limits and credentials.
+# Missing local data remains UNKNOWN; configured failure policy still applies.
+# Only VPN/Geo source lookups are local: Cloud/webhooks/cache/updates/integrations are separate.
+lookup:
+  api-policy: LOCAL_ONLY

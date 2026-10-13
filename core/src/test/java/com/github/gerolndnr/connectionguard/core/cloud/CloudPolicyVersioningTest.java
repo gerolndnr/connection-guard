@@ -15,15 +15,26 @@ import static org.junit.jupiter.api.Assertions.*;
 class CloudPolicyVersioningTest {
     @TempDir Path directory;
     private GuardSettings base;
-    @BeforeEach void setup() throws Exception {
+    private void stopOwnedRuntime() throws Exception {
         ConnectionGuard.shutdown();
+        com.github.gerolndnr.connectionguard.core.lookup.LookupRuntime previous = ConnectionGuard.getLookupRuntime();
+        long deadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(3);
+        while (System.nanoTime() < deadline) {
+            previous.retireIfIdle();
+            if (!previous.isOpen() && previous.retireIfIdle()) return;
+            Thread.sleep(2);
+        }
+        fail("Owned fixture runtime did not physically terminate.");
+    }
+    @BeforeEach void setup() throws Exception {
+        stopOwnedRuntime();
         base = GuardSettings.read(key -> key.equals("operation.mode") ? "OBSERVE" : null, Collections.emptyList());
         ConnectionGuard.applySettings(base); ConnectionGuard.initializeRules(directory);
         GuardSettings enforce = GuardSettings.read(key -> key.equals("behavior.vpn.kick-player") ? true : null, Collections.emptyList());
         PolicyReplay.Snapshot candidate = new PolicyReplay.Snapshot(enforce, Collections.emptyList());
         ConnectionGuard.activatePolicy(candidate, candidate.fingerprint(), ConnectionGuard.policyActivationToken());
     }
-    @AfterEach void cleanup() { ConnectionGuard.shutdown(); }
+    @AfterEach void cleanup() throws Exception { stopOwnedRuntime(); }
     @Test void existingCloudRuleCommandsUseTheSameJournalAndInvalidatePreviouslyReviewedBase() throws Exception {
         String expected = ConnectionGuard.policyActivationToken(); String before = ConnectionGuard.getRuleStore().revision();
         JsonObject command = new JsonObject(); command.addProperty("id", "cmd_AAAAAAAAAAAAAAAA"); command.addProperty("type", "access_rule.add");

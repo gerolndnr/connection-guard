@@ -11,6 +11,7 @@ import com.github.gerolndnr.connectionguard.core.local.*;
 
 /** Build a complete provider draft before mutating active state. No network or file writes. */
 public final class ProviderConfiguration {
+    public final ApiLookupPolicy apiPolicy;
     public final boolean cloudManagesPolicy;
     public final ArrayList<VpnProvider> providers = new ArrayList<>();
     public final List<String> keys = new ArrayList<>();
@@ -58,6 +59,7 @@ public final class ProviderConfiguration {
         this.messages = messages == null ? com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults(language) : messages;
         if (!this.messages.language().equals(language)) throw new IllegalArgumentException("Message draft does not match selected language (value redacted).");
         this.values = value; this.providerKeys = Collections.unmodifiableList(new ArrayList<>(providerKeys)); this.dataDirectory = dataDirectory;
+        apiPolicy = ApiLookupPolicy.read(value);
         cloudManagesPolicy = com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.managesDecisionPolicy(dataDirectory);
         settings = GuardSettings.read(value, providerKeys);
         dataPath = dataDirectory;
@@ -195,6 +197,9 @@ public final class ProviderConfiguration {
         try {
             String input = "schema11-proxy-blackbox-confirmation:" + failover + ":" + externalAttempts + ":" + threshold + ":" + keys + ":" + new com.google.gson.Gson().toJson(providers)
                     + ":" + id + ":" + new com.google.gson.Gson().toJson(geo);
+            // Keep CONFIGURED cache namespaces byte-compatible; a quota does not invalidate valid evidence.
+            // LOCAL_ONLY must never reuse API evidence collected under the other policy.
+            if (!apiPolicy.allowsExternal()) input = "local-only-v1:" + input;
             byte[] hash = java.security.MessageDigest.getInstance("SHA-256").digest(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder(); for (byte part : hash) hex.append(String.format("%02x", part & 255));
             cacheNamespace = hex.toString();

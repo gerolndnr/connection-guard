@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "source": "830f9844b53d59560c7e88d0a3d2682aefde9c10",
+  "artifact_sha256": "07bc227d80d7d63579905d7e58556e9e04eeb1ec39baf0cbbc8522c103ac6d56",
+  "runtime": "BungeeCord-2100.jar",
+  "runtime_sha256": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+  "addon_sha256": "c12476cceae9cc76dd6efc97e122de8e634859e549c9a4b4f5104b58184a085d",
+  "driver_sha256": "3acd77c1a5879589ce3ec93946a07ec3e1ca4c2ca341e36c52584062e632fb94",
+  "synthetic_offline_clients": true,
+  "real_account_authentication": false,
+  "telemetry": false,
+  "cases": [
+    "native_configured_default_keeps_one_actual_http_denial",
+    "native_profile_previews_preserve_configuration_and_requests",
+    "native_52_beyond_shared_budget_are_unknown_counted_and_make_no_http",
+    "native_local_list_protects_with_empty_api_budget_and_local_only",
+    "native_local_only_retains_two_vote_consensus_and_unknown",
+    "native_explicit_raise_allows_one_more_call_without_resetting_usage",
+    "native_invalid_profile_reload_preserves_prior_policy_and_counter",
+    "native_shutdown_emits_actual_partial_unchecked_summary_with_budget_reason"
+  ],
+  "status": "passed",
+  "owned_http_requests": 3,
+  "external_provider_requests": 0,
+  "periodic_five_minute_timing_tested": false,
+  "stopped": true,
+  "runtime_exit_code": 0
+}

@@ -100,6 +100,13 @@ jobs:
           CONNECTIONGUARD_TOR_REFRESH: 'false'
         run: python3 ci/fixtures/policy-observations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-observations"
 
+      - name: Exercise lookup profiles and shared quotas using the combined JAR on Java 8
+        env:
+          CONNECTIONGUARD_CLOUD: 'false'
+          CONNECTIONGUARD_INTEL_REFRESH: 'false'
+          CONNECTIONGUARD_TOR_REFRESH: 'false'
+        run: python3 ci/fixtures/api-profiles/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-api-profiles"
+
       - name: Qualify the benchmark against the actual built JAR
         working-directory: benchmarks
         run: |
@@ -121,6 +128,7 @@ jobs:
           path: |
             ${{ runner.temp }}/connection-guard-core-benchmark/
             ${{ runner.temp }}/connection-guard-failure-benchmark/
+            ${{ runner.temp }}/connection-guard-api-profiles/
             ${{ runner.temp }}/connection-guard-intel/
             ${{ runner.temp }}/connection-guard-observations/receipt.json
           if-no-files-found: warn

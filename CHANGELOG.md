@@ -2,6 +2,12 @@
 
 ## Unreleased — 0.6.1
 
+### API budget and lookup profiles
+
+- Add explicit `lookup.api-policy: LOCAL_ONLY` to suppress API/custom/extension VPN and API Geo source calls while retaining selected local/Tor/cache evidence and UNKNOWN/failure-policy semantics. Keep configured consensus thresholds and isolate the local-only cache namespace from earlier API facts.
+- Add optional shared `lookup.api-daily-budget` across VPN/Geo external-call reservations, alongside existing source quotas. Shared ProxyCheck uses one reservation; local/cache hits consume none. Reload, clear, limit/profile changes do not replenish the counter. Default CONFIGURED/0 preserves existing source choices, strategies, mode, timeouts and cache namespace.
+- Show sanitized policy/reservation status in doctor/providers, warn on exhaustion and provide ready-made local-only, budgeted-api and observe overlays through read-only `/cg profile show`. No preset auto-activation or new Cloud field. [Profile choices and limits](docs/LOOKUP_PROFILES.md).
+
 ### Local policy observation replay
 
 - Add an explicit `/cg policy capture` workflow for local provider-fact samples. Default facts mode redacts real IPs/UUIDs and preserves resolved trust/exemptions; explicit identities mode enables literal-rule replay with private local identifiers. Capture stays off until started, is bounded to one hour/32 cases/256 KiB and seven-day cleanup, writes atomically after stop, and is never synced/reported. Replay chooses current or captured timestamps, preserves failover/quorum/reasons, and rejects identity rules in redacted mode. Recording never performs disk I/O or waits for a competing recorder. [Capture, replay and privacy limits](docs/POLICY_REPLAY.md).

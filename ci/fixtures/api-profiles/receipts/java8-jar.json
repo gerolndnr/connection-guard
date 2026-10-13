@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "kind": "actual-jar-api-profiles-loopback",
+  "artifact_sha256": "07bc227d80d7d63579905d7e58556e9e04eeb1ec39baf0cbbc8522c103ac6d56",
+  "driver_sha256": "497a13cba8c08c305e7bfefd07ebcd57144c3268c4affd936b71cf87cab37e30",
+  "fixture_sha256": "8a89b05f0aee083371c37f4cfb13add07a75a3cd9258615c835abe0d6a9a92e1",
+  "cases": [
+    "configured_default_and_fresh_cache_preserve_one_request",
+    "preset_preview_is_read_only_and_spends_no_quota",
+    "reload_clear_and_lowered_cap_do_not_replenish_reservations",
+    "vpn_and_geo_share_the_same_daily_cap",
+    "local_only_suppresses_http_geo_and_old_api_cache_facts",
+    "local_evidence_survives_exhaustion_without_lowering_consensus",
+    "one_hundred_dual_scope_callers_share_one_http_and_two_quota_layers"
+  ],
+  "java": "/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/bin/java",
+  "owned_loopback_only": true,
+  "external_provider_requests": 0,
+  "native_login_tested": false,
+  "competitive_accuracy_tested": false
+}

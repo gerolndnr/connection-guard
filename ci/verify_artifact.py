@@ -79,6 +79,13 @@ def verify(artifact, version):
                     "Bundled policy examples differ from the checked source.")
 
         if tuple(map(int, version.removesuffix("-SNAPSHOT").split("."))) >= (0, 6, 1):
+            for api_type in ("config/ApiLookupPolicy", "config/ApiLookupPolicy$Mode", "lookup/ApiLookupBudget", "lookup/ApiLookupBudget$View", "commands/ProfileCommands"):
+                entry = PACKAGE.replace(".", "/") + "/core/" + api_type + ".class"
+                require(names.count(entry) == 1, f"Missing or duplicate API profile type: {api_type}")
+            for profile in ("local-only", "budgeted-api", "observe"):
+                entry = "profiles/" + profile + ".yml"
+                require(names.count(entry) == 1 and jar.read(entry) == (ROOT / "core/src/main/resources" / entry).read_bytes(),
+                        f"Missing, duplicate or changed lookup profile: {profile}")
             for capture_type in ("PolicyObservationCapture", "PolicyObservationCapture$Session", "PolicyObservationCapture$View", "PolicyObservationCapture$State"):
                 entry = PACKAGE.replace(".", "/") + "/core/policy/" + capture_type + ".class"
                 require(names.count(entry) == 1, f"Missing or duplicate policy observation type: {capture_type}")
