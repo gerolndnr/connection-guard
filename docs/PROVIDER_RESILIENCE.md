@@ -2,16 +2,20 @@
 
 ## Unreleased 0.6.1 candidate defaults and confirmation
 
-The candidate keeps local Tor → Intel → ProxyCheck → Blackbox → zowi → IPQuery.
-IP-API now defaults **off only in new files**, with no migration of existing
-provider selections. It remains available as HTTP-only, non-commercial opt-in
+The 0.6.1 candidate template selects local Tor/Intel → zowi → Blackbox
+(fresh Intel HOSTING confirmation required) → IPQuery. ProxyCheck defaults
+**off only in new files** and remains an explicitly selected late fallback;
+retain your own key when enabling it. IP-API and ip-check.net remain off.
+There is no migration of existing provider selections or order. IP-API remains
+available as HTTP-only, non-commercial opt-in
 and is always last when enabled. ip-check.net remains off by default.
 
 Blackbox `Y` is positive only when fresh local **Connection Guard Intel HOSTING**
 membership confirms the address. Without that membership it is UNKNOWN with
 “Blackbox listed the address, not confirmed”; ordinary failover continues and
 the next decisive normal provider decides. There is no separate confirmation
-request, no changed service order and no added IP recipient. Missing/stale Intel
+request or added confirmation recipient. The 0.6.1 template changes order as
+described above; existing files are not reordered. Missing/stale Intel
 cannot confirm. `N` remains negative and malformed replies remain UNKNOWN.
 `provider.vpn.blackbox.require-confirmation: false` restores 0.6.0 aggregate
 blocking. The default true also applies when an existing Blackbox section omits
@@ -27,6 +31,28 @@ identified by version.
 0.6.0 is published at the maintainer's explicit request. The complete
 `mc-antivpn-bench` acceptance matrix remains pending and is required before
 claiming comparative detection, false-positive or burst-coverage results.
+
+## Network-first latency and burst limits in the 0.6.1 candidate
+
+zowi is the first network source on new installs, operated by the developer of
+FoxGate. Its **local 60/minute cap stays unchanged** because an upstream allowance
+is not established. On exhaustion or timeout, confirmed Blackbox and IPQuery
+remain ordinary fallbacks; they do not promise the same detection coverage.
+A definitive zowi negative stops the chain, even when another source might
+classify that address differently. No consensus is added.
+
+The unchanged whole-login deadline is 5,000 ms and the default maximum external
+attempts is 16. Existing explicit values stay in force. Previously recorded service
+latency does not qualify the new candidate's actual login latency or burst accuracy;
+measure its exact JAR in the same benchmark profile before release. The order is an
+operator decision aimed at reducing false positives, not an independent accuracy
+or latency guarantee.
+
+Geo stays Disabled on new installations. Explicit ProxyCheck Geo still uses the
+operator-selected standalone v2/v3 endpoint when ProxyCheck VPN is disabled;
+when VPN is enabled, both share one v2 vpn=1 request. Disabling VPN does not switch
+Geo to a new recipient. Both explicit choices still disclose the player IP to
+ProxyCheck and use the operator's retained key/local quota.
 
 ## Lookup contract
 
@@ -49,7 +75,7 @@ in the presence of failures. No consensus is requested while the chain is active
 provider:
   vpn-failover:
     enabled: true
-    order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]
+    order: [zowi, blackbox, ipquery, proxycheck, ipcheck, ip-api]
   max-external-attempts: 16
 ```
 
@@ -77,9 +103,9 @@ required-positive-flags: 2 # use your previous value, normally 1
 The existing provider selections and configured quorum remain stored. In the chain,
 the effective quorum is 1; a stored higher quorum produces a diagnostic notice and
 applies again when the chain is disabled. `/cg doctor` reports the active mode,
-effective threshold, order and maximum attempts. The dashboard quorum alone cannot
-switch off sequential failover; change this local option before using a multi-provider
-quorum. No new dashboard control is advertised by this plugin-only change.
+effective threshold, order and maximum attempts. The unreleased 0.6.1 dashboard contract can switch sequential failover off before
+using a multi-provider quorum, edit the partial order and adjust the maximum
+attempts. Existing per-source limits remain local. [Managed paths and gating](CLOUD.md#unreleased-061-provider-order-from-the-dashboard).
 
 The earlier candidate's explicit `provider.vpn-strategy: CONSENSUS` or `FAILOVER`
 remains accepted if the boolean option is absent. The new boolean takes precedence.

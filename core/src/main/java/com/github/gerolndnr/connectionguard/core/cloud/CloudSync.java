@@ -599,7 +599,9 @@ public final class CloudSync {
             next = CloudManagedConfig.desired(managed, desired);
         } catch (IllegalArgumentException | IllegalStateException | ClassCastException | UnsupportedOperationException invalid) {
             PluginErrorReports.record(invalid, PluginErrorReports.Context.RELOAD);
-            configResult = result(version, false, "Malformed or unsupported settings; values redacted.");
+            configResult = result(version, false, invalid instanceof com.github.gerolndnr.connectionguard.core.config.VpnFailoverSettings.InvalidOrder
+                    ? "Provider order contains invalid, unknown or duplicate source IDs; values redacted."
+                    : "Malformed or unsupported settings; values redacted.");
             log.warning("Connection Guard Cloud: refused dashboard settings v" + version + ": " + configResult.get("message").getAsString());
             return true;
         }
@@ -620,7 +622,9 @@ public final class CloudSync {
             configDeferred = true;
         } catch (RuntimeException invalid) {
             rollback(dataDir, previous);
-            configResult = result(version, false, "The server rejected these settings; check /cg doctor and the local configuration (values redacted).");
+            configResult = result(version, false, invalid instanceof com.github.gerolndnr.connectionguard.core.config.VpnFailoverSettings.InvalidOrder
+                    ? "Provider order contains invalid, unknown or duplicate source IDs; values redacted."
+                    : "The server rejected these settings; check /cg doctor and the local configuration (values redacted).");
             log.warning("Connection Guard Cloud: dashboard settings v" + version + " rejected, previous settings kept: " + configResult.get("message").getAsString());
         }
         return true;

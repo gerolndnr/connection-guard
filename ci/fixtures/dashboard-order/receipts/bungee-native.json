@@ -1,0 +1,34 @@
+{
+  "status": "passed",
+  "artifact_sha256": "bbab24ed14fd47fb5514eb548e572aa78bc64371a9228af09ac57506c2c712eb",
+  "platform": "bungee",
+  "driver_sha256": "b32c12a3669271a79b610345a98639b69a7a130378b8fe0763bc0d217d5ffce2",
+  "java": 21,
+  "cases": [
+    "real-native-cloud-claim-and-sync-in-observe",
+    "native-snapshot-unlocks-gated-order-and-controls",
+    "native-clean-first-source-produces-cached-negative",
+    "native-order-hot-apply-invalidates-cached-negative-and-denies",
+    "native-managed-order-retained-across-reload-and-shown-by-command",
+    "native-unknown-id-refuses-entire-change-and-restores-overlay",
+    "native-empty-order-restores-declared-chain-and-valid-cache-namespace",
+    "native-clean-shutdown"
+  ],
+  "real_account_authentication_tested": false,
+  "real_operator_pilot": false,
+  "live_cloud_or_provider_tested": false,
+  "new_cost_eur": 0,
+  "helper_sources": {
+    "backend_fixture.py": "1f238c5631710b95f6f671a067fd30cafe6a488af30d91aa8e03365475ac7fb1",
+    "release_backend_test.py": "fcf6b18052d1051c4a5913044dcef01da3a69bb697232464f0ffde626788900e",
+    "release_native_bungee_test.py": "1d829e9af3bb4fe0df23bab9f167388f1dfadbd241e081bc8456e72563fd23e9",
+    "release_velocity_test.py": "e66864e6aa98739b962657ec97d32ad8f522ef0e4e5579851bffb3d1faf6fbfb",
+    "backend_client.cjs": "d274e3201a1963cbad17b22bb0e6f5fb9095770c8c8b54509e6e1870914dcf55"
+  },
+  "runtime_sha256": "8b9f75994fa6bd027e98827b3f83523f462c9e4b978fdab2fad00182ba4c924b",
+  "runtime": "BungeeCord build 2100",
+  "addon_sha256": "c819764d6ba6bd3bfe9c3aa5c9c1542aeff6a6de7e8c351f65ddbdbbf416d806",
+  "fixture_source_sha256": "aa2a7acb796f5b11b6bb0b9d0b4a45830be21a61855b19c151e9d9bdf5b4d7b6",
+  "native_exit_code": 0,
+  "stopped": true
+}

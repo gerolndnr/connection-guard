@@ -197,16 +197,17 @@ provider:
     # Example: [ipqualityscore, iphub, proxycheck, extension.owned, corporate]
     # Local lists always precede APIs; ip-api is always the last network option.
     # New-install template only; existing files keep their selections and order.
-    order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api]
+    order: [zowi, blackbox, ipquery, proxycheck, ipcheck, ip-api]
   # Network attempts per lookup, bounded by the original whole-login deadline (1..16).
   # Locally skipped quotas/circuits and local list checks do not consume this limit.
   max-external-attempts: 16
   # Legacy vpn-strategy: FAILOVER|CONSENSUS remains accepted if the new switch is absent.
   vpn:
     # ProxyCheck allows 100 anonymous or 1,000 registered free queries per day.
+    # Optional late fallback: enable explicitly; retain your own key.
     # VPN and ProxyCheck geo share one vpn=1 query and one local quota reservation.
     proxycheck:
-      enabled: true
+      enabled: false
       # VPN always uses supported v2 with vpn=1 (including retained v3 settings).
       # api-version selects standalone geo when ProxyCheck VPN is disabled.
       api-version: v2
@@ -230,7 +231,9 @@ provider:
       enabled: false
       minute-budget: 60
     # zowi: operated by Zowi, developer of competitor FoxGate. No key is sent.
+    # First network source on new installs; other detection services remain fallbacks.
     # VPN/proxy/Tor flags block; hosting alone remains review evidence.
+    # Keep the conservative 60/minute cap; it is not a documented upstream allowance.
     zowi:
       enabled: true
       minute-budget: 60

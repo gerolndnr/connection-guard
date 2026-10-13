@@ -154,4 +154,31 @@ class ProxyCheckSharedRuntimeTest {
         client.query("192.0.2.22", true, 1, 1, operation, () -> {}).get(1, TimeUnit.SECONDS);
         assertEquals(2, started.get());
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"v2","v3"})
+    void standaloneGeoRetainsSelectedApiVersionWhenDefaultVpnIsOff(String version) throws Exception {
+        Map<String,Object> selected=new HashMap<>();selected.put("provider.geo.service","ProxyCheck");
+        selected.put("provider.vpn.proxycheck.enabled",false);selected.put("provider.vpn.proxycheck.api-version",version);
+        selected.put("provider.vpn.proxycheck.api-key","operator-owned-test-key");
+        ProviderConfiguration draft=new ProviderConfiguration(selected::get,Collections.singletonList("proxycheck"));
+        assertFalse(((ProxyCheckGeoProvider)draft.geo).sharesVpnQuery());assertTrue(draft.providers.isEmpty());
+        java.lang.reflect.Field field=ProviderHttp.class.getDeclaredField("CLIENT");field.setAccessible(true);
+        okhttp3.OkHttpClient previous=(okhttp3.OkHttpClient)field.get(null);
+        java.util.concurrent.atomic.AtomicReference<okhttp3.Request> request=new java.util.concurrent.atomic.AtomicReference<>();
+        String ip="2001:db8::7";
+        String body=version.equals("v3") ? "{\"status\":\"ok\",\""+ip+"\":{\"location\":{\"isocode\":\"PT\",\"city\":\"Fixture\"},\"network\":{\"provider\":\"Fixture ISP\",\"asn\":64496}}}"
+                : "{\"status\":\"ok\",\""+ip+"\":{\"isocode\":\"PT\",\"provider\":\"Fixture ISP\",\"asn\":\"AS64496\"}}";
+        // Intercept before DNS/socket creation: no request reaches this real provider.
+        field.set(null,previous.newBuilder().addInterceptor(chain->{request.set(chain.request());return new okhttp3.Response.Builder()
+                .request(chain.request()).protocol(okhttp3.Protocol.HTTP_1_1).code(200).message("fixture")
+                .body(okhttp3.ResponseBody.create(okhttp3.MediaType.parse("application/json"),body)).build();}).build());
+        try {
+            ConnectionGuard.setGeoProvider(draft.geo);
+            assertEquals("PT",ConnectionGuard.getGeoLookup(ip).get(3,TimeUnit.SECONDS).getResult().get().getCountryName());
+            assertEquals("/"+version+"/"+ip,request.get().url().encodedPath());
+            assertEquals("operator-owned-test-key",request.get().url().queryParameter("key"));
+            assertNull(request.get().url().queryParameter("vpn"));assertEquals(0,requests.get());
+        } finally {field.set(null,previous);}
+    }
+
 }

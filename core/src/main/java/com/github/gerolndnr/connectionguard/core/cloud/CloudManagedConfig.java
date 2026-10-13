@@ -30,6 +30,12 @@ public final class CloudManagedConfig {
         f.put("failure-policy.vpn", e("OPEN", "CLOSED", "OBSERVE"));
         f.put("failure-policy.geo", e("OPEN", "CLOSED", "OBSERVE"));
         f.put("required-positive-flags", new Field(Kind.INT, null, 1, 16));
+        f.put("provider.vpn-failover.order", new Field(Kind.LIST, null, 16, 64));
+        f.put("provider.vpn-failover.enabled", b());
+        f.put("provider.max-external-attempts", new Field(Kind.INT, null, 1, 16));
+        f.put("provider.vpn.ipquery.enabled", b());
+        f.put("provider.vpn.ipqualityscore.enabled", b());
+        f.put("provider.vpn.ipqualityscore.api-key", new Field(Kind.SECRET, null, 0, 0));
         f.put("provider.vpn.proxycheck.enabled", b());
         f.put("provider.vpn.proxycheck.api-key", new Field(Kind.SECRET, null, 0, 0));
         f.put("provider.vpn.ip-api.enabled", b());
@@ -146,7 +152,11 @@ public final class CloudManagedConfig {
                     String s = item.getAsString();
                     boolean ok = f.kind == Kind.COUNTRIES ? s.matches("[A-Z]{2}") : s.length() <= f.max && !s.trim().isEmpty() && !s.contains("\n") && !s.contains("\r");
                     if (!ok) throw new IllegalArgumentException(bad);
-                    items.add(f.kind == Kind.LIST ? s.trim() : s);
+                    String selected = f.kind == Kind.LIST ? s.trim() : s;
+                    if (path.equals("provider.vpn-failover.order") && (!selected.matches("[a-zA-Z0-9_.-]{1,64}")
+                            || selected.equals("local") || selected.equals("tor") || selected.equals("connectionguard-intel") || items.contains(selected)))
+                        throw new com.github.gerolndnr.connectionguard.core.config.VpnFailoverSettings.InvalidOrder();
+                    items.add(selected);
                 }
                 return items;
             }
@@ -240,7 +250,13 @@ public final class CloudManagedConfig {
             // Absent new recipient selections are off, including snapshots of pre-upgrade files.
             if (value == null && (entry.getKey().equals("provider.vpn.blackbox.enabled")
                     || entry.getKey().equals("provider.vpn.ipcheck.enabled") || entry.getKey().equals("provider.vpn.zowi.enabled")
+                    || entry.getKey().equals("provider.vpn.ipquery.enabled") || entry.getKey().equals("provider.vpn.ipqualityscore.enabled")
                     || entry.getKey().equals("provider.local.connectionguard-intel.enabled"))) value = false;
+            if (value == null && entry.getKey().equals("provider.vpn-failover.order"))
+                value = com.github.gerolndnr.connectionguard.core.config.VpnFailoverSettings.TEMPLATE_ORDER;
+            if (value == null && entry.getKey().equals("provider.vpn-failover.enabled"))
+                value = !"CONSENSUS".equalsIgnoreCase(String.valueOf(effective.apply("provider.vpn-strategy")));
+            if (value == null && entry.getKey().equals("provider.max-external-attempts")) value = 16;
             if (value == null && entry.getKey().equals("provider.local.connectionguard-intel.relay")) value = "ALLOW";
             if (local) switch (entry.getKey()) {
                 case "operation.mode": value = policy.observe ? "OBSERVE" : "ENFORCE"; break;
@@ -264,6 +280,12 @@ public final class CloudManagedConfig {
             else if (value instanceof String && f.kind == Kind.ENUM) out.addProperty(entry.getKey(), (String) value);
             else if (value instanceof Collection && (f.kind == Kind.LIST || f.kind == Kind.COUNTRIES)) {
                 JsonArray items = new JsonArray();
+                if (entry.getKey().equals("provider.vpn-failover.order")) {
+                    // Report configured IDs exactly. Legacy extension IDs may exceed the dashboard's
+                    // write limit; truncation would invent a different/unknown source.
+                    for (Object item : (Collection<?>) value) items.add((String) item);
+                    out.add(entry.getKey(), items); continue;
+                }
                 for (Object item : (Collection<?>) value) if (item != null && items.size() < 250) items.add(item.toString().length() > 64 ? item.toString().substring(0, 64) : item.toString());
                 out.add(entry.getKey(), items);
             }

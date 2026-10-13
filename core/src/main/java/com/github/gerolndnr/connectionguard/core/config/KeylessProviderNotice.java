@@ -15,8 +15,9 @@ public final class KeylessProviderNotice {
         } catch (FileAlreadyExistsException shown) { return; }
         catch (IOException unavailable) { logger.warning("Could not persist the keyless-provider upgrade notice; check plugin directory permissions."); return; }
         if (!existingInstallation) return;
-        logger.warning("Connection Guard upgrade: your configured providers and order are unchanged. The new-install recommendation is local Tor -> proxycheck -> blackbox -> ipcheck -> zowi -> ipquery -> ip-api. "
-                + "To opt in, explicitly add provider.vpn.blackbox.enabled: true, provider.vpn.ipcheck.enabled: true and provider.vpn.zowi.enabled: true, then set provider.vpn-failover.order: [proxycheck, blackbox, ipcheck, zowi, ipquery, ip-api] "
-                + "for the providers present in your config and /cg reload. These services receive player IPs; review docs/PROVIDERS.md and update your server privacy information first. Blackbox can also deny hosting/cloud listings.");
+        logger.warning("Connection Guard upgrade: your configured providers and order are unchanged; your keys are retained. The 0.6.1 new-install recommendation is local Tor/Intel -> zowi -> Blackbox (fresh Intel HOSTING confirmation required) -> IPQuery. "
+                + "ProxyCheck remains an explicit late fallback, with your own key; ip-check.net and IP-API stay opt-in. "
+                + "To adopt it, these services receive player IPs; review docs/PROVIDERS.md and your server privacy information before enabling any new recipient, then consciously edit the existing provider selections/order and /cg reload. "
+                + "zowi is operated by the developer of FoxGate; its conservative local cap remains 60/minute, not a promise of upstream allowance. No configuration has been rewritten.");
     }
 }
