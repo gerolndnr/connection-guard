@@ -86,7 +86,9 @@ class CompetitorMigrationTest {
         assertEquals("CLOSED",MigrationFiles.get(cfg,"failure-policy.geo")); assertEquals(Arrays.asList("DE","PT"),MigrationFiles.get(cfg,"behavior.geo.list"));
         assertEquals("WHITELIST",MigrationFiles.get(cfg,"behavior.geo.type")); assertEquals("ProxyCheck",MigrationFiles.get(cfg,"provider.geo.service"));
         assertEquals(true, MigrationFiles.get(cfg,"provider.vpn.iphub.enabled"));
-        assertEquals(Arrays.asList("proxycheck","iphub","blackbox","ipcheck","zowi","ipquery","ip-api"),MigrationFiles.get(cfg,"provider.vpn-failover.order"));
+        assertEquals(true, MigrationFiles.get(cfg,"provider.vpn.proxycheck.enabled"));
+        assertEquals("pc-key", MigrationFiles.get(cfg,"provider.vpn.proxycheck.api-key"));
+        assertEquals(Arrays.asList("proxycheck","iphub","zowi","blackbox","ipquery","ipcheck","ip-api"),MigrationFiles.get(cfg,"provider.vpn-failover.order"));
         assertEquals(1,MigrationFiles.get(cfg,"required-positive-flags")); assertEquals(5,rules(plan).size());
     }
     @Test void disabledAsnAndCountryRulesDoNotBecomeBlocks() throws Exception {
