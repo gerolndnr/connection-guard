@@ -1,216 +1,22 @@
-name: Build
-
+name: Release 0.6.1 public metadata
 on:
-  push:
-    branches: [master]
-  pull_request:
   workflow_dispatch:
-
 permissions:
   contents: read
-
-concurrency:
-  group: build-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  build:
-    name: Build and verify plugin
+  metadata:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    services:
-      redis:
-        image: redis:7.2.12-alpine
-        ports: [6379:6379]
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s --health-timeout 3s --health-retries 10
-    env:
-      CG_TEST_REDIS: '6379'
+    timeout-minutes: 8
     steps:
-      - name: Check out source
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-          fetch-depth: 0
-
-      - name: Verify release ancestry and version
-        run: |
-          python3 ci/verify_version.py
-          python3 ci/test_version_policy.py
-
-      - name: Verify Gradle wrapper
-        run: |
-          printf '%s  %s\n' \
-            'cb0da6751c2b753a16ac168bb354870ebb1e162e9083f116729cec9c781156b8' \
-            'gradle/wrapper/gradle-wrapper.jar' | sha256sum --check --strict
-
-      - name: Install Java toolchains
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
-        with:
-          distribution: temurin
-          java-version: |
-            8
-            17
-            21
-          cache: gradle
-
-      - name: Configure installed toolchains
-        run: |
-          mkdir -p "$HOME/.gradle"
-          cat >> "$HOME/.gradle/gradle.properties" <<'EOF'
-          org.gradle.java.installations.auto-download=false
-          org.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_17_X64
-          EOF
-
-      - name: Build all platforms
-        run: ./gradlew --no-daemon --console=plain check shadowJar :adapters:libertybans:jar :adapters:limbo:jar
-
-      - name: Retain structured test diagnostics
+      - name: Read official public versions and verify runtime downloads
+        run: python3 ci/release_061_metadata.py
+      - name: Retain official metadata and runtime hashes
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: connection-guard-tests-${{ github.sha }}
-          path: core/build/test-results/test/TEST-*.xml
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Verify repeatable archive
-        run: |
-          sha256sum build/libs/*-all.jar adapters/libertybans/build/libs/*.jar adapters/limbo/build/libs/*.jar > "$RUNNER_TEMP/connection-guard-first-build.sha256"
-          ./gradlew --no-daemon --console=plain --rerun-tasks shadowJar :adapters:libertybans:jar :adapters:limbo:jar
-          sha256sum --check "$RUNNER_TEMP/connection-guard-first-build.sha256"
-
-      - name: Verify plugin artifact
-        run: |
-          python3 ci/verify_artifact.py
-          python3 ci/verify_libertybans_addon.py
-          python3 ci/verify_limbo_addon.py
-
-      - name: Verify release regression guards
-        run: python3 ci/test_release_gate.py
-
-      - name: Exercise migrations using the combined JAR on Java 8
-        run: python3 ci/fixtures/migrations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-migrations"
-
-      - name: Exercise local observation capture and replay using the combined JAR on Java 8
-        env:
-          CONNECTIONGUARD_CLOUD: 'false'
-          CONNECTIONGUARD_INTEL_REFRESH: 'false'
-          CONNECTIONGUARD_TOR_REFRESH: 'false'
-        run: python3 ci/fixtures/policy-observations/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-observations"
-
-      - name: Exercise lookup profiles and shared quotas using the combined JAR on Java 8
-        env:
-          CONNECTIONGUARD_CLOUD: 'false'
-          CONNECTIONGUARD_INTEL_REFRESH: 'false'
-          CONNECTIONGUARD_TOR_REFRESH: 'false'
-        run: python3 ci/fixtures/api-profiles/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-api-profiles"
-
-      - name: Exercise the new-install provider order using the combined JAR on Java 8
-        env:
-          CONNECTIONGUARD_CLOUD: 'false'
-          CONNECTIONGUARD_INTEL_REFRESH: 'false'
-          CONNECTIONGUARD_TOR_REFRESH: 'false'
-        run: python3 ci/fixtures/provider-order/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-provider-order"
-
-      - name: Exercise gated dashboard provider order using the combined JAR on Java 8
-        env:
-          CONNECTIONGUARD_CLOUD: 'false'
-          CONNECTIONGUARD_INTEL_REFRESH: 'false'
-          CONNECTIONGUARD_TOR_REFRESH: 'false'
-        run: python3 ci/fixtures/dashboard-order/driver.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_8_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-dashboard-order"
-
-      - name: Qualify the benchmark against the actual built JAR
-        working-directory: benchmarks
-        run: |
-          python3 -m cgbench.cli run-core --artifact ../build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-core-benchmark"
-          python3 ../ci/verify_benchmark.py "$RUNNER_TEMP/connection-guard-core-benchmark/receipt.json"
-          python3 -m cgbench.cli run-core --suite datasets/failure-recovery-v1.json --artifact ../build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" --work "$RUNNER_TEMP/connection-guard-failure-benchmark"
-          python3 ../ci/verify_benchmark.py "$RUNNER_TEMP/connection-guard-failure-benchmark/receipt.json" failure-recovery-v1.json
-
-      - name: Verify signed Intel and Blackbox behavior against the actual shaded JAR
-        run: |
-          python3 ci/intel_smoke.py --artifact build/libs/*-all.jar --java "$JAVA_HOME_21_X64/bin/java" \
-            --work-dir "$RUNNER_TEMP/connection-guard-intel"
-
-      - name: Retain controlled core benchmark evidence
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: connection-guard-benchmark-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/connection-guard-core-benchmark/
-            ${{ runner.temp }}/connection-guard-failure-benchmark/
-            ${{ runner.temp }}/connection-guard-api-profiles/
-            ${{ runner.temp }}/connection-guard-provider-order/
-            ${{ runner.temp }}/connection-guard-dashboard-order/
-            ${{ runner.temp }}/connection-guard-intel/
-            ${{ runner.temp }}/connection-guard-observations/receipt.json
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Start the combined JAR on a clean Velocity proxy
-        run: |
-          CONNECTIONGUARD_CLOUD=false python3 ci/startup_smoke.py --platform velocity --artifact build/libs/*-all.jar \
-            --java "$JAVA_HOME_21_X64/bin/java" --work-dir "$RUNNER_TEMP/connection-guard-velocity"
-
-      - name: Retain runtime qualification logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: connection-guard-runtime-${{ github.sha }}
-          path: |
-            ${{ runner.temp }}/connection-guard-velocity/console.log
-            ${{ runner.temp }}/connection-guard-velocity/result.json
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Create SHA-256 checksum
-        run: sha256sum build/libs/*-all.jar > build/libs/SHA256SUMS
-
-      - name: Upload development artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: connection-guard-ci-${{ github.sha }}
-          path: |
-            build/libs/*-all.jar
-            build/libs/SHA256SUMS
-          if-no-files-found: error
+          name: connection-guard-release-061-public-metadata
+          path: release-metadata/
           retention-days: 7
-
-      - name: Upload separate optional addon
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: connection-guard-libertybans-ci-${{ github.sha }}
-          path: adapters/libertybans/build/libs/*.jar
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Upload separate optional challenge addon
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: connection-guard-limbo-ci-${{ github.sha }}
-          path: adapters/limbo/build/libs/*.jar
-          if-no-files-found: error
-          retention-days: 7
-
-  benchmark-contracts:
-    name: Verify benchmark contracts
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - name: Check out source
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          persist-credentials: false
-      - name: Install fixture Java
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
-        with:
-          distribution: temurin
-          java-version: '21'
-      - name: Install pinned fixture dependencies
-        run: python3 -m pip install -r benchmarks/requirements.txt
-      - name: Verify offline evidence, analysis and transport guard contracts
-        working-directory: benchmarks
-        run: CGBENCH_JAVA="$JAVA_HOME/bin/java" python3 -m unittest discover -s tests -v
