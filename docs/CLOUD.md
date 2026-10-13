@@ -85,8 +85,9 @@ legacy extension IDs longer than64characters; such IDs cannot be rewritten by
 the dashboard's narrower64-character input contract. They are not truncated.
 
 Dashboard values take precedence in memory on every normal reload, with no
-restart or config.yml rewrite. Reordering rebuilds the chain and separates its
-cache namespace so old answers are not reused. `/cg cloud settings` reports the
+restart or config.yml rewrite. A changed effective source chain gets a separate
+cache namespace so answers from a different chain are not reused. Returning to
+the same effective chain may reuse still-valid facts from its matching namespace. `/cg cloud settings` reports the
 managed paths; reset restores local settings. An absent order in an older file
 is displayed as the bundled new-install template recommendation, as requested;
 the legacy runtime's missing-order behavior is unchanged until an operator
