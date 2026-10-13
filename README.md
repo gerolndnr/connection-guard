@@ -11,7 +11,7 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 [Website](https://connectionguard.net) · [Download](https://connectionguard.net/download) · [Set up your server](docs/README.md) · [Get help](https://github.com/gerolndnr/connection-guard/issues) · [Discord](https://discord.gg/8q4HFCh2RK)
 
-**Source build: 0.6.1.**
+**Source build: 0.6.2-SNAPSHOT.** Published stable downloads remain 0.6.1.
 
 **Published stable release: [0.6.1](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).** [Changes and upgrade guide](CHANGELOG.md).
 
