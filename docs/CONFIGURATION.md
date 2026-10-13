@@ -2,7 +2,7 @@
 
 **0.6.0 new installations start in ENFORCE and can block connections immediately.** Explicit VPN/proxy/Tor evidence and Blackbox aggregate listings can trigger the configured actions; Blackbox also covers hosting/cloud addresses. ProxyCheck/zowi hosting-only evidence stays review, and the default geo service is Disabled. ip-check.net requires explicit opt-in. Existing modes, enabled providers, keys, timeouts and service order are never overwritten. To evaluate decisions before blocking, explicitly select OBSERVE as shown below. A country match is an access-policy decision, not proof of an attack.
 
-For the unreleased 0.6.1 template, local Tor/Intel precede zowi, confirmed Blackbox and IPQuery; ProxyCheck is an optional late fallback. Existing selections and keys remain. See [new-install order and quotas](PROVIDER_RESILIENCE.md).
+For the 0.6.1 template, local Tor/Intel precede zowi, confirmed Blackbox and IPQuery; ProxyCheck is an optional late fallback. Existing selections and keys remain. See [new-install order and quotas](PROVIDER_RESILIENCE.md).
 
 ## Observe before enforcing
 

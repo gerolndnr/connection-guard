@@ -1,8 +1,8 @@
 # General provider failover and offline protection (0.6.0)
 
-## Unreleased 0.6.1 candidate defaults and confirmation
+## 0.6.1 defaults and confirmation
 
-The 0.6.1 candidate template selects local Tor/Intel → zowi → Blackbox
+The 0.6.1 template selects local Tor/Intel → zowi → Blackbox
 (fresh Intel HOSTING confirmation required) → IPQuery. ProxyCheck defaults
 **off only in new files** and remains an explicitly selected late fallback;
 retain your own key when enabling it. IP-API and ip-check.net remain off.
@@ -22,7 +22,7 @@ blocking. The default true also applies when an existing Blackbox section omits
 this setting; the operator file is not rewritten. Confirmed results cannot
 outlive the Intel HOSTING data they depend on.
 
-The optional [Intel proxy list](LOCAL_DATA.md#061-candidate-optional-intel-proxies)
+The optional [Intel proxy list](LOCAL_DATA.md#061-optional-intel-proxies)
 can block locally before APIs. Detection/performance claims require the final
 independent candidate benchmark; the historical 0.6.0 defaults below remain
 identified by version.
@@ -103,9 +103,9 @@ required-positive-flags: 2 # use your previous value, normally 1
 The existing provider selections and configured quorum remain stored. In the chain,
 the effective quorum is 1; a stored higher quorum produces a diagnostic notice and
 applies again when the chain is disabled. `/cg doctor` reports the active mode,
-effective threshold, order and maximum attempts. The unreleased 0.6.1 dashboard contract can switch sequential failover off before
+effective threshold, order and maximum attempts. The 0.6.1 dashboard contract can switch sequential failover off before
 using a multi-provider quorum, edit the partial order and adjust the maximum
-attempts. Existing per-source limits remain local. [Managed paths and gating](CLOUD.md#unreleased-061-provider-order-from-the-dashboard).
+attempts. Existing per-source limits remain local. [Managed paths and gating](CLOUD.md#061-provider-order-from-the-dashboard).
 
 The earlier candidate's explicit `provider.vpn-strategy: CONSENSUS` or `FAILOVER`
 remains accepted if the boolean option is absent. The new boolean takes precedence.
@@ -280,7 +280,7 @@ Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
 The full competitive benchmark of the published artifact remains pending.
 
-## New-install decisions (0.6.0, unreleased)
+## Historical new-install decisions (0.6.0)
 
 New installations use **ENFORCE** and can deny flagged connections immediately. Geo stays Disabled. `provider.vpn.ipcheck.enabled` defaults to **false**; explicitly enable it only after reviewing its lack of published operator, terms and privacy policy. Blackbox, zowi and IPQuery remain selected network fallback services. Existing selections, mode, keys, timeouts and ordering are retained. An order entry alone never enables a provider.
 

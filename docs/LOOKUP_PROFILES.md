@@ -1,6 +1,6 @@
 # Lookup profiles and a shared daily API cap
 
-**Requires the unreleased 0.6.1 development build.** Stable 0.6.0 does not implement
+**Requires 0.6.1 or newer.** Version 0.6.0 does not implement
 these new lookup fields or the profile command. Its existing individual provider
 switches remain documented in [Local data](LOCAL_DATA.md).
 

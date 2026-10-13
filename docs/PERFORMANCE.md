@@ -1,4 +1,4 @@
-# Cache tiers and everyday joins (unreleased 0.6.1 candidate)
+# Cache tiers and everyday joins (0.6.1)
 
 This change is built on the 0.6.1 false-positive candidate `feffbfb` and the merged competitor migrations. It is not in stable 0.6.0. It does not change the provider sequence, votes, request limits, identity checks or failure policies. The same path is used on every server; there are no benchmark host/address/environment shortcuts.
 
@@ -20,4 +20,4 @@ The final allow/kick, failure-coverage counter and policy-lease release remain s
 
 JFR on Velocity 3.4.0-566/JDK21 identified awaited SQLite driver/native initialization during enable and a database worker hop on virtually every persisted cache hit. Owned synthetic handler probes compare identical dated facts with Cloud/telemetry off, without external providers or real Minecraft accounts. They measure handler cost, not a full player join, competitor detection or the benchmark's five-second quiet interval. Local measurements and exact artifact hashes are attached to the PR/handoff. No leaderboard or accuracy improvement is claimed from them.
 
-Before release, measure the exact candidate with all competitors on one runner for three rounds: repeat p50 <=1.5ms, cold p95 <=287ms, startup <=6.50s (added enable <=0.25s), one lookup per 100 same-IP joins, at least 999 checked/refused by a valid local fact in the 1,000-player wave. Detection must retain the 0.6.1 reference 375/382 with 2/310 false positives, and the failure/Tor/Redis/reload cases must pass. Only that independent comparison can establish whether all five rows are best.
+Independent acceptance of the released0.6.1 artifact is still pending. Target comparison: measure the exact artifact with all competitors on one runner for three rounds: repeat p50 <=1.5ms, cold p95 <=287ms, startup <=6.50s (added enable <=0.25s), one lookup per 100 same-IP joins, at least 999 checked/refused by a valid local fact in the 1,000-player wave. Detection must retain the 0.6.1 reference 375/382 with 2/310 false positives, and the failure/Tor/Redis/reload cases must pass. Only that independent comparison can establish whether all five rows are best.

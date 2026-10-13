@@ -22,6 +22,6 @@ Permission exemptions on Spigot use LuckPerms and also require the respective co
 
 This guide describes the released 0.6.0 version. See [0.6.0 qualification and release gate](../RELEASE_0_6_0.md) for current checks. Historical 0.5.0 native evidence covers Paper 1.21.11 build 132, Folia 1.21.11 build 14, BungeeCord build 2100 and Velocity 3.4.0 build 566 / Java 21. See [release qualification](../RELEASE_0_5_0.md) for tested flows and limits. Separate [permission/identity evidence](../PERMISSION_VALIDATION.md) names its original artifact and fixture. These tests use synthetic clients; they do not establish every Minecraft version, authenticated Java/Bedrock accounts or public-provider detection accuracy. Record exact platform and Java versions with support reports.
 
-For an unreleased 0.6.1 new-install build, local Tor/Intel precede zowi, confirmed
+For a 0.6.1 new installation, local Tor/Intel precede zowi, confirmed
 Blackbox and IPQuery. ProxyCheck is an optional late fallback; existing config
 choices remain. Review [provider recipients, quotas and Geo](../PROVIDERS.md).

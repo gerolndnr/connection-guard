@@ -1,6 +1,6 @@
 # Set up Connection Guard
 
-[Lookup profiles — unreleased 0.6.1](LOOKUP_PROFILES.md): explicit local-only checks, a shared daily API cap and observation overlays, with source/privacy limits.
+[Lookup profiles — 0.6.1](LOOKUP_PROFILES.md): explicit local-only checks, a shared daily API cap and observation overlays, with source/privacy limits.
 
 > Released in **0.6.0**: [provider resilience and migration](PROVIDER_RESILIENCE.md) documents the published defaults. New installations use **ENFORCE** and can deny VPN/proxy/Tor evidence and Blackbox aggregate listings immediately; Geo and ip-check.net start disabled. Existing mode, keys and provider choices remain. The maintainer approved publication before the full competitive benchmark, which remains pending; no comparative detection, false-positive or burst-coverage claim is made.
 
@@ -47,4 +47,4 @@ Use [GitHub issues](https://github.com/gerolndnr/connection-guard/issues) or [Di
 
 - [Migrate from FoxGate, ProxyShield, VPNGuard, KauriVPN or AdvancedAntiVPN](MIGRATIONS.md): automatic discovery, reviewed imports, backups and semantic differences.
 
-- [Cache tiers and performance qualification](PERFORMANCE.md): unreleased 0.6.1 candidate, startup status, persistence and evidence limits.
+- [Cache tiers and performance qualification](PERFORMANCE.md): 0.6.1, startup status, persistence and evidence limits.

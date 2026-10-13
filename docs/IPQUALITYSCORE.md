@@ -1,4 +1,4 @@
-# Native IPQualityScore — unreleased development
+# Native IPQualityScore
 
 Available in the 0.5.0-SNAPSHOT development source; not part of stable 0.4.11.
 This optional adapter uses an operator-owned IPQS key. It is disabled by default.

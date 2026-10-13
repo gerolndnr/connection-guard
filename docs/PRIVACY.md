@@ -16,7 +16,7 @@ recommendation has been consumed, not player information.
 
 To show the dashboard join hint only once per authorized staff member and installation, the plugin stores SHA-256 hashes derived from staff UUIDs in `cloud/staff-dashboard-notices-v1.json`. The bounded private file contains neither plaintext UUIDs nor link codes. It stays on the server and is never included in Cloud sync or error reports. Deleting it while the plugin is stopped resets suppression. No player-name/IP field, Cloud event or external request is added by the join hint; see [linking notices](CLOUD.md).
 
-## Optional local policy observations (unreleased 0.6.1)
+## Optional local policy observations (0.6.1)
 
 Policy observation capture is disabled until an operator explicitly runs `/cg policy capture start`. Default `facts` mode replaces real addresses/UUIDs with documentation placeholders while keeping resolved trust/exemption booleans and provider-derived verdict/ISP/operator/country/classification facts. These are redacted local observations, not a guarantee of anonymity: timings and metadata may correlate with other server logs. IP/UUID rules cannot be simulated in this mode.
 
