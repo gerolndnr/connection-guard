@@ -179,7 +179,12 @@ def main():
         if args.platform == 'bungee':
             instance = Bungee(work / 'server', artifact, addon, settings, [], {}, False)
         else:
-            instance = Backend(work / 'server', args.platform, artifact, settings, addon)
+            vanilla_cache = root / '.runtime/startup-smoke/release-v05-master-paper-a/cache'
+            instance = Backend(work / 'server', args.platform, artifact, settings, addon,
+                vanilla_cache=vanilla_cache)
+            with zipfile.ZipFile(root / '.runtime/backend-fixture' / RUNTIMES[args.platform][0]) as archive:
+                _, _, vanilla_name = archive.read('META-INF/download-context').decode().strip().split('\t')
+            result['vanilla_sha256'] = digest(vanilla_cache / vanilla_name)
         instance.ready()
         data_dir = work / 'server/plugins/ConnectionGuard'
         language = data_dir / 'translation/de.yml'
@@ -266,9 +271,13 @@ def main():
             clients.close()
             (work / 'client.log').write_text(''.join(clients.transcript))
         if instance:
-            instance.close()
-            result['stopped'] = instance.process.poll() is not None
-            result['native_exit_code'] = instance.process.returncode
+            try:
+                instance.close()
+            except subprocess.TimeoutExpired:
+                result['cleanup_timeout'] = True
+            finally:
+                result['stopped'] = instance.process.poll() is not None
+                result['native_exit_code'] = instance.process.returncode
         http.shutdown()
         http.server_close()
         (work / 'result.json').write_text(json.dumps(result, indent=2) + '\n')

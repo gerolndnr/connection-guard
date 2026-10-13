@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "kind": "actual-jar-provider-order-loopback",
+  "artifact_sha256": "bbab24ed14fd47fb5514eb548e572aa78bc64371a9228af09ac57506c2c712eb",
+  "driver_sha256": "0aa2f58a44fa783ea1b3be1560329da2267be2783bb1b2fe3cbad45c449623b5",
+  "fixture_sha256": "973ccf360c0b2686b6f220d1e52179c4dff6ca9d5af154439e2d7d2923986f33",
+  "cases": [
+    "embedded_template_new_order_and_limits",
+    "zowi_clean_stops_without_other_recipients",
+    "timeout_unconfirmed_blackbox_falls_to_ipquery",
+    "sixty_minute_cap_preserved_and_ordinary_fallback_used",
+    "explicit_existing_selection_order_and_key_unchanged",
+    "proxycheck_opt_in_is_a_late_fallback"
+  ],
+  "java": "/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/bin/java",
+  "owned_loopback_only": true,
+  "external_provider_requests": 0,
+  "native_login_tested": false,
+  "competitive_accuracy_tested": false
+}

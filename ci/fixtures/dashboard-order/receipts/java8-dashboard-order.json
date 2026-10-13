@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "kind": "actual-jar-dashboard-order-loopback",
+  "artifact_sha256": "bbab24ed14fd47fb5514eb548e572aa78bc64371a9228af09ac57506c2c712eb",
+  "driver_sha256": "de087b2ea0acaee598937246433775c72b742fef08853bddea3d065def868575",
+  "fixture_sha256": "9daa3e44a578c04becf0c5316ea854343e1a51498c763d898f31d760f8752381",
+  "cases": [
+    "snapshot_unlocks_existing_gated_controls_without_enabling_recipients",
+    "partial_order_retains_unlisted_sources_and_ipapi_last",
+    "unknown_source_is_refused_without_a_silent_drop",
+    "empty_configured_order_is_valid_and_reported_exactly",
+    "optional_ipqualityscore_key_snapshot_uses_existing_redaction",
+    "managed_reload_rebuilds_cache_namespace_and_preserves_local_config"
+  ],
+  "java": "/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/bin/java",
+  "owned_loopback_only": true,
+  "external_provider_requests": 0,
+  "native_login_tested": false,
+  "competitive_accuracy_tested": false
+}
