@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LocalApiBudgetRoutingTest {
     private void retire() throws Exception {
         LookupRuntime prior=ConnectionGuard.getLookupRuntime();long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
-        while(System.nanoTime()<end){if(prior.retireIfIdle()&&!prior.isOpen())return;Thread.sleep(2);}fail("Owned transport did not retire.");
+        while(System.nanoTime()<end){prior.retireIfIdle();if(!prior.isOpen()&&prior.retireIfIdle())return;Thread.sleep(2);}fail("Owned transport did not retire.");
     }
     private void idle() throws Exception {
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);

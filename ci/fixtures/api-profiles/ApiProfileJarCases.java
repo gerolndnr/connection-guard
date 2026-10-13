@@ -29,8 +29,8 @@ public final class ApiProfileJarCases {
     static void restart() throws Exception {
         idle();ConnectionGuard.shutdown();LookupRuntime old=ConnectionGuard.getLookupRuntime();
         long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
-        while(!old.retireIfIdle()&&System.nanoTime()<end)Thread.sleep(2);
-        require(old.retireIfIdle());ConnectionGuard.configureLookup(LookupSettings.defaults());
+        while(System.nanoTime()<end){old.retireIfIdle();if(!old.isOpen()&&old.retireIfIdle()) break;Thread.sleep(2);}
+        require(!old.isOpen()&&old.retireIfIdle());ConnectionGuard.configureLookup(LookupSettings.defaults());
     }
     static ProviderConfiguration apply(Map<String,Object> values) throws Exception {
         idle();ProviderConfiguration draft=new ProviderConfiguration(values::get,Collections.singletonList("fixture"));ConnectionGuard.applyProviders(draft);return draft;

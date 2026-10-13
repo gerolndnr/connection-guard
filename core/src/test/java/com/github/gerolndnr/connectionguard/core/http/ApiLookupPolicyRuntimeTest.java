@@ -35,7 +35,7 @@ class ApiLookupPolicyRuntimeTest {
     }
     private void retire() throws Exception {
         LookupRuntime prior=ConnectionGuard.getLookupRuntime();long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
-        while(System.nanoTime()<end){if(prior.retireIfIdle()&&!prior.isOpen()) return;Thread.sleep(2);}
+        while(System.nanoTime()<end){prior.retireIfIdle();if(!prior.isOpen()&&prior.retireIfIdle()) return;Thread.sleep(2);}
         fail("Previous owned fixture transport did not physically terminate.");
     }
     @BeforeEach void setup() throws Exception {
