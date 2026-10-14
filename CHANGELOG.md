@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — 0.6.2
+
+- Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
+
 ## 0.6.1 — 2026-10-13
 
 Published at the maintainer's request. The full independent competitive benchmark of this combined artifact remains pending; no improved detection/FPR or latency claim is made. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).
