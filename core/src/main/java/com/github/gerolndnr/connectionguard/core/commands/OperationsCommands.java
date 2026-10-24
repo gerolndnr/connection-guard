@@ -108,6 +108,7 @@ public final class OperationsCommands {
         lines.add(ConnectionGuard.torStatus());
         if (draft != null && draft.intelSettings.enabled) lines.add(draft.intelSnapshot.describe(System.currentTimeMillis()));
         lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
+        lines.add(ConnectionGuard.localAddresses().describe());
         lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                 .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));

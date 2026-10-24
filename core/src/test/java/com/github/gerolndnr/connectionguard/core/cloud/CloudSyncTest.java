@@ -542,8 +542,12 @@ class CloudSyncTest {
         DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN));
         awaitDelivered(before + 1);
         syncStatus = 400; CloudSync.runOnceForTest();
+        JsonObject hinted = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(hinted);
+        assertTrue(hinted.getAsJsonObject("status").has("local_address_logins"));
+        CloudSync.runOnceForTest();
         JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
         assertNotNull(first); assertTrue(first.getAsJsonObject("status").has("capabilities"));
+        assertEquals(withoutHints(hinted), first, "Hints go first, in the same batch and seq");
         assertEquals(1, first.getAsJsonArray("events").size());
         before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
@@ -560,11 +564,13 @@ class CloudSyncTest {
         assertEquals(1, next.getAsJsonObject("counters").get("allowed").getAsInt());
     }
 
-    @Test void olderApiRejectingBothStatusExtensionsRetriesExactlyTheSameBatchTwice() throws Exception {
+    @Test void olderApiRejectingAllStatusExtensionsRetriesExactlyTheSameBatch() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
         long before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
-        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject hinted = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(hinted);
+        CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
+        assertEquals(withoutHints(hinted), first);
         assertNotNull(first); assertTrue(first.getAsJsonObject("status").has("vpn_unchecked_allowed"));
         CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
         assertNotNull(second); JsonObject expected = first.deepCopy(); expected.getAsJsonObject("status").remove("vpn_unchecked_allowed");
@@ -577,6 +583,25 @@ class CloudSyncTest {
         assertFalse(next.getAsJsonObject("status").has("capabilities"));
     }
 
+    private static JsonObject withoutHints(JsonObject body) {
+        JsonObject copy = body.deepCopy(); JsonObject status = copy.getAsJsonObject("status");
+        status.remove("local_address_logins");
+        if (status.has("vpn_unchecked_allowed")) { status.getAsJsonObject("vpn_unchecked_allowed").remove("signals"); status.getAsJsonObject("vpn_unchecked_allowed").remove("families"); }
+        return copy;
+    }
+
+    @Test void cloudStatusSendsGreyZoneHintsAndLocalAddressLoginsWithoutAddresses() throws Exception {
+        ConnectionGuard.uncheckedVpnAdmissions().allowed(com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NO_EVIDENCE,
+                Collections.singletonList("zowivpnprovider-0.hosting"), "ipv6");
+        ConnectionGuard.localAddressLogin(com.github.gerolndnr.connectionguard.core.lookup.LocalAddresses.Kind.PRIVATE);
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        JsonObject status = body.getAsJsonObject("status"), coverage = status.getAsJsonObject("vpn_unchecked_allowed");
+        assertTrue(coverage.getAsJsonObject("signals").get("zowivpnprovider-0.hosting").getAsLong() >= 1);
+        assertTrue(coverage.getAsJsonObject("families").get("ipv6").getAsLong() >= 1);
+        assertTrue(status.get("local_address_logins").getAsLong() >= 1);
+    }
+
     @Test void cloudStatusIncludesExactAnonymousVpnCoverageIndependentOfObserverDelivery() throws Exception {
         long before = ConnectionGuard.uncheckedVpnAdmissions().snapshot().total;
         for (int i = 0; i < 52; i++) ConnectionGuard.uncheckedVpnAdmissions().allowed(com.github.gerolndnr.connectionguard.core.lookup.FailureReason.BUDGET_EXHAUSTED);
@@ -585,7 +610,7 @@ class CloudSyncTest {
         JsonObject coverage = body.getAsJsonObject("status").getAsJsonObject("vpn_unchecked_allowed");
         assertNotNull(coverage); assertEquals(before + 52, coverage.get("total").getAsLong());
         assertTrue(coverage.getAsJsonObject("reasons").get("BUDGET_EXHAUSTED").getAsLong() >= 52);
-        assertEquals(new HashSet<>(Arrays.asList("total", "since_summary", "window_seconds", "reasons")), coverage.keySet());
+        assertEquals(new HashSet<>(Arrays.asList("total", "since_summary", "window_seconds", "reasons", "signals", "families")), coverage.keySet());
         assertEquals(0, body.getAsJsonArray("events").size(), "Unlinked coverage status contains only anonymous counters");
     }
 
@@ -653,6 +678,8 @@ class CloudSyncTest {
         syncStatus = 400; CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
         CloudSync.runOnceForTest(); JsonObject second = syncs.poll(5, TimeUnit.SECONDS);
         assertNotNull(first); assertNotNull(second); JsonObject expected = first.deepCopy(); expected.remove("errors"); assertEquals(expected, second);
+        CloudSync.runOnceForTest(); JsonObject hintless = syncs.poll(5, TimeUnit.SECONDS);
+        expected = withoutHints(expected); assertEquals(expected, hintless);
         CloudSync.runOnceForTest(); JsonObject third = syncs.poll(5, TimeUnit.SECONDS);
         expected.getAsJsonObject("status").remove("vpn_unchecked_allowed"); assertEquals(expected, third);
         syncStatus = 200; CloudSync.runOnceForTest(); JsonObject fourth = syncs.poll(5, TimeUnit.SECONDS);

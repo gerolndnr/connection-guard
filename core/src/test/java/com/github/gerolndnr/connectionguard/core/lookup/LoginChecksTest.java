@@ -98,6 +98,27 @@ class LoginChecksTest {
         LoginChecks.Result result = check(System.nanoTime(), known(true), known(true)).get(1, TimeUnit.SECONDS);
         assertTrue(result.vpnExempt()); assertTrue(result.geoExempt()); assertEquals(FailureReason.NONE, result.geo().getReason());
     }
+    @Test void privateAddressesSkipPermissionAndProviderWorkAndAreCounted() throws Exception {
+        java.util.concurrent.atomic.AtomicInteger queries = new java.util.concurrent.atomic.AtomicInteger();
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Collections.singletonList(ip -> {
+            queries.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, true)));
+        })));
+        ConnectionGuard.setGeoProvider(ip -> { fail("Private login ran a country lookup."); return new CompletableFuture<>(); });
+        LoginChecks.Permission permission = LoginChecks.Permission.lookup(() -> { fail("Private login asked for a permission."); return null; });
+        long before = ConnectionGuard.localAddresses().total();
+        for (String ip : Arrays.asList("172.18.0.2", "10.0.0.5", "192.168.1.20", "100.64.0.10", "127.0.0.1", "::1", "::ffff:10.0.0.5")) {
+            LoginChecks.Result result = LoginChecks.check(ip, ConnectionGuard.getLookupRuntime().getSettings(), System.nanoTime(), false,
+                    permission, permission).get(1, TimeUnit.SECONDS);
+            assertTrue(result.vpnExempt(), ip); assertTrue(result.geoExempt(), ip); assertFalse(result.isExpired(), ip);
+            assertEquals(ProviderVote.Status.NEGATIVE, result.vpn().getStatus(), ip);
+        }
+        assertEquals(0, queries.get()); assertEquals(before + 7, ConnectionGuard.localAddresses().total());
+        ConnectionGuard.setGeoProvider(null);
+        LoginChecks.Result documentation = LoginChecks.check("203.0.113.10", ConnectionGuard.getLookupRuntime().getSettings(), System.nanoTime(),
+                false, known(false), known(true)).get(1, TimeUnit.SECONDS);
+        assertFalse(documentation.vpnExempt()); assertEquals(ProviderVote.Status.POSITIVE, documentation.vpn().getStatus());
+        assertEquals(1, queries.get()); assertEquals(before + 7, ConnectionGuard.localAddresses().total());
+    }
     @Test void finitePendingLoginCapacityRejectsBeforeCreatingMorePermissionWork() throws Exception {
         CompletableFuture<Boolean> pending = new CompletableFuture<>(); List<CompletableFuture<LoginChecks.Result>> accepted = new ArrayList<>();
         java.util.concurrent.atomic.AtomicInteger permissionCalls = new java.util.concurrent.atomic.AtomicInteger();
