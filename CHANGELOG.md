@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## Unreleased — 0.6.2
+
+### Provider responses
+
+- Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
 
 ### Private network addresses
 

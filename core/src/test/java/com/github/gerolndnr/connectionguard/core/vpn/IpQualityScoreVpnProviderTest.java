@@ -108,7 +108,7 @@ class IpQualityScoreVpnProviderTest {
         assertEquals(Boolean.valueOf(type.equals("vpn")), result.getDetails().get(DetectionDetails.Type.VPN));
         assertEquals(Boolean.valueOf(type.equals("tor")), result.getDetails().get(DetectionDetails.Type.TOR));
     }
-    @ParameterizedTest @ValueSource(strings={"missing-vpn", "null-proxy", "string-tor", "missing-success", "false-proxy", "wrong-ip", "risk-text", "risk-negative", "risk-large", "risk-exponent", "asn-text", "asn-zero", "asn-fraction", "country-invalid", "isp-object"})
+    @ParameterizedTest @ValueSource(strings={"missing-vpn", "null-proxy", "string-tor", "missing-success", "false-proxy", "wrong-ip", "risk-text", "risk-negative", "risk-large", "risk-exponent", "asn-text", "asn-negative", "asn-fraction", "country-invalid", "isp-object"})
     void malformedSourceCannotBecomeANegative(String mutation) throws Exception {
         JsonObject value = json(body);
         switch (mutation) {
@@ -123,7 +123,7 @@ class IpQualityScoreVpnProviderTest {
             case "risk-large": value.addProperty("fraud_score", 100.1); break;
             case "risk-exponent": value.add("fraud_score", JsonParser.parseString("1e-1001")); break;
             case "asn-text": value.addProperty("ASN", "64500"); break;
-            case "asn-zero": value.addProperty("ASN", 0); break;
+            case "asn-negative": value.addProperty("ASN", -1); break;
             case "asn-fraction": value.addProperty("ASN", 64500.5); break;
             case "country-invalid": value.addProperty("country_code", "Portugal"); break;
             case "isp-object": value.add("ISP", new JsonObject()); break;
@@ -132,6 +132,19 @@ class IpQualityScoreVpnProviderTest {
         body = value.toString();
         ExecutionException error = assertThrows(ExecutionException.class, () -> query("192.0.2.1"));
         assertEquals(FailureReason.INVALID_RESPONSE, LookupException.reason(error)); assertFalse(error.getCause().getMessage().contains("synthetic-header-key"));
+    }
+    @ParameterizedTest @ValueSource(booleans={false,true})
+    void reservedZeroAsnKeepsTheActualHttpSecurityVerdict(boolean vpn) throws Exception {
+        JsonObject value = json(body);
+        value.addProperty("ASN", 0);
+        value.addProperty("vpn", vpn);
+        value.addProperty("proxy", vpn);
+        body = value.toString();
+        VpnResult result = query("192.0.2.1");
+        assertEquals(vpn ? ProviderVote.Status.POSITIVE : ProviderVote.Status.NEGATIVE, result.getStatus());
+        assertEquals(Boolean.valueOf(vpn), result.getDetails().get(DetectionDetails.Type.VPN));
+        assertNull(result.getDetails().getAsn());
+        assertEquals(1, calls.get());
     }
     @ParameterizedTest @ValueSource(ints={401,403,429,503,302})
     void actualHttpFailuresAndRedirectsNeverFollowOrVote(int code) {
