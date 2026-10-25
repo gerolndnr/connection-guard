@@ -50,6 +50,9 @@ public final class OperationsCommands {
                         + (vote.getProvider().equals("connectionguard-intel") && vote.getDetails().getDataAsOf() != null
                             ? " evidence=Connection Guard Intel " + vote.getDetails().getClassifications() + " (" + java.time.Instant.ofEpochMilli(vote.getDetails().getDataAsOf()) + ")" : "")
                         + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
+                for (ProviderVote vote : result.getVotes())
+                    for (com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails.Label label : vote.getDetails().getLabels())
+                        reply.accept(messages.getString("ops.intel-label-" + label.name().toLowerCase(Locale.ROOT)));
                 reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
                         + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
                 for (AccessRule.Scope scope : new AccessRule.Scope[]{AccessRule.Scope.VPN, AccessRule.Scope.GEO}) {

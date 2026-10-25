@@ -21,6 +21,11 @@
 - Cloud sync carries network signals, on by default: per IPv4 /24 or IPv6 /48 prefix, counts of logins, distinct accounts, VPN-positive checks, refusals, logins of banned accounts and operator allowances. Never a full address, account, name or rule; at most 512 prefixes per six-hour window. Intel aggregates them across servers to find shared exits such as residential proxies.
 - `cloud.contribute-signals: false` turns them off. Existing installations get a one-time console notice; `/cg cloud status` shows the state. An older Cloud API that rejects the field gets one same-batch retry without it. [Details](docs/CLOUD.md#network-signals).
 
+### Intel labels: boosters, mobile carriers, shared exits
+
+- Connection Guard Intel's new label lists are read when the manifest carries them. Gaming booster nodes (Mudfish) are let in by default (`provider.local.connectionguard-intel.booster: ALLOW`); `booster: VPN` counts them as VPN. Explicit VPN, Tor and proxy hits still win.
+- `/cg explain <IP>` names mobile carriers (carrier-grade NAT: an IP ban or IP-based alt check hits innocent players) and exits that many accounts share across servers. These labels never block. [Details](docs/LOCAL_DATA.md#062-intel-labels).
+
 ## 0.6.1 — 2026-10-13
 
 Published at the maintainer's request. The full independent competitive benchmark of this combined artifact remains pending; no improved detection/FPR or latency claim is made. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).
