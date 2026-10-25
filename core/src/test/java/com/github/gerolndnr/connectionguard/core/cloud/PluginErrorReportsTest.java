@@ -188,4 +188,24 @@ class PluginErrorReportsTest {
             assertTrue(reports.dropped() >= 950);
         } finally { release.countDown(); }
     }
+    @Test void unreachableProvidersAndFullDisksAreNotReportedButParserFaultsAre(@org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
+        int closed; try (java.net.ServerSocket socket = new java.net.ServerSocket(0)) { closed = socket.getLocalPort(); }
+        PluginErrorReports.configure(true);
+        try {
+            okhttp3.Request request = new okhttp3.Request.Builder().url("http://127.0.0.1:" + closed + "/").build();
+            assertEquals(FailureReason.NETWORK, assertThrows(LookupException.class,
+                    () -> com.github.gerolndnr.connectionguard.core.http.ProviderHttp.readText(request, "Fixture")).getReason());
+            assertEquals(0, PluginErrorReports.drainForSync().size());
+            java.nio.file.Path readOnly = java.nio.file.Files.createDirectory(directory.resolve("cloud"));
+            assertTrue(readOnly.toFile().setWritable(false));
+            try { assertThrows(CloudFiles.Unwritable.class, () -> CloudFiles.write(readOnly.resolve("credentials.json"), new byte[]{1})); }
+            finally { readOnly.toFile().setWritable(true); }
+            com.github.gerolndnr.connectionguard.core.http.ProviderHttp.failure(new IllegalStateException("parser"));
+            // The background worker may hold the report for a moment; the control proves reporting was on.
+            int reported = 0;
+            for (long until = System.nanoTime() + 2_000_000_000L; reported == 0 && System.nanoTime() < until; Thread.sleep(10))
+                reported = PluginErrorReports.drainForSync().size();
+            assertEquals(1, reported);
+        } finally { PluginErrorReports.shutdown(); }
+    }
 }

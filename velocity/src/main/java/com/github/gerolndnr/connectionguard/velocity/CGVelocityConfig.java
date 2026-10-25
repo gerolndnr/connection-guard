@@ -55,7 +55,7 @@ public class CGVelocityConfig {
 
     public void reloadValidated() throws IOException {
         try { reloadGuardValidated(); }
-        catch (IOException | RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.RELOAD); throw failure; }
+        catch (IOException | RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.config.ReloadFailures.record(failure); throw failure; }
     }
     private void reloadGuardValidated() throws IOException {
         synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {

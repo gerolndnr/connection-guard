@@ -7,6 +7,8 @@ import java.nio.file.attribute.PosixFilePermissions;
 /** Bounded private local state; never follow cloud/file symlinks or use predictable temporary files. */
 final class CloudFiles {
     private CloudFiles() { }
+    /** The plugin folder refused a write (full, read-only or not permitted). */
+    static final class Unwritable extends IOException { Unwritable(IOException cause) { super("Cloud local state could not be written (values redacted).", cause); } }
     static void check(Path file) throws IOException {
         Path directory = file.getParent();
         if (Files.isSymbolicLink(directory) || Files.isSymbolicLink(directory.getParent()) || Files.isSymbolicLink(file)
@@ -27,14 +29,18 @@ final class CloudFiles {
         }
     }
     static void write(Path file, byte[] bytes) throws IOException {
-        check(file); Files.createDirectories(file.getParent()); check(file);
+        check(file);
         Path temp;
-        try { temp = Files.createTempFile(file.getParent(), ".cg-", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"))); }
-        catch (UnsupportedOperationException unsupported) { temp = Files.createTempFile(file.getParent(), ".cg-", ".tmp"); }
+        try {
+            Files.createDirectories(file.getParent()); check(file);
+            try { temp = Files.createTempFile(file.getParent(), ".cg-", ".tmp", PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"))); }
+            catch (UnsupportedOperationException unsupported) { temp = Files.createTempFile(file.getParent(), ".cg-", ".tmp"); }
+        } catch (IOException refused) { throw new Unwritable(refused); }
         try {
             Files.write(temp, bytes, StandardOpenOption.TRUNCATE_EXISTING);
             Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } finally { Files.deleteIfExists(temp); }
+        } catch (IOException refused) { throw new Unwritable(refused); }
+        finally { Files.deleteIfExists(temp); }
     }
     static void delete(Path file) throws IOException { check(file); Files.deleteIfExists(file); }
 }

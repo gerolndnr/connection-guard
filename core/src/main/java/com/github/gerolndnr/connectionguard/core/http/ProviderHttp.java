@@ -70,10 +70,9 @@ public final class ProviderHttp {
             if (response.body().contentLength() > 262144) throw new LookupException(FailureReason.INVALID_RESPONSE);
             return new String(readBody(response), StandardCharsets.UTF_8);
         } catch (InterruptedIOException failure) {
-            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
+            // Timeouts and unreachable services are counted in provider health, not reported as plugin faults.
             throw new LookupException(FailureReason.TIMEOUT);
         } catch (IOException failure) {
-            com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.LOOKUP);
             throw new LookupException(FailureReason.NETWORK);
         } catch (RuntimeException failure) {
             throw failure(failure);

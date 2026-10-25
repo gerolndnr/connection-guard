@@ -27,7 +27,9 @@ public final class MessageCatalog {
         Map<String,Object> result=new LinkedHashMap<>(); int total=0;
         for(Map.Entry<String,Object> item:fallback.entrySet()) {
             Object raw=value.apply(item.getKey()); if(raw==null)raw=item.getValue();
-            Object valid=validate(item.getKey(),raw,BUNDLED.get("en").get(item.getKey()));
+            Object valid;
+            try { valid=validate(item.getKey(),raw,BUNDLED.get("en").get(item.getKey())); }
+            catch(IllegalArgumentException rejected) { throw new InvalidMessage(item.getKey()); }
             total+=valid instanceof String?((String)valid).length():((List<?>)valid).stream().mapToInt(v->((String)v).length()).sum();
             if(total>65536)throw invalid(); result.put(item.getKey(),valid);
         }
@@ -73,6 +75,10 @@ public final class MessageCatalog {
             if(Character.isSurrogate(first) && (point<=0xffff) || Character.getType(point)==Character.FORMAT
                     || Character.isISOControl(point) && point!='\n' && point!='\t')throw invalid(); i+=Character.charCount(point); }
         Set<String> actual=new HashSet<>(); tokens(text,actual); if(!allowed.containsAll(actual))throw invalid();
+    }
+    /** A selected message file whose value for one bundled key is unusable (wrong type, length or placeholder). */
+    public static final class InvalidMessage extends IllegalArgumentException {
+        InvalidMessage(String key) { super("Message "+key+" in the selected message file is invalid (values redacted); active messages/settings preserved."); }
     }
     private static IllegalArgumentException invalid() { return new IllegalArgumentException("Message file is invalid; active messages/settings preserved (values redacted)."); }
     private static Map<String,Map<String,Object>> loadBundled() {

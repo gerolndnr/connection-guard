@@ -72,6 +72,7 @@ public final class CloudSync {
     private final CloudJoinNotices joinNotices;
     private boolean noticeSaveWarned;
     private volatile String networkName, linkCode, linkUrl, lastError;
+    private boolean stateWriteWarned;
     private volatile long lastSyncAt;
     private JsonObject pending;
     private final Object pendingLock = new Object();
@@ -338,20 +339,30 @@ public final class CloudSync {
             if (rules != null) {
                 try { rules.pruneExpired(System.currentTimeMillis()); cleanupWarned = false; }
                 catch (IOException cleanupFailed) {
-                    PluginErrorReports.record(cleanupFailed, PluginErrorReports.Context.CACHE);
+                    if (!(cleanupFailed instanceof com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore.ChangedOnDisk))
+                        PluginErrorReports.record(cleanupFailed, PluginErrorReports.Context.CACHE);
                     if (!cleanupWarned) log.warning("Connection Guard Cloud: expired rules could not be removed from local storage; expired rules still never permit access (values redacted).");
                     cleanupWarned = true;
                 }
             }
             next = credentials == null ? install() : sync();
-            if (active() && lastError == null) failures = 0;
+            if (active() && lastError == null) { failures = 0; stateWriteWarned = false; }
         } catch (IOException | RuntimeException failure) {
             if (!active()) return;
             failures++;
-            lastError = failure instanceof IOException ? "network unavailable" : "unexpected response";
             next = backoff(-1);
-            PluginErrorReports.record(failure, PluginErrorReports.Context.SYNC);
-            if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
+            // Timeouts, DNS, TLS and full or read-only disks are the server's environment, not plugin faults.
+            if (failure instanceof CloudFiles.Unwritable) {
+                lastError = "local cloud files could not be written";
+                if (!stateWriteWarned) log.warning("Connection Guard Cloud could not write its files in the plugin folder; check free disk space and file permissions. Retrying in the background. Logins are not affected.");
+                stateWriteWarned = true;
+            } else if (failure instanceof IOException) {
+                lastError = "network unavailable";
+                if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
+            } else {
+                lastError = "unexpected response";
+                PluginErrorReports.record(failure, PluginErrorReports.Context.SYNC);
+            }
             // Remote values and underlying exceptions may contain secrets; never retain their text/cause.
         }
         if (command != null) {

@@ -247,7 +247,10 @@ public class ConnectionGuardBungeeCommand extends Command implements TabExecutor
     private boolean reloadPlugin(CommandSender commandSender) {
         try { ConnectionGuardBungeePlugin.getInstance().reloadAllConfigs(); }
         catch (IllegalArgumentException | IllegalStateException rejected) {
-            commandSender.sendMessage(new TextComponent(ConnectionGuard.getMessages().getString("command.reload-rejected"))); return true;
+            commandSender.sendMessage(new TextComponent(ConnectionGuard.getMessages().getString("command.reload-rejected")));
+            String reason = com.github.gerolndnr.connectionguard.core.config.ReloadFailures.reason(rejected, ConnectionGuard.getMessages());
+            if (reason != null) commandSender.sendMessage(new TextComponent(reason));
+            return true;
         }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(
