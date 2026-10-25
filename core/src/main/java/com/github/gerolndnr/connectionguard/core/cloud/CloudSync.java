@@ -75,7 +75,7 @@ public final class CloudSync {
     private volatile long lastSyncAt;
     private JsonObject pending;
     private final Object pendingLock = new Object();
-    private boolean legacyStatus, legacyCoverageStatus;
+    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus;
     private static volatile boolean errorsUnsupported;
     private volatile boolean errorReportsEnabled;
     private boolean cleanupWarned;
@@ -184,6 +184,16 @@ public final class CloudSync {
         catch (IllegalArgumentException invalid) { PluginErrorReports.configure(false); }
     }
     static void resetErrorReportsForTest() { PluginErrorReports.shutdown(); errorsUnsupported = false; }
+    private static boolean hasHints(JsonObject status) {
+        JsonObject unchecked = status.has("vpn_unchecked_allowed") ? status.getAsJsonObject("vpn_unchecked_allowed") : null;
+        return status.has("local_address_logins") || unchecked != null && (unchecked.has("signals") || unchecked.has("families"));
+    }
+    private static void stripHints(JsonObject status) {
+        status.remove("local_address_logins");
+        if (!status.has("vpn_unchecked_allowed")) return;
+        status.getAsJsonObject("vpn_unchecked_allowed").remove("signals");
+        status.getAsJsonObject("vpn_unchecked_allowed").remove("families");
+    }
 
     private void begin() {
         credentials = CloudCredentials.load(dir.resolve("credentials.json"));
@@ -400,6 +410,13 @@ public final class CloudSync {
             lastError = "error reports disabled for an older cloud until restart";
             return MIN_DELAY; // SAME seq, events and counters; retry only once without errors.
         }
+        if (reply.status == 400 && !legacyHintStatus && hasHints(pending.getAsJsonObject("status"))) {
+            // Older APIs reject the grey-zone hints (strict status schema); keep the older coverage counters.
+            legacyHintStatus = true;
+            stripHints(pending.getAsJsonObject("status"));
+            lastError = "cloud API does not yet support grey-zone hints";
+            return MIN_DELAY;
+        }
         if (reply.status == 400 && !legacyCoverageStatus && pending.getAsJsonObject("status").has("vpn_unchecked_allowed")) {
             // Keep rule-expiry capabilities when only the new aggregate is unsupported.
             legacyCoverageStatus = true;
@@ -413,6 +430,7 @@ public final class CloudSync {
             legacyStatus = true;
             pending.getAsJsonObject("status").remove("capabilities");
             pending.getAsJsonObject("status").remove("vpn_unchecked_allowed");
+            stripHints(pending.getAsJsonObject("status"));
             lastError = "using older cloud status format";
             return MIN_DELAY;
         }
@@ -552,8 +570,17 @@ public final class CloudSync {
             JsonObject reasons = new JsonObject();
             coverage.reasons.forEach((reason, count) -> reasons.addProperty(reason.name(), Math.min(1_000_000_000L, count)));
             unchecked.add("reasons", reasons);
+            if (!legacyHintStatus) {
+                JsonObject signals = new JsonObject(), families = new JsonObject();
+                coverage.signals.forEach((key, count) -> signals.addProperty(key, Math.min(1_000_000_000L, count)));
+                coverage.families.forEach((key, count) -> families.addProperty(key, Math.min(1_000_000_000L, count)));
+                unchecked.add("signals", signals);
+                unchecked.add("families", families);
+            }
             s.add("vpn_unchecked_allowed", unchecked);
         }
+        if (!legacyStatus && !legacyHintStatus)
+            s.addProperty("local_address_logins", Math.min(1_000_000_000L, ConnectionGuard.localAddresses().total()));
         if (!legacyStatus) {
             JsonArray capabilities = new JsonArray(); capabilities.add("rule_expiry"); capabilities.add("sync_command");
             s.add("capabilities", capabilities);
@@ -711,6 +738,7 @@ public final class CloudSync {
         lines.add(PluginErrorReports.describe() + (errorsUnsupported ? " (older cloud: disabled until restart)" : ""));
         CloudSync sync = current;
         lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
+        lines.add(ConnectionGuard.localAddresses().describe());
         com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages = ConnectionGuard.getMessages();
         if (sync == null) {
             lines.add(messages.text("cloud.status-off", lastSettings != null && lastSettings.disabledBy != null ? " (" + lastSettings.disabledBy + ")" : ""));

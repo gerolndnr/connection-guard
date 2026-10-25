@@ -166,6 +166,15 @@ public class ConnectionGuard {
     public static void startTorRefresh() { if (tor != null) tor.start(); }
     private static final UncheckedVpnAdmissions uncheckedVpnAdmissions = new UncheckedVpnAdmissions();
     public static UncheckedVpnAdmissions uncheckedVpnAdmissions() { return uncheckedVpnAdmissions; }
+    private static final com.github.gerolndnr.connectionguard.core.lookup.LocalAddresses localAddresses = new com.github.gerolndnr.connectionguard.core.lookup.LocalAddresses();
+    public static com.github.gerolndnr.connectionguard.core.lookup.LocalAddresses localAddresses() { return localAddresses; }
+    public static void localAddressLogin(com.github.gerolndnr.connectionguard.core.lookup.LocalAddresses.Kind kind) {
+        localAddresses.seen(kind).ifPresent(line -> {
+            Logger output = logger;
+            try { if (output != null) output.warning(line); }
+            catch (RuntimeException ignored) { /* Logging cannot affect the login. */ }
+        });
+    }
     public static void startCoverageReporting() {
         uncheckedVpnAdmissions.start(line -> { Logger output = logger; if (output != null) output.warning(line); });
     }

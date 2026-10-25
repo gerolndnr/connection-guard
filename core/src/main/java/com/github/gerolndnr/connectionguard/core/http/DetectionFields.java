@@ -55,6 +55,8 @@ public final class DetectionFields {
         if (value.isEmpty()) return null;
         if (organizationSuffix && value.indexOf(' ') > 0) value = value.substring(0, value.indexOf(' '));
         if (value.startsWith("AS")) value = value.substring(2);
+        // AS0 is reserved, and providers use it when no announcing ASN is known.
+        if (value.equals("0")) return null;
         if (!value.matches("[1-9][0-9]{0,9}")) throw new IllegalArgumentException("Invalid ASN field.");
         long asn = Long.parseLong(value);
         if (asn > 4294967295L) throw new IllegalArgumentException("Invalid ASN field.");

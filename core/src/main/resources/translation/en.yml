@@ -53,6 +53,9 @@ ops:
   usage: 'Usage: /cg {0}'
   explain-unavailable: Explanation unavailable (details redacted).
   identity-omitted: identity/permission exemptions not evaluated for a literal IP.
+  intel-label-booster: 'Intel label BOOSTER: a gaming booster node (Mudfish). Players tunnel through it for a better ping; provider.local.connectionguard-intel.booster decides.'
+  intel-label-mobile: 'Intel label MOBILE: a mobile carrier behind carrier-grade NAT. Many players share this address, so an IP ban or IP-based alt check hits innocent players.'
+  intel-label-shared: 'Intel label SHARED: several Connection Guard servers see many accounts from this network. Review it; it may be a proxy used for alt accounts.'
   no-provider-attempts: No provider attempts recorded yet.
   cache-health: health requires an actual lookup. This command does not spend API quota.
   identity-authority: declared/global trust is not verified temporary-grant authority.

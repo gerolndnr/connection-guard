@@ -50,6 +50,9 @@ public final class OperationsCommands {
                         + (vote.getProvider().equals("connectionguard-intel") && vote.getDetails().getDataAsOf() != null
                             ? " evidence=Connection Guard Intel " + vote.getDetails().getClassifications() + " (" + java.time.Instant.ofEpochMilli(vote.getDetails().getDataAsOf()) + ")" : "")
                         + " durationMs=" + vote.getDurationMillis() + " version=" + vote.getSourceVersion() + " validUntil=" + vote.getValidUntil() + " " + vote.getDetails().describe());
+                for (ProviderVote vote : result.getVotes())
+                    for (com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails.Label label : vote.getDetails().getLabels())
+                        reply.accept(messages.getString("ops.intel-label-" + label.name().toLowerCase(Locale.ROOT)));
                 reply.accept("Geo=" + (geo.getResult().isPresent() ? geo.getResult().get().getCountryName() : "UNKNOWN")
                         + " reason=" + geo.getReason() + " cached=" + geo.isCached() + " durationMs=" + geo.getDurationMillis());
                 for (AccessRule.Scope scope : new AccessRule.Scope[]{AccessRule.Scope.VPN, AccessRule.Scope.GEO}) {
@@ -108,6 +111,7 @@ public final class OperationsCommands {
         lines.add(ConnectionGuard.torStatus());
         if (draft != null && draft.intelSettings.enabled) lines.add(draft.intelSnapshot.describe(System.currentTimeMillis()));
         lines.add(ConnectionGuard.uncheckedVpnAdmissions().snapshot().describe());
+        lines.add(ConnectionGuard.localAddresses().describe());
         lines.add("Geo=" + (ConnectionGuard.isGeoDisabled() ? "disabled by configuration; not checked" : "enabled; missing answers follow geoFailure"));
         ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                 .forEach(entry -> lines.add(entry.getKey() + ": " + entry.getValue().describe()));

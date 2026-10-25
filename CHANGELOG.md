@@ -3,6 +3,25 @@
 ## Unreleased — 0.6.2
 
 - Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
+### Provider responses
+
+- Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
+
+### Private network addresses
+
+- Logins from loopback, private (RFC 1918, fc00::/7), CGNAT/Tailscale (100.64.0.0/10), link-local and unspecified addresses skip VPN and country lookups. No lookup can judge them, and Blackbox lists every private address, so a backend behind a proxy without IP forwarding refused nearly every join. Deny access rules still apply; documentation ranges (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24, 2001:db8::/32) stay public.
+- The console warns on the first such login and then at most every six hours, with counts per address class and a hint to enable IP forwarding or install Connection Guard on the proxy. `/cg cloud status` shows the counts; cloud status sends the lifetime total as `local_address_logins`. No addresses are kept.
+
+### Grey-zone hints
+
+- Unchecked VPN admissions now also count which voting source left which hint (`<source>.hosting`, `<source>.no_evidence`, `<source>.failed`, at most 32 keys) and the address family (IPv4/IPv6). `/cg doctor` shows them, and cloud status sends them as `signals` and `families` inside `vpn_unchecked_allowed`. No addresses or identities are kept.
+- An older cloud API that rejects the new fields gets one same-batch retry without them before the existing coverage and capability fallbacks.
+
+### Intel labels: boosters, mobile carriers, shared exits
+
+- Connection Guard Intel's new label lists are read when the manifest carries them. Gaming booster nodes (Mudfish) are let in by default (`provider.local.connectionguard-intel.booster: ALLOW`); `booster: VPN` counts them as VPN. Explicit VPN, Tor and proxy hits still win.
+- `/cg explain <IP>` names mobile carriers (carrier-grade NAT: an IP ban or IP-based alt check hits innocent players) and exits that many accounts share across servers. These labels never block. [Details](docs/LOCAL_DATA.md#062-intel-labels).
+
 
 ## 0.6.1 — 2026-10-13
 

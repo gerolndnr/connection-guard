@@ -33,6 +33,7 @@ public final class DecisionCapture implements AutoCloseable {
     private final List<Rule> rules = new ArrayList<>();
     private Reason denied;
     private FailureReason uncheckedVpnReason;
+    private List<String> uncheckedVpnSignals = Collections.emptyList();
     private long observedAt = System.currentTimeMillis();
     private boolean processingError, finished, overload, unresolved, admissionUnresolved, invalidObservation, identityUnavailable;
     private DecisionCapture(Platform platform, Phase phase, String ip, UUID uuid, IdentityTrust trust, long startedNanos) {
@@ -95,6 +96,7 @@ public final class DecisionCapture implements AutoCloseable {
     }
     public void facts(VpnResult vpn, GeoLookup geo, boolean vpnExempt, boolean geoExempt, long asOf) {
         uncheckedVpnReason = UncheckedVpnAdmissions.unresolved(vpn, vpnExempt);
+        uncheckedVpnSignals = UncheckedVpnAdmissions.signals(vpn, vpnExempt);
         record(() -> {
             observedAt = asOf;
             sources.clear();
@@ -135,7 +137,7 @@ public final class DecisionCapture implements AutoCloseable {
     @Override public synchronized void close() {
         if (finished) return;
         finished = true;
-        if (denied == null && !processingError) ConnectionGuard.uncheckedVpnAdmissions().allowed(uncheckedVpnReason);
+        if (denied == null && !processingError) ConnectionGuard.uncheckedVpnAdmissions().allowed(uncheckedVpnReason, uncheckedVpnSignals, UncheckedVpnAdmissions.family(ip));
         policyLease.close();
         if (!captureEnabled || invalidObservation) return;
         final long duration=Math.max(0,(System.nanoTime()-started)/1000000);
