@@ -30,12 +30,12 @@ From 0.6.0, Cloud sync can also send bounded anonymous metadata for Connection G
 
 ## Network signals
 
-From 0.6.2, a sync every six hours carries network signals for [Connection Guard Intel](https://connectionguard.net/intel), on linked and unlinked servers alike. Per IPv4 /24 or IPv6 /48 prefix seen in the six-hour window, the plugin sends counts: logins, distinct accounts, VPN-positive checks, refusals, logins of accounts with an active ban (from a selected ban addon), and logins the operator allowed with an access rule. At most 512 prefixes per six-hour window; the rest is a single overflow count.
+From 0.6.2, a sync every six hours carries network signals for [Connection Guard Intel](https://connectionguard.net/intel), on servers linked to a network. Unlinked servers send none (only the anonymous totals above); logins before linking are not counted later. Per IPv4 /24 or IPv6 /48 prefix seen in the six-hour window, the plugin sends counts: logins, distinct accounts, VPN-positive checks, refusals, logins of accounts with an active ban (from a selected ban addon), and logins the operator allowed with an access rule. At most 512 prefixes per six-hour window; the rest is a single overflow count.
 
 - **Never sent:** full addresses, UUIDs, names, rule IDs or reasons. Accounts are counted in memory for the current window only. Private, loopback, CGNAT and link-local addresses are skipped.
 - **Purpose:** many accounts from one prefix on many unrelated servers point to a shared exit such as a residential proxy; bans and operator allowances label such prefixes. Connection Guard aggregates the signals of all servers and publishes only prefixes reported by several networks, as a review-only list in Intel.
 - **Storage:** raw signals are kept 7 days; the aggregate keeps prefixes and totals only.
-- **Off:** `cloud.contribute-signals: false` and reload, or any Cloud off switch. Existing installations get a one-time console notice; `/cg cloud status` and `/cg doctor` show the state. An older Cloud API that rejects the field gets one same-batch retry without it.
+- **Off:** `cloud.contribute-signals: false` and reload, or any Cloud off switch. Existing installations get a one-time console notice once linked; `/cg cloud status` and `/cg doctor` show the state. An older Cloud API that rejects the field gets one same-batch retry without it.
 
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
 - **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard. Network signals are the exception: Connection Guard uses them for its own purpose, Intel lists for every server.

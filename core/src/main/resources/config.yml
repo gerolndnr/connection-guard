@@ -14,8 +14,9 @@ cloud:
   # Disclosure: https://connectionguard.net/privacy#error-reports ; controls: docs/PRIVACY.md.
   # Sent with background sync; all Cloud off switches also turn these reports off.
   error-reports: true
-  # Network signals improve Connection Guard Intel for every server: per IPv4 /24 or IPv6 /48
-  # prefix, counts of logins, accounts, VPN results, refusals, bans and operator allowances.
+  # Network signals improve Connection Guard Intel for every server. Sent only once this server is
+  # linked: per IPv4 /24 or IPv6 /48 prefix, counts of logins, accounts, VPN results, refusals, bans
+  # and operator allowances.
   # Never a full address, account, name or rule. Kept 7 days. See docs/CLOUD.md#network-signals.
   contribute-signals: true
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.

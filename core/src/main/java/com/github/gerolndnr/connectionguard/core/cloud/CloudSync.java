@@ -92,7 +92,7 @@ public final class CloudSync {
         this.joinNotices = new CloudJoinNotices(dir);
         errorReportsEnabled = settings.errorReports && !errorsUnsupported;
         signalsEnabled = settings.contributeSignals;
-        recorder.contributeSignals(signalsEnabled);
+        recorder.contributeSignals(contributing());
 
     }
 
@@ -117,10 +117,10 @@ public final class CloudSync {
                         && current.settings.networkToken.equals(next.networkToken)) {
                     current.errorReportsEnabled = next.errorReports && !errorsUnsupported;
                     current.signalsEnabled = next.contributeSignals;
-                    current.recorder.contributeSignals(next.contributeSignals);
+                    current.recorder.contributeSignals(current.contributing());
                     synchronized (current.pendingLock) {
                         if (!current.errorReportsEnabled && current.pending != null) current.pending.remove("errors");
-                        if (!current.signalsEnabled && current.pending != null) current.pending.remove("signals");
+                        if (!current.contributing() && current.pending != null) current.pending.remove("signals");
                     }
                     current.errorReportNotice();
                     current.signalsNotice();
@@ -222,8 +222,8 @@ public final class CloudSync {
     private void firstRunNotice() {
         Path marker = dir.resolve("notice-v1");
         if (Files.exists(marker)) return;
-        log.info("Connection Guard Cloud is on: until you link this server, it only sends anonymous totals and network"
-                + " signals (no IPs, no player data) to " + settings.endpoint.getHost() + ".");
+        log.info("Connection Guard Cloud is on: until you link this server, it only sends anonymous totals"
+                + " (no IPs, no player data) to " + settings.endpoint.getHost() + ".");
         log.info("Turn it off with cloud.enabled: false in config.yml or /cg cloud disable. Logins never wait on the cloud.");
         try { Files.createDirectories(dir); Files.write(marker, new byte[0]); } catch (IOException ignored) { /* shown again next start */ }
     }
@@ -237,8 +237,11 @@ public final class CloudSync {
         catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
     }
 
+    /** Network signals come only from servers linked to a network (owner decision, 25 Oct 2026); unlinked servers send anonymous totals only. */
+    private boolean contributing() { return signalsEnabled && claimed; }
+
     private void signalsNotice() {
-        if (!signalsEnabled) return;
+        if (!contributing()) return;
         Path marker = dir.resolve("signals-notice-v1");
         if (Files.exists(marker)) return;
         log.info("Connection Guard shares network signals with Connection Guard Intel: per IPv4 /24 or IPv6 /48 prefix, counts of logins, accounts, VPN results, refusals, bans and allowances. Never a full address, account, name or rule. They help detect shared proxy exits for every server. Set cloud.contribute-signals: false to turn them off. Privacy: https://connectionguard.net/privacy#network-signals");
@@ -415,7 +418,7 @@ public final class CloudSync {
         if (reply.status == 401) {
             // The install was removed (e.g. 30 days unlinked). Start over with a fresh anonymous identity.
             CloudCredentials.delete(dir.resolve("credentials.json"));
-            credentials = null; claimed = false; recorder.acceptEvents(false); pending = null;
+            credentials = null; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false); pending = null;
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
@@ -500,8 +503,15 @@ public final class CloudSync {
         }
         if (nowClaimed && !claimed) log.info("Connection Guard Cloud: linked to " + (networkName == null ? "your network" : "\"" + networkName + "\"") + ".");
         boolean changed = !Objects.equals(url, linkUrl);
+        boolean linkChanged = claimed != nowClaimed;
         claimed = nowClaimed; linkCode = code; linkUrl = url;
         linkStateKnown = true;
+        if (linkChanged) {
+            // Linking starts the first signal window; unlinking drops the open one and any unsent one.
+            recorder.contributeSignals(contributing());
+            if (!nowClaimed) synchronized (pendingLock) { if (pending != null) pending.remove("signals"); }
+            signalsNotice();
+        }
         if (!nowClaimed && url != null && changed) showConsoleNotice();
     }
 
@@ -554,7 +564,7 @@ public final class CloudSync {
         JsonArray events = new JsonArray();
         batch.events.forEach(events::add);
         body.add("events", events);
-        if (batch.signals != null && !legacySignals && batch.signals.getAsJsonArray("prefixes").size() > 0) body.add("signals", batch.signals);
+        if (batch.signals != null && !legacySignals && claimed && batch.signals.getAsJsonArray("prefixes").size() > 0) body.add("signals", batch.signals);
         JsonArray results = new JsonArray();
         synchronized (commandResults) { commandResults.forEach(results::add); commandResults.clear(); }
         body.add("command_results", results);
@@ -743,7 +753,7 @@ public final class CloudSync {
             ok = true;
             if (type.equals("unlink")) {
                 CloudCredentials.delete(dir.resolve("credentials.json"));
-                credentials = null; claimed = false; recorder.acceptEvents(false);
+                credentials = null; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException refused) {
             PluginErrorReports.record(refused, PluginErrorReports.Context.COMMAND);
@@ -777,7 +787,7 @@ public final class CloudSync {
         lines.add("Cloud events buffered=" + sync.recorder.buffered() + " dropped=" + sync.recorder.dropped()
                 + (sync.claimed ? "" : messages.getString("cloud.anonymous")));
         lines.add("Network signals " + (!sync.signalsEnabled ? "off (cloud.contribute-signals: false)"
-                : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
+                : !sync.claimed ? "off until this server is linked" : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
         return lines;
     }
 

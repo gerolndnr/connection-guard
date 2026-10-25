@@ -247,8 +247,13 @@ class CloudSyncTest {
         } finally { logger.removeHandler(handler); }
     }
 
-    @Test void unlinkedSendsNetworkSignalsAsPrefixesAndCountsOnlyAndTheOptOutOmitsThem() throws Exception {
-        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+    private void link() throws Exception {
+        CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest(); syncs.clear();
+    }
+
+    @Test void linkedSendsNetworkSignalsAsPrefixesAndCountsOnlyAndTheOptOutOmitsThem() throws Exception {
+        startSync(Collections.emptyMap()); link();
         long before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
         CloudSync.runOnceForTest();
@@ -257,7 +262,7 @@ class CloudSyncTest {
         assertEquals("203.0.113.0/24", prefix.get("p").getAsString());
         assertEquals(1, prefix.get("accounts").getAsLong()); assertEquals(1, prefix.get("vpn").getAsLong());
         assertFalse(body.getAsJsonObject("signals").toString().contains("203.0.113.24"));
-        assertFalse(body.toString().contains("069a79f4"), "no account leaves an unlinked server");
+        assertFalse(body.getAsJsonObject("signals").toString().contains("069a79f4"), "signals carry no account");
         assertTrue(CloudSync.describeLines().contains("Network signals on (prefixes and counts only)"));
         startSync(Collections.singletonMap("cloud.contribute-signals", false));
         before = DecisionObservers.delivered();
@@ -268,9 +273,33 @@ class CloudSyncTest {
         assertTrue(CloudSync.describeLines().contains("Network signals off (cloud.contribute-signals: false)"));
     }
 
+    @Test void unlinkedServersSendNoSignalsAndUnlinkingDropsTheOpenWindow() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject unlinked = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(unlinked);
+        assertFalse(unlinked.has("signals"));
+        assertTrue(CloudSync.describeLines().contains("Network signals off until this server is linked"));
+        // Logins before linking are not counted later either.
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest();
+        JsonObject linking = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(linking);
+        assertFalse(linking.has("signals"));
+        CloudSync.runOnceForTest();
+        JsonObject linked = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(linked);
+        assertFalse(linked.has("signals"), "nothing was recorded while unlinked");
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        syncResponse = linkedWithConfig("null").replace("\"claimed\":true", "\"claimed\":false"); CloudSync.runOnceForTest();
+        syncs.clear();
+        CloudSync.runOnceForTest();
+        JsonObject after = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(after);
+        assertFalse(after.has("signals"), "unlinking drops the open window");
+    }
+
     @Test void signalsWaitForTheirWindowAndKeepCountingAcrossSyncs() throws Exception {
         NetworkSignals.windowMillis = TimeUnit.HOURS.toMillis(6);
-        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        startSync(Collections.emptyMap()); link();
         long before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
         CloudSync.runOnceForTest();
@@ -294,9 +323,11 @@ class CloudSyncTest {
         };
         Logger logger = Logger.getLogger("test"); logger.addHandler(handler);
         try {
-            startSync(Collections.singletonMap("cloud.contribute-signals", false)); assertEquals(0, notices.get());
-            startSync(Collections.emptyMap()); assertEquals(1, notices.get());
-            CloudSync.stop(); startSync(Collections.emptyMap()); assertEquals(1, notices.get());
+            startSync(Collections.singletonMap("cloud.contribute-signals", false)); link(); assertEquals(0, notices.get());
+            startSync(Collections.emptyMap()); assertEquals(1, notices.get(), "linked, contributing");
+            CloudSync.stop(); startSync(Collections.emptyMap()); syncResponse = unclaimed(); link(); assertEquals(1, notices.get());
+            CloudSync.stop(); Files.delete(dir.resolve("cloud/signals-notice-v1"));
+            startSync(Collections.emptyMap()); assertEquals(0, notices.get() - 1, "no notice before the link state is known");
         } finally { logger.removeHandler(handler); }
     }
 
@@ -625,7 +656,7 @@ class CloudSyncTest {
     }
 
     @Test void olderApiRejectingAllStatusExtensionsRetriesExactlyTheSameBatch() throws Exception {
-        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        startSync(Collections.emptyMap()); link();
         long before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
         syncStatus = 400; CloudSync.runOnceForTest(); JsonObject signalled = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(signalled);
