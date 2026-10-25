@@ -54,11 +54,3 @@ Endpoint/key are bundled and cannot be managed remotely. See
 Cloud source `connectionguard-intel` uses the coordinated optional source fields
 `types` and `data_as_of`; unknown values are omitted. These features are included in 0.6.0.
 The full competitive benchmark of the published artifact remains pending.
-
-## Network signals, from 0.6.2
-
-[Published disclosure](https://connectionguard.net/privacy#network-signals).
-
-When Cloud is enabled, `cloud.contribute-signals` defaults to `true`, including existing configuration files that omit the option. Every six hours, with a regular sync, the plugin sends, per IPv4 /24 or IPv6 /48 prefix seen in the last six hours, the number of logins, distinct accounts, VPN-positive checks, refusals, logins of accounts with an active ban reported by a selected admission addon, and logins allowed by an operator's access rule. At most 512 prefixes per six-hour window; further prefixes only increase an overflow count. Private, loopback, CGNAT and link-local addresses are skipped.
-
-Full addresses, UUIDs, names, rule IDs and reasons are never sent. Distinct accounts are counted from UUIDs held in memory for the current window only; they are dropped when the window is sent and never written to disk. A failed sync puts the counts back for the retry. The hosted Cloud keeps raw signals 7 days and publishes only prefixes reported by several networks, as a review-only Intel list. Set `cloud.contribute-signals: false` and reload to stop them; any Cloud off switch also stops them. A one-time console notice discloses the setting to existing installations.

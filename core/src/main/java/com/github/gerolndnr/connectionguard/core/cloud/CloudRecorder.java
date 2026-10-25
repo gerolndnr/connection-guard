@@ -26,13 +26,6 @@ final class CloudRecorder implements DecisionObserver {
     private final Random sampler = new Random();
     private long latencySeen;
     private final ArrayDeque<JsonObject> events = new ArrayDeque<>();
-    private final NetworkSignals signals = new NetworkSignals();
-    private volatile boolean contributeSignals;
-
-    /** Network signals for Intel (cloud.contribute-signals); turning them off drops the current window. */
-    void contributeSignals(boolean contribute) {
-        synchronized (lock) { contributeSignals = contribute; if (!contribute) signals.drain(); }
-    }
 
     void acceptEvents(boolean accept) {
         synchronized (lock) { acceptEvents = accept; if (!accept) events.clear(); }
@@ -55,7 +48,6 @@ final class CloudRecorder implements DecisionObserver {
             if (vpnLooked) { if (cached) cacheHits++; else lookups++; }
             if (country != null && (countries.containsKey(country) || countries.size() < 64)) countries.merge(country, 1L, Long::sum);
             reasons.merge(o.getReason().name(), 1L, Long::sum);
-            if (contributeSignals) signals.record(o);
             // Reservoir sample keeps percentiles meaningful under heavy load with bounded memory.
             latencySeen++;
             if (latency.size() < MAX_LATENCY_SAMPLES) latency.add(o.getDurationMillis());
@@ -73,10 +65,8 @@ final class CloudRecorder implements DecisionObserver {
         final List<JsonObject> events;
         final int buffered;
         final long dropped;
-        /** Null when signals are off or their window is still open. */
-        final JsonObject signals;
-        Batch(JsonObject counters, List<JsonObject> events, int buffered, long dropped, JsonObject signals) {
-            this.counters = counters; this.events = events; this.buffered = buffered; this.dropped = dropped; this.signals = signals;
+        Batch(JsonObject counters, List<JsonObject> events, int buffered, long dropped) {
+            this.counters = counters; this.events = events; this.buffered = buffered; this.dropped = dropped;
         }
     }
 
@@ -100,7 +90,7 @@ final class CloudRecorder implements DecisionObserver {
             List<JsonObject> out = new ArrayList<>();
             Iterator<JsonObject> it = events.iterator();
             while (it.hasNext() && out.size() < maxEvents) out.add(it.next());
-            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents, contributeSignals && signals.due(now) ? signals.drain() : null);
+            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents);
             windowStart = now;
             checks = allowed = denied = errors = vpnPositive = geoFlagged = cacheHits = lookups = 0;
             countries.clear(); reasons.clear(); latency.clear(); latencySeen = 0;
@@ -119,7 +109,6 @@ final class CloudRecorder implements DecisionObserver {
             cacheHits += c.get("cache_hits").getAsLong(); lookups += c.get("lookups").getAsLong();
             c.getAsJsonObject("countries").entrySet().forEach(e -> countries.merge(e.getKey(), e.getValue().getAsLong(), Long::sum));
             c.getAsJsonObject("reasons").entrySet().forEach(e -> reasons.merge(e.getKey(), e.getValue().getAsLong(), Long::sum));
-            if (contributeSignals && batch.signals != null) signals.restore(batch.signals);
             if (acceptEvents) {
                 List<JsonObject> back = new ArrayList<>(batch.events);
                 Collections.reverse(back);

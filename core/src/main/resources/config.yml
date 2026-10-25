@@ -6,18 +6,14 @@ operation:
 cloud:
   # Optional free dashboard at https://app.connectionguard.net. Logins never wait on it.
   # Until you link this server (link printed in the console, or /cg cloud link), only
-  # anonymous totals and network signals are sent: no IPs, no player data. After linking and
-  # accepting the data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
+  # anonymous totals are sent: no IPs, no player data. After linking and accepting the
+  # data processing terms, each check is sent and kept 30 days. See docs/CLOUD.md.
   # Turn off here, with /cg cloud disable, or with the environment CONNECTIONGUARD_CLOUD=false.
   enabled: true
   # Own exception types/frames only, never message text or player data.
   # Disclosure: https://connectionguard.net/privacy#error-reports ; controls: docs/PRIVACY.md.
   # Sent with background sync; all Cloud off switches also turn these reports off.
   error-reports: true
-  # Network signals improve Connection Guard Intel for every server: per IPv4 /24 or IPv6 /48
-  # prefix, counts of logins, accounts, VPN results, refusals, bans and operator allowances.
-  # Never a full address, account, name or rule. Kept 7 days. See docs/CLOUD.md#network-signals.
-  contribute-signals: true
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
   network-token: ""
 identity:
