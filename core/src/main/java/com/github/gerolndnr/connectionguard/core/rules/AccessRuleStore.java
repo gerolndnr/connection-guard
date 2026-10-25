@@ -183,11 +183,17 @@ public final class AccessRuleStore {
     }
     /** Activates staged rules. Fails without a change when the rules moved on since staging (a write or another reload). */
     public void publish(Staged staged) {
-        if (staged == null) return;
+        publish(staged, () -> {});
+    }
+    /** Check the file, activate the validated runtime, then publish under the same rule-store lock.
+     * If file validation or runtime activation rejects the reload, the staged rules stay inactive.
+     */
+    public void publish(Staged staged, Runnable activate) {
         synchronized (lock) {
-            if (state != staged.from || !matchesDisk(staged.next))
+            if (staged != null && (state != staged.from || !matchesDisk(staged.next)))
                 throw new IllegalStateException("Rules changed during the reload; active rules preserved, run /cg reload again (values redacted).");
-            state = staged.next;
+            activate.run();
+            if (staged != null) state = staged.next;
         }
     }
     /** Picks up a hand-edited or deleted rules file at once (stage and publish). An invalid file keeps the active rules. */

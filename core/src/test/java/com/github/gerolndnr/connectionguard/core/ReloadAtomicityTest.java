@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Permission;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -93,5 +94,45 @@ class ReloadAtomicityTest {
         store.publish(again);
         assertTrue(store.snapshot().isEmpty());
         store.publish(null);
+    }
+
+    @Test void secondEditAtPublicationPreservesTheActiveLookupRuntime(@TempDir Path directory) throws Exception {
+        ConnectionGuard.initializeRules(directory);
+        ConnectionGuard.applyProviders(draft("Memory"));
+        ConnectionGuard.getRuleStore().add(AccessRule.Effect.DENY, AccessRule.Scope.ALL, "192.0.2.1", 0, "test");
+        com.github.gerolndnr.connectionguard.core.lookup.LookupRuntime before = ConnectionGuard.getLookupRuntime();
+        ProviderConfiguration active = ConnectionGuard.getActiveDraft();
+        Path file = directory.resolve("access-rules.json");
+        Files.write(file, "[]".getBytes(StandardCharsets.UTF_8));
+        Map<String, Object> values = new HashMap<>();
+        values.put("provider.cache.type", "Memory"); values.put("provider.geo.service", "Disabled");
+        values.put("lookup.workers", before.getSettings().workers + 1);
+        ProviderConfiguration next = new ProviderConfiguration(values::get, Collections.emptyList());
+        SecurityManager previous = System.getSecurityManager();
+        final boolean[] edited = {false};
+        // A deterministic operator edit at the last disk check, after the draft was staged.
+        System.setSecurityManager(new SecurityManager() {
+            @Override public void checkPermission(Permission permission) {}
+            @Override public void checkRead(String path) {
+                if (edited[0] || !file.toAbsolutePath().equals(java.nio.file.Paths.get(path).toAbsolutePath())) return;
+                for (StackTraceElement frame : new Throwable().getStackTrace()) {
+                    if (frame.getClassName().equals(AccessRuleStore.class.getName()) && frame.getMethodName().equals("publish")) {
+                        edited[0] = true;
+                        try { Files.write(file, " [] ".getBytes(StandardCharsets.UTF_8)); }
+                        catch (java.io.IOException failed) { throw new IllegalStateException(failed); }
+                        return;
+                    }
+                }
+            }
+        });
+        try {
+            assertThrows(IllegalStateException.class, () -> ConnectionGuard.applyProviders(next));
+        } finally { System.setSecurityManager(previous); }
+        assertTrue(edited[0]);
+        assertEquals(1, activeRules());
+        assertSame(before, ConnectionGuard.getLookupRuntime());
+        assertTrue(before.isOpen());
+        assertEquals(before.getSettings().workers, ConnectionGuard.getSettings().lookup.workers);
+        assertSame(active, ConnectionGuard.getActiveDraft());
     }
 }

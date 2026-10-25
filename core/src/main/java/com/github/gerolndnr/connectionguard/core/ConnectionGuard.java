@@ -236,9 +236,9 @@ public class ConnectionGuard {
     private static void applySettings(GuardSettings next, AccessRuleStore.Staged stagedRules) {
         if (rules != null) rules.validateConfigReload(next, false, stagedRules);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.validateActivation();
-        configureLookup(next.lookup);
-        // The last check that can reject the reload has passed; nothing below fails.
-        if (rules != null) rules.publish(stagedRules);
+        // Check the staged file before replacing the runtime; a late edit must preserve both.
+        if (rules != null) rules.publish(stagedRules, () -> configureLookup(next.lookup));
+        else configureLookup(next.lookup);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;
