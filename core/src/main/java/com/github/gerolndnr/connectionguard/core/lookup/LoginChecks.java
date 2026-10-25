@@ -75,6 +75,12 @@ public final class LoginChecks {
         LookupRuntime runtime;AdmissionHooks.Snapshot hooks;
         synchronized (ConnectionGuard.class) { runtime = ConnectionGuard.getLookupRuntime();hooks=AdmissionHooks.snapshot(); }
         if(request!=null && !request.getIp().equals(ip))throw new IllegalArgumentException("Admission request address differs from login.");
+        Optional<LocalAddresses.Kind> local = LocalAddresses.classify(ip);
+        if (local.isPresent()) {
+            // No lookup can judge a non-public address, and some list every one of them as a VPN.
+            ConnectionGuard.localAddressLogin(local.get());
+            vpn = Permission.known(true); geo = Permission.known(true);
+        }
         if (!runtime.isOpen() || !runtime.getSettings().equals(limits))
             return immediate(ip, vpn, geo, FailureReason.CANCELLED, startedNanos,hooks);
         int count;
