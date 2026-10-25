@@ -16,6 +16,11 @@
 - Unchecked VPN admissions now also count which voting source left which hint (`<source>.hosting`, `<source>.no_evidence`, `<source>.failed`, at most 32 keys) and the address family (IPv4/IPv6). `/cg doctor` shows them, and cloud status sends them as `signals` and `families` inside `vpn_unchecked_allowed`. No addresses or identities are kept.
 - An older cloud API that rejects the new fields gets one same-batch retry without them before the existing coverage and capability fallbacks.
 
+### Network signals for Connection Guard Intel
+
+- Cloud sync carries network signals, on by default: per IPv4 /24 or IPv6 /48 prefix, counts of logins, distinct accounts, VPN-positive checks, refusals, logins of banned accounts and operator allowances. Never a full address, account, name or rule; at most 256 prefixes per sync. Intel aggregates them across servers to find shared exits such as residential proxies.
+- `cloud.contribute-signals: false` turns them off. Existing installations get a one-time console notice; `/cg cloud status` shows the state. An older Cloud API that rejects the field gets one same-batch retry without it. [Details](docs/CLOUD.md#network-signals).
+
 ## 0.6.1 — 2026-10-13
 
 Published at the maintainer's request. The full independent competitive benchmark of this combined artifact remains pending; no improved detection/FPR or latency claim is made. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).
