@@ -6,26 +6,30 @@ import java.math.BigDecimal;
 /** Source-specific observations, never inferred from a generic positive or missing field. */
 public final class DetectionDetails {
     public enum Type { VPN, PROXY, TOR, RELAY, HOSTING }
+    /** Connection Guard Intel labels: what kind of network an address belongs to, never a verdict on their own. */
+    public enum Label { BOOSTER, MOBILE, SHARED }
     private final Map<Type, Boolean> classifications;
     private final Long asn;
     private final String isp, operator, country;
     private final Integer risk, confidence;
     private final BigDecimal exactRisk;
     private final Long dataAsOf;
+    private final Set<Label> labels;
     public DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
                             String country, Integer risk, Integer confidence) {
         this(classifications, asn, isp, operator, country, risk, confidence, null);
     }
     private DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
                              String country, Integer risk, Integer confidence, BigDecimal exactRisk) {
-        this(classifications, asn, isp, operator, country, risk, confidence, exactRisk, null);
+        this(classifications, asn, isp, operator, country, risk, confidence, exactRisk, null, null);
     }
     private DetectionDetails(Map<Type, Boolean> classifications, Long asn, String isp, String operator,
-                             String country, Integer risk, Integer confidence, BigDecimal exactRisk, Long dataAsOf) {
+                             String country, Integer risk, Integer confidence, BigDecimal exactRisk, Long dataAsOf, Set<Label> labels) {
         this.classifications = new EnumMap<>(Type.class);
         if (classifications != null) this.classifications.putAll(classifications);
         this.asn = asn; this.isp = text(isp); this.operator = text(operator); this.country = text(country);
         this.risk = risk; this.confidence = confidence; this.exactRisk = exactRisk; this.dataAsOf = dataAsOf;
+        this.labels = labels == null || labels.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(EnumSet.copyOf(labels));
         validate();
     }
     /** Exact source risk; legacy getRisk is null when the value is not an integer. */
@@ -64,7 +68,9 @@ public final class DetectionDetails {
     public Map<Type, Boolean> getClassifications() { return Collections.unmodifiableMap(classifications); }
     public Boolean get(Type type) { return classifications.get(type); }
     public Long getDataAsOf() { return dataAsOf; }
-    public DetectionDetails withDataAsOf(Long timestamp) { return new DetectionDetails(classifications, asn, isp, operator, country, risk, confidence, exactRisk, timestamp); }
+    public DetectionDetails withDataAsOf(Long timestamp) { return new DetectionDetails(classifications, asn, isp, operator, country, risk, confidence, exactRisk, timestamp, labels); }
+    public Set<Label> getLabels() { return labels; }
+    public DetectionDetails withLabels(Set<Label> labels) { return new DetectionDetails(classifications, asn, isp, operator, country, risk, confidence, exactRisk, dataAsOf, labels); }
     public Long getAsn() { return asn; }
     public String getIsp() { return isp; }
     public String getOperator() { return operator; }
@@ -74,6 +80,7 @@ public final class DetectionDetails {
     public BigDecimal getExactRisk() { return exactRisk != null ? exactRisk : risk == null ? null : BigDecimal.valueOf(risk); }
     public Integer getConfidence() { return confidence; }
     public String describe() { return "types=" + classifications + " asn=" + value(asn) + " isp=" + value(isp)
-            + " operator=" + value(operator) + " country=" + value(country) + " risk=" + value(getExactRisk()) + " confidence=" + value(confidence) + " as_of=" + value(dataAsOf); }
+            + " operator=" + value(operator) + " country=" + value(country) + " risk=" + value(getExactRisk()) + " confidence=" + value(confidence) + " as_of=" + value(dataAsOf)
+            + (labels.isEmpty() ? "" : " labels=" + labels); }
     private static String value(Object value) { return value == null ? "UNKNOWN" : value.toString(); }
 }
