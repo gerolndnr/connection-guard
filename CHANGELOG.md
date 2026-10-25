@@ -30,6 +30,7 @@
 
 - Cloud sync of linked servers carries network signals. `cloud.contribute-signals: auto` enables them for new links; existing links stay off on upgrade unless the operator explicitly sets `true` (unlinked servers send none): per IPv4 /24 or IPv6 /48 prefix, counts of logins, distinct accounts, VPN-positive checks, refusals, logins of banned accounts and operator allowances. Never a full address, account, name or rule; at most 512 prefixes per six-hour window. Intel aggregates them across servers to find shared exits such as residential proxies.
 - `cloud.contribute-signals: false` turns them off. Existing installations get a one-time console notice; `/cg cloud status` shows the state. An older Cloud API that rejects the field gets one same-batch retry without it. [Details](docs/CLOUD.md#network-signals).
+- Velocity: with signals on, an observe-only connection probe measures each login (TCP segment size and options, ping gap, client brand, address typed, Bedrock device, locale against country, login timing, new accounts, accounts and shared skins per prefix) and sends only counts per value and verdict, so the data can show which traits are worth building into detection. It never blocks and adds no request; unlinked servers do not run it. `experimental.connection-probe.enabled: true` runs it anywhere, with `/cg probe` and an optional local journal. [Details](docs/CLOUD.md#connection-probe-counts-velocity).
 
 ### Intel labels: boosters, mobile carriers, shared exits
 

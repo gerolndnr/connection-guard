@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
@@ -33,7 +34,9 @@ import java.util.function.Consumer;
  * </ul>
  *
  * Without a {@link ProbeJournal} no address is kept: a probe is keyed by account and ends with the session. With one,
- * each login becomes one local JSON line, with keyed hashes instead of accounts, networks and skins.
+ * each login becomes a record with keyed hashes instead of accounts, networks and skins: a local JSON line when the
+ * journal writes lines, and counts in {@link ProbeCounts} while the server contributes to Connection Guard Intel.
+ * Switched on explicitly, the probe always runs; otherwise only while {@code counting} says so, and does nothing else.
  */
 public final class ConnectionProbes implements DecisionObserver {
     public enum Mss { STANDARD, PPPOE, DS_LITE, WIREGUARD, TUNNEL, UNKNOWN }
@@ -60,16 +63,32 @@ public final class ConnectionProbes implements DecisionObserver {
     private final Consumer<String> log;
     private final ProbeJournal journal;
     private final ExecutorService reverseDns;
+    private final boolean explicit;
+    private final ProbeCounts counts;
+    private final BooleanSupplier counting;
 
     public ConnectionProbes(long thresholdMillis, Consumer<String> log) { this(thresholdMillis, log, null, false); }
     /** @param journal where each login is written, or null; @param reverseDns look up the PTR name of each joining address */
     public ConnectionProbes(long thresholdMillis, Consumer<String> log, ProbeJournal journal, boolean reverseDns) {
+        this(thresholdMillis, log, journal, reverseDns, true, null, () -> false);
+    }
+    /**
+     * @param explicit switched on in the config: always probe; otherwise probe only while {@code counting} is true
+     * @param counts the window counted for Connection Guard Intel, or null
+     */
+    public ConnectionProbes(long thresholdMillis, Consumer<String> log, ProbeJournal journal, boolean reverseDns, boolean explicit,
+                            ProbeCounts counts, BooleanSupplier counting) {
         this.thresholdMillis = thresholdMillis; this.log = log; this.journal = journal;
+        this.explicit = explicit; this.counts = counts; this.counting = counting;
         this.reverseDns = reverseDns ? new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(256), work -> {
             Thread thread = new Thread(work, "ConnectionGuard-probe-rdns"); thread.setDaemon(true); return thread;
         }, new ThreadPoolExecutor.DiscardPolicy()) : null;
         for (Mss mss : Mss.values()) mssCounts.put(mss, new AtomicLong());
     }
+
+    /** Whether logins are probed now: switched on, or counted for Intel (a linked server that contributes). */
+    public boolean active() { return explicit || counts != null && counting.getAsBoolean(); }
+    private boolean countingNow() { return counts != null && counting.getAsBoolean(); }
 
     /** IPv4 and IPv6 headers differ by 20 bytes, so each family has its own table. */
     public static Mss classify(long peerMss, boolean ipv6) {
@@ -108,6 +127,7 @@ public final class ConnectionProbes implements DecisionObserver {
 
     /** Connection Guard's decision for an address is the label every signal is compared with. */
     @Override public void onDecision(DecisionObservation observation) {
+        if (!active()) return;
         InetAddress address = literal(observation.getIp());
         if (address == null) return;
         long now = System.currentTimeMillis();
@@ -117,7 +137,7 @@ public final class ConnectionProbes implements DecisionObserver {
 
     /** The handshake opens the login; the time until the login request is part of the record. */
     public void handshake(String socketKey) {
-        if (journal == null) return;
+        if (journal == null || !active()) return;
         long now = System.currentTimeMillis();
         if (handshakes.size() >= MAX_PENDING) handshakes.values().removeIf(at -> now - at > PENDING_MILLIS);
         if (handshakes.size() < MAX_PENDING) handshakes.put(socketKey, now);
@@ -126,6 +146,7 @@ public final class ConnectionProbes implements DecisionObserver {
     /** Before login: the handshake already carries the segment size and a first round trip. */
     public Optional<TcpSample> preLogin(String socketKey, Object channel) { return preLogin(socketKey, null, channel, null, null); }
     public Optional<TcpSample> preLogin(String socketKey, InetAddress address, Object channel, Integer protocol, String virtualHost) {
+        if (!active()) return Optional.empty();
         expire();
         long now = System.currentTimeMillis();
         Long handshake = handshakes.remove(socketKey);
@@ -141,6 +162,7 @@ public final class ConnectionProbes implements DecisionObserver {
         joined(uuid, name, socketKey, null, ipv6, behindTcpProxy, channel);
     }
     public void joined(UUID uuid, String name, String socketKey, InetAddress address, boolean ipv6, boolean behindTcpProxy, Object channel) {
+        if (!active()) return;
         Pending before = pending.remove(socketKey);
         Optional<TcpSample> sample = behindTcpProxy ? Optional.empty() : TcpSample.read(channel);
         if (behindTcpProxy) behindProxy.incrementAndGet();
@@ -170,6 +192,7 @@ public final class ConnectionProbes implements DecisionObserver {
     }
 
     /** A player who leaves before the last sample still gets a journal line, marked incomplete (bots often leave fast). */
+    public boolean probing(UUID uuid) { return probes.containsKey(uuid); }
     public void left(UUID uuid) { left(uuid, null); }
     public void left(UUID uuid, ClientInfo client) {
         Probe probe = probes.remove(uuid);
@@ -189,9 +212,9 @@ public final class ConnectionProbes implements DecisionObserver {
         for (Map.Entry<String, Pending> entry : pending.entrySet()) {
             if (now - entry.getValue().at <= PENDING_MILLIS || !pending.remove(entry.getKey(), entry.getValue())) continue;
             Pending gone = entry.getValue();
-            if (journal == null || gone.address == null) continue;
+            if (journal == null || gone.address == null || !journal.ready()) continue;
             neverJoined.incrementAndGet();
-            journal.write(record(null, gone.address, gone, null, gone.sample, gone.sample, Collections.emptyList(), null, null, null, false));
+            keep(record(null, gone.address, gone, null, gone.sample, gone.sample, Collections.emptyList(), null, null, null, false));
         }
     }
 
@@ -202,14 +225,20 @@ public final class ConnectionProbes implements DecisionObserver {
             if (result.proxySuspected) suspected.incrementAndGet();
             log.accept("Connection probe " + probe.name + ": " + result.describe());
         }
-        if (journal == null || probe.address == null) return;
+        if (journal == null || probe.address == null || !journal.ready()) return;
         List<Long> pings;
         synchronized (probe) { pings = new ArrayList<>(probe.pings); }
         JsonObject line = record(uuid, probe.address, probe.before, probe.joinMillis, probe.login, probe.latest, pings, result, probe.ptr,
                 probe.client, complete);
         // Behind a TCP proxy (HAProxy, TCPShield) no TCP field was read, because it would describe the proxy.
         line.addProperty("behind_tcp_proxy", probe.behindProxy);
-        journal.write(line);
+        keep(line);
+    }
+
+    /** The local line (when the journal writes lines) and the counts for Intel (while contributing). */
+    private void keep(JsonObject record) {
+        journal.write(record);
+        if (countingNow()) counts.add(record);
     }
 
     JsonObject record(UUID uuid, InetAddress address, Pending login, Long joinMillis, TcpSample handshake, TcpSample latest, List<Long> pings,
@@ -317,8 +346,11 @@ public final class ConnectionProbes implements DecisionObserver {
         lines.add("Connection probe (experimental, observe only): measured=" + measured.get() + " proxy-suspected=" + suspected.get()
                 + " no-tcp-info=" + unavailable.get() + " behind-tcp-proxy=" + behindProxy.get() + " threshold=" + thresholdMillis + "ms");
         if (mss.length() > 0) lines.add("Segment sizes:" + mss);
-        if (journal != null) lines.add("Journal: " + journal.directory() + " lines=" + journal.written() + " dropped=" + journal.dropped()
+        if (journal != null && journal.writesLines()) lines.add("Journal: " + journal.directory() + " lines=" + journal.written() + " dropped=" + journal.dropped()
                 + " never-joined=" + neverJoined.get() + " (local only, kept " + ProbeJournal.RETENTION_DAYS + " days)");
+        if (counts != null) lines.add("Counts for Connection Guard Intel: " + (countingNow()
+                ? "on (signal values per verdict, sent every six hours; never a record, address or account)"
+                : "off (only linked servers that contribute network signals)"));
         probes.values().stream().filter(probe -> probe.latest != null).sorted(Comparator.comparing(probe -> probe.name)).limit(20)
                 .forEach(probe -> lines.add(probe.name + ": " + probe.assessment(thresholdMillis).describe()));
         return lines;

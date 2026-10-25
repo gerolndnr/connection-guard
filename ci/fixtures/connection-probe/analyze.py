@@ -104,7 +104,7 @@ def features(r, net):
     locale, country = client.get("locale"), verdict.get("country")
     if locale and country and "_" in locale:
         out["locale_country_mismatch"] = locale.split("_", 1)[1].lower() != country.lower()
-    if client.get("bedrock_os") in ("ANDROID", "IOS") and label(r) == "hosting":
+    if client.get("bedrock_os") in ("GOOGLE", "IOS", "AMAZON", "WINDOWS_PHONE") and label(r) == "hosting":
         out["mobile_on_hosting"] = True
     n = net.get(r.get("net"))
     if n:

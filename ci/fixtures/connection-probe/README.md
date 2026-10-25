@@ -29,6 +29,10 @@ Limits:
 - The segment size sees the TCP peer: through a TCP-terminating proxy it is the proxy's MSS. A VPN that clamps MSS to 1460, or a player whose own MTU is lowered for other reasons, is not told apart.
 - Linux with Netty's epoll transport only. HAProxy/TCPShield in front, or a backend behind a proxy, are skipped (`behind-tcp-proxy`). Velocity only; Paper and BungeeCord are not wired.
 
+## Counts for Connection Guard Intel
+
+On Velocity, the probe also runs without this switch while the server is linked and sends network signals (`cloud.contribute-signals`). Then it logs nothing and writes no journal lines; it only sends, with the six-hour signal window, how often each signal value below occurred on logins judged vpn, hosting, clean or unlabelled (`core/.../probe/ProbeCounts.java`, the same signals as `analyze.py`). Unlinked servers, and so the benchmark, do not run it. The cloud adds the windows into daily totals; `scripts/probe-report.mjs` in connection-guard-cloud prints the same lift table from them. See docs/CLOUD.md#connection-probe-counts-velocity.
+
 ## Experiment journal
 
 With the probe on, every login becomes one JSON line in `plugins/connection-guard/experiments/connection-probe-<UTC day>.jsonl`. The journal stays on the server: nothing is sent, the cloud link is not involved.

@@ -151,21 +151,26 @@ public class ConnectionGuardVelocityPlugin {
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
         proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.CloudDashboardNoticeListener());
-        // Experimental and off by default: observe-only connection probe. Its journal stays on this server (experiments/).
-        if (Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.enabled", false))) {
+        // Observe-only connection probe. Switched on in the config it always runs, optionally with a local journal; otherwise
+        // it runs only while this server contributes to Connection Guard Intel (linked, cloud.contribute-signals) and then
+        // sends counts with the network signals. Unlinked servers (and the benchmark) pay nothing for it.
+        {
+            boolean explicit = Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.enabled", false));
             long threshold = getCgVelocityConfig().getConfig().getLong("experimental.connection-probe.gap-threshold-ms", 40L);
-            boolean reverseDns = Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.reverse-dns", false));
-            com.github.gerolndnr.connectionguard.core.probe.ProbeJournal journal = null;
-            if (Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.journal", true))) {
-                try { journal = new com.github.gerolndnr.connectionguard.core.probe.ProbeJournal(dataDirectory.resolve("experiments"), logger::warn); }
-                catch (java.io.IOException | RuntimeException unavailable) { logger.warn("Connection probe journal unavailable (" + unavailable.getClass().getSimpleName() + "); probing without it."); }
-            }
-            connectionProbes = new com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes(threshold, line -> logger.info(line), journal, reverseDns);
-            if (journal != null) com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.setExperiment(connectionProbes);
+            boolean reverseDns = explicit && Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.reverse-dns", false));
+            boolean lines = explicit && Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.journal", true));
+            com.github.gerolndnr.connectionguard.core.probe.ProbeJournal journal =
+                    new com.github.gerolndnr.connectionguard.core.probe.ProbeJournal(dataDirectory.resolve("experiments"), logger::warn, lines);
+            com.github.gerolndnr.connectionguard.core.probe.ProbeCounts counts = new com.github.gerolndnr.connectionguard.core.probe.ProbeCounts();
+            connectionProbes = new com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes(threshold, line -> { if (explicit) logger.info(line); },
+                    journal, reverseDns, explicit, counts, com.github.gerolndnr.connectionguard.core.cloud.CloudSync::contributesSignals);
+            com.github.gerolndnr.connectionguard.core.cloud.CloudSync.attachProbeCounts(counts);
+            com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes probes = connectionProbes;
+            com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.setExperiment(probes, probes::active);
             connectionProbeListener = new com.github.gerolndnr.connectionguard.velocity.listener.ConnectionProbeListener(this, connectionProbes);
             proxyServer.getEventManager().register(this, connectionProbeListener);
-            logger.info("Experimental connection probe on (observe only, gap threshold " + threshold + " ms"
-                    + (journal == null ? "" : ", journal " + journal.directory() + (reverseDns ? ", reverse DNS" : "")) + ").");
+            if (explicit) logger.info("Experimental connection probe on (observe only, gap threshold " + threshold + " ms"
+                    + (lines ? ", journal " + journal.directory() : "") + (reverseDns ? ", reverse DNS" : "") + ").");
         }
 
         CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")

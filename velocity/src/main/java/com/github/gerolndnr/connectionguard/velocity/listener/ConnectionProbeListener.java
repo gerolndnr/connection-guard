@@ -42,10 +42,11 @@ public final class ConnectionProbeListener {
     }
 
     @Subscribe
-    public void handshake(ConnectionHandshakeEvent event) { probes.handshake(key(event.getConnection().getRemoteAddress())); }
+    public void handshake(ConnectionHandshakeEvent event) { if (probes.active()) probes.handshake(key(event.getConnection().getRemoteAddress())); }
 
     @Subscribe(order = PostOrder.LAST)
     public void preLogin(PreLoginEvent event) {
+        if (!probes.active()) return;
         InboundConnection connection = event.getConnection();
         Object channel = channel(field(connection, "delegate"), "getConnection");
         InetSocketAddress address = connection.getRemoteAddress();
@@ -55,6 +56,7 @@ public final class ConnectionProbeListener {
 
     @Subscribe
     public void joined(PostLoginEvent event) {
+        if (!probes.active()) return;
         Player player = event.getPlayer();
         Object channel = channel(player, "getConnection");
         InetSocketAddress address = player.getRemoteAddress();
@@ -74,6 +76,7 @@ public final class ConnectionProbeListener {
     public void left(DisconnectEvent event) {
         Player player = event.getPlayer();
         cancel(player.getUniqueId());
+        if (!probes.probing(player.getUniqueId())) return;
         probes.left(player.getUniqueId(), client(player));
     }
 
@@ -110,7 +113,8 @@ public final class ConnectionProbeListener {
             Object player = instance == null ? null : api.getMethod("getPlayer", UUID.class).invoke(instance, uuid);
             if (player == null) return null;
             Object os = player.getClass().getMethod("getDeviceOs").invoke(player);
-            return os == null ? null : os.toString();
+            // The enum's name (GOOGLE, IOS, WIN32...), not its display text.
+            return os == null ? null : os instanceof Enum ? ((Enum<?>) os).name() : os.toString();
         } catch (ReflectiveOperationException | RuntimeException | LinkageError absent) { return null; }
     }
 

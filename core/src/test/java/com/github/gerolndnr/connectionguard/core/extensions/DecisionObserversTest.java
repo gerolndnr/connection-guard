@@ -103,6 +103,19 @@ class DecisionObserversTest {
         DecisionObservers.setExperiment(null);
         assertFalse(DecisionObservers.isActive());
     }
+    @Test void anInactiveExperimentCostsNoCaptureAndAnActiveOneHasItsOwnWorker() throws Exception {
+        AtomicBoolean active = new AtomicBoolean();
+        CompletableFuture<String> thread = new CompletableFuture<>();
+        DecisionObservers.setExperiment(event -> thread.complete(Thread.currentThread().getName()), active::get);
+        assertFalse(DecisionObservers.isActive());
+        assertEquals(-1, DecisionObservers.captureGeneration());
+        active.set(true);
+        assertTrue(DecisionObservers.isActive());
+        DecisionObservers.publish(sample());
+        assertEquals("ConnectionGuard-observer-experiment", thread.get(2, TimeUnit.SECONDS));
+        DecisionObservers.setExperiment(null);
+        assertFalse(DecisionObservers.isActive());
+    }
     @Test void closedAndReplacedHandlesDoNotActivateOrRemoveTheReplacement() throws Exception {
         AtomicInteger oldCalls = new AtomicInteger();
         ObserverRegistration old = ConnectionGuardApi.registerDecisionObserver("fixture", event -> oldCalls.incrementAndGet());
