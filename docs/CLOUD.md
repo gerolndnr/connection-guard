@@ -21,15 +21,25 @@ The plugin works fully without it. No account is required to use Connection Guar
 | State | Sent to `api.connectionguard.net` | Never sent |
 | --- | --- | --- |
 | Off | Nothing | — |
-| On, not linked (default) | Anonymous install ID, platform and version, plugin and Java version, mode (OBSERVE/ENFORCE), totals per interval (checks, admitted, refused, VPN found, cache hits, latency p50/p95, counts per country and reason), provider health (attempts, answers, local daily usage; no keys) | Player IPs, UUIDs, names, API keys, webhook URLs, console commands |
+| On, not linked (default) | Anonymous install ID, platform and version, plugin and Java version, mode (OBSERVE/ENFORCE), totals per interval (checks, admitted, refused, VPN found, cache hits, latency p50/p95, counts per country and reason), provider health (attempts, answers, local daily usage; no keys); from 0.6.2 [network signals](#network-signals) (IPv4 /24 or IPv6 /48 prefixes with counts) | Player IPs, UUIDs, names, API keys, webhook URLs, console commands |
 | Linked, terms accepted | Additionally, one entry per check: time, IP, verified UUID, verdict and reason, what each provider said (country, ASN, ISP, risk), matched rules | API keys, player names, console commands |
 
 The exact wire format is open source: `packages/protocol` in `gerolndnr/connection-guard-cloud`.
 
 From 0.6.0, Cloud sync can also send bounded anonymous metadata for Connection Guard's own exceptions to error tracking and the linked dashboard, without exception messages or player data. `cloud.error-reports: false` disables it independently; all Cloud off switches disable it too. [Report fields, limits and privacy controls](PRIVACY.md).
 
+## Network signals
+
+From 0.6.2, a sync every six hours carries network signals for [Connection Guard Intel](https://connectionguard.net/intel), on servers linked to a network. Unlinked servers send none (only the anonymous totals above); logins before linking are not counted later. Per IPv4 /24 or IPv6 /48 prefix seen in the six-hour window, the plugin sends counts: logins, distinct accounts, VPN-positive checks, refusals, logins of accounts with an active ban (from a selected ban addon), and logins the operator allowed with an access rule. At most 512 prefixes per six-hour window; the rest is a single overflow count.
+
+- **Never sent:** full addresses, UUIDs, names, rule IDs or reasons. Accounts are counted in memory for the current window only. Private, loopback, CGNAT and link-local addresses are skipped.
+- **Purpose:** many accounts from one prefix on many unrelated servers point to a shared exit such as a residential proxy; bans and operator allowances label such prefixes. Connection Guard aggregates the signals of all servers and publishes only prefixes reported by several networks, as a review-only list in Intel.
+- **Storage:** raw signals are kept 7 days; the aggregate keeps prefixes and totals only.
+- **Default:** `cloud.contribute-signals: auto` enables contribution for new links only. Already-linked upgrades remain off, including after restart; `true` explicitly opts them in. No signals are sent before linking.
+- **Off:** `cloud.contribute-signals: false` and reload, or any Cloud off switch. Existing installations get a one-time console notice once linked; `/cg cloud status` and `/cg doctor` show the state. An older Cloud API that rejects the field gets one same-batch retry without it.
+
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
-- **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard.
+- **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard. Network signals are the exception: Connection Guard uses them for its own purpose, Intel lists for every server.
 
 ## Configuring the plugin from the dashboard
 

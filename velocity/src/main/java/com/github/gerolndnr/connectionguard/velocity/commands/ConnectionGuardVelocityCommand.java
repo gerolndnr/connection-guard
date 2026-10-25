@@ -243,6 +243,8 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
             ConnectionGuardVelocityPlugin.getInstance().getCgVelocityConfig().reloadValidated();
         } catch (IOException | IllegalArgumentException | IllegalStateException rejected) {
             commandSender.sendMessage(Component.text(ConnectionGuard.getMessages().getString("command.reload-rejected")));
+            String reason = com.github.gerolndnr.connectionguard.core.config.ReloadFailures.reason(rejected, ConnectionGuard.getMessages());
+            if (reason != null) commandSender.sendMessage(Component.text(reason));
             return true;
         }
 

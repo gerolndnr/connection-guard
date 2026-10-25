@@ -115,5 +115,12 @@
       "rules": []
     }
   ],
+  "signals": {
+    "prefixes": [
+      { "p": "203.0.113.0/24", "logins": 3, "accounts": 2, "vpn": 1, "denied": 0, "banned": 0, "allowed_by_rule": 0 },
+      { "p": "2001:db8:1::/48", "logins": 1, "accounts": 1, "vpn": 0, "denied": 0, "banned": 0, "allowed_by_rule": 0 }
+    ],
+    "overflow": 0
+  },
   "command_results": []
 }

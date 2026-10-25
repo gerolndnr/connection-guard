@@ -7,6 +7,7 @@ command:
     clear-specific: '&bConnection Guard &7| &7Cleared the cache entries for &f%ENTRY%&7.'
   invalid-argument: '&bConnection Guard &7| &7Please enter the name or the uuid of an online player or use an ip address instead.'
   reload-rejected: Reload rejected; active settings preserved. Check config.yml and /cg doctor.
+  reload-reason: 'Reason: {0}'
   info-unavailable: Information unavailable (details redacted).
   clear-unavailable: Cache clear unavailable (details redacted).
   target-invalid: Use a literal IP or the name/UUID of an online player.
@@ -65,10 +66,10 @@ ops:
   rules-missing: No matching {0} rule.
   rule-removed: Rule removed.
   rule-absent: Rule was already absent.
-  rule-remove-failed: Rule removal failed; existing rules preserved.
+  rule-remove-failed: Rule removal failed; existing rules preserved. If access-rules.json was edited by hand, run /cg reload first.
   rule-invalid: Invalid target, scope, duration or reason. Use IP/CIDR, UUID or a documented metadata selector; no player names.
   rule-stored: Stored {0} {1} {2} {3}
-  rule-write-failed: Rule write failed; active rules preserved.
+  rule-write-failed: Rule write failed; active rules preserved. If access-rules.json was edited by hand, run /cg reload first.
   rule-usage: /cg {0} add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <reason>
   rule-usage-tail: /cg {0} list | remove <rule-id>; explicit deny overrides allow/exempt; UUID requires trusted identity.
   local-disabled: Local data is disabled. Configure attributed sources and choose local VPN and/or Local geo first.

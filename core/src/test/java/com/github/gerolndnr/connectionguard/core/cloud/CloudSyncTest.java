@@ -31,6 +31,7 @@ class CloudSyncTest {
     private volatile CountDownLatch installEntered, installRelease;
 
     @BeforeEach void start() throws IOException {
+        NetworkSignals.windowMillis = 0;
         CloudSync.setNoticeConsole(null);
         CloudSync.resetErrorReportsForTest();
         DecisionObservers.closeAll();
@@ -62,6 +63,7 @@ class CloudSyncTest {
     }
 
     @AfterEach void stop() {
+        NetworkSignals.windowMillis = java.util.concurrent.TimeUnit.HOURS.toMillis(6);
         CloudSync.stop();
         CloudSync.setNoticeConsole(null);
         CloudSync.setReloadHook(null);
@@ -242,6 +244,129 @@ class CloudSyncTest {
             startSync(Collections.emptyMap()); startSync(Collections.singletonMap("cloud.error-reports", false));
             startSync(Collections.emptyMap()); CloudSync.stop(); startSync(Collections.emptyMap());
             assertEquals(1, notices.get()); assertTrue(Files.exists(dir.resolve("cloud/error-reports-notice-v1")));
+        } finally { logger.removeHandler(handler); }
+    }
+
+    private void link() throws Exception {
+        CloudSync.runOnceForTest();
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest(); syncs.clear();
+    }
+
+    @Test void linkedSendsNetworkSignalsAsPrefixesAndCountsOnlyAndTheOptOutOmitsThem() throws Exception {
+        startSync(Collections.emptyMap()); link();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        JsonObject prefix = body.getAsJsonObject("signals").getAsJsonArray("prefixes").get(0).getAsJsonObject();
+        assertEquals("203.0.113.0/24", prefix.get("p").getAsString());
+        assertEquals(1, prefix.get("accounts").getAsLong()); assertEquals(1, prefix.get("vpn").getAsLong());
+        assertFalse(body.getAsJsonObject("signals").toString().contains("203.0.113.24"));
+        assertFalse(body.getAsJsonObject("signals").toString().contains("069a79f4"), "signals carry no account");
+        assertTrue(CloudSync.describeLines().contains("Network signals on (prefixes and counts only)"));
+        startSync(Collections.singletonMap("cloud.contribute-signals", false));
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off);
+        assertFalse(off.has("signals"));
+        assertTrue(CloudSync.describeLines().contains("Network signals off (cloud.contribute-signals: false)"));
+    }
+
+    @Test void anExistingLinkStaysOffAcrossRestartsUntilExplicitlyOptedIn() throws Exception {
+        String endpoint = "http://127.0.0.1:" + server.getAddress().getPort();
+        new CloudCredentials("ins_AAAAAAAAAAAAAAAAAAAAAAAA", "cgs_" + repeat('s', 48), endpoint)
+                .save(dir.resolve("cloud/credentials.json"));
+        syncResponse = linkedWithConfig("null");
+        for (int restart = 0; restart < 2; restart++) {
+            startSync(Collections.singletonMap("cloud.contribute-signals", "auto"));
+            CloudSync.runOnceForTest(); syncs.clear();
+            long before = DecisionObservers.delivered();
+            DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+            CloudSync.runOnceForTest();
+            JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body); assertFalse(body.has("signals"));
+            assertTrue(CloudSync.describeLines().contains("Network signals off (existing link; set cloud.contribute-signals: true to opt in)"));
+            CloudSync.stop();
+        }
+        startSync(Collections.singletonMap("cloud.contribute-signals", true)); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject optedIn = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(optedIn); assertTrue(optedIn.has("signals"));
+        startSync(Collections.singletonMap("cloud.contribute-signals", false));
+        CloudSync.runOnceForTest();
+        JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off); assertFalse(off.has("signals"));
+    }
+
+    @Test void newLinkContributionSurvivesRestartAndAnExplicitOffStillWins() throws Exception {
+        startSync(Collections.emptyMap()); link(); CloudSync.stop();
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body); assertTrue(body.has("signals"));
+        startSync(Collections.singletonMap("cloud.contribute-signals", false));
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off); assertFalse(off.has("signals"));
+    }
+
+    @Test void unlinkedServersSendNoSignalsAndUnlinkingDropsTheOpenWindow() throws Exception {
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject unlinked = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(unlinked);
+        assertFalse(unlinked.has("signals"));
+        assertTrue(CloudSync.describeLines().contains("Network signals off until this server is linked"));
+        // Logins before linking are not counted later either.
+        syncResponse = linkedWithConfig("null"); CloudSync.runOnceForTest();
+        JsonObject linking = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(linking);
+        assertFalse(linking.has("signals"));
+        CloudSync.runOnceForTest();
+        JsonObject linked = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(linked);
+        assertFalse(linked.has("signals"), "nothing was recorded while unlinked");
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        syncResponse = linkedWithConfig("null").replace("\"claimed\":true", "\"claimed\":false"); CloudSync.runOnceForTest();
+        syncs.clear();
+        CloudSync.runOnceForTest();
+        JsonObject after = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(after);
+        assertFalse(after.has("signals"), "unlinking drops the open window");
+    }
+
+    @Test void signalsWaitForTheirWindowAndKeepCountingAcrossSyncs() throws Exception {
+        NetworkSignals.windowMillis = TimeUnit.HOURS.toMillis(6);
+        startSync(Collections.emptyMap()); link();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        assertFalse(body.has("signals"), "an open window stays on the server");
+        assertEquals(1, body.getAsJsonObject("counters").get("checks").getAsInt());
+        NetworkSignals.windowMillis = 0;
+        CloudSync.runOnceForTest();
+        JsonObject later = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(later);
+        assertEquals(1, later.getAsJsonObject("signals").getAsJsonArray("prefixes").get(0).getAsJsonObject().get("logins").getAsLong());
+    }
+
+    @Test void existingInstallGetsOneSignalsNoticeAndNoneWhenOptedOut() throws Exception {
+        java.util.concurrent.atomic.AtomicInteger notices = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.logging.Handler handler = new java.util.logging.Handler() {
+            @Override public void publish(java.util.logging.LogRecord record) {
+                if (record.getMessage().startsWith("Connection Guard shares network signals")) notices.incrementAndGet();
+            }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        Logger logger = Logger.getLogger("test"); logger.addHandler(handler);
+        try {
+            startSync(Collections.singletonMap("cloud.contribute-signals", false)); link(); assertEquals(0, notices.get());
+            startSync(Collections.emptyMap()); assertEquals(1, notices.get(), "linked, contributing");
+            CloudSync.stop(); startSync(Collections.emptyMap()); syncResponse = unclaimed(); link(); assertEquals(1, notices.get());
+            CloudSync.stop(); Files.delete(dir.resolve("cloud/signals-notice-v1"));
+            startSync(Collections.emptyMap()); assertEquals(0, notices.get() - 1, "no notice before the link state is known");
         } finally { logger.removeHandler(handler); }
     }
 
@@ -542,7 +667,12 @@ class CloudSyncTest {
         DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN));
         awaitDelivered(before + 1);
         syncStatus = 400; CloudSync.runOnceForTest();
+        JsonObject signalled = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(signalled);
+        assertTrue(signalled.has("signals"));
+        CloudSync.runOnceForTest();
         JsonObject hinted = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(hinted);
+        JsonObject unsignalled = signalled.deepCopy(); unsignalled.remove("signals");
+        assertEquals(unsignalled, hinted, "Signals go first, in the same batch and seq");
         assertTrue(hinted.getAsJsonObject("status").has("local_address_logins"));
         CloudSync.runOnceForTest();
         JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
@@ -565,10 +695,12 @@ class CloudSyncTest {
     }
 
     @Test void olderApiRejectingAllStatusExtensionsRetriesExactlyTheSameBatch() throws Exception {
-        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        startSync(Collections.emptyMap()); link();
         long before = DecisionObservers.delivered();
         DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN)); awaitDelivered(before + 1);
-        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject hinted = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(hinted);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject signalled = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(signalled);
+        CloudSync.runOnceForTest(); JsonObject hinted = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(hinted);
+        JsonObject unsignalled = signalled.deepCopy(); unsignalled.remove("signals"); assertEquals(unsignalled, hinted);
         CloudSync.runOnceForTest(); JsonObject first = syncs.poll(5, TimeUnit.SECONDS);
         assertEquals(withoutHints(hinted), first);
         assertNotNull(first); assertTrue(first.getAsJsonObject("status").has("vpn_unchecked_allowed"));

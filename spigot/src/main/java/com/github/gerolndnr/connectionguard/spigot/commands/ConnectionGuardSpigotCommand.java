@@ -151,7 +151,10 @@ public class ConnectionGuardSpigotCommand implements TabExecutor {
     private boolean reloadPlugin(CommandSender commandSender) {
         try { ConnectionGuardSpigotPlugin.getInstance().reloadAllConfigs(); }
         catch (IllegalArgumentException | IllegalStateException rejected) {
-            commandSender.sendMessage(ConnectionGuard.getMessages().getString("command.reload-rejected")); return true;
+            commandSender.sendMessage(ConnectionGuard.getMessages().getString("command.reload-rejected"));
+            String reason = com.github.gerolndnr.connectionguard.core.config.ReloadFailures.reason(rejected, ConnectionGuard.getMessages());
+            if (reason != null) commandSender.sendMessage(reason);
+            return true;
         }
         commandSender.sendMessage(
                 ChatColor.translateAlternateColorCodes(

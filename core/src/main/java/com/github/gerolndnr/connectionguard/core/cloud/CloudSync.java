@@ -72,12 +72,17 @@ public final class CloudSync {
     private final CloudJoinNotices joinNotices;
     private boolean noticeSaveWarned;
     private volatile String networkName, linkCode, linkUrl, lastError;
+    private boolean stateWriteWarned;
     private volatile long lastSyncAt;
     private JsonObject pending;
     private final Object pendingLock = new Object();
-    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus;
+    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus, legacySignals;
     private static volatile boolean errorsUnsupported;
     private volatile boolean errorReportsEnabled;
+    private volatile boolean signalsEnabled;
+    private volatile boolean signalsAutomatic;
+    private final CloudSignalDefaults signalDefaults;
+    private boolean newIdentity;
     private boolean cleanupWarned;
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
@@ -89,7 +94,11 @@ public final class CloudSync {
         this.pluginVersion = pluginVersion; this.log = log;
         this.client = new CloudClient(settings.endpoint, pluginVersion);
         this.joinNotices = new CloudJoinNotices(dir);
+        this.signalDefaults = new CloudSignalDefaults(dir, log);
         errorReportsEnabled = settings.errorReports && !errorsUnsupported;
+        signalsEnabled = settings.contributeSignals;
+        signalsAutomatic = settings.automaticSignals;
+        recorder.contributeSignals(contributing());
 
     }
 
@@ -113,10 +122,15 @@ public final class CloudSync {
                 if (next.enabled && current != null && current.settings.endpoint.equals(next.endpoint)
                         && current.settings.networkToken.equals(next.networkToken)) {
                     current.errorReportsEnabled = next.errorReports && !errorsUnsupported;
+                    current.signalsEnabled = next.contributeSignals;
+                    current.signalsAutomatic = next.automaticSignals;
+                    current.recorder.contributeSignals(current.contributing());
                     synchronized (current.pendingLock) {
                         if (!current.errorReportsEnabled && current.pending != null) current.pending.remove("errors");
+                        if (!current.contributing() && current.pending != null) current.pending.remove("signals");
                     }
                     current.errorReportNotice();
+                    current.signalsNotice();
                     return;
                 }
                 stopLocked();
@@ -201,12 +215,15 @@ public final class CloudSync {
         catch (IOException invalid) { log.warning("Could not load local dashboard-notice preferences; once-per-start suppression remains active (details redacted)."); }
         managed = CloudManagedConfig.load(dir.getParent());
         if (credentials != null && !credentials.endpoint.equals(settings.endpoint.toString())) credentials = null;
+        newIdentity = credentials == null;
+        signalDefaults.load();
         // A fresh anonymous installation is known unlinked before the first background request.
         // Existing identities and automatic network-token installs await the API's actual state.
         linkStateKnown = credentials == null && settings.networkToken.isEmpty();
         if (linkStateKnown) showConsoleNotice();
         firstRunNotice();
         errorReportNotice();
+        signalsNotice();
         DecisionObservers.setInternal(recorder);
         schedule(FIRST_DELAY + new Random().nextInt(10));
     }
@@ -225,6 +242,18 @@ public final class CloudSync {
         Path marker = dir.resolve("error-reports-notice-v1");
         if (Files.exists(marker)) return;
         log.info("Connection Guard error reports are on: own exception types and code frames, never message text or player data, are sent with background Cloud sync for error tracking. Set cloud.error-reports: false to turn them off. Privacy: https://connectionguard.net/privacy#plugin");
+        try { Files.createDirectories(dir); Files.write(marker, new byte[0]); }
+        catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
+    }
+
+    /** New links default on; existing links require an explicit choice (Gero, 25 Oct 2026). */
+    private boolean contributing() { return signalsEnabled && claimed && (!signalsAutomatic || signalDefaults.enabled()); }
+
+    private void signalsNotice() {
+        if (!contributing()) return;
+        Path marker = dir.resolve("signals-notice-v1");
+        if (Files.exists(marker)) return;
+        log.info("Connection Guard shares network signals with Connection Guard Intel: per IPv4 /24 or IPv6 /48 prefix, counts of logins, accounts, VPN results, refusals, bans and allowances. Never a full address, account, name or rule. They help detect shared proxy exits for every server. Set cloud.contribute-signals: false to turn them off. Privacy: https://connectionguard.net/privacy#network-signals");
         try { Files.createDirectories(dir); Files.write(marker, new byte[0]); }
         catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
     }
@@ -310,20 +339,30 @@ public final class CloudSync {
             if (rules != null) {
                 try { rules.pruneExpired(System.currentTimeMillis()); cleanupWarned = false; }
                 catch (IOException cleanupFailed) {
-                    PluginErrorReports.record(cleanupFailed, PluginErrorReports.Context.CACHE);
+                    if (!(cleanupFailed instanceof com.github.gerolndnr.connectionguard.core.rules.AccessRuleStore.ChangedOnDisk))
+                        PluginErrorReports.record(cleanupFailed, PluginErrorReports.Context.CACHE);
                     if (!cleanupWarned) log.warning("Connection Guard Cloud: expired rules could not be removed from local storage; expired rules still never permit access (values redacted).");
                     cleanupWarned = true;
                 }
             }
             next = credentials == null ? install() : sync();
-            if (active() && lastError == null) failures = 0;
+            if (active() && lastError == null) { failures = 0; stateWriteWarned = false; }
         } catch (IOException | RuntimeException failure) {
             if (!active()) return;
             failures++;
-            lastError = failure instanceof IOException ? "network unavailable" : "unexpected response";
             next = backoff(-1);
-            PluginErrorReports.record(failure, PluginErrorReports.Context.SYNC);
-            if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
+            // Timeouts, DNS, TLS and full or read-only disks are the server's environment, not plugin faults.
+            if (failure instanceof CloudFiles.Unwritable) {
+                lastError = "local cloud files could not be written";
+                if (!stateWriteWarned) log.warning("Connection Guard Cloud could not write its files in the plugin folder; check free disk space and file permissions. Retrying in the background. Logins are not affected.");
+                stateWriteWarned = true;
+            } else if (failure instanceof IOException) {
+                lastError = "network unavailable";
+                if (failures == 3) log.warning("Connection Guard Cloud is unreachable; retrying in the background. Logins are not affected.");
+            } else {
+                lastError = "unexpected response";
+                PluginErrorReports.record(failure, PluginErrorReports.Context.SYNC);
+            }
             // Remote values and underlying exceptions may contain secrets; never retain their text/cause.
         }
         if (command != null) {
@@ -398,7 +437,7 @@ public final class CloudSync {
         if (reply.status == 401) {
             // The install was removed (e.g. 30 days unlinked). Start over with a fresh anonymous identity.
             CloudCredentials.delete(dir.resolve("credentials.json"));
-            credentials = null; claimed = false; recorder.acceptEvents(false); pending = null;
+            credentials = null; newIdentity = true; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false); pending = null;
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
@@ -409,6 +448,13 @@ public final class CloudSync {
             synchronized (pendingLock) { pending.remove("errors"); }
             lastError = "error reports disabled for an older cloud until restart";
             return MIN_DELAY; // SAME seq, events and counters; retry only once without errors.
+        }
+        if (reply.status == 400 && !legacySignals && request.has("signals")) {
+            // Older APIs reject the network signals; keep the same batch and sequence without them.
+            legacySignals = true;
+            synchronized (pendingLock) { pending.remove("signals"); }
+            lastError = "cloud API does not yet support network signals";
+            return MIN_DELAY;
         }
         if (reply.status == 400 && !legacyHintStatus && hasHints(pending.getAsJsonObject("status"))) {
             // Older APIs reject the grey-zone hints (strict status schema); keep the older coverage counters.
@@ -476,8 +522,16 @@ public final class CloudSync {
         }
         if (nowClaimed && !claimed) log.info("Connection Guard Cloud: linked to " + (networkName == null ? "your network" : "\"" + networkName + "\"") + ".");
         boolean changed = !Objects.equals(url, linkUrl);
+        boolean linkChanged = claimed != nowClaimed;
+        signalDefaults.observe(nowClaimed, newIdentity, linkStateKnown && !claimed && nowClaimed);
         claimed = nowClaimed; linkCode = code; linkUrl = url;
         linkStateKnown = true;
+        if (linkChanged) {
+            // Linking starts the first signal window; unlinking drops the open one and any unsent one.
+            recorder.contributeSignals(contributing());
+            if (!nowClaimed) synchronized (pendingLock) { if (pending != null) pending.remove("signals"); }
+            signalsNotice();
+        }
         if (!nowClaimed && url != null && changed) showConsoleNotice();
     }
 
@@ -530,6 +584,7 @@ public final class CloudSync {
         JsonArray events = new JsonArray();
         batch.events.forEach(events::add);
         body.add("events", events);
+        if (batch.signals != null && !legacySignals && claimed && batch.signals.getAsJsonArray("prefixes").size() > 0) body.add("signals", batch.signals);
         JsonArray results = new JsonArray();
         synchronized (commandResults) { commandResults.forEach(results::add); commandResults.clear(); }
         body.add("command_results", results);
@@ -718,7 +773,7 @@ public final class CloudSync {
             ok = true;
             if (type.equals("unlink")) {
                 CloudCredentials.delete(dir.resolve("credentials.json"));
-                credentials = null; claimed = false; recorder.acceptEvents(false);
+                credentials = null; newIdentity = true; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException refused) {
             PluginErrorReports.record(refused, PluginErrorReports.Context.COMMAND);
@@ -751,6 +806,10 @@ public final class CloudSync {
         if (sync.legacyCoverageStatus) lines.add("Cloud API does not yet support VPN coverage counters; local counts above remain accurate.");
         lines.add("Cloud events buffered=" + sync.recorder.buffered() + " dropped=" + sync.recorder.dropped()
                 + (sync.claimed ? "" : messages.getString("cloud.anonymous")));
+        lines.add("Network signals " + (!sync.signalsEnabled ? "off (cloud.contribute-signals: false)"
+                : !sync.claimed ? "off until this server is linked"
+                : sync.signalsAutomatic && !sync.signalDefaults.enabled() ? "off (existing link; set cloud.contribute-signals: true to opt in)"
+                : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
         return lines;
     }
 
