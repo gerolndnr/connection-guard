@@ -254,6 +254,20 @@ same-batch/sequence fallback for APIs that have not deployed this field yet.
 Local counts remain exact if an older API rejects the extension; doctor/cloud
 status explicitly report that compatibility limit.
 
+Each unchecked admission also counts, once per voting source that stayed UNKNOWN,
+a hint `<source>.hosting` (no evidence, but the source saw a hosting address),
+`<source>.no_evidence` (for Blackbox: listed, not confirmed by Intel) or
+`<source>.failed` (any failure reason), plus the address family. Keys are capped
+at 32 (the rest as `other`); the cloud receives them as `signals` and `families`.
+They tell "nobody knew" apart from "a data-centre address nobody lists as a VPN".
+
+Logins from non-public addresses (loopback, RFC 1918, fc00::/7, 100.64.0.0/10,
+link-local, unspecified) skip VPN and country lookups entirely: these addresses
+mean a backend behind a proxy without IP forwarding, a LAN or a tunnel, and
+providers answer them inconsistently. They are counted per address class, warned
+about on the first login and then at most every six hours, and reported to the
+cloud as `local_address_logins`. Deny access rules still apply.
+
 HTTP calls default to 1,500 ms in 0.6.0; explicit older 2,500 ms settings are retained.
 The 8 workers, queue 64, max-inflight 128 and circuit pause
 30,000 ms retain 0.5.1 defaults. There is no hidden one-second circuit override.

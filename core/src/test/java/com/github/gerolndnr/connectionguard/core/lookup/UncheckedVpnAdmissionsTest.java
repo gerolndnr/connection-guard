@@ -101,6 +101,49 @@ class UncheckedVpnAdmissionsTest {
         ConnectionGuard.applySettings(GuardSettings.defaults());
         assertEquals(before, ConnectionGuard.uncheckedVpnAdmissions().snapshot().total);
     }
+    private static ProviderVote vote(String provider, FailureReason reason, Boolean hosting) {
+        Map<DetectionDetails.Type, Boolean> types = new EnumMap<>(DetectionDetails.Type.class);
+        if (hosting != null) types.put(DetectionDetails.Type.HOSTING, hosting);
+        return new ProviderVote(provider, ProviderVote.Status.UNKNOWN, reason, 0, new DetectionDetails(types, null, null, null, null, null, null));
+    }
+    @Test void signalsNameEachInconclusiveVotingSourceOnceWithoutAddresses() {
+        VpnResult result = new VpnResult("2001:db8::7", false); result.setUnknown(FailureReason.NO_EVIDENCE);
+        result.setVotes(Arrays.asList(vote("ZowiVpnProvider-0", FailureReason.NO_EVIDENCE, true),
+                vote("blackboxvpnprovider-0", FailureReason.NO_EVIDENCE, null),
+                vote("proxycheckvpnprovider-0", FailureReason.TIMEOUT, null), vote("proxycheckvpnprovider-0", FailureReason.NETWORK, null),
+                vote("Custom.API#192.0.2.1", FailureReason.NETWORK, false),
+                new ProviderVote("ipquery", ProviderVote.Status.UNKNOWN, FailureReason.NETWORK, 0, null, 0, null, false),
+                new ProviderVote("ipcheck", ProviderVote.Status.NEGATIVE, FailureReason.NONE, 0)));
+        assertEquals(Arrays.asList("zowivpnprovider-0.hosting", "blackboxvpnprovider-0.no_evidence", "proxycheckvpnprovider-0.failed",
+                "custom_api_192_0_2_1.failed"), UncheckedVpnAdmissions.signals(result, false));
+        for (String key : UncheckedVpnAdmissions.signals(result, false))
+            assertTrue(key.matches("[a-z0-9_-]{1,48}\\.(hosting|no_evidence|failed)"), key);
+        assertEquals(Collections.emptyList(), UncheckedVpnAdmissions.signals(result, true));
+        result.setStatus(ProviderVote.Status.NEGATIVE); assertEquals(Collections.emptyList(), UncheckedVpnAdmissions.signals(result, false));
+        assertEquals("ipv6", UncheckedVpnAdmissions.family("2001:db8::7")); assertEquals("ipv4", UncheckedVpnAdmissions.family("192.0.2.41"));
+    }
+    @Test void signalKeysAreCappedAndFamiliesCountedPerAdmission() {
+        UncheckedVpnAdmissions tracker = new UncheckedVpnAdmissions();
+        for (int i = 0; i < 40; i++) tracker.allowed(FailureReason.NO_EVIDENCE, Collections.singletonList("s" + i + ".failed"), i % 4 == 0 ? "ipv6" : "ipv4");
+        tracker.allowed(FailureReason.NO_EVIDENCE, Collections.singletonList("s0.failed"), "ipv4");
+        tracker.allowed(FailureReason.NONE, Collections.singletonList("s1.failed"), "ipv4");
+        UncheckedVpnAdmissions.Snapshot snapshot = tracker.snapshot();
+        assertEquals(UncheckedVpnAdmissions.MAX_SIGNALS, snapshot.signals.size());
+        assertEquals(9L, snapshot.signals.get("other")); assertEquals(2L, snapshot.signals.get("s0.failed"));
+        assertEquals(10L, snapshot.families.get("ipv6")); assertEquals(31L, snapshot.families.get("ipv4"));
+        assertTrue(snapshot.describe().contains("signals=")); tracker.close();
+    }
+    @Test void nativeLoginsRecordTheirSignalsAndFamily() {
+        DecisionObservers.closeAll(); ConnectionGuard.applySettings(GuardSettings.defaults());
+        UncheckedVpnAdmissions.Snapshot before = ConnectionGuard.uncheckedVpnAdmissions().snapshot();
+        VpnResult result = new VpnResult("192.0.2.41", false); result.setUnknown(FailureReason.NO_EVIDENCE);
+        result.setVotes(Collections.singletonList(vote("zowivpnprovider-0", FailureReason.NO_EVIDENCE, true)));
+        try (DecisionCapture capture = capture(Platform.VELOCITY)) { facts(capture, result, false); }
+        try (DecisionCapture capture = capture(Platform.VELOCITY)) { facts(capture, result, true); }
+        UncheckedVpnAdmissions.Snapshot after = ConnectionGuard.uncheckedVpnAdmissions().snapshot();
+        assertEquals(before.signals.getOrDefault("zowivpnprovider-0.hosting", 0L) + 1, after.signals.get("zowivpnprovider-0.hosting"));
+        assertEquals(before.families.getOrDefault("ipv4", 0L) + 1, after.families.get("ipv4"));
+    }
     @Test void loggerFailureCannotThrowIntoAdmissionOrFutureReporting() {
         UncheckedVpnAdmissions tracker = new UncheckedVpnAdmissions(); tracker.start(line -> { throw new IllegalStateException("secret"); });
         try { tracker.allowed(FailureReason.NETWORK); assertDoesNotThrow(tracker::summarize); assertEquals(1, tracker.snapshot().total); }

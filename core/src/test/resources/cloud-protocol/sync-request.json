@@ -51,8 +51,11 @@
       "total": 0,
       "since_summary": 0,
       "window_seconds": 300,
-      "reasons": {}
-    }
+      "reasons": {},
+      "signals": {},
+      "families": {}
+    },
+    "local_address_logins": 0
   },
   "counters": {
     "window_start": 1791099940000,

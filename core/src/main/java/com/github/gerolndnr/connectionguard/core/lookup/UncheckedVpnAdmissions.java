@@ -1,9 +1,14 @@
 package com.github.gerolndnr.connectionguard.core.lookup;
 
 import com.github.gerolndnr.connectionguard.core.vpn.VpnResult;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -11,12 +16,16 @@ import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 
 /** Counts CG-allowed logins without a conclusive VPN result, independently of optional observers.
- * No addresses, identities, provider IDs or exception text are retained. Reload never resets counts. */
+ * No addresses, identities or exception text are retained, only the address family and which configured source
+ * left which kind of hint ("source.hosting", "source.no_evidence", "source.failed"). Reload never resets counts. */
 public final class UncheckedVpnAdmissions implements AutoCloseable {
     public static final long SUMMARY_MILLIS = TimeUnit.MINUTES.toMillis(5);
+    /** Bounded so custom provider lists cannot grow the status without limit; the rest is counted as "other". */
+    public static final int MAX_SIGNALS = 32;
     private final LongSupplier clock;
     private final Map<FailureReason, Long> totals = new EnumMap<>(FailureReason.class);
     private final Map<FailureReason, Long> pending = new EnumMap<>(FailureReason.class);
+    private final Map<String, Long> signals = new TreeMap<>(), families = new TreeMap<>();
     private long total, pendingCount, since;
     private ScheduledExecutorService timer;
     private Consumer<String> warning;
@@ -25,10 +34,35 @@ public final class UncheckedVpnAdmissions implements AutoCloseable {
     UncheckedVpnAdmissions(LongSupplier clock) { this.clock = clock; since = clock.getAsLong(); }
 
     /** Called once at completion of a real native login, never for explain/cache/provider queries. */
-    public synchronized void allowed(FailureReason reason) {
+    public void allowed(FailureReason reason) { allowed(reason, Collections.emptyList(), null); }
+    public synchronized void allowed(FailureReason reason, Collection<String> hints, String family) {
         if (reason == null || reason == FailureReason.NONE) return;
         total++; pendingCount++;
         totals.merge(reason, 1L, Long::sum); pending.merge(reason, 1L, Long::sum);
+        for (String hint : hints)
+            signals.merge(signals.containsKey(hint) || signals.size() < MAX_SIGNALS - 1 ? hint : "other", 1L, Long::sum);
+        if (family != null) families.merge(family, 1L, Long::sum);
+    }
+
+    /** Which voting sources stayed inconclusive and why, one key per source. Empty for exempt or conclusive results. */
+    public static List<String> signals(VpnResult vpn, boolean exempt) {
+        List<String> keys = new ArrayList<>();
+        if (exempt || vpn == null || vpn.getStatus() != ProviderVote.Status.UNKNOWN) return keys;
+        for (ProviderVote vote : vpn.getVotes()) {
+            if (!vote.isVoting() || vote.getStatus() != ProviderVote.Status.UNKNOWN || vote.getReason() == FailureReason.NONE) continue;
+            String source = vote.getProvider() == null ? "" : vote.getProvider().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_-]+", "_");
+            if (source.isEmpty()) source = "unnamed";
+            if (source.length() > 48) source = source.substring(0, 48);
+            String kind = vote.getReason() != FailureReason.NO_EVIDENCE ? "failed"
+                    : vote.getDetails() != null && Boolean.TRUE.equals(vote.getDetails().get(DetectionDetails.Type.HOSTING)) ? "hosting" : "no_evidence";
+            String key = source + "." + kind;
+            if (!keys.contains(key)) keys.add(key);
+        }
+        return keys;
+    }
+
+    public static String family(String address) {
+        return address == null || address.isEmpty() ? null : address.indexOf(':') >= 0 ? "ipv6" : "ipv4";
     }
 
     public static FailureReason unresolved(VpnResult vpn, boolean exempt) {
@@ -74,19 +108,24 @@ public final class UncheckedVpnAdmissions implements AutoCloseable {
     }
 
     public synchronized Snapshot snapshot() {
-        return new Snapshot(total, pendingCount, Math.max(0, clock.getAsLong() - since) / 1000, totals, pending);
+        return new Snapshot(total, pendingCount, Math.max(0, clock.getAsLong() - since) / 1000, totals, pending, signals, families);
     }
     public static final class Snapshot {
         public final long total, sinceSummary, windowSeconds;
         public final Map<FailureReason, Long> reasons, windowReasons;
-        private Snapshot(long total, long pending, long seconds, Map<FailureReason, Long> reasons, Map<FailureReason, Long> windowReasons) {
+        public final Map<String, Long> signals, families;
+        private Snapshot(long total, long pending, long seconds, Map<FailureReason, Long> reasons, Map<FailureReason, Long> windowReasons,
+                         Map<String, Long> signals, Map<String, Long> families) {
             this.total = total; sinceSummary = pending; windowSeconds = seconds;
             this.reasons = Collections.unmodifiableMap(new EnumMap<>(reasons));
             this.windowReasons = Collections.unmodifiableMap(new EnumMap<>(windowReasons));
+            this.signals = Collections.unmodifiableMap(new TreeMap<>(signals));
+            this.families = Collections.unmodifiableMap(new TreeMap<>(families));
         }
         public String describe() {
             return "VPN uncheckedAllowed=" + total + " sinceSummary=" + sinceSummary + " windowSeconds=" + windowSeconds
-                    + " reasons=" + reasons + " (CG allowed without a conclusive VPN result; exemptions and denies excluded)";
+                    + " reasons=" + reasons + " signals=" + signals + " families=" + families
+                    + " (CG allowed without a conclusive VPN result; exemptions and denies excluded)";
         }
     }
     @Override public void close() {
