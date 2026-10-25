@@ -15,9 +15,11 @@ import java.util.*;
  * one prefix across many servers point to a shared exit (a proxy); bans and operator allowances label it.
  * Only the prefix and counts leave the server: never an address, account, name or rule. Accounts are counted in
  * memory for the current window and forgotten when it is drained. Off with {@code cloud.contribute-signals: false}.
+ * A window spans six hours, so the cloud stores each prefix a few times a day instead of once per sync.
  */
 final class NetworkSignals {
-    static final int MAX_PREFIXES = 256;
+    static final int MAX_PREFIXES = 512;
+    static long windowMillis = java.util.concurrent.TimeUnit.HOURS.toMillis(6); // tests shorten it
     private static final int MAX_ACCOUNTS = 64;
 
     static final class Counts {
@@ -28,7 +30,9 @@ final class NetworkSignals {
     }
 
     private final Map<String, Counts> prefixes = new TreeMap<>();
-    private long overflow;
+    private long overflow, windowStart = System.currentTimeMillis();
+
+    boolean due(long now) { return now - windowStart >= windowMillis; }
 
     /** Called under the recorder's lock. */
     void record(DecisionObservation o) {
@@ -69,7 +73,7 @@ final class NetworkSignals {
         JsonObject out = new JsonObject();
         out.add("prefixes", list);
         out.addProperty("overflow", Math.min(1_000_000_000L, overflow));
-        prefixes.clear(); overflow = 0;
+        prefixes.clear(); overflow = 0; windowStart = System.currentTimeMillis();
         return out;
     }
 

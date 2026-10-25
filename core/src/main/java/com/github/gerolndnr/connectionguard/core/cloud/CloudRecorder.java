@@ -73,7 +73,7 @@ final class CloudRecorder implements DecisionObserver {
         final List<JsonObject> events;
         final int buffered;
         final long dropped;
-        /** Null when signals are off. */
+        /** Null when signals are off or their window is still open. */
         final JsonObject signals;
         Batch(JsonObject counters, List<JsonObject> events, int buffered, long dropped, JsonObject signals) {
             this.counters = counters; this.events = events; this.buffered = buffered; this.dropped = dropped; this.signals = signals;
@@ -100,7 +100,7 @@ final class CloudRecorder implements DecisionObserver {
             List<JsonObject> out = new ArrayList<>();
             Iterator<JsonObject> it = events.iterator();
             while (it.hasNext() && out.size() < maxEvents) out.add(it.next());
-            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents, contributeSignals ? signals.drain() : null);
+            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents, contributeSignals && signals.due(now) ? signals.drain() : null);
             windowStart = now;
             checks = allowed = denied = errors = vpnPositive = geoFlagged = cacheHits = lookups = 0;
             countries.clear(); reasons.clear(); latency.clear(); latencySeen = 0;

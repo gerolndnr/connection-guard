@@ -31,6 +31,7 @@ class CloudSyncTest {
     private volatile CountDownLatch installEntered, installRelease;
 
     @BeforeEach void start() throws IOException {
+        NetworkSignals.windowMillis = 0;
         CloudSync.setNoticeConsole(null);
         CloudSync.resetErrorReportsForTest();
         DecisionObservers.closeAll();
@@ -62,6 +63,7 @@ class CloudSyncTest {
     }
 
     @AfterEach void stop() {
+        NetworkSignals.windowMillis = java.util.concurrent.TimeUnit.HOURS.toMillis(6);
         CloudSync.stop();
         CloudSync.setNoticeConsole(null);
         CloudSync.setReloadHook(null);
@@ -264,6 +266,21 @@ class CloudSyncTest {
         JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off);
         assertFalse(off.has("signals"));
         assertTrue(CloudSync.describeLines().contains("Network signals off (cloud.contribute-signals: false)"));
+    }
+
+    @Test void signalsWaitForTheirWindowAndKeepCountingAcrossSyncs() throws Exception {
+        NetworkSignals.windowMillis = TimeUnit.HOURS.toMillis(6);
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+        assertFalse(body.has("signals"), "an open window stays on the server");
+        assertEquals(1, body.getAsJsonObject("counters").get("checks").getAsInt());
+        NetworkSignals.windowMillis = 0;
+        CloudSync.runOnceForTest();
+        JsonObject later = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(later);
+        assertEquals(1, later.getAsJsonObject("signals").getAsJsonArray("prefixes").get(0).getAsJsonObject().get("logins").getAsLong());
     }
 
     @Test void existingInstallGetsOneSignalsNoticeAndNoneWhenOptedOut() throws Exception {
