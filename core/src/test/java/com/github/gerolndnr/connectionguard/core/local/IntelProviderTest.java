@@ -210,4 +210,38 @@ class IntelProviderTest {
         generation(now-2000);proxy("198.51.100.0/28\n");assertThrows(java.io.IOException.class,this::update);assertEquals(good.generation,store.load(now).generation);
     }
 
+    private void label(String name,String networks,boolean corrupt) throws Exception {
+        byte[] bytes=networks.getBytes(StandardCharsets.UTF_8);responses.put("/"+name.toLowerCase(Locale.ROOT)+".txt",bytes);
+        JsonObject file=new JsonObject();file.addProperty("file",name.toLowerCase(Locale.ROOT)+".txt");file.addProperty("sha256",LocalSource.hash(corrupt?new byte[]{1}:bytes));file.addProperty("bytes",bytes.length);file.addProperty("networks",networks.split("\n").length);
+        if(!manifest.has("additional_lists"))manifest.add("additional_lists",new JsonObject());
+        manifest.getAsJsonObject("additional_lists").add(name,file);sign();
+    }
+    @Test void labelsNameTheNetworkBoosterAllowLetsInAndExplicitListsWin() throws Exception {
+        label("BOOSTER","192.0.2.96/30\n192.0.2.1/32\n",false);label("MOBILE","198.51.100.0/24\n",false);label("SHARED","203.0.113.0/24\n",true);
+        IntelSnapshot snapshot=update();
+        assertEquals(EnumSet.of(DetectionDetails.Label.BOOSTER,DetectionDetails.Label.MOBILE),snapshot.loadedLabels());
+        VpnResult booster=snapshot.vpn("192.0.2.97",now);
+        assertEquals(ProviderVote.Status.NEGATIVE,booster.getStatus());assertFalse(booster.isVpn());
+        assertEquals(Collections.singleton(DetectionDetails.Label.BOOSTER),booster.getDetails().getLabels());
+        assertEquals(Boolean.TRUE,booster.getDetails().get(DetectionDetails.Type.HOSTING));
+        assertTrue(snapshot.vpn("192.0.2.1",now).isVpn()); // listed as VPN as well: the VPN list decides
+        VpnResult mobile=snapshot.vpn("198.51.100.7",now);
+        assertEquals(ProviderVote.Status.UNKNOWN,mobile.getStatus());assertEquals(Collections.singleton(DetectionDetails.Label.MOBILE),mobile.getDetails().getLabels());
+        assertTrue(mobile.getDetails().describe().endsWith("labels=[MOBILE]"));
+        assertTrue(snapshot.vpn("203.0.113.1",now).getDetails().getLabels().isEmpty()); // corrupt SHARED list left out
+        assertEquals(FailureReason.NONE,snapshot.readiness(now));
+        assertTrue(snapshot.describe(now).contains("labels={BOOSTER=2, MOBILE=1, SHARED=0}"));
+        IntelSnapshot restarted=store.load(now);
+        assertEquals(snapshot.loadedLabels(),restarted.loadedLabels());assertEquals(ProviderVote.Status.NEGATIVE,restarted.vpn("192.0.2.97",now).getStatus());
+        Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.local.connectionguard-intel.booster","VPN");
+        VpnResult strict=new IntelDataStore(directory,new IntelSettings(v::get),signer.getPublic()).load(now).vpn("192.0.2.97",now);
+        assertTrue(strict.isVpn());assertTrue(strict.getVpnProviderName().get().startsWith("Gaming booster node (Connection Guard Intel, "));
+        v.put("provider.local.connectionguard-intel.booster","MAYBE");
+        assertThrows(IllegalArgumentException.class,()->new IntelSettings(v::get));
+    }
+    @Test void manifestsWithoutLabelsStayAsBefore() throws Exception {
+        IntelSnapshot snapshot=update();
+        assertTrue(snapshot.loadedLabels().isEmpty());assertFalse(snapshot.describe(now).contains("labels="));
+        assertEquals(ProviderVote.Status.UNKNOWN,snapshot.vpn("192.0.2.97",now).getStatus());
+    }
 }

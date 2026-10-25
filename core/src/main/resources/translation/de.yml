@@ -54,6 +54,9 @@ ops:
   usage: 'Verwendung: /cg {0}'
   explain-unavailable: Erklärung nicht verfügbar (Details ausgeblendet).
   identity-omitted: Identitäts-/Berechtigungsausnahmen werden bei einer IP-Abfrage nicht geprüft.
+  intel-label-booster: 'Intel-Label BOOSTER: ein Gaming-Booster-Knoten (Mudfish). Spieler tunneln darüber für einen besseren Ping; provider.local.connectionguard-intel.booster entscheidet.'
+  intel-label-mobile: 'Intel-Label MOBILE: ein Mobilfunknetz hinter Carrier-Grade-NAT. Viele Spieler teilen sich diese Adresse; ein IP-Bann oder eine IP-basierte Zweitkonto-Prüfung trifft Unbeteiligte.'
+  intel-label-shared: 'Intel-Label SHARED: mehrere Connection-Guard-Server sehen viele Konten aus diesem Netz. Prüfen; es kann ein Proxy für Zweitkonten sein.'
   no-provider-attempts: Noch keine Anbieterabfragen aufgezeichnet.
   cache-health: Der Zustand muss mit einer tatsächlichen Abfrage geprüft werden. Dieser Befehl verbraucht kein API-Kontingent.
   identity-authority: Deklariertes/globales Vertrauen ist kein verifizierter Nachweis für temporäre Freigaben.

@@ -26,6 +26,12 @@
 - Unchecked VPN admissions now also count which voting source left which hint (`<source>.hosting`, `<source>.no_evidence`, `<source>.failed`, at most 32 keys) and the address family (IPv4/IPv6). `/cg doctor` shows them, and cloud status sends them as `signals` and `families` inside `vpn_unchecked_allowed`. No addresses or identities are kept.
 - An older cloud API that rejects the new fields gets one same-batch retry without them before the existing coverage and capability fallbacks.
 
+### Intel labels: boosters, mobile carriers, shared exits
+
+- Connection Guard Intel's new label lists are read when the manifest carries them. Gaming booster nodes (Mudfish) are let in by default (`provider.local.connectionguard-intel.booster: ALLOW`); `booster: VPN` counts them as VPN. Explicit VPN, Tor and proxy hits still win.
+- `/cg explain <IP>` names mobile carriers (carrier-grade NAT: an IP ban or IP-based alt check hits innocent players) and exits that many accounts share across servers. These labels never block. [Details](docs/LOCAL_DATA.md#062-intel-labels).
+
+
 ## 0.6.1 — 2026-10-13
 
 Published at the maintainer's request. The full independent competitive benchmark of this combined artifact remains pending; no improved detection/FPR or latency claim is made. [Release notes and checksums](https://github.com/gerolndnr/connection-guard/releases/tag/0.6.1).
