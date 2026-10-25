@@ -151,6 +151,13 @@ public class ConnectionGuardVelocityPlugin {
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
         proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.CloudDashboardNoticeListener());
+        // Experimental and off by default: observe-only connection probe (ping gap and segment size).
+        if (Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.enabled", false))) {
+            long threshold = getCgVelocityConfig().getConfig().getLong("experimental.connection-probe.gap-threshold-ms", 40L);
+            connectionProbes = new com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes(threshold, line -> logger.info(line));
+            proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.ConnectionProbeListener(this, connectionProbes));
+            logger.info("Experimental connection probe on (observe only, gap threshold " + threshold + " ms).");
+        }
 
         CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")
                 .aliases("cg")
@@ -199,6 +206,8 @@ public class ConnectionGuardVelocityPlugin {
         return proxyServer;
     }
 
+    private volatile com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes connectionProbes;
+    public com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes getConnectionProbes() { return connectionProbes; }
     public static ConnectionGuardVelocityPlugin getInstance() {
         return connectionGuardVelocityPlugin;
     }
