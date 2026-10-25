@@ -2,6 +2,7 @@
 
 ## Unreleased — 0.6.2
 
+- Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
 ### Provider responses
 
 - Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
