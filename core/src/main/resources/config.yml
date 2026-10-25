@@ -18,7 +18,9 @@ cloud:
   # linked: per IPv4 /24 or IPv6 /48 prefix, counts of logins, accounts, VPN results, refusals, bans
   # and operator allowances.
   # Never a full address, account, name or rule. Kept 7 days. See docs/CLOUD.md#network-signals.
-  contribute-signals: true
+  # auto: on for new links, off for links that already existed when upgrading.
+  # true: explicitly opt in even for an existing link; false: always off.
+  contribute-signals: auto
   # Join a network directly (fleets, hosting panels). Create the token in the dashboard.
   network-token: ""
 identity:

@@ -273,6 +273,45 @@ class CloudSyncTest {
         assertTrue(CloudSync.describeLines().contains("Network signals off (cloud.contribute-signals: false)"));
     }
 
+    @Test void anExistingLinkStaysOffAcrossRestartsUntilExplicitlyOptedIn() throws Exception {
+        String endpoint = "http://127.0.0.1:" + server.getAddress().getPort();
+        new CloudCredentials("ins_AAAAAAAAAAAAAAAAAAAAAAAA", "cgs_" + repeat('s', 48), endpoint)
+                .save(dir.resolve("cloud/credentials.json"));
+        syncResponse = linkedWithConfig("null");
+        for (int restart = 0; restart < 2; restart++) {
+            startSync(Collections.singletonMap("cloud.contribute-signals", "auto"));
+            CloudSync.runOnceForTest(); syncs.clear();
+            long before = DecisionObservers.delivered();
+            DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+            CloudSync.runOnceForTest();
+            JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body); assertFalse(body.has("signals"));
+            assertTrue(CloudSync.describeLines().contains("Network signals off (existing link; set cloud.contribute-signals: true to opt in)"));
+            CloudSync.stop();
+        }
+        startSync(Collections.singletonMap("cloud.contribute-signals", true)); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject optedIn = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(optedIn); assertTrue(optedIn.has("signals"));
+        startSync(Collections.singletonMap("cloud.contribute-signals", false));
+        CloudSync.runOnceForTest();
+        JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off); assertFalse(off.has("signals"));
+    }
+
+    @Test void newLinkContributionSurvivesRestartAndAnExplicitOffStillWins() throws Exception {
+        startSync(Collections.emptyMap()); link(); CloudSync.stop();
+        startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body); assertTrue(body.has("signals"));
+        startSync(Collections.singletonMap("cloud.contribute-signals", false));
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+        CloudSync.runOnceForTest();
+        JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off); assertFalse(off.has("signals"));
+    }
+
     @Test void unlinkedServersSendNoSignalsAndUnlinkingDropsTheOpenWindow() throws Exception {
         startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
         long before = DecisionObservers.delivered();

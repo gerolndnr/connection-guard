@@ -18,14 +18,15 @@ public final class CloudSettings {
     public final boolean errorReports;
     /** Network signals for Connection Guard Intel: prefixes and counts, never addresses or players. */
     public final boolean contributeSignals;
+    public final boolean automaticSignals;
     /** Why the cloud is off, or null when enabled. */
     public final String disabledBy;
     public final URI endpoint;
     public final String networkToken;
 
-    private CloudSettings(boolean enabled, String disabledBy, URI endpoint, String networkToken, boolean reports, boolean signals) {
+    private CloudSettings(boolean enabled, String disabledBy, URI endpoint, String networkToken, boolean reports, boolean signals, boolean automaticSignals) {
         this.enabled = enabled; this.errorReports = enabled && reports; this.disabledBy = disabledBy; this.endpoint = endpoint; this.networkToken = networkToken;
-        this.contributeSignals = enabled && signals;
+        this.contributeSignals = enabled && signals; this.automaticSignals = automaticSignals;
     }
 
     public static CloudSettings read(Function<String, Object> value, Function<String, String> environment, boolean disabledByCommand) {
@@ -33,14 +34,16 @@ public final class CloudSettings {
         String token = GuardSettings.string(value, "cloud.network-token", "").trim();
         if (!token.isEmpty() && !token.matches("cgn_[A-Za-z0-9_-]{32,64}")) throw new IllegalArgumentException("cloud.network-token is malformed (value redacted).");
         boolean reports = GuardSettings.bool(value, "cloud.error-reports", true);
-        boolean signals = GuardSettings.bool(value, "cloud.contribute-signals", true);
+        Object signalChoice = value.apply("cloud.contribute-signals");
+        boolean automaticSignals = signalChoice == null || "auto".equalsIgnoreCase(String.valueOf(signalChoice).trim());
+        boolean signals = automaticSignals || GuardSettings.bool(value, "cloud.contribute-signals", false);
         String env = environment.apply(ENV_SWITCH);
         String property = environment.apply(PROPERTY_SWITCH);
-        if (isOff(env)) return new CloudSettings(false, "environment variable " + ENV_SWITCH, endpoint, token, reports, signals);
-        if (isOff(property)) return new CloudSettings(false, "system property " + PROPERTY_SWITCH, endpoint, token, reports, signals);
-        if (!GuardSettings.bool(value, "cloud.enabled", true)) return new CloudSettings(false, "cloud.enabled: false", endpoint, token, reports, signals);
-        if (disabledByCommand) return new CloudSettings(false, "/cg cloud disable", endpoint, token, reports, signals);
-        return new CloudSettings(true, null, endpoint, token, reports, signals);
+        if (isOff(env)) return new CloudSettings(false, "environment variable " + ENV_SWITCH, endpoint, token, reports, signals, automaticSignals);
+        if (isOff(property)) return new CloudSettings(false, "system property " + PROPERTY_SWITCH, endpoint, token, reports, signals, automaticSignals);
+        if (!GuardSettings.bool(value, "cloud.enabled", true)) return new CloudSettings(false, "cloud.enabled: false", endpoint, token, reports, signals, automaticSignals);
+        if (disabledByCommand) return new CloudSettings(false, "/cg cloud disable", endpoint, token, reports, signals, automaticSignals);
+        return new CloudSettings(true, null, endpoint, token, reports, signals, automaticSignals);
     }
 
     public static CloudSettings read(Function<String, Object> value, boolean disabledByCommand) {

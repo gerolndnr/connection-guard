@@ -35,6 +35,7 @@ From 0.6.2, a sync every six hours carries network signals for [Connection Guard
 - **Never sent:** full addresses, UUIDs, names, rule IDs or reasons. Accounts are counted in memory for the current window only. Private, loopback, CGNAT and link-local addresses are skipped.
 - **Purpose:** many accounts from one prefix on many unrelated servers point to a shared exit such as a residential proxy; bans and operator allowances label such prefixes. Connection Guard aggregates the signals of all servers and publishes only prefixes reported by several networks, as a review-only list in Intel.
 - **Storage:** raw signals are kept 7 days; the aggregate keeps prefixes and totals only.
+- **Default:** `cloud.contribute-signals: auto` enables contribution for new links only. Already-linked upgrades remain off, including after restart; `true` explicitly opts them in. No signals are sent before linking.
 - **Off:** `cloud.contribute-signals: false` and reload, or any Cloud off switch. Existing installations get a one-time console notice once linked; `/cg cloud status` and `/cg doctor` show the state. An older Cloud API that rejects the field gets one same-batch retry without it.
 
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.

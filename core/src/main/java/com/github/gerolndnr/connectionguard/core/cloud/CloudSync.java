@@ -79,6 +79,9 @@ public final class CloudSync {
     private static volatile boolean errorsUnsupported;
     private volatile boolean errorReportsEnabled;
     private volatile boolean signalsEnabled;
+    private volatile boolean signalsAutomatic;
+    private final CloudSignalDefaults signalDefaults;
+    private boolean newIdentity;
     private boolean cleanupWarned;
     private int failures;
     private volatile CloudManagedConfig managed = CloudManagedConfig.EMPTY;
@@ -90,8 +93,10 @@ public final class CloudSync {
         this.pluginVersion = pluginVersion; this.log = log;
         this.client = new CloudClient(settings.endpoint, pluginVersion);
         this.joinNotices = new CloudJoinNotices(dir);
+        this.signalDefaults = new CloudSignalDefaults(dir, log);
         errorReportsEnabled = settings.errorReports && !errorsUnsupported;
         signalsEnabled = settings.contributeSignals;
+        signalsAutomatic = settings.automaticSignals;
         recorder.contributeSignals(contributing());
 
     }
@@ -117,6 +122,7 @@ public final class CloudSync {
                         && current.settings.networkToken.equals(next.networkToken)) {
                     current.errorReportsEnabled = next.errorReports && !errorsUnsupported;
                     current.signalsEnabled = next.contributeSignals;
+                    current.signalsAutomatic = next.automaticSignals;
                     current.recorder.contributeSignals(current.contributing());
                     synchronized (current.pendingLock) {
                         if (!current.errorReportsEnabled && current.pending != null) current.pending.remove("errors");
@@ -208,6 +214,8 @@ public final class CloudSync {
         catch (IOException invalid) { log.warning("Could not load local dashboard-notice preferences; once-per-start suppression remains active (details redacted)."); }
         managed = CloudManagedConfig.load(dir.getParent());
         if (credentials != null && !credentials.endpoint.equals(settings.endpoint.toString())) credentials = null;
+        newIdentity = credentials == null;
+        signalDefaults.load();
         // A fresh anonymous installation is known unlinked before the first background request.
         // Existing identities and automatic network-token installs await the API's actual state.
         linkStateKnown = credentials == null && settings.networkToken.isEmpty();
@@ -237,8 +245,8 @@ public final class CloudSync {
         catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
     }
 
-    /** Network signals come only from servers linked to a network (owner decision, 25 Oct 2026); unlinked servers send anonymous totals only. */
-    private boolean contributing() { return signalsEnabled && claimed; }
+    /** New links default on; existing links require an explicit choice (Gero, 25 Oct 2026). */
+    private boolean contributing() { return signalsEnabled && claimed && (!signalsAutomatic || signalDefaults.enabled()); }
 
     private void signalsNotice() {
         if (!contributing()) return;
@@ -418,7 +426,7 @@ public final class CloudSync {
         if (reply.status == 401) {
             // The install was removed (e.g. 30 days unlinked). Start over with a fresh anonymous identity.
             CloudCredentials.delete(dir.resolve("credentials.json"));
-            credentials = null; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false); pending = null;
+            credentials = null; newIdentity = true; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false); pending = null;
             return MIN_DELAY;
         }
         if (reply.status == 426) return tooOld();
@@ -504,6 +512,7 @@ public final class CloudSync {
         if (nowClaimed && !claimed) log.info("Connection Guard Cloud: linked to " + (networkName == null ? "your network" : "\"" + networkName + "\"") + ".");
         boolean changed = !Objects.equals(url, linkUrl);
         boolean linkChanged = claimed != nowClaimed;
+        signalDefaults.observe(nowClaimed, newIdentity, linkStateKnown && !claimed && nowClaimed);
         claimed = nowClaimed; linkCode = code; linkUrl = url;
         linkStateKnown = true;
         if (linkChanged) {
@@ -753,7 +762,7 @@ public final class CloudSync {
             ok = true;
             if (type.equals("unlink")) {
                 CloudCredentials.delete(dir.resolve("credentials.json"));
-                credentials = null; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false);
+                credentials = null; newIdentity = true; claimed = false; recorder.acceptEvents(false); recorder.contributeSignals(false);
             }
         } catch (IllegalArgumentException | IllegalStateException | IOException refused) {
             PluginErrorReports.record(refused, PluginErrorReports.Context.COMMAND);
@@ -787,7 +796,9 @@ public final class CloudSync {
         lines.add("Cloud events buffered=" + sync.recorder.buffered() + " dropped=" + sync.recorder.dropped()
                 + (sync.claimed ? "" : messages.getString("cloud.anonymous")));
         lines.add("Network signals " + (!sync.signalsEnabled ? "off (cloud.contribute-signals: false)"
-                : !sync.claimed ? "off until this server is linked" : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
+                : !sync.claimed ? "off until this server is linked"
+                : sync.signalsAutomatic && !sync.signalDefaults.enabled() ? "off (existing link; set cloud.contribute-signals: true to opt in)"
+                : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
         return lines;
     }
 

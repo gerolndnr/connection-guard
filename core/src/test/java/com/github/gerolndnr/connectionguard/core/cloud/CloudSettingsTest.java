@@ -17,6 +17,15 @@ class CloudSettingsTest {
         assertEquals("https://api.connectionguard.net", s.endpoint.toString());
     }
 
+    @Test void signalsHaveAnAutomaticUpgradeBoundaryAndExplicitOverrides() {
+        assertTrue(read(Collections.emptyMap(), Collections.emptyMap(), false).automaticSignals);
+        assertTrue(read(Collections.singletonMap("cloud.contribute-signals", "auto"), Collections.emptyMap(), false).automaticSignals);
+        CloudSettings on = read(Collections.singletonMap("cloud.contribute-signals", true), Collections.emptyMap(), false);
+        assertTrue(on.contributeSignals); assertFalse(on.automaticSignals);
+        assertFalse(read(Collections.singletonMap("cloud.contribute-signals", false), Collections.emptyMap(), false).contributeSignals);
+        assertThrows(IllegalArgumentException.class, () -> read(Collections.singletonMap("cloud.contribute-signals", "wrong"), Collections.emptyMap(), false));
+    }
+
     @Test void everyOptOutWins() {
         Map<String, Object> off = new HashMap<>(); off.put("cloud.enabled", false);
         assertFalse(read(off, new HashMap<>(), false).enabled);
