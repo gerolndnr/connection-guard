@@ -42,7 +42,8 @@ public final class LanguageFiles {
             if(!Files.isRegularFile(file,LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(file) || Files.size(file)>65536)throw new IOException();
             T document=parser.parse(file); MessageCatalog messages=MessageCatalog.read(selected,key->parser.value(document,key));
             return new Loaded<>(file,document,messages);
-        } catch(Exception failure) { throw invalid(); }
+        } catch(MessageCatalog.InvalidMessage named) { throw named; /* Names only our own key; values stay redacted. */ }
+        catch(Exception failure) { throw invalid(); }
     }
     private static IllegalArgumentException invalid() { return new IllegalArgumentException("message-language or selected message file is invalid (values redacted); active settings preserved."); }
 }

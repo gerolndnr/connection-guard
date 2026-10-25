@@ -30,6 +30,11 @@ class ProviderParsingTest {
         assertTrue(VpnApiVpnProvider.parse("192.0.2.1", json("{\"security\":{\"vpn\":false,\"proxy\":false,\"tor\":true,\"relay\":false}}")).get().isVpn());
         assertThrows(IllegalArgumentException.class, () -> VpnApiVpnProvider.parse("192.0.2.1", json("{\"security\":{\"vpn\":false,\"proxy\":false,\"tor\":false}}")));
     }
+    @Test void vpnApiAnswerWithoutVerdictIsAProviderFailureNotACrash() {
+        for (String body : new String[]{"{\"ip\":\"192.0.2.1\"}", "{\"ip\":\"192.0.2.1\",\"security\":null,\"message\":\"refused\"}"})
+            assertEquals(com.github.gerolndnr.connectionguard.core.lookup.FailureReason.INVALID_RESPONSE,
+                    assertThrows(com.github.gerolndnr.connectionguard.core.lookup.LookupException.class, () -> VpnApiVpnProvider.parse("192.0.2.1", json(body))).getReason());
+    }
     @Test void vpnApiKeepsDistinctFalseFlagsAndActualAsnWithMissingRiskUnknown() {
         VpnResult result = VpnApiVpnProvider.parse("2001:db8::1", json("{\"ip\":\"2001:db8::1\",\"security\":{\"vpn\":false,\"proxy\":false,\"tor\":true,\"relay\":false},\"network\":{\"autonomous_system_number\":\"AS15169\",\"autonomous_system_organization\":\"GOOGLE\"},\"location\":{\"country_code\":\"US\"}}")).get();
         assertEquals(Boolean.FALSE, result.getDetails().get(com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails.Type.VPN));

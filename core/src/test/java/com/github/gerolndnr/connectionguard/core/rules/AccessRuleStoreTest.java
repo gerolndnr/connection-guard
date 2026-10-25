@@ -72,5 +72,22 @@ class AccessRuleStoreTest {
         assertEquals(0, store.pruneExpired(now));
         assertArrayEquals(unchanged, Files.readAllBytes(directory.resolve("access-rules.json")));
     }
-
+    @Test void handEditedOrDeletedRulesFileIsPickedUpOnReloadInsteadOfBlockingWrites() throws Exception {
+        AccessRuleStore store = new AccessRuleStore(directory);
+        store.add(Effect.DENY, Scope.ALL, "192.0.2.1", 0, "Fixture deny");
+        Path file = directory.resolve("access-rules.json");
+        Files.write(file, "[]".getBytes(StandardCharsets.UTF_8));
+        assertThrows(AccessRuleStore.ChangedOnDisk.class, () -> store.add(Effect.DENY, Scope.ALL, "192.0.2.2", 0, "Fixture"));
+        assertTrue(store.reloadIfChanged()); assertTrue(store.snapshot().isEmpty()); assertFalse(store.reloadIfChanged());
+        store.add(Effect.DENY, Scope.ALL, "192.0.2.3", 0, "Fixture after edit");
+        Files.delete(file);
+        // Deleted is a change too, not an unreadable file; a restart would also start empty.
+        assertThrows(AccessRuleStore.ChangedOnDisk.class, () -> store.add(Effect.DENY, Scope.ALL, "192.0.2.4", 0, "Fixture"));
+        assertTrue(store.reloadIfChanged()); assertTrue(store.snapshot().isEmpty());
+        store.add(Effect.ALLOW, Scope.VPN, "192.0.2.5", 0, "Fixture after delete");
+        assertEquals(1, new AccessRuleStore(directory).snapshot().size());
+        Files.write(file, "not json".getBytes(StandardCharsets.UTF_8));
+        assertThrows(java.io.IOException.class, store::reloadIfChanged);
+        assertEquals("192.0.2.5/32", store.snapshot().get(0).getTarget());
+    }
 }
