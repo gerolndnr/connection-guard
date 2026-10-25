@@ -186,10 +186,12 @@ public class ConnectionGuard {
     }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         decisionLeases.requireIdle();
+        // A hand-edited rules file is staged here and published by applySettings only after every check has passed.
+        AccessRuleStore.Staged stagedRules = null;
         if (rules != null) {
-            try { rules.reloadIfChanged(); }
+            try { stagedRules = rules.stageIfChanged(); }
             catch (java.io.IOException invalid) { throw new IllegalArgumentException("access-rules.json is invalid; active rules preserved (values redacted)."); }
-            rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy);
+            rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy, stagedRules);
         }
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");
@@ -198,7 +200,7 @@ public class ConnectionGuard {
         }
         com.github.gerolndnr.connectionguard.core.local.TorExitList nextTor = tor;
         if (nextTor == null && draft.dataPath != null) nextTor = new com.github.gerolndnr.connectionguard.core.local.TorExitList(draft.dataPath, logger);
-        applySettings(draft.settings);
+        applySettings(draft.settings, stagedRules);
         tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts;
         clearProxyCheckHandoffs();
         vpnProviders = draft.providers;
@@ -230,10 +232,13 @@ public class ConnectionGuard {
     }
     private static volatile GuardSettings settings = GuardSettings.defaults();
     public static synchronized GuardSettings getSettings() { return rules == null ? settings : rules.effective(settings); }
-    public static synchronized void applySettings(GuardSettings next) {
-        if (rules != null) rules.validateConfigReload(next, false);
+    public static synchronized void applySettings(GuardSettings next) { applySettings(next, null); }
+    private static void applySettings(GuardSettings next, AccessRuleStore.Staged stagedRules) {
+        if (rules != null) rules.validateConfigReload(next, false, stagedRules);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.validateActivation();
         configureLookup(next.lookup);
+        // The last check that can reject the reload has passed; nothing below fails.
+        if (rules != null) rules.publish(stagedRules);
         com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.configure(next.admissionHooks);
         admission = new com.github.gerolndnr.connectionguard.core.admission.AdmissionController(next.admission);
         settings = next;

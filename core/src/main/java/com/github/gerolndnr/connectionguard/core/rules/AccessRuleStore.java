@@ -69,22 +69,22 @@ public final class AccessRuleStore {
         for (Path file : abandoned) Files.delete(file);
     }
     public void reload() throws IOException {
-        synchronized (lock) {
-            byte[] bytes = read();
-            try {
-                String text = new String(bytes, StandardCharsets.UTF_8).trim();
-                PolicyJournal journal = null; List<AccessRule> rules;
-                if (text.startsWith("[")) {
-                    if (state.journal != null) throw new IllegalArgumentException("Versioned policy cannot be replaced by legacy input.");
-                    AccessRule[] parsed = new Gson().fromJson(text, AccessRule[].class);
-                    rules = Arrays.asList(Objects.requireNonNull(parsed));
-                } else {
-                    journal = PolicyJournal.read(new ByteArrayInputStream(bytes)); rules = journal.current().policy.rules;
-                }
-                validate(rules); publicationGuard.accept(journal);
-                state = new State(rules, journal, Math.addExact(state.sequence, 1), hash(bytes));
-            } catch (RuntimeException invalid) { throw new IOException("Invalid rules/policy document; active state preserved (values redacted)."); }
-        }
+        synchronized (lock) { state = parse(read(), state); }
+    }
+    private State parse(byte[] bytes, State current) throws IOException {
+        try {
+            String text = new String(bytes, StandardCharsets.UTF_8).trim();
+            PolicyJournal journal = null; List<AccessRule> rules;
+            if (text.startsWith("[")) {
+                if (current.journal != null) throw new IllegalArgumentException("Versioned policy cannot be replaced by legacy input.");
+                AccessRule[] parsed = new Gson().fromJson(text, AccessRule[].class);
+                rules = Arrays.asList(Objects.requireNonNull(parsed));
+            } else {
+                journal = PolicyJournal.read(new ByteArrayInputStream(bytes)); rules = journal.current().policy.rules;
+            }
+            validate(rules); publicationGuard.accept(journal);
+            return new State(rules, journal, Math.addExact(current.sequence, 1), hash(bytes));
+        } catch (RuntimeException invalid) { throw new IOException("Invalid rules/policy document; active state preserved (values redacted)."); }
     }
     private byte[] read() throws IOException {
         if (Files.isSymbolicLink(path) || !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) || Files.size(path) > PolicyJournal.MAX_BYTES)
@@ -155,21 +155,47 @@ public final class AccessRuleStore {
     private void ensureDiskState() throws IOException {
         if (!matchesDisk()) throw new ChangedOnDisk();
     }
-    private boolean matchesDisk() {
-        if (state.diskHash == null) return !Files.exists(path, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(path);
+    private boolean matchesDisk() { return matchesDisk(state); }
+    private boolean matchesDisk(State expected) {
+        if (expected.diskHash == null) return !Files.exists(path, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(path);
         // A deleted, replaced or oversized file is a change too, never a read failure to report.
-        try { return state.diskHash.equals(hash(read())); }
+        try { return expected.diskHash.equals(hash(read())); }
         catch (IOException unreadable) { return false; }
     }
-    /** Picks up a hand-edited or deleted rules file on /cg reload. An invalid file keeps the active rules. */
-    public boolean reloadIfChanged() throws IOException {
+    /** A hand-edited or deleted rules file, read and validated but not active yet. */
+    public static final class Staged {
+        private final State from, next;
+        private Staged(State from, State next) { this.from = from; this.next = next; }
+    }
+    /**
+     * Reads a hand-edited or deleted rules file for /cg reload without activating it; null when the file is unchanged.
+     * An invalid file throws and keeps the active rules. The reload publishes the result only after every other check
+     * has passed, so a rejected reload never changes the active rules.
+     */
+    public Staged stageIfChanged() throws IOException {
         synchronized (lock) {
-            if (matchesDisk()) return false;
-            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(path)) { reload(); return true; }
+            if (matchesDisk()) return null;
+            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(path)) return new Staged(state, parse(read(), state));
             // A restart would also start without rules; versioned policy is never dropped silently.
             if (state.journal != null) throw new IOException("Versioned policy file was removed; restore it or restart (values redacted).");
-            state = new State(Collections.emptyList(), null, Math.addExact(state.sequence, 1), null);
-            return true;
+            return new Staged(state, new State(Collections.emptyList(), null, Math.addExact(state.sequence, 1), null));
+        }
+    }
+    /** Activates staged rules. Fails without a change when the rules moved on since staging (a write or another reload). */
+    public void publish(Staged staged) {
+        if (staged == null) return;
+        synchronized (lock) {
+            if (state != staged.from || !matchesDisk(staged.next))
+                throw new IllegalStateException("Rules changed during the reload; active rules preserved, run /cg reload again (values redacted).");
+            state = staged.next;
+        }
+    }
+    /** Picks up a hand-edited or deleted rules file at once (stage and publish). An invalid file keeps the active rules. */
+    public boolean reloadIfChanged() throws IOException {
+        synchronized (lock) {
+            Staged staged = stageIfChanged();
+            publish(staged);
+            return staged != null;
         }
     }
     static void atomicWrite(Path path, byte[] bytes) throws IOException {
@@ -204,13 +230,14 @@ public final class AccessRuleStore {
             return cachedEffective;
         }
     }
-    public void validateConfigReload(GuardSettings next, boolean cloudManaged) {
+    public void validateConfigReload(GuardSettings next, boolean cloudManaged) { validateConfigReload(next, cloudManaged, null); }
+    /** As above, judged against staged rules when the same reload will publish them. */
+    public void validateConfigReload(GuardSettings next, boolean cloudManaged, Staged staged) {
         synchronized (lock) {
-            try { ensureDiskState(); }
-            catch (IOException changed) {
-                throw new IllegalArgumentException("Rules/policy file changed; reload rules explicitly before changing config (values redacted).", changed);
-            }
-            if (locallyOwned() && (cloudManaged || !new PolicyReplay.Snapshot(nativeBase, Collections.emptyList()).fingerprint()
+            State judged = staged == null ? state : staged.next;
+            if ((staged != null && state != staged.from) || !matchesDisk(judged))
+                throw new IllegalArgumentException("Rules/policy file changed; reload rules explicitly before changing config (values redacted).");
+            if (judged.journal != null && judged.journal.local && (cloudManaged || !new PolicyReplay.Snapshot(nativeBase, Collections.emptyList()).fingerprint()
                     .equals(new PolicyReplay.Snapshot(next, Collections.emptyList()).fingerprint())))
                 throw new IllegalArgumentException("Local policy owns decision settings; release its revision before changing config/dashboard policy (values redacted).");
         }
