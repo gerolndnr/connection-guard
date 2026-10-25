@@ -11,6 +11,13 @@ public final class DecisionObservers {
     private static volatile List<Entry> selected = Collections.emptyList();
     /** Built-in observer (the cloud link). Not an addon: no ID, no slot, not selected through config. */
     private static volatile Entry internal;
+    /**
+     * Built-in experiment (the observe-only connection probe), alongside the cloud link. It counts only while
+     * {@code experimentActive} says so, and has its own worker and queue, so it never takes the cloud's place.
+     */
+    private static volatile Entry experiment;
+    private static volatile java.util.function.BooleanSupplier experimentActive = () -> false;
+    private static final ThreadPoolExecutor experimentWorker = experimentWorker();
     private static volatile long generation;
     private static volatile ThreadPoolExecutor workers;
     private static final AtomicLong dropped = new AtomicLong(), failed = new AtomicLong(), delivered = new AtomicLong();
@@ -41,6 +48,30 @@ public final class DecisionObservers {
         if (workers != null) clearQueued(workers);
         generation++;
     }
+    /** Installs or removes (null) the experiment observer; like {@link #setInternal}, outside the addon slots. */
+    public static void setExperiment(DecisionObserver observer) { setExperiment(observer, () -> true); }
+    /** @param active whether the experiment wants decisions now; while false it costs nothing, not even a capture */
+    public static synchronized void setExperiment(DecisionObserver observer, java.util.function.BooleanSupplier active) {
+        if (observer != null && workers != null && workers.isShutdown() && !workers.isTerminated())
+            throw new IllegalStateException("Previous observer callbacks have not terminated; activation rejected.");
+        if (experiment != null) experiment.close();
+        experiment = observer == null ? null : new Entry("experiment", observer, false);
+        experimentActive = observer == null ? () -> false : active;
+        if (experiment != null && (workers == null || workers.isTerminated())) workers = newWorkers();
+        if (workers != null) clearQueued(workers);
+        generation++;
+    }
+    private static boolean experimenting() {
+        Entry entry = experiment;
+        try { return entry != null && experimentActive.getAsBoolean(); } catch (RuntimeException | LinkageError broken) { return false; }
+    }
+    private static ThreadPoolExecutor experimentWorker() {
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(256), work -> {
+            Thread thread = new Thread(work, "ConnectionGuard-observer-experiment"); thread.setDaemon(true); return thread;
+        }, new ThreadPoolExecutor.AbortPolicy());
+        pool.allowCoreThreadTimeOut(true);
+        return pool;
+    }
     private static ThreadPoolExecutor newWorkers() {
         java.util.concurrent.atomic.AtomicInteger serial = new java.util.concurrent.atomic.AtomicInteger();
         ThreadPoolExecutor pool = new ThreadPoolExecutor(2, 2, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(64), work -> {
@@ -49,21 +80,33 @@ public final class DecisionObservers {
         pool.allowCoreThreadTimeOut(true);
         return pool;
     }
-    public static boolean isActive() { return !selected.isEmpty() || internal != null; }
-    public static synchronized long captureGeneration() { return selected.isEmpty() && internal == null ? -1 : generation; }
+    public static boolean isActive() { return !selected.isEmpty() || internal != null || experimenting(); }
+    public static synchronized long captureGeneration() { return selected.isEmpty() && internal == null && !experimenting() ? -1 : generation; }
     public static void publish(DecisionObservation observation) {
         publish(observation, captureGeneration());
     }
     public static void publish(DecisionObservation observation, long expectedGeneration) {
         ThreadPoolExecutor pool;
         List<Entry> receivers;
+        Entry trial;
         long capturedGeneration;
         synchronized (DecisionObservers.class) {
             pool = workers; capturedGeneration = generation;
+            trial = experimenting() ? experiment : null;
             if (internal == null) receivers = selected;
             else { receivers = new ArrayList<>(selected); receivers.add(internal); }
         }
-        if (pool == null || receivers.isEmpty() || expectedGeneration != capturedGeneration) return;
+        if (expectedGeneration != capturedGeneration) return;
+        if (trial != null) {
+            try {
+                experimentWorker.execute(() -> {
+                    if (!trial.registered || capturedGeneration != generation) return;
+                    try { trial.callback.onDecision(observation); delivered.incrementAndGet(); }
+                    catch (Exception | LinkageError | AssertionError invalid) { failed.incrementAndGet(); }
+                });
+            } catch (RejectedExecutionException full) { dropped.incrementAndGet(); }
+        }
+        if (pool == null || receivers.isEmpty()) return;
         for (Entry entry : receivers) {
             try {
                 pool.execute(() -> {
@@ -105,7 +148,7 @@ public final class DecisionObservers {
             throw new IllegalStateException("Previous observer callbacks have not terminated; activation rejected.");
     }
     public static synchronized void closeAll() {
-        generation++; selected = Collections.emptyList(); internal = null;
+        generation++; selected = Collections.emptyList(); internal = null; experiment = null; experimentActive = () -> false;
         for (Entry entry : new ArrayList<>(entries.values())) entry.close();
         if (workers != null) clearQueued(workers);
     }

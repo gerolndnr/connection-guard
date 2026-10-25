@@ -336,6 +336,65 @@ class CloudSyncTest {
         assertFalse(after.has("signals"), "unlinking drops the open window");
     }
 
+    private static JsonObject probeRecord(int i, boolean vpn) {
+        return new Gson().fromJson("{\"joined\":true,\"complete\":true,\"family\":4,\"net\":\"0011223344556677\",\"acct\":\"a" + i
+                + "\",\"tcp\":{\"mss_class\":\"" + (vpn ? "wireguard" : "standard") + "\"},\"verdict\":{\"vpn\":\"" + (vpn ? "POSITIVE" : "NEGATIVE")
+                + "\",\"sources\":[]}}", JsonObject.class);
+    }
+
+    @Test void linkedServersSendProbeCountsWithTheSignalWindowAndNeverARecord() throws Exception {
+        com.github.gerolndnr.connectionguard.core.probe.ProbeCounts counts = new com.github.gerolndnr.connectionguard.core.probe.ProbeCounts();
+        CloudSync.attachProbeCounts(counts);
+        try {
+            startSync(Collections.emptyMap()); CloudSync.runOnceForTest(); syncs.clear();
+            assertFalse(CloudSync.contributesSignals(), "unlinked servers do not probe");
+            assertTrue(CloudSync.describeLines().contains("Connection-probe counts off (with network signals)"));
+            link();
+            assertTrue(CloudSync.contributesSignals());
+            for (int i = 0; i < 6; i++) counts.add(probeRecord(i, i < 2));
+            long before = DecisionObservers.delivered();
+            DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+            CloudSync.runOnceForTest();
+            JsonObject body = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(body);
+            JsonObject probe = body.getAsJsonObject("probe");
+            assertEquals(6, probe.get("logins").getAsLong());
+            assertTrue(probe.getAsJsonArray("counts").toString().contains("{\"s\":\"mss_class\",\"v\":\"wireguard\",\"l\":\"vpn\",\"n\":2}"));
+            assertFalse(probe.toString().contains("0011223344556677") || probe.toString().contains("\"a1\""), "no hashes leave the server");
+            assertTrue(CloudSync.describeLines().contains("Connection-probe counts on (counts per measured trait and verdict only)"));
+            // Fewer than five logins wait for the next window.
+            counts.add(probeRecord(9, false));
+            before = DecisionObservers.delivered();
+            DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+            CloudSync.runOnceForTest();
+            JsonObject small = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(small);
+            assertTrue(small.has("signals")); assertFalse(small.has("probe"));
+            // Turning signals off drops the counts too.
+            startSync(Collections.singletonMap("cloud.contribute-signals", false));
+            assertFalse(CloudSync.contributesSignals());
+            for (int i = 0; i < 6; i++) counts.add(probeRecord(i, false));
+            CloudSync.runOnceForTest();
+            JsonObject off = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(off); assertFalse(off.has("probe"));
+        } finally { CloudSync.attachProbeCounts(null); }
+    }
+
+    @Test void olderApiRejectingProbeCountsRetriesTheSameBatchWithoutThem() throws Exception {
+        com.github.gerolndnr.connectionguard.core.probe.ProbeCounts counts = new com.github.gerolndnr.connectionguard.core.probe.ProbeCounts();
+        CloudSync.attachProbeCounts(counts);
+        try {
+            startSync(Collections.emptyMap()); link();
+            for (int i = 0; i < 5; i++) counts.add(probeRecord(i, false));
+            long before = DecisionObservers.delivered();
+            DecisionObservers.publish(observation(Outcome.DENY, Reason.VPN_FLAG, Flag.VPN)); awaitDelivered(before + 1);
+            syncStatus = 400; CloudSync.runOnceForTest();
+            JsonObject rejected = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(rejected); assertTrue(rejected.has("probe"));
+            syncStatus = 200; CloudSync.runOnceForTest();
+            JsonObject retried = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retried);
+            JsonObject expected = rejected.deepCopy(); expected.remove("probe");
+            assertEquals(expected, retried, "same batch and seq, without the counts");
+            assertFalse(CloudSync.contributesSignals(), "the probe stops until restart");
+        } finally { CloudSync.attachProbeCounts(null); }
+    }
+
     @Test void signalsWaitForTheirWindowAndKeepCountingAcrossSyncs() throws Exception {
         NetworkSignals.windowMillis = TimeUnit.HOURS.toMillis(6);
         startSync(Collections.emptyMap()); link();
