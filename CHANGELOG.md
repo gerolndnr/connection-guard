@@ -26,6 +26,11 @@
 - Unchecked VPN admissions now also count which voting source left which hint (`<source>.hosting`, `<source>.no_evidence`, `<source>.failed`, at most 32 keys) and the address family (IPv4/IPv6). `/cg doctor` shows them, and cloud status sends them as `signals` and `families` inside `vpn_unchecked_allowed`. No addresses or identities are kept.
 - An older cloud API that rejects the new fields gets one same-batch retry without them before the existing coverage and capability fallbacks.
 
+### Network signals for Connection Guard Intel
+
+- Cloud sync of linked servers carries network signals. `cloud.contribute-signals: auto` enables them for new links; existing links stay off on upgrade unless the operator explicitly sets `true` (unlinked servers send none): per IPv4 /24 or IPv6 /48 prefix, counts of logins, distinct accounts, VPN-positive checks, refusals, logins of banned accounts and operator allowances. Never a full address, account, name or rule; at most 512 prefixes per six-hour window. Intel aggregates them across servers to find shared exits such as residential proxies.
+- `cloud.contribute-signals: false` turns them off. Existing installations get a one-time console notice; `/cg cloud status` shows the state. An older Cloud API that rejects the field gets one same-batch retry without it. [Details](docs/CLOUD.md#network-signals).
+
 ### Intel labels: boosters, mobile carriers, shared exits
 
 - Connection Guard Intel's new label lists are read when the manifest carries them. Gaming booster nodes (Mudfish) are let in by default (`provider.local.connectionguard-intel.booster: ALLOW`); `booster: VPN` counts them as VPN. Explicit VPN, Tor and proxy hits still win.
