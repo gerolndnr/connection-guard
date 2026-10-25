@@ -9,6 +9,23 @@ license/account acceptance is performed. Attribution declares your actual data s
 grant a license or validate the accuracy of that source.
 
 
+## 0.6.2: Intel labels
+
+Intel builds from 25 October 2026 add three label lists under `additional_lists`: `BOOSTER` (`booster.txt`,
+gaming booster nodes such as Mudfish), `MOBILE` (`mobile.txt`, mobile carriers behind carrier-grade NAT) and
+`SHARED` (`shared.txt`, exits that many accounts use across several servers, from network signals). They are
+validated like the proxy list; a missing or broken label list is left out and never touches the base lists.
+Labels are not list types and never vote:
+
+- `booster: ALLOW` (default) makes a booster-only hit a negative VPN verdict, like `relay: ALLOW`, so a player who
+  tunnels for a better ping gets in. `booster: VPN` makes it positive ("Gaming booster node"). Explicit VPN, Tor
+  and proxy hits take priority; Intel takes booster nodes out of its inferred VPN ranges.
+- `MOBILE` and `SHARED` only appear in `/cg explain <IP>` (`labels=[...]` plus a hint): an IP ban or an IP-based
+  alt check on a mobile carrier hits innocent players, and a shared exit deserves a look.
+
+`/cg local status` shows `booster=` and `labels={BOOSTER=n, MOBILE=n, SHARED=n}` once a manifest carries them. The
+booster choice partitions the cache like the relay choice. It is a YAML setting only; the dashboard does not manage it yet.
+
 ## 0.6.1: optional Intel proxies
 
 Released in0.6.1 at the maintainer's request; independent combined benchmark acceptance remains pending. The manifest's required
@@ -48,6 +65,7 @@ provider:
       update-hours: 24 # 0 disables automatic fetches; manual update remains available
       max-age-hours: 72
       relay: ALLOW # ALLOW or VPN
+      booster: ALLOW # ALLOW or VPN, from 0.6.2
 ```
 
 The bundled ECDSA P-256 key authenticates the exact manifest bytes with Java8
