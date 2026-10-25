@@ -51,3 +51,9 @@ wait
 cat "$HERE"/.client-*.log; rm -f "$HERE"/.client-*.log
 echo "--- probe results (link delay ${DELAY_MS} ms where emulated)"
 docker logs cgp-server 2>&1 | grep "Connection probe " | sed 's/^.*Connection probe /Connection probe /'
+echo "--- journal (experiments/connection-probe-*.jsonl)"
+mkdir -p "$HERE/.journal"
+docker exec cgp-server sh -c 'cat /work/plugins/*/experiments/connection-probe-*.jsonl' > "$HERE/.journal/connection-probe-testbed.jsonl"
+cat "$HERE/.journal/connection-probe-testbed.jsonl"
+python3 "$HERE/analyze.py" "$HERE/.journal" --min 1 | head -12
+rm -rf "${HERE:?}/.journal"

@@ -49,7 +49,8 @@ config_dir = next(os.path.join(f'{WORK}/plugins', d) for d in os.listdir(f'{WORK
 path = os.path.join(config_dir, 'config.yml')
 config = yaml.safe_load(open(path))
 config.setdefault('lookup', {})['api-policy'] = 'LOCAL_ONLY'
-config['experimental'] = {'connection-probe': {'enabled': True, 'gap-threshold-ms': int(os.environ.get('GAP_THRESHOLD_MS', '40'))}}
+config['experimental'] = {'connection-probe': {'enabled': True, 'gap-threshold-ms': int(os.environ.get('GAP_THRESHOLD_MS', '40')),
+                                               'journal': True, 'reverse-dns': True}}
 yaml.safe_dump(config, open(path, 'w'), sort_keys=False)
 print(f'patched {path}', flush=True)
 os.chdir(WORK)

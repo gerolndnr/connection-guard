@@ -87,6 +87,22 @@ class DecisionObserversTest {
         assertTrue(DecisionObservers.failed() > failed);
         assertFalse(DecisionObservers.describe().contains("secret"));
     }
+    @Test void theExperimentReceivesDecisionsNextToTheCloudWithoutTakingAnAddonSlot() throws Exception {
+        CompletableFuture<DecisionObservation> cloud = new CompletableFuture<>(), experiment = new CompletableFuture<>();
+        assertEquals(-1, DecisionObservers.captureGeneration());
+        DecisionObservers.setInternal(cloud::complete);
+        DecisionObservers.setExperiment(experiment::complete);
+        assertTrue(DecisionObservers.isActive());
+        DecisionObservation event = sample();
+        DecisionObservers.publish(event);
+        assertSame(event, cloud.get(2, TimeUnit.SECONDS));
+        assertSame(event, experiment.get(2, TimeUnit.SECONDS));
+        assertTrue(DecisionObservers.describe().contains("registered=0"));
+        DecisionObservers.setInternal(null);
+        assertTrue(DecisionObservers.isActive());
+        DecisionObservers.setExperiment(null);
+        assertFalse(DecisionObservers.isActive());
+    }
     @Test void closedAndReplacedHandlesDoNotActivateOrRemoveTheReplacement() throws Exception {
         AtomicInteger oldCalls = new AtomicInteger();
         ObserverRegistration old = ConnectionGuardApi.registerDecisionObserver("fixture", event -> oldCalls.incrementAndGet());

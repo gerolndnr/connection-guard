@@ -151,12 +151,21 @@ public class ConnectionGuardVelocityPlugin {
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
         proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.CloudDashboardNoticeListener());
-        // Experimental and off by default: observe-only connection probe (ping gap and segment size).
+        // Experimental and off by default: observe-only connection probe. Its journal stays on this server (experiments/).
         if (Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.enabled", false))) {
             long threshold = getCgVelocityConfig().getConfig().getLong("experimental.connection-probe.gap-threshold-ms", 40L);
-            connectionProbes = new com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes(threshold, line -> logger.info(line));
-            proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.ConnectionProbeListener(this, connectionProbes));
-            logger.info("Experimental connection probe on (observe only, gap threshold " + threshold + " ms).");
+            boolean reverseDns = Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.reverse-dns", false));
+            com.github.gerolndnr.connectionguard.core.probe.ProbeJournal journal = null;
+            if (Boolean.TRUE.equals(getCgVelocityConfig().getConfig().getBoolean("experimental.connection-probe.journal", true))) {
+                try { journal = new com.github.gerolndnr.connectionguard.core.probe.ProbeJournal(dataDirectory.resolve("experiments"), logger::warn); }
+                catch (java.io.IOException | RuntimeException unavailable) { logger.warn("Connection probe journal unavailable (" + unavailable.getClass().getSimpleName() + "); probing without it."); }
+            }
+            connectionProbes = new com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes(threshold, line -> logger.info(line), journal, reverseDns);
+            if (journal != null) com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.setExperiment(connectionProbes);
+            connectionProbeListener = new com.github.gerolndnr.connectionguard.velocity.listener.ConnectionProbeListener(this, connectionProbes);
+            proxyServer.getEventManager().register(this, connectionProbeListener);
+            logger.info("Experimental connection probe on (observe only, gap threshold " + threshold + " ms"
+                    + (journal == null ? "" : ", journal " + journal.directory() + (reverseDns ? ", reverse DNS" : "")) + ").");
         }
 
         CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")
@@ -189,6 +198,8 @@ public class ConnectionGuardVelocityPlugin {
             catch (RuntimeException | LinkageError unavailable) {
             com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(unavailable, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.OTHER); logger.warn("bStats shutdown failed; continuing plugin shutdown."); }
         }
+        if (connectionProbeListener != null) connectionProbeListener.close();
+        if (connectionProbes != null) connectionProbes.close();
         ConnectionGuard.shutdown();
         com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.shutdown();
         ConnectionGuard.closeCache();
@@ -207,6 +218,7 @@ public class ConnectionGuardVelocityPlugin {
     }
 
     private volatile com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes connectionProbes;
+    private volatile com.github.gerolndnr.connectionguard.velocity.listener.ConnectionProbeListener connectionProbeListener;
     public com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes getConnectionProbes() { return connectionProbes; }
     public static ConnectionGuardVelocityPlugin getInstance() {
         return connectionGuardVelocityPlugin;
