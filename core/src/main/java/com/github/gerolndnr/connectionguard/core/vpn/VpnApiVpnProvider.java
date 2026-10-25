@@ -4,6 +4,8 @@ import com.github.gerolndnr.connectionguard.core.http.ProviderHttp;
 import com.google.gson.JsonObject;
 import com.github.gerolndnr.connectionguard.core.http.DetectionFields;
 import com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails;
+import com.github.gerolndnr.connectionguard.core.lookup.FailureReason;
+import com.github.gerolndnr.connectionguard.core.lookup.LookupException;
 import okhttp3.Request;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -27,7 +29,9 @@ public class VpnApiVpnProvider implements VpnProvider {
 
     static Optional<VpnResult> parse(String ipAddress, JsonObject json) {
         DetectionFields.address(json, "ip", ipAddress);
-        JsonObject security = json.getAsJsonObject("security");
+        JsonObject security = DetectionFields.object(json, "security");
+        // vpnapi.io answers some addresses (and refusals) without a verdict; that source simply has none.
+        if (security == null) throw new LookupException(FailureReason.INVALID_RESPONSE);
         boolean vpn = ProviderHttp.bool(security, "vpn");
         boolean proxy = ProviderHttp.bool(security, "proxy");
         boolean tor = ProviderHttp.bool(security, "tor");

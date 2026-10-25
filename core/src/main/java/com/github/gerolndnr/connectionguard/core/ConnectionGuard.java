@@ -186,7 +186,11 @@ public class ConnectionGuard {
     }
     public static synchronized void applyProviders(ProviderConfiguration draft) {
         decisionLeases.requireIdle();
-        if (rules != null) rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy);
+        if (rules != null) {
+            try { rules.reloadIfChanged(); }
+            catch (java.io.IOException invalid) { throw new IllegalArgumentException("access-rules.json is invalid; active rules preserved (values redacted)."); }
+            rules.validateConfigReload(draft.settings, draft.cloudManagesPolicy);
+        }
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.validateActivation(draft.observers);
         if (!lookupRuntime.isIdle()) throw new IllegalStateException("Wait for lookup workers and deadlines before reloading providers.");
         if (activeCacheSignature != null && !activeCacheSignature.equals(draft.cacheSignature)) {

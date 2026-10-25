@@ -5,6 +5,16 @@
 ### Provider responses
 
 - Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
+- Fixed: a vpnapi.io answer without a `security` verdict crashed its parser. It now counts as an invalid response from that source.
+
+### Rules file and reload
+
+- Fixed: after `access-rules.json` was edited by hand or deleted, every `/cg reload` was rejected and every rule command failed until a restart. `/cg reload` now loads the changed file first (a deleted file means no rules, as on a restart); an invalid file is rejected and the active rules stay. A removed versioned policy file is still rejected rather than dropped silently. Rule commands that meet a changed file say to run `/cg reload`.
+- A rejected reload now names its reason after the existing message, for example `failure-policy.vpn must be OPEN, CLOSED or OBSERVE.` or the message key that is invalid in the selected language file. Values stay redacted; exception types that can carry the raw input give no reason line.
+
+### Error reports
+
+- Error reports are for plugin faults only. These are no longer reported: provider and cloud timeouts, DNS, TLS and connection failures (they still count in provider health and `/cg cloud status`), rejected reloads and invalid rule input (the operator gets the answer), and a plugin folder that refuses writes. That last case now says so in `/cg cloud status` and warns once in the console, instead of claiming the network is unavailable.
 
 ### Private network addresses
 

@@ -22,6 +22,10 @@ class MessageCatalogTest {
         assertThrows(UnsupportedOperationException.class,()->messages.getStringList("messages.help").add("extra"));
         assertThrows(UnsupportedOperationException.class,()->messages.keys().clear());
     }
+    @Test void invalidOverrideNamesTheKeyButNotTheValue() {
+        IllegalArgumentException rejected=assertThrows(MessageCatalog.InvalidMessage.class,()->MessageCatalog.read("en",key->key.equals("command.config-reload")?"Reloaded %SECRET_VALUE%":null));
+        assertTrue(rejected.getMessage().contains("command.config-reload"));assertFalse(rejected.getMessage().contains("SECRET_VALUE"));
+    }
     @Test void unknownCustomLocaleUsesEnglishDefaultsWithExistingOverrides() {
         MessageCatalog custom=MessageCatalog.read("community-BR",key->key.equals("messages.access-denied")?"Community denial":null);
         assertEquals("community-BR",custom.language());assertEquals("Community denial",custom.getString("messages.access-denied"));

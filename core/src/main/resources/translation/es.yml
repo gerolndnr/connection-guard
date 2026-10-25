@@ -7,6 +7,7 @@ command:
     clear-specific: '&bConnection Guard &7| &7Se han eliminado las entradas de caché de &f%ENTRY%&7.'
   invalid-argument: '&bConnection Guard &7| &7Indica el nombre o UUID de un jugador conectado, o una dirección IP.'
   reload-rejected: Recarga rechazada; se conservan los ajustes activos. Revisa config.yml y /cg doctor.
+  reload-reason: 'Motivo: {0}'
   info-unavailable: Información no disponible (detalles ocultos).
   clear-unavailable: No se puede vaciar la caché (detalles ocultos).
   target-invalid: Usa una dirección IP o el nombre/UUID de un jugador conectado.
@@ -62,10 +63,10 @@ ops:
   rules-missing: No hay ninguna regla {0} coincidente.
   rule-removed: Regla eliminada.
   rule-absent: La regla ya no existía.
-  rule-remove-failed: No se pudo eliminar; se conservan las reglas existentes.
+  rule-remove-failed: No se pudo eliminar; se conservan las reglas existentes. Si editaste access-rules.json a mano, ejecuta antes /cg reload.
   rule-invalid: Destino, ámbito, duración o motivo inválido. Usa IP/CIDR, UUID o un selector de metadatos documentado; no nombres de jugadores.
   rule-stored: 'Guardada: {0} {1} {2} {3}'
-  rule-write-failed: No se pudo guardar; se conservan las reglas activas.
+  rule-write-failed: No se pudo guardar; se conservan las reglas activas. Si editaste access-rules.json a mano, ejecuta antes /cg reload.
   rule-usage: /cg {0} add <IP/CIDR/UUID|asn:15169|type:TOR|risk:source:80> <vpn|geo|all> <15m|2h|7d|permanent> <motivo>
   rule-usage-tail: /cg {0} list | remove <ID-regla>; deny prevalece sobre allow/exempt; UUID requiere una identidad de confianza.
   local-disabled: Los datos locales están desactivados. Configura fuentes con atribución y elige primero VPN y/o países locales.

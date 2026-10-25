@@ -192,7 +192,7 @@ public class ConnectionGuardBungeePlugin extends Plugin {
 
     public void reloadAllConfigs() {
         try { reloadGuardConfigs(); }
-        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.record(failure, com.github.gerolndnr.connectionguard.core.cloud.PluginErrorReports.Context.RELOAD); throw failure; }
+        catch (RuntimeException | LinkageError failure) { com.github.gerolndnr.connectionguard.core.config.ReloadFailures.record(failure); throw failure; }
     }
     private void reloadGuardConfigs() {
         synchronized (com.github.gerolndnr.connectionguard.core.cloud.CloudManagedConfig.reloadLock()) {

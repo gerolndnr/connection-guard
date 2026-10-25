@@ -15,6 +15,10 @@ import java.util.function.Consumer;
 /** One immutable publication point. A versioned document owns policy fields and rules together. */
 public final class AccessRuleStore {
     interface Writer { void write(Path path, byte[] bytes) throws IOException; }
+    /** The file on disk is not the one this store wrote or loaded: an operator edit or deletion, not a fault. */
+    public static final class ChangedOnDisk extends IOException {
+        ChangedOnDisk() { super("Rules changed outside the active state; run /cg reload before writing (values redacted)."); }
+    }
     private final Path path;
     private final Object lock;
     private final Supplier<GuardSettings> base;
@@ -149,8 +153,24 @@ public final class AccessRuleStore {
         writer.write(path, bytes); state = next; // No fallible I/O after the atomic rename/publication boundary.
     }
     private void ensureDiskState() throws IOException {
-        if (state.diskHash == null ? Files.exists(path, LinkOption.NOFOLLOW_LINKS) : !state.diskHash.equals(hash(read())))
-            throw new IOException("Rules changed outside the active state; reload explicitly before writing (values redacted).");
+        if (!matchesDisk()) throw new ChangedOnDisk();
+    }
+    private boolean matchesDisk() {
+        if (state.diskHash == null) return !Files.exists(path, LinkOption.NOFOLLOW_LINKS) && !Files.isSymbolicLink(path);
+        // A deleted, replaced or oversized file is a change too, never a read failure to report.
+        try { return state.diskHash.equals(hash(read())); }
+        catch (IOException unreadable) { return false; }
+    }
+    /** Picks up a hand-edited or deleted rules file on /cg reload. An invalid file keeps the active rules. */
+    public boolean reloadIfChanged() throws IOException {
+        synchronized (lock) {
+            if (matchesDisk()) return false;
+            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(path)) { reload(); return true; }
+            // A restart would also start without rules; versioned policy is never dropped silently.
+            if (state.journal != null) throw new IOException("Versioned policy file was removed; restore it or restart (values redacted).");
+            state = new State(Collections.emptyList(), null, Math.addExact(state.sequence, 1), null);
+            return true;
+        }
     }
     static void atomicWrite(Path path, byte[] bytes) throws IOException {
         if (Files.isSymbolicLink(path) || Files.exists(path, LinkOption.NOFOLLOW_LINKS) && !Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))
