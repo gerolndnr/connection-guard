@@ -1,5 +1,6 @@
 package com.github.gerolndnr.connectionguard.core.local;
 
+import com.github.gerolndnr.connectionguard.core.lookup.DetectionDetails;
 import com.google.gson.*;
 import okhttp3.*;
 import java.io.*;
@@ -61,7 +62,12 @@ public final class IntelDataStore {
             if(IntelSnapshot.proxyFile(IntelSnapshot.manifest(manifest,now))!=null)try {
                 files.put(LocalSource.Kind.PROXY,LocalDataStore.read(dir.resolve("proxy.txt"),4*1024*1024));
             }catch(IOException|RuntimeException unavailable){/* A missing/broken optional list cannot remove base protection. */}
-            return IntelSnapshot.parse(settings,manifest,files,Long.parseLong(fetched.getAsString()),now);
+            JsonObject parsedManifest=IntelSnapshot.manifest(manifest,now);
+            Map<DetectionDetails.Label,byte[]> labels=new EnumMap<>(DetectionDetails.Label.class);
+            for(DetectionDetails.Label label:DetectionDetails.Label.values())if(IntelSnapshot.labelFile(parsedManifest,label)!=null)try {
+                labels.put(label,LocalDataStore.read(dir.resolve(IntelSnapshot.labelName(label)),4*1024*1024));
+            }catch(IOException|RuntimeException unavailable){/* Labels are optional too. */}
+            return IntelSnapshot.parse(settings,manifest,files,labels,Long.parseLong(fetched.getAsString()),now);
         }catch(RuntimeException invalid){throw new IOException("Saved Intel generation invalid; active data preserved (contents redacted).");}
     }
     public synchronized IntelSnapshot update()throws IOException{return fetch(HttpUrl.get(HOST),LocalListDownloader.client());}
@@ -87,16 +93,24 @@ public final class IntelDataStore {
             if(proxy!=null)try {
                 files.put(LocalSource.Kind.PROXY,LocalListDownloader.bytes(base.newBuilder().addPathSegment("proxy.txt").build(),IntelSnapshot.number(proxy,"bytes",4*1024*1024),client));
             }catch(IOException unavailable){/* Optional transport failures are reported by the snapshot. */}
-            now=System.currentTimeMillis();IntelSnapshot next=IntelSnapshot.parse(settings,manifest,files,now,now);
+            Map<DetectionDetails.Label,byte[]> labels=new EnumMap<>(DetectionDetails.Label.class);
+            for(DetectionDetails.Label label:DetectionDetails.Label.values()){
+                JsonObject file=IntelSnapshot.labelFile(json,label);
+                if(file!=null)try {
+                    labels.put(label,LocalListDownloader.bytes(base.newBuilder().addPathSegment(IntelSnapshot.labelName(label)).build(),IntelSnapshot.number(file,"bytes",4*1024*1024),client));
+                }catch(IOException unavailable){/* A label list that fails to download is left out of this generation. */}
+            }
+            now=System.currentTimeMillis();IntelSnapshot next=IntelSnapshot.parse(settings,manifest,files,labels,now,now);
             if(next.readiness(now)!=com.github.gerolndnr.connectionguard.core.lookup.FailureReason.NONE)throw new IOException("Intel publication is already stale.");
-            commit(next,manifest,signature,files);return next;
+            commit(next,manifest,signature,files,labels);return next;
         }catch(RuntimeException invalid){throw new IOException("Intel update invalid; previous signed generation preserved (contents redacted).");}
     }
-    private void commit(IntelSnapshot next,byte[] manifest,byte[] signature,Map<LocalSource.Kind,byte[]> files)throws IOException{
+    private void commit(IntelSnapshot next,byte[] manifest,byte[] signature,Map<LocalSource.Kind,byte[]> files,Map<DetectionDetails.Label,byte[]> labels)throws IOException{
         LocalDataStore.checkParents(root);Files.createDirectories(root);LocalDataStore.privateMode(root,"rwx------");
         Path dir=root.resolve(next.generation);LocalDataStore.checkParents(dir);Files.createDirectories(dir);LocalDataStore.privateMode(dir,"rwx------");
         for(LocalSource.Kind kind:IntelSnapshot.kinds())LocalDataStore.writeAtomic(dir.resolve(kind.name().toLowerCase(Locale.ROOT)+".txt"),files.get(kind));
         if(next.proxyState==IntelSnapshot.ProxyState.LOADED)LocalDataStore.writeAtomic(dir.resolve("proxy.txt"),files.get(LocalSource.Kind.PROXY));
+        for(DetectionDetails.Label label:next.loadedLabels())LocalDataStore.writeAtomic(dir.resolve(IntelSnapshot.labelName(label)),labels.get(label));
         LocalDataStore.writeAtomic(dir.resolve("manifest.json"),manifest);LocalDataStore.writeAtomic(dir.resolve("manifest.json.sig"),signature);
         JsonObject pointer=new JsonObject();pointer.addProperty("generation",next.generation);pointer.addProperty("fetchedAt",next.fetchedAt);
         LocalDataStore.writeAtomic(root.resolve("current.json"),pointer.toString().getBytes(StandardCharsets.UTF_8));
@@ -104,7 +118,7 @@ public final class IntelDataStore {
         try(DirectoryStream<Path> old=Files.newDirectoryStream(root)){
             for(Path entry:old)if(!entry.equals(dir)&&entry.getFileName().toString().matches("[a-f0-9]{64}")&&Files.isDirectory(entry,LinkOption.NOFOLLOW_LINKS)&&!Files.isSymbolicLink(entry)){
                 try(DirectoryStream<Path> contents=Files.newDirectoryStream(entry)){
-                    for(Path file:contents)if(file.getFileName().toString().matches("(?:vpn|tor|relay|hosting|proxy)\\.txt|manifest\\.json(?:\\.sig)?")&&!Files.isSymbolicLink(file))try{Files.deleteIfExists(file);}catch(IOException ignored){}
+                    for(Path file:contents)if(file.getFileName().toString().matches("(?:vpn|tor|relay|hosting|proxy|booster|mobile|shared)\\.txt|manifest\\.json(?:\\.sig)?")&&!Files.isSymbolicLink(file))try{Files.deleteIfExists(file);}catch(IOException ignored){}
                 }catch(IOException ignored){}
                 try{Files.deleteIfExists(entry);}catch(IOException ignored){}
             }

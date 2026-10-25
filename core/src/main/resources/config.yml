@@ -326,6 +326,9 @@ provider:
       # Explicit Intel VPN/Tor/Proxy hits take priority. VPN classifies relay membership positively.
       # HOSTING alone is review only; it can confirm a Blackbox Y when require-confirmation is true.
       relay: ALLOW
+      # Gaming boosters (Mudfish nodes, from 0.6.2). ALLOW: a booster-only hit is a negative VPN verdict, so players
+      # who tunnel for a better ping get in. VPN: booster nodes count as VPN. Explicit VPN/Tor/Proxy hits take priority.
+      booster: ALLOW
     # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
     # MMDBs are always operator-imported, with their embedded build date and your source's license.
     update-hours: 0
