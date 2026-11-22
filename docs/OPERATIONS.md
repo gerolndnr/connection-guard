@@ -12,9 +12,9 @@ This page describes the 0.6.0 candidate; stable 0.5.1 is still the published rel
 
 The following table describes the released 0.6.0 defaults; stable 0.5.1 used 2500ms for HTTP. In 0.6.0,
 `lookup.http-timeout-ms` defaults to **1500 ms** (whole HTTP call, connect and read).
-An explicitly configured value is retained. A transport timeout opens that source's
-circuit immediately, without waiting for `lookup.circuit.failures`; the existing
-30s pause and one half-open probe remain. Used-up quotas and open circuits are
+An explicitly configured value is retained. Since 0.6.2 a transport timeout counts
+toward `lookup.circuit.failures` (3 in a row by default) like other errors; before,
+a single timeout opened the circuit at once. The 30s pause and one half-open probe remain. Used-up quotas and open circuits are
 rejected locally before any transport job is allocated. Available fallback sources
 continue to be tried; multiple previously untested hanging sources can therefore
 take more than two seconds together, within the unchanged 5000ms login ceiling.
@@ -32,7 +32,7 @@ These bounds are not a promise that every outage login completes within 300ms.
 
 The same canonical IP shares each ongoing VPN lookup and each ongoing geo lookup; cancelling one caller does not cancel everyone else. IPv4-mapped IPv6 addresses map to IPv4. No hostname resolution is offered in the new operations commands. Limits bound this plugin's work; they are not network-level DDoS protection.
 
-Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `provider.geo` supports them too. Zero means no locally imposed limit. Default ProxyCheck limit is 100/day without a key, 1000/day with one; free IP-API is capped at 45/minute. VPN and geo calls to the same native service share one quota counter and the stricter nonzero configured limit. When both select ProxyCheck they also share one v2 `vpn=1&asn=1` response and one reservation per physical request. Daily counters reset at UTC midnight and when the plugin process restarts, so they are local estimates; other servers and tools also consume account quotas. Account-wide remaining quota is **not** reported. Quota exhaustion yields UNKNOWN. Numeric provider 429 backoff is bounded to one hour. Errors, queues and missing fields retain a reason code; 30-second log cooldowns avoid a repeated provider warning for each player.
+Each enabled `provider.vpn.<name>` can set `daily-budget` and `minute-budget`; `provider.geo` supports them too. Zero means no locally imposed limit. `minute-budget: auto` follows 80 % of the per-minute limit the service announces in `X-RateLimit-Limit` (at most 1,000), and the built-in cap until it has announced one; new files use it for zowi. Default ProxyCheck limit is 100/day without a key, 1000/day with one; free IP-API is capped at 45/minute. VPN and geo calls to the same native service share one quota counter and the stricter nonzero configured limit. When both select ProxyCheck they also share one v2 `vpn=1&asn=1` response and one reservation per physical request. Daily counters reset at UTC midnight and when the plugin process restarts, so they are local estimates; other servers and tools also consume account quotas. Account-wide remaining quota is **not** reported. Quota exhaustion yields UNKNOWN. Numeric provider 429 backoff is bounded to one hour. Errors, queues and missing fields retain a reason code; 30-second log cooldowns avoid a repeated provider warning for each player.
 
 Commands and permissions:
 

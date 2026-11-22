@@ -16,6 +16,7 @@ public final class ProviderHealth {
     private int minuteRequests;
     private int dailyBudget;
     private int minuteBudget;
+    private String announcedSource;
     private FailureReason lastReason = FailureReason.NONE;
     private long lastAlert;
     private FailureReason alertedReason = FailureReason.NONE;
@@ -26,9 +27,18 @@ public final class ProviderHealth {
         lastAlert = now; alertedReason = lastReason; return true;
     }
     public synchronized void resetFailures() { failures = 0; pausedUntil = 0; probe = false; lastReason = FailureReason.NONE; }
-    public synchronized void budgets(int daily, int minute) {
+    public synchronized void budgets(int daily, int minute) { budgets(daily, minute, null); }
+    /**
+     * With an announced source ({@code minute-budget: auto}), the minute budget follows 80 % of the
+     * per-minute limit that source last announced; {@code minute} applies until it announces one.
+     */
+    public synchronized void budgets(int daily, int minute, String announcedSource) {
         if (daily < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
-        dailyBudget = daily; minuteBudget = minute;
+        dailyBudget = daily; minuteBudget = minute; this.announcedSource = announcedSource;
+    }
+    public synchronized int effectiveMinuteBudget() {
+        int announced = com.github.gerolndnr.connectionguard.core.http.AnnouncedLimits.get(announcedSource);
+        return announced > 0 ? Math.max(1, announced * 4 / 5) : minuteBudget;
     }
     private void rollDay() {
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
@@ -38,7 +48,7 @@ public final class ProviderHealth {
         rollDay();
         if (now - minuteStart >= 60000) { minuteStart = now; minuteRequests = 0; }
         if (now < pausedUntil || probe) return FailureReason.CIRCUIT_OPEN;
-        if ((dailyBudget > 0 && dayRequests >= dailyBudget) || (minuteBudget > 0 && minuteRequests >= minuteBudget)) {
+        if ((dailyBudget > 0 && dayRequests >= dailyBudget) || (effectiveMinuteBudget() > 0 && minuteRequests >= effectiveMinuteBudget())) {
             lastReason = FailureReason.BUDGET_EXHAUSTED;
             return FailureReason.BUDGET_EXHAUSTED;
         }
@@ -57,7 +67,10 @@ public final class ProviderHealth {
         long pause = settings.circuitPauseMillis;
         while (error instanceof CompletionException) error = error.getCause();
         if (error instanceof LookupException) pause = Math.max(pause, ((LookupException) error).getRetryAfterMillis());
-        if (reason == FailureReason.TIMEOUT || reason == FailureReason.RATE_LIMIT || reason == FailureReason.BUDGET_EXHAUSTED || ++failures >= settings.circuitFailures) {
+        // A single slow answer no longer pauses a source: under a join wave that left every later
+        // login unchecked for the whole pause. Timeouts count toward lookup.circuit.failures like
+        // other errors; explicit rate limits and used-up quotas still pause at once.
+        if (reason == FailureReason.RATE_LIMIT || reason == FailureReason.BUDGET_EXHAUSTED || ++failures >= settings.circuitFailures) {
             pausedUntil = System.currentTimeMillis() + Math.min(86400000, pause);
         }
     }

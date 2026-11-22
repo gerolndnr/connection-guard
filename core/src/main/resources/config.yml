@@ -45,11 +45,13 @@ lookup:
   # One eligible-login check budget: permissions, admission, cache and detection.
   # Late facts cannot alter that login. Shared detector work can serve another caller.
   deadline-ms: 5000
-  # Per external attempt (entire call, connect and read). A timeout opens that source's circuit immediately.
+  # Per external attempt (entire call, connect and read). Timeouts count toward circuit.failures.
   http-timeout-ms: 1500
-  workers: 8
-  queue-capacity: 64
-  max-inflight: 128
+  # Lookups wait on the network, not the CPU: enough workers keep a join wave checked
+  # (for example after a restart) instead of admitting players unchecked once the queue is full.
+  workers: 32
+  queue-capacity: 256
+  max-inflight: 512
   # CONFIGURED preserves selected APIs/strategies; LOCAL_ONLY suppresses API/custom/extension lookups.
   # Does not enable local datasets or change ENFORCE/OBSERVE. Missing local evidence stays UNKNOWN.
   # Cloud, webhooks, remote cache and list updates use their separate settings.
@@ -240,10 +242,11 @@ provider:
     # zowi: operated by Zowi, developer of competitor FoxGate. No key is sent.
     # First network source on new installs; other detection services remain fallbacks.
     # VPN/proxy/Tor flags block; hosting alone remains review evidence.
-    # Keep the conservative 60/minute cap; it is not a documented upstream allowance.
+    # auto: 80 % of the per-minute limit zowi announces in X-RateLimit-Limit (250 on 2026-11-22),
+    # 60/minute until it has announced one. A number sets a fixed local cap instead.
     zowi:
       enabled: true
-      minute-budget: 60
+      minute-budget: auto
     # Keyless HTTPS fallback; commercial use allowed. See docs/PROVIDER_RESILIENCE.md.
     ipquery:
       enabled: true

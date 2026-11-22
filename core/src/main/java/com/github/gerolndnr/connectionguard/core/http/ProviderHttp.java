@@ -54,6 +54,7 @@ public final class ProviderHttp {
     /** Same bounded transport/status handling for native plain-text services. */
     public static String readText(Request request, String provider) {
         try (Response response = CLIENT.newCall(request).execute()) {
+            AnnouncedLimits.observe(provider, response);
             if (response.code() == 429) {
                 long retry = retryAfter(response); boolean quota = false;
                 try {
