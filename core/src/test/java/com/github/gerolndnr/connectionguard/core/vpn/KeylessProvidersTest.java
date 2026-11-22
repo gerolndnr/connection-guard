@@ -70,7 +70,7 @@ class KeylessProvidersTest {
         String ip = "2001:0DB8:0:0:0:0:0:7";
         okhttp3.Request b = new BlackboxVpnProvider().request(ip), i = new IpCheckVpnProvider().request(ip), z = new ZowiVpnProvider().request(ip);
         assertEquals("https://blackbox.ipinfo.app/api/v1/2001:db8::7", b.url().toString());
-        assertEquals("https://api.zowi.gay/2001:db8::7", z.url().toString());
+        assertEquals("https://api.zowi.gay/2001:db8::7?feature=security", z.url().toString());
         assertEquals("2001:db8::7", i.url().queryParameter("ip")); assertTrue(i.url().encodedQuery().contains("%3A"));
         for (okhttp3.Request request : Arrays.asList(b, i, z)) { assertEquals("GET", request.method()); assertEquals(0, request.headers().size()); assertNull(request.body()); }
         assertThrows(IllegalArgumentException.class, () -> new BlackboxVpnProvider(okhttp3.HttpUrl.get("http://example.invalid/")));
