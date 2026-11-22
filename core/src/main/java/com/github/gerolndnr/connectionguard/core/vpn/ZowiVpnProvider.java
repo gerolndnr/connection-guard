@@ -17,7 +17,7 @@ public final class ZowiVpnProvider implements VpnProvider {
     @Override public boolean stableSourceId() { return true; }
     Request request(String ip) {
         return new Request.Builder().url((fixtureEndpoint == null ? ENDPOINT : fixtureEndpoint).newBuilder()
-                .addPathSegment(ProviderAddresses.compressed(ip)).build()).build();
+                .addPathSegment(ProviderAddresses.compressed(ip)).addQueryParameter("feature", "security").build()).build();
     }
     @Override public CompletableFuture<Optional<VpnResult>> getVpnResult(String ip) {
         return ProviderHttp.submit(() -> {

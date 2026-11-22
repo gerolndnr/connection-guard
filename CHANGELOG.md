@@ -10,6 +10,7 @@
 
 ### Provider responses
 
+- zowi is asked for its security-only answer (`feature=security`), the mode its operator introduced for detection. It carries the same VPN, proxy, Tor and hosting flags without geolocation and registry data, which Connection Guard never read. Parsing, order, budgets and deadlines are unchanged. In a check on 22 Nov 2026 (30 Tor exits, each asked in both modes), the median answer took 177 ms instead of 648 ms (90th percentile 211 ms instead of 1,201 ms; slowest 388 ms instead of 3,239 ms, above the 1,500 ms HTTP timeout), and the flags were identical for 30 of 30 addresses.
 - Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
 - Fixed: a vpnapi.io answer without a `security` verdict crashed its parser. It now counts as an invalid response from that source.
 
