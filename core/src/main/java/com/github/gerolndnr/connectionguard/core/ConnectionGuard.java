@@ -161,6 +161,7 @@ public class ConnectionGuard {
     private static boolean geoDisabled;
     public static boolean isGeoDisabled() { return geoDisabled; }
     private static int externalAttempts = 3;
+    private static long hedgeMillis;
     private static volatile com.github.gerolndnr.connectionguard.core.local.TorExitList tor;
     public static String torStatus() { return tor == null ? "Tor local layer unavailable" : tor.describe(); }
     public static void startTorRefresh() { if (tor != null) tor.start(); }
@@ -201,7 +202,7 @@ public class ConnectionGuard {
         com.github.gerolndnr.connectionguard.core.local.TorExitList nextTor = tor;
         if (nextTor == null && draft.dataPath != null) nextTor = new com.github.gerolndnr.connectionguard.core.local.TorExitList(draft.dataPath, logger);
         applySettings(draft.settings, stagedRules);
-        tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts;
+        tor = nextTor; failover = draft.failover; externalAttempts = draft.externalAttempts; hedgeMillis = draft.hedgeMillis;
         clearProxyCheckHandoffs();
         vpnProviders = draft.providers;
         selectedHealthIds = Collections.unmodifiableMap(new java.util.HashMap<>(draft.healthIds));
@@ -321,7 +322,7 @@ public class ConnectionGuard {
     public static synchronized CompletableFuture<VpnResult> getVpnResult(String address) {
         final String ipAddress = Exemptions.normalize(address);
         if (tor != null) { Optional<VpnResult> local = tor.lookup(ipAddress); if (local.isPresent()) return CompletableFuture.completedFuture(local.get()); }
-        final boolean ordered = failover; final int attempts = externalAttempts;
+        final boolean ordered = failover; final int attempts = externalAttempts; final long hedge = hedgeMillis;
         final List<VpnProvider> providers = vpnProviders == null ? Collections.emptyList() : new ArrayList<>(vpnProviders);
         final int threshold = requiredPositiveFlags;
         final long started = System.nanoTime();
@@ -334,7 +335,7 @@ public class ConnectionGuard {
             if (!runtime.isOpen() || elapsed(started) >= limits.deadlineMillis) return CompletableFuture.completedFuture(timedOut.get());
             if (cached.isPresent()) { cached.get().setFromCache(true); return CompletableFuture.completedFuture(cached.get()); }
             CompletableFuture<?> completed;
-            if (ordered) completed = failoverChain(ipAddress, providers, sources, runtime, started, 0, 0, attempts);
+            if (ordered) completed = failoverChain(ipAddress, providers, sources, runtime, started, 0, 0, attempts, hedge);
             else {
                 List<CompletableFuture<?>> jobs = new ArrayList<>();
                 for (int i = 0; i < providers.size(); i++) jobs.add(vpnSource(ipAddress, providers.get(i), i, sources, runtime, started));
@@ -354,15 +355,41 @@ public class ConnectionGuard {
                 cutoff -> aggregate(ipAddress, providers, threshold, sources, started, FailureReason.TIMEOUT, cutoff, ordered));
     }
 
-    private static CompletableFuture<Void> failoverChain(String ip, List<VpnProvider> providers, AtomicReferenceArray<CompletedSource> sources,
-            LookupRuntime runtime, long started, int index, int sent, int maximum) {
-        if (index >= providers.size() || sent >= maximum || elapsed(started) >= runtime.getSettings().deadlineMillis) return CompletableFuture.completedFuture(null);
+    /**
+     * Sources in order; the first concrete voting answer decides. A network source that has not answered after `hedge`
+     * milliseconds is joined by the next one instead of being waited out, so hanging services cost about one HTTP
+     * timeout plus a few hedge steps rather than one timeout each. Completes true once an answer decided, false when
+     * every started source finished without one.
+     */
+    private static CompletableFuture<Boolean> failoverChain(String ip, List<VpnProvider> providers, AtomicReferenceArray<CompletedSource> sources,
+            LookupRuntime runtime, long started, int index, int sent, int maximum, long hedge) {
+        if (index >= providers.size() || sent >= maximum || elapsed(started) >= runtime.getSettings().deadlineMillis) return CompletableFuture.completedFuture(false);
         VpnProvider provider = providers.get(index);
-        return vpnSource(ip, provider, index, sources, runtime, started).thenCompose(completed -> {
-            if (completed.vote.isVoting() && completed.vote.getStatus() != ProviderVote.Status.UNKNOWN) return CompletableFuture.completedFuture(null);
-            boolean transmitted = completed.attempted && !provider.isLocal();
-            return failoverChain(ip, providers, sources, runtime, started, index + 1, sent + (transmitted ? 1 : 0), maximum);
+        CompletableFuture<Boolean> result = new CompletableFuture<>();
+        java.util.concurrent.atomic.AtomicReference<CompletableFuture<Boolean>> next = new java.util.concurrent.atomic.AtomicReference<>();
+        CompletableFuture<CompletedSource> call = vpnSource(ip, provider, index, sources, runtime, started);
+        // Starts the rest of the chain once; it settles this step when it decided or when this source also gave nothing.
+        java.util.function.IntConsumer advance = transmitted -> {
+            CompletableFuture<Boolean> rest = new CompletableFuture<>();
+            if (!next.compareAndSet(null, rest)) return;
+            failoverChain(ip, providers, sources, runtime, started, index + 1, sent + transmitted, maximum, hedge).whenComplete((decided, error) -> {
+                // Marked done first: whichever of the two sides finishes last then sees the other one finished.
+                rest.complete(Boolean.TRUE.equals(decided));
+                if (Boolean.TRUE.equals(decided)) result.complete(true);
+                else if (call.isDone()) result.complete(false);
+            });
+        };
+        call.whenComplete((completed, error) -> {
+            if (completed != null && completed.vote.isVoting() && completed.vote.getStatus() != ProviderVote.Status.UNKNOWN) { result.complete(true); return; }
+            CompletableFuture<Boolean> rest = next.get();
+            if (rest == null) advance.accept(completed != null && completed.attempted && !provider.isLocal() ? 1 : 0);
+            else if (rest.isDone()) result.complete(false);
         });
+        if (hedge > 0 && !provider.isLocal() && !call.isDone()) {
+            try { runtime.schedule(() -> { if (!call.isDone()) advance.accept(1); }, hedge); }
+            catch (java.util.concurrent.RejectedExecutionException closed) { /* the chain continues when the call settles */ }
+        }
+        return result;
     }
     private static CompletableFuture<CompletedSource> vpnSource(String ipAddress, VpnProvider provider, int index,
             AtomicReferenceArray<CompletedSource> sources, LookupRuntime runtime, long started) {
@@ -646,10 +673,11 @@ public class ConnectionGuard {
         policyContextChanged();
     }
 
-    public static synchronized void setFailover(boolean enabled, int attempts) {
+    public static synchronized void setFailover(boolean enabled, int attempts) { setFailover(enabled, attempts, 0); }
+    public static synchronized void setFailover(boolean enabled, int attempts, long hedge) {
         decisionLeases.requireIdle();
-        if (enabled && requiredPositiveFlags != 1 || attempts < 1 || attempts > 16) throw new IllegalArgumentException("Invalid failover policy.");
-        failover = enabled; externalAttempts = attempts;
+        if (enabled && requiredPositiveFlags != 1 || attempts < 1 || attempts > 16 || hedge < 0 || hedge > 5000) throw new IllegalArgumentException("Invalid failover policy.");
+        failover = enabled; externalAttempts = attempts; hedgeMillis = hedge;
         policyContextChanged();
     }
 

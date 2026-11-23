@@ -8,6 +8,10 @@
 - A single slow answer no longer pauses a service for 30 seconds. Until now one HTTP timeout opened that source's circuit at once, so in a join wave one IPQuery answer over 1,500 ms left most later players unchecked. Timeouts now count toward `lookup.circuit.failures` (3 in a row by default) like other errors. Explicit rate limits (HTTP 429) and used-up quotas still pause the source at once. This applies to existing files too.
 - New: `minute-budget: auto` follows 80 % of the per-minute limit a service announces in `X-RateLimit-Limit` (at most 1,000), and the built-in cap until it has announced one. New files use it for zowi, which announced 250 a minute on 22 Nov 2026, so the local cap becomes 200 instead of 60. A number still sets a fixed cap, so existing files are unchanged.
 
+### Hanging services
+
+- A login no longer waits out one HTTP timeout per hanging service. The VPN check asked its services strictly one after another, so with zowi, Blackbox and IPQuery all hanging a home player waited 3 × 1.5 s = 4.5 s before getting in under the OPEN failure policy (measured on 22 Nov 2026, the same in 0.6.1). A service that has not answered after `provider.vpn-failover.hedge-ms` (default 300 ms) is now joined by the next one; the first answer still decides. With every service hanging the wait drops to about 2.1 s, and a slow first service no longer delays a fast second one. The setting applies to existing files too; 0 restores the old order.
+
 ### Provider responses
 
 - zowi is asked for its security-only answer (`feature=security`), the mode its operator introduced for detection. It carries the same VPN, proxy, Tor and hosting flags without geolocation and registry data, which Connection Guard never read. Parsing, order, budgets and deadlines are unchanged. In a check on 22 Nov 2026 (30 Tor exits, each asked in both modes), the median answer took 177 ms instead of 648 ms (90th percentile 211 ms instead of 1,201 ms; slowest 388 ms instead of 3,239 ms, above the 1,500 ms HTTP timeout), and the flags were identical for 30 of 30 addresses.

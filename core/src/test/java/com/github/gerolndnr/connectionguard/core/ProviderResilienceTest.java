@@ -26,6 +26,49 @@ class ProviderResilienceTest {
     private CompletableFuture<Optional<VpnResult>> failure(FailureReason reason) {
         CompletableFuture<Optional<VpnResult>> f = new CompletableFuture<>(); f.completeExceptionally(new LookupException(reason)); return f;
     }
+    @Test void hedgedChainWaitsOutOneTimeoutNotOnePerHangingSource() throws Exception {
+        AtomicInteger asked = new AtomicInteger();
+        // Like a real service behind its 1000 ms HTTP timeout: no answer, then a TIMEOUT failure.
+        VpnProvider hanging = ip -> { asked.incrementAndGet(); return ProviderHttp.submit(() -> {
+            try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            throw new LookupException(FailureReason.TIMEOUT); }); };
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(hanging, hanging, hanging)));
+        ConnectionGuard.setFailover(true, 3, 100);
+        long start = System.nanoTime();
+        VpnResult result = ConnectionGuard.getVpnResult("192.0.2.80").get();
+        long took = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+        assertEquals(ProviderVote.Status.UNKNOWN, result.getStatus()); assertEquals(3, asked.get());
+        // One 1000 ms HTTP timeout plus two 100 ms hedge steps; one after another it ran into the 2000 ms deadline.
+        assertTrue(took >= 1000 && took < 1600, "took " + took + " ms");
+    }
+    @Test void hedgedChainTakesTheBackupWhenThePrimaryIsSlow() throws Exception {
+        AtomicInteger backup = new AtomicInteger();
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(ip -> new CompletableFuture<>(), ip -> {
+            backup.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); })));
+        ConnectionGuard.setFailover(true, 3, 100);
+        long start = System.nanoTime();
+        VpnResult result = ConnectionGuard.getVpnResult("192.0.2.81").get();
+        assertEquals(ProviderVote.Status.NEGATIVE, result.getStatus()); assertEquals(1, backup.get());
+        assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) < 600);
+    }
+    @Test void hedgedChainLeavesTheBackupAloneWhenThePrimaryAnswersInTime() throws Exception {
+        AtomicInteger backup = new AtomicInteger();
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(ip -> ProviderHttp.submit(() -> {
+            try { Thread.sleep(20); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            return Optional.of(new VpnResult(ip, true)); }),
+                ip -> { backup.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); })));
+        ConnectionGuard.setFailover(true, 3, 300);
+        assertTrue(ConnectionGuard.getVpnResult("192.0.2.82").get().isVpn());
+        Thread.sleep(400);
+        assertEquals(0, backup.get());
+    }
+    @Test void hedgedChainStillTriesTheRestAfterTheHedgedSourceFails() throws Exception {
+        AtomicInteger last = new AtomicInteger();
+        ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(ip -> new CompletableFuture<>(), ip -> failure(FailureReason.NETWORK), ip -> {
+            last.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, true))); })));
+        ConnectionGuard.setFailover(true, 3, 100);
+        assertTrue(ConnectionGuard.getVpnResult("192.0.2.83").get().isVpn()); assertEquals(1, last.get());
+    }
     @Test void validNegativeStopsWithoutSendingToBackupAndIsCached() throws Exception {
         AtomicInteger sent = new AtomicInteger(), backup = new AtomicInteger();
         ConnectionGuard.setVpnProviders(new ArrayList<>(Arrays.asList(ip -> { sent.incrementAndGet(); return CompletableFuture.completedFuture(Optional.of(new VpnResult(ip, false))); },
