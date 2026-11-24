@@ -210,6 +210,7 @@ provider:
     # Milliseconds before a service that has not answered yet is joined by the next one in the order (0: one after
     # another). The first answer still decides. With every service hanging, a login waits about one HTTP timeout
     # plus a few of these steps instead of one timeout per service. 300 is about twice zowi's usual slowest answers.
+    # New-install template only: an existing file without this key keeps 0 until you add it.
     hedge-ms: 300
   # Network attempts per lookup, bounded by the original whole-login deadline (1..16).
   # Locally skipped quotas/circuits and local list checks do not consume this limit.

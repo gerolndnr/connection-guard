@@ -10,7 +10,7 @@
 
 ### Hanging services
 
-- A login no longer waits out one HTTP timeout per hanging service. The VPN check asked its services strictly one after another, so with zowi, Blackbox and IPQuery all hanging a home player waited 3 × 1.5 s = 4.5 s before getting in under the OPEN failure policy (measured on 22 Nov 2026, the same in 0.6.1). A service that has not answered after `provider.vpn-failover.hedge-ms` (default 300 ms) is now joined by the next one; the first answer still decides. With every service hanging the wait drops to about 2.1 s, and a slow first service no longer delays a fast second one. The setting applies to existing files too; 0 restores the old order.
+- A login no longer waits out one HTTP timeout per hanging service. The VPN check asked its services strictly one after another, so with zowi, Blackbox and IPQuery all hanging a home player waited 3 × 1.5 s = 4.5 s before getting in under the OPEN failure policy (measured on 22 Nov 2026, the same in 0.6.1). A service that has not answered after `provider.vpn-failover.hedge-ms` (default 300 ms) is now joined by the next one; the first answer still decides. With every service hanging the wait drops to about 2.1 s, and a slow first service no longer delays a fast second one. New files get 300 ms; existing files keep asking one after another until `hedge-ms` is added (0 is the old order).
 
 ### Provider responses
 

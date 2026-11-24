@@ -10,8 +10,11 @@ public final class VpnFailoverSettings {
     public static final class InvalidOrder extends IllegalArgumentException {
         public InvalidOrder() { super("Provider order contains invalid, unknown or duplicate source IDs; values redacted."); }
     }
-    /** About twice zowi's p95 in its security-only mode (211 ms over 30 Tor exits, 22 Nov 2026): rarely fires while it answers. */
-    public static final int DEFAULT_HEDGE_MILLIS = 300;
+    /** New files (config.yml template): about twice zowi's p95 in its security-only mode (211 ms over 30 Tor exits,
+     *  22 Nov 2026), so it rarely fires while zowi answers. */
+    public static final int TEMPLATE_HEDGE_MILLIS = 300;
+    /** Existing files without the key keep asking one service after another until the operator opts in. */
+    public static final int MISSING_HEDGE_MILLIS = 0;
     public final boolean enabled;
     public final int maxExternalAttempts;
     /** Milliseconds after which a still unanswered network source is joined by the next one (0: strictly one after another). */
@@ -27,7 +30,7 @@ public final class VpnFailoverSettings {
         maxExternalAttempts = GuardSettings.integer(value, "provider.max-external-attempts", 16);
         if (maxExternalAttempts < 1 || maxExternalAttempts > 16)
             throw new IllegalArgumentException("provider.max-external-attempts must be 1..16.");
-        hedgeMillis = GuardSettings.integer(value, "provider.vpn-failover.hedge-ms", DEFAULT_HEDGE_MILLIS);
+        hedgeMillis = GuardSettings.integer(value, "provider.vpn-failover.hedge-ms", MISSING_HEDGE_MILLIS);
         if (hedgeMillis < 0 || hedgeMillis > 5000)
             throw new IllegalArgumentException("provider.vpn-failover.hedge-ms must be 0..5000.");
         if (providerKeys.stream().anyMatch(id -> id == null || !id.matches("[a-zA-Z0-9_.-]{1,64}")))
