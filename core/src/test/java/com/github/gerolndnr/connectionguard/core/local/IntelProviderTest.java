@@ -42,7 +42,9 @@ class IntelProviderTest {
         });server.start();generation(now-1000);
     }
     @AfterEach void stop(){if(server!=null)server.stop(0);client.dispatcher().executorService().shutdownNow();client.connectionPool().evictAll();}
-    private IntelSettings settings(String relay){Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.local.connectionguard-intel.relay",relay);return new IntelSettings(v::get);}
+    // Most tests here describe review-only hosting; the blocking default has its own test.
+    private IntelSettings settings(String relay){return settings(relay,"REVIEW");}
+    private IntelSettings settings(String relay,String hosting){Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.local.connectionguard-intel.relay",relay);v.put("provider.local.connectionguard-intel.hosting",hosting);return new IntelSettings(v::get);}
     private void generation(long asOf)throws Exception{
         manifest=new JsonObject();manifest.addProperty("schema",1);manifest.addProperty("evaluation_only",false);manifest.addProperty("as_of",Instant.ofEpochMilli(asOf).toString());JsonObject lists=new JsonObject();
         Map<String,String> networks=new LinkedHashMap<>();networks.put("vpn","192.0.2.0/28\n2001:db8:1::/48\n");networks.put("tor","192.0.2.32/28\n");networks.put("relay","192.0.2.64/28\n192.0.2.0/28\n");networks.put("hosting","192.0.2.96/28\n");
@@ -238,6 +240,18 @@ class IntelProviderTest {
         assertTrue(strict.isVpn());assertTrue(strict.getVpnProviderName().get().startsWith("Gaming booster node (Connection Guard Intel, "));
         v.put("provider.local.connectionguard-intel.booster","MAYBE");
         assertThrows(IllegalArgumentException.class,()->new IntelSettings(v::get));
+    }
+    @Test void hostingBlocksByDefaultAndAllowedRelaysStayAllowed() throws Exception {
+        update();
+        IntelSnapshot blocking=new IntelDataStore(directory,settings("ALLOW",null),signer.getPublic()).load(now);
+        assertEquals(IntelSettings.Hosting.BLOCK,blocking.settings.hosting);
+        VpnResult hosting=blocking.vpn("192.0.2.97",now);assertTrue(hosting.isVpn());
+        assertTrue(hosting.getVpnProviderName().get().startsWith("Listed as [HOSTING] (Connection Guard Intel, "));
+        assertEquals(ProviderVote.Status.NEGATIVE,blocking.vpn("192.0.2.65",now).getStatus());
+        assertEquals(ProviderVote.Status.UNKNOWN,blocking.vpn("203.0.113.1",now).getStatus());
+        assertTrue(blocking.describe(now).contains("hosting=BLOCK"));
+        IntelSnapshot review=new IntelDataStore(directory,settings("ALLOW","REVIEW"),signer.getPublic()).load(now);
+        assertEquals(ProviderVote.Status.UNKNOWN,review.vpn("192.0.2.97",now).getStatus());
     }
     @Test void manifestsWithoutLabelsStayAsBefore() throws Exception {
         IntelSnapshot snapshot=update();

@@ -130,6 +130,9 @@ public final class IntelSnapshot {
         boolean booster=found.contains(DetectionDetails.Label.BOOSTER);
         boolean listed=types.containsKey(DetectionDetails.Type.VPN)||types.containsKey(DetectionDetails.Type.TOR)||types.containsKey(DetectionDetails.Type.PROXY);
         boolean positive=listed||settings.relay==IntelSettings.Relay.VPN&&types.containsKey(DetectionDetails.Type.RELAY)
+                // A booster node or an allowed relay inside a hosting range keeps its own setting.
+                ||settings.hosting==IntelSettings.Hosting.BLOCK&&types.containsKey(DetectionDetails.Type.HOSTING)&&!booster
+                        &&!(settings.relay==IntelSettings.Relay.ALLOW&&types.containsKey(DetectionDetails.Type.RELAY))
                 ||settings.booster==IntelSettings.Booster.VPN&&booster;
         boolean relayAllowed=!positive&&types.containsKey(DetectionDetails.Type.RELAY)&&settings.relay==IntelSettings.Relay.ALLOW;
         boolean boosterAllowed=!positive&&booster&&settings.booster==IntelSettings.Booster.ALLOW;
@@ -138,5 +141,5 @@ public final class IntelSnapshot {
         if(!positive&&!relayAllowed&&!boosterAllowed)result.setUnknown(ready==FailureReason.NONE?FailureReason.NO_EVIDENCE:ready);
         result.setSourceVersion(generation.equals("missing")?null:generation);result.setValidUntil(ready==FailureReason.NONE?validUntil():0);return result;
     }
-    public String describe(long now){return ID+" state="+readiness(now)+" as_of="+(asOf==0?"UNKNOWN":Instant.ofEpochMilli(asOf))+" generation="+generation+" relay="+settings.relay+" booster="+settings.booster+" fetchAgeMs="+(fetchedAt==0?"UNKNOWN":Math.max(0,now-fetchedAt))+" entries={VPN="+recordCount(LocalSource.Kind.VPN)+", TOR="+recordCount(LocalSource.Kind.TOR)+", RELAY="+recordCount(LocalSource.Kind.RELAY)+", HOSTING="+recordCount(LocalSource.Kind.HOSTING)+", PROXY="+recordCount(LocalSource.Kind.PROXY)+"}"+(labels.isEmpty()?"":" labels={BOOSTER="+recordCount(DetectionDetails.Label.BOOSTER)+", MOBILE="+recordCount(DetectionDetails.Label.MOBILE)+", SHARED="+recordCount(DetectionDetails.Label.SHARED)+"}")+" PROXY="+proxyState+(proxyState==ProxyState.SKIPPED?" (optional list rejected/unavailable; base lists retained)":"");}
+    public String describe(long now){return ID+" state="+readiness(now)+" as_of="+(asOf==0?"UNKNOWN":Instant.ofEpochMilli(asOf))+" generation="+generation+" relay="+settings.relay+" hosting="+settings.hosting+" booster="+settings.booster+" fetchAgeMs="+(fetchedAt==0?"UNKNOWN":Math.max(0,now-fetchedAt))+" entries={VPN="+recordCount(LocalSource.Kind.VPN)+", TOR="+recordCount(LocalSource.Kind.TOR)+", RELAY="+recordCount(LocalSource.Kind.RELAY)+", HOSTING="+recordCount(LocalSource.Kind.HOSTING)+", PROXY="+recordCount(LocalSource.Kind.PROXY)+"}"+(labels.isEmpty()?"":" labels={BOOSTER="+recordCount(DetectionDetails.Label.BOOSTER)+", MOBILE="+recordCount(DetectionDetails.Label.MOBILE)+", SHARED="+recordCount(DetectionDetails.Label.SHARED)+"}")+" PROXY="+proxyState+(proxyState==ProxyState.SKIPPED?" (optional list rejected/unavailable; base lists retained)":"");}
 }

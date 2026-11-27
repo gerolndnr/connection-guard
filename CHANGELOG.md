@@ -2,6 +2,7 @@
 
 ## Unreleased — 0.6.2
 
+- Changed: Connection Guard Intel's privacy-relay and hosting networks now count as VPN by default. Cloudflare WARP is free and one click away, so `relay: ALLOW` let a banned player straight back in; a normal player switches it off as easily. `provider.local.connectionguard-intel.relay` defaults to `VPN` (new installations and files without the key; a `relay: ALLOW` already in a config file is kept). The new `provider.local.connectionguard-intel.hosting` defaults to `BLOCK`, also on existing installations with Intel enabled; `REVIEW` restores review-only hosting, including Blackbox confirmation. An allowed relay or booster node inside a hosting range keeps its own setting. Existing installations see one console notice.
 - Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
 ### Provider responses
 
