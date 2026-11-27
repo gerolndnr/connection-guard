@@ -39,6 +39,8 @@ public class ConnectionGuardVelocityListener {
                 || (geo.isPresent() && geo.get().getEffect() == AccessRule.Effect.DENY)) {
             try (DecisionCapture decision = DecisionCapture.begin(DecisionObservation.Platform.VELOCITY,
                     DecisionObservation.Phase.PRE_AUTHENTICATION, ip, null, DecisionObservation.IdentityTrust.UNTRUSTED)) {
+                // Reported, unauthenticated name for notifications only; the UUID stays untrusted here.
+                decision.playerName(event.getUsername());
                 decision.manual(vpn, geo);
                 if (!decision.observe()) {
                     event.setResult(PreLoginEvent.PreLoginComponentResult.denied(Component.text(decision.messages().getString("messages.access-denied"))));

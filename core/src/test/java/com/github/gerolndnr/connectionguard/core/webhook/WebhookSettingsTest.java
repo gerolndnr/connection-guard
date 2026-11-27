@@ -21,7 +21,7 @@ class WebhookSettingsTest {
     }
     @Test void completeRecipientDraftFingerprintChangesForPrivacyEventsModeOrEndpoint() {
         Map<String,Object> fields=enabled();fields.put("behavior.vpn.send-webhook.format","EMBED");String base=new WebhookSettings(fields::get).fingerprint();
-        for(Map.Entry<String,Object> option:Arrays.asList(new AbstractMap.SimpleEntry<String,Object>("include-ip",true),new AbstractMap.SimpleEntry<String,Object>("events",Arrays.asList("UNKNOWN")),new AbstractMap.SimpleEntry<String,Object>("url","https://example.invalid/replaced"),new AbstractMap.SimpleEntry<String,Object>("cooldown-ms",2000))){
+        for(Map.Entry<String,Object> option:Arrays.asList(new AbstractMap.SimpleEntry<String,Object>("include-ip",true),new AbstractMap.SimpleEntry<String,Object>("include-player",true),new AbstractMap.SimpleEntry<String,Object>("events",Arrays.asList("UNKNOWN")),new AbstractMap.SimpleEntry<String,Object>("url","https://example.invalid/replaced"),new AbstractMap.SimpleEntry<String,Object>("cooldown-ms",2000))){
             Map<String,Object> changed=new HashMap<>(fields);changed.put("behavior.vpn.send-webhook."+option.getKey(),option.getValue());assertNotEquals(base,new WebhookSettings(changed::get).fingerprint());
         }
         fields.put("operation.mode","OBSERVE");assertNotEquals(base,new WebhookSettings(fields::get).fingerprint());

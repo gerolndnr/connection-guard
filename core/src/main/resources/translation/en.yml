@@ -100,6 +100,7 @@ webhook:
     decision: Decision
     checks: Checks
     address: Connection address (explicit opt-in)
+    player: Player (explicit opt-in)
     votes: Observed voting sources
     rules: Selected / unresolved rules
     admission: External admission checks
@@ -141,7 +142,12 @@ webhook:
     Source expiry: {10}'
   address-included: included by opt-in
   address-redacted: redacted
-  footer: 'Sources shown: {0}/{1}. Address {2}; names/UUIDs/provider text omitted. Best effort; no delivery retry.'
+  player: 'Reported name: {0}
+
+    Trusted UUID: {1}'
+  player-included: included by opt-in
+  player-redacted: omitted
+  footer: 'Sources shown: {0}/{1}. Address {2}; player name/UUID {3}; provider text omitted. Best effort; no delivery retry.'
   not-supplied: not supplied
   source-label: '{0} source: {1}'
 cloud:

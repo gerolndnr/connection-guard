@@ -125,8 +125,10 @@ behavior:
       format: EMBED
       # TEXT: customize messages.vpn-webhook / messages.geo-webhook in translation/<message-language>.yml.
       # Variables: %NAME%, %UUID%, %IS_VPN%, %IP%, %LOCATION%, %COUNTRY%, %CITY%, %ISP%, %TIME%.
-      # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
+      # Rich payloads omit names/UUIDs/provider text. IP and player inclusion require explicit opt-in.
       include-ip: false
+      # EMBED only: show the reported player name and trusted UUID, e.g. to see who a manual DENY rule refused.
+      include-player: false
       events: [FLAG, DENY, ERROR]
       # Optional UNKNOWN event also reports allowed incomplete checks.
       cooldown-ms: 1000
@@ -156,8 +158,10 @@ behavior:
       format: EMBED
       # TEXT: customize messages.vpn-webhook / messages.geo-webhook in translation/<message-language>.yml.
       # Variables: %NAME%, %UUID%, %IS_VPN%, %IP%, %LOCATION%, %COUNTRY%, %CITY%, %ISP%, %TIME%.
-      # Rich payloads omit names/UUIDs/provider text. IP inclusion requires explicit opt-in.
+      # Rich payloads omit names/UUIDs/provider text. IP and player inclusion require explicit opt-in.
       include-ip: false
+      # EMBED only: show the reported player name and trusted UUID, e.g. to see who a manual DENY rule refused.
+      include-player: false
       events: [FLAG, DENY, ERROR]
       # Optional UNKNOWN event also reports allowed incomplete checks.
       cooldown-ms: 1000

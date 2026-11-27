@@ -101,6 +101,7 @@ webhook:
     decision: Entscheidung
     checks: Prüfungen
     address: Verbindungsadresse (bewusst aktiviert)
+    player: Spieler (bewusst aktiviert)
     votes: Beobachtete abstimmende Quellen
     rules: Ausgewählte / ungeklärte Regeln
     admission: Externe Zugangsprüfungen
@@ -144,7 +145,12 @@ webhook:
     Gültig bis: {10}'
   address-included: bewusst eingeblendet
   address-redacted: ausgeblendet
-  footer: 'Quellen: {0}/{1}. Adresse {2}; Namen/UUIDs/Providertexte ausgelassen. Bestmöglicher Versand; keine Wiederholung.'
+  player: 'Gemeldeter Name: {0}
+
+    Vertrauenswürdige UUID: {1}'
+  player-included: bewusst eingeblendet
+  player-redacted: ausgeblendet
+  footer: 'Quellen: {0}/{1}. Adresse {2}; Spielername/UUID {3}; Providertexte ausgelassen. Bestmöglicher Versand; keine Wiederholung.'
   not-supplied: nicht angegeben
   source-label: '{0}-Quelle: {1}'
 cloud:
