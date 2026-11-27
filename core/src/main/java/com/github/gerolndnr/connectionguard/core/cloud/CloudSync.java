@@ -204,12 +204,12 @@ public final class CloudSync {
     }
     private static boolean hasNames(JsonObject body) {
         if (body == null || !body.has("events")) return false;
-        for (com.google.gson.JsonElement e : body.getAsJsonArray("events")) if (e.getAsJsonObject().has("name")) return true;
+        for (JsonElement e : body.getAsJsonArray("events")) if (e.getAsJsonObject().has("name")) return true;
         return false;
     }
     private static void stripNames(JsonObject body) {
         if (body == null || !body.has("events")) return;
-        for (com.google.gson.JsonElement e : body.getAsJsonArray("events")) e.getAsJsonObject().remove("name");
+        for (JsonElement e : body.getAsJsonArray("events")) e.getAsJsonObject().remove("name");
     }
     private static void stripHints(JsonObject status) {
         status.remove("local_address_logins");

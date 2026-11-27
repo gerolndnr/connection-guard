@@ -1,8 +1,8 @@
 package com.github.gerolndnr.connectionguard.core.cloud;
 
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
-import com.github.gerolndnr.connectionguard.api.v1.DecisionObserver;
 import com.github.gerolndnr.connectionguard.api.v1.DetectionMetadata;
+import com.github.gerolndnr.connectionguard.core.extensions.NamedDecisionObserver;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.*;
@@ -12,7 +12,7 @@ import java.util.*;
  * individual decisions only after the server confirmed the install is linked (acceptEvents).
  * Runs on the observer workers, never on a login thread.
  */
-final class CloudRecorder implements com.github.gerolndnr.connectionguard.core.extensions.NamedDecisionObserver {
+final class CloudRecorder implements NamedDecisionObserver {
     static final int MAX_BUFFERED_EVENTS = 5000;
     private static final int MAX_LATENCY_SAMPLES = 2048;
 
