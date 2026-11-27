@@ -20,6 +20,8 @@ public final class WebhookSettings {
     }
     public boolean hasEmbeds() { return vpn.enabled && vpn.format == Format.EMBED || geo.enabled && geo.format == Format.EMBED; }
     public boolean hasText() { return vpn.isLegacyText() || geo.isLegacyText(); }
+    /** An enabled EMBED destination that opted in to the reported player name and trusted UUID. */
+    public boolean hasPlayerEmbeds() { return vpn.includesPlayer() || geo.includesPlayer(); }
     public String fingerprint() { return fingerprint; }
     static String digest(String value) {
         try {
@@ -28,7 +30,7 @@ public final class WebhookSettings {
         } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 unavailable."); }
     }
     public static final class Destination {
-        public final boolean enabled, includeIp;
+        public final boolean enabled, includeIp, includePlayer;
         public final Format format;
         public final Set<Event> events;
         public final int cooldownMillis;
@@ -39,6 +41,7 @@ public final class WebhookSettings {
             try { format = Format.valueOf(GuardSettings.string(values,path+"format","TEXT").toUpperCase(Locale.ROOT)); }
             catch (IllegalArgumentException invalid) { throw new IllegalArgumentException(path+"format must be TEXT or EMBED (value redacted)."); }
             includeIp = GuardSettings.bool(values,path+"include-ip",false);
+            includePlayer = GuardSettings.bool(values,path+"include-player",false);
             cooldownMillis = GuardSettings.integer(values,path+"cooldown-ms",1000);
             if (cooldownMillis < 0 || cooldownMillis > 60000) throw new IllegalArgumentException("Webhook cooldown must be 0..60000 ms.");
             Object raw = values.apply(path+"events"); EnumSet<Event> selected = EnumSet.noneOf(Event.class);
@@ -61,7 +64,8 @@ public final class WebhookSettings {
             }
         }
         String endpoint() { return url; }
-        private String signature() { return enabled+":"+format+":"+includeIp+":"+cooldownMillis+":"+events+":"+url; }
+        private String signature() { return enabled+":"+format+":"+includeIp+":"+includePlayer+":"+cooldownMillis+":"+events+":"+url; }
         public boolean isLegacyText() { return enabled && format == Format.TEXT; }
+        boolean includesPlayer() { return enabled && format == Format.EMBED && includePlayer; }
     }
 }

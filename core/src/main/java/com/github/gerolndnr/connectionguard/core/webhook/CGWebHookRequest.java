@@ -21,11 +21,18 @@ public class CGWebHookRequest {
     }
     static CGWebHookRequest embedded(DecisionObservation event, Set<Scope> scopes, boolean includeIp, int threshold,
                                            com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages) {
+        return embedded(event, scopes, includeIp, false, threshold, messages, WebhookContext.EMPTY);
+    }
+    /** Player name/UUID appear only when every recipient of this message opted in with include-player. */
+    static CGWebHookRequest embedded(DecisionObservation event, Set<Scope> scopes, boolean includeIp, boolean includePlayer, int threshold,
+                                           com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages, WebhookContext context) {
         if (threshold<1 || threshold>16) throw new IllegalArgumentException("Invalid captured VPN minimum.");
         String title = messages.getString(event.getOutcome()==Outcome.DENY ? "webhook.title-deny" : event.getOutcome()==Outcome.ERROR ? "webhook.title-error" : "webhook.title-allow");
         int color=event.getOutcome()==Outcome.DENY ? 0xD94B4B : event.getOutcome()==Outcome.ERROR ? 0xE3A328 : 0x3886C7;
         Embed embed=new Embed(title,messages.getString("webhook.description"),color,event.getObservedAt());
         embed.add(messages.getString("webhook.field.decision"), messages.text("webhook.decision",event.getOutcome(),event.getReason(),event.getPlatform(),event.getPhase(),event.getMode(),event.hasProcessingError(),scopes));
+        if (includePlayer) embed.add(messages.getString("webhook.field.player"),
+                messages.text("webhook.player",context.playerName==null?"UNKNOWN":markdownLiteral(context.playerName),WebhookTemplate.trustedUuid(event)));
         embed.add(messages.getString("webhook.field.checks"), messages.text("webhook.checks",event.getVpnCheck(),threshold,event.getGeoCheck(),event.getIdentityTrust(),event.getDurationMillis()));
         if (includeIp) embed.add(messages.getString("webhook.field.address"),event.getIp());
         int positive=0,negative=0,unknown=0;
@@ -64,9 +71,16 @@ public class CGWebHookRequest {
             shownSources++;
         }
         embed.footer=new Footer(messages.text("webhook.footer",shownSources,event.getSources().size(),
-                messages.getString(includeIp?"webhook.address-included":"webhook.address-redacted")));
+                messages.getString(includeIp?"webhook.address-included":"webhook.address-redacted"),
+                messages.getString(includePlayer?"webhook.player-included":"webhook.player-redacted")));
 
         return new CGWebHookRequest(embed);
+    }
+    /** A reported name is shown as typed, never as Discord formatting or a link. */
+    static String markdownLiteral(String value) {
+        StringBuilder out=new StringBuilder();
+        for(char c:value.toCharArray()) { if("\\*_~`|>[]()#<@:".indexOf(c)>=0) out.append('\\'); out.append(c); }
+        return out.toString();
     }
     private static String known(Object value) { return value==null?"UNKNOWN":value.toString(); }
     static String safeText(String raw,int limit) {

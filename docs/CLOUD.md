@@ -146,7 +146,7 @@ existing installations must opt in. Daily background HTTPS downloads contact
 https://intel.connectionguard.net/ without transmitting player IPs, UUIDs or names.
 All four lists activate together after ECDSA P-256 signature, size and SHA-256
 verification. Missing/unlisted/stale data is UNKNOWN (default72h); VPN/TOR blocks,
-HOSTING only enriches, and RELAY defaults to ALLOW with a separate VPN option.
+RELAY (Cloudflare WARP, iCloud Private Relay) and HOSTING count as VPN by default (`relay: VPN`, `hosting: BLOCK`); `relay: ALLOW` and `hosting: REVIEW` restore the earlier behaviour.
 Endpoint/key are bundled and cannot be managed remotely. See
 [local setup, precedence, attribution and test boundaries](LOCAL_DATA.md#built-in-connection-guard-intel-060).
 Cloud source `connectionguard-intel` uses the coordinated optional source fields

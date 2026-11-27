@@ -13,7 +13,7 @@ public final class WebhookTemplate {
     public static String render(String template,DecisionObservation event,WebhookContext context) {
         Map<String,String> values=new HashMap<>();
         values.put("NAME",known(context.playerName));values.put("IP",event.getIp());
-        values.put("UUID",event.getReason()==Reason.IDENTITY_UNAVAILABLE ? "UNKNOWN" : event.getTrustedUuid().map(UUID::toString).orElse("UNKNOWN"));
+        values.put("UUID",trustedUuid(event));
         values.put("IS_VPN",event.getVpnCheck()==Check.POSITIVE ? "true" : event.getVpnCheck()==Check.NEGATIVE ? "false" : "UNKNOWN");
         String country=context.country;
         if(country==null) {
@@ -30,6 +30,10 @@ public final class WebhookTemplate {
         Matcher matcher=VARIABLES.matcher(template);StringBuffer result=new StringBuffer();
         while(matcher.find())matcher.appendReplacement(result,Matcher.quoteReplacement(values.get(matcher.group(1))));
         matcher.appendTail(result);return result.toString();
+    }
+    /** Captured trusted platform/forwarded UUID; UNKNOWN if absent, untrusted or identity proof was lost. */
+    static String trustedUuid(DecisionObservation event) {
+        return event.getReason()==Reason.IDENTITY_UNAVAILABLE ? "UNKNOWN" : event.getTrustedUuid().map(UUID::toString).orElse("UNKNOWN");
     }
     private static String known(String value) { return value==null ? "UNKNOWN" : value; }
 }

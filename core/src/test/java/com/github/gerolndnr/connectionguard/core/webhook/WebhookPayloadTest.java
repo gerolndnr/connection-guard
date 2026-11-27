@@ -35,6 +35,28 @@ class WebhookPayloadTest {
         assertTrue(value.toString().contains("192.0.2.55"));assertFalse(value.toString().contains(PRIVATE_UUID.toString()));
         assertTrue(value.toString().contains("connection denied"));
     }
+    @Test void playerRequiresExplicitOptInAndIsShownLiterally() {
+        DecisionObservation denied=event(Outcome.DENY,Reason.ACCESS_RULE,Mode.ENFORCE,EnumSet.of(Flag.ACCESS_POLICY),Collections.emptyList(),
+                Collections.singletonList(new Rule("ban",Scope.ALL,Effect.DENY,Match.MATCH,true)));
+        WebhookContext context=WebhookContext.EMPTY.withPlayerName("__Fixture_*User*__ @everyone");
+        String hidden=new Gson().toJson(CGWebHookRequest.embedded(denied,EnumSet.of(Scope.VPN),false,false,2,
+                com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en"),context));
+        assertFalse(hidden.contains("Fixture"));assertFalse(hidden.contains(PRIVATE_UUID.toString()));assertTrue(hidden.contains("player name/UUID omitted"));
+        JsonObject shown=JsonParser.parseString(new Gson().toJson(CGWebHookRequest.embedded(denied,EnumSet.of(Scope.VPN),false,true,2,
+                com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("en"),context))).getAsJsonObject();
+        JsonObject embed=shown.getAsJsonArray("embeds").get(0).getAsJsonObject();JsonObject player=embed.getAsJsonArray("fields").get(1).getAsJsonObject();
+        assertEquals("Player (explicit opt-in)",player.get("name").getAsString());
+        assertEquals("Reported name: \\_\\_Fixture\\_\\*User\\*\\_\\_ \\@everyone\nTrusted UUID: "+PRIVATE_UUID,player.get("value").getAsString());
+        assertTrue(embed.getAsJsonObject("footer").get("text").getAsString().contains("player name/UUID included by opt-in"));
+        assertFalse(shown.toString().contains("192.0.2.55"));assertEquals(0,shown.getAsJsonObject("allowed_mentions").getAsJsonArray("parse").size());
+    }
+    @Test void includedPlayerWithoutCapturedFactsStaysUnknown() {
+        DecisionObservation lost=new DecisionObservation(Platform.VELOCITY,Phase.LOGIN,Mode.ENFORCE,IdentityTrust.UNTRUSTED,null,
+                "192.0.2.55",Outcome.DENY,Reason.ACCESS_RULE,Check.NOT_CHECKED,Check.NOT_CHECKED,1000,3,false,EnumSet.of(Flag.ACCESS_POLICY),Collections.emptyList(),Collections.emptyList());
+        String fields=new Gson().toJson(CGWebHookRequest.embedded(lost,EnumSet.of(Scope.VPN),false,true,2,
+                com.github.gerolndnr.connectionguard.core.messages.MessageCatalog.defaults("de"),WebhookContext.EMPTY));
+        assertTrue(fields.contains("Gemeldeter Name: UNKNOWN\\nVertrauenswürdige UUID: UNKNOWN"));
+    }
     @Test void unknownSourceIsNeverRenderedAsKnownNegativeOrZero() {
         Source source=new Source("fixture",Scope.VPN,DetectionObservation.unknown(DetectionObservation.Reason.BUDGET_EXHAUSTED),0,true,false);
         String fields=fields(payload(event(Outcome.ALLOW,Reason.UNKNOWN_ALLOWED,Mode.ENFORCE,Collections.emptySet(),Collections.singletonList(source),Collections.emptyList()),false));

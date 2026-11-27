@@ -16,7 +16,7 @@ class IntelCloudContractTest {
     @Test void managedSwitchesAreStrictAndAbsentOldFilesStayOptIn(){
         String enabled="provider.local.connectionguard-intel.enabled",relay="provider.local.connectionguard-intel.relay";JsonObject values=new JsonObject();values.addProperty(enabled,true);values.addProperty(relay,"VPN");
         assertEquals(Boolean.TRUE,CloudManagedConfig.parse(values).get(enabled));assertEquals("VPN",CloudManagedConfig.parse(values).get(relay));
-        assertFalse(CloudManagedConfig.snapshot(k->null).get(enabled).getAsBoolean());assertEquals("ALLOW",CloudManagedConfig.snapshot(k->null).get(relay).getAsString());
+        assertFalse(CloudManagedConfig.snapshot(k->null).get(enabled).getAsBoolean());assertEquals("VPN",CloudManagedConfig.snapshot(k->null).get(relay).getAsString());
         values.addProperty(relay,"PROXY");assertThrows(IllegalArgumentException.class,()->CloudManagedConfig.parse(values));
         values.addProperty(relay,"ALLOW");values.addProperty(enabled,"true");assertThrows(IllegalArgumentException.class,()->CloudManagedConfig.parse(values));
         assertEquals("connectionguard-intel",CloudRecorder.sourceId("connectionguard-intel"));

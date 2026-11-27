@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public final class DetectionDetails {
     public enum Type { VPN, PROXY, TOR, RELAY, HOSTING }
     /** Connection Guard Intel labels: what kind of network an address belongs to, never a verdict on their own. */
-    public enum Label { BOOSTER, MOBILE, SHARED }
+    public enum Label { BOOSTER, MOBILE, SHARED, P2P }
     private final Map<Type, Boolean> classifications;
     private final Long asn;
     private final String isp, operator, country;

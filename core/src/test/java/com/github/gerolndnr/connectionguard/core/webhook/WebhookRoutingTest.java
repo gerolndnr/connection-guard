@@ -23,6 +23,20 @@ class WebhookRoutingTest {
         Map<String,Object> settings=settings();settings.put("behavior.vpn.send-webhook.include-ip",true);settings.put("behavior.geo.send-webhook.url","https://example.invalid/other");
         List<CGWebHookHelper.Notification> plan=CGWebHookHelper.plan(event(Mode.ENFORCE),new WebhookSettings(settings::get));assertEquals(2,plan.size());assertTrue(plan.get(0).includeIp);assertFalse(plan.get(1).includeIp);
     }
+    @Test void playerInclusionNeedsEveryRecipientOfACombinedMessageToOptIn(){
+        Map<String,Object> settings=settings();settings.put("behavior.vpn.send-webhook.include-player",true);
+        List<CGWebHookHelper.Notification> plan=CGWebHookHelper.plan(event(Mode.ENFORCE),new WebhookSettings(settings::get));assertEquals(1,plan.size());assertFalse(plan.get(0).includePlayer);
+        settings.put("behavior.geo.send-webhook.include-player",true);
+        assertTrue(CGWebHookHelper.plan(event(Mode.ENFORCE),new WebhookSettings(settings::get)).get(0).includePlayer);
+        settings.put("behavior.geo.send-webhook.include-player",false);settings.put("behavior.geo.send-webhook.url","https://example.invalid/other");
+        plan=CGWebHookHelper.plan(event(Mode.ENFORCE),new WebhookSettings(settings::get));assertEquals(2,plan.size());assertTrue(plan.get(0).includePlayer);assertFalse(plan.get(1).includePlayer);
+    }
+    @Test void playerOptInOnlyCountsForAnEnabledRichRecipient(){
+        Map<String,Object> settings=settings();settings.put("behavior.vpn.send-webhook.include-player",true);settings.put("behavior.vpn.send-webhook.format","TEXT");
+        assertFalse(new WebhookSettings(settings::get).hasPlayerEmbeds());
+        settings.put("behavior.vpn.send-webhook.format","EMBED");assertTrue(new WebhookSettings(settings::get).hasPlayerEmbeds());
+        settings.put("behavior.vpn.send-webhook.enabled",false);assertFalse(new WebhookSettings(settings::get).hasPlayerEmbeds());
+    }
     @Test void mixedLegacyAndRichRecipientsDoNotGenerateARichDuplicateForLegacyScope(){
         Map<String,Object> settings=settings();settings.put("behavior.geo.send-webhook.format","TEXT");
         List<CGWebHookHelper.Notification> plan=CGWebHookHelper.plan(event(Mode.ENFORCE),new WebhookSettings(settings::get));assertEquals(1,plan.size());assertEquals(EnumSet.of(Scope.VPN),plan.get(0).scopes);

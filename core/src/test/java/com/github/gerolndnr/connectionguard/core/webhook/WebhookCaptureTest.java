@@ -142,6 +142,22 @@ class WebhookCaptureTest {
         CGWebHookHelper.sendDecision(new DecisionObservation(Platform.VELOCITY,Phase.LOGIN,Mode.ENFORCE,IdentityTrust.UNTRUSTED,null,"192.0.2.55",Outcome.DENY,Reason.VPN_FLAG,Check.POSITIVE,Check.EXEMPT,1000,0,false,EnumSet.of(Flag.VPN),Collections.emptyList(),Collections.emptyList()),ConnectionGuard.getSettings().webhooks,0);
         idle();assertEquals(0,bodies.size());assertTrue(CGWebHookHelper.describe().contains("invalid="));
     }
+    @Test void manualDenyNamesTheRefusedPlayerOnlyWithIncludePlayer()throws Exception {
+        UUID player=UUID.fromString("069a79f4-44e9-4726-a5be-fca90e38aaf5");
+        AccessRule rule=new AccessRule("ban",AccessRule.Effect.DENY,AccessRule.Scope.ALL,player.toString(),0,"synthetic-private-reason");
+        DecisionCapture quiet=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.55",player,IdentityTrust.AUTHENTICATED);
+        quiet.playerName("FixtureUser");quiet.manual(Optional.of(rule),Optional.of(rule));quiet.denied(Reason.ACCESS_RULE);quiet.close();idle();
+        assertEquals(1,bodies.size());assertFalse(bodies.get(0).toString().contains("FixtureUser"));assertFalse(bodies.get(0).toString().contains(player.toString()));
+        Map<String,Object> values=new HashMap<>();values.put("operation.mode","ENFORCE");values.put("behavior.vpn.send-webhook.enabled",true);
+        values.put("behavior.vpn.send-webhook.url","https://example.invalid/synthetic-private-token");values.put("behavior.vpn.send-webhook.format","EMBED");
+        values.put("behavior.vpn.send-webhook.cooldown-ms",0);values.put("behavior.vpn.send-webhook.events",Arrays.asList("DENY"));
+        values.put("behavior.vpn.send-webhook.include-player",true);ConnectionGuard.applySettings(GuardSettings.read(values::get,Collections.emptyList()));
+        DecisionCapture named=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.55",player,IdentityTrust.AUTHENTICATED);
+        named.playerName("FixtureUser");named.manual(Optional.of(rule),Optional.of(rule));named.denied(Reason.ACCESS_RULE);named.close();idle();
+        assertEquals(2,bodies.size());String value=bodies.get(1).toString();
+        assertTrue(value.contains("Reported name: FixtureUser\\nTrusted UUID: "+player));assertTrue(value.contains("ban: DENY / VPN / MATCH (selected)"));
+        assertFalse(value.contains("192.0.2.55"));assertFalse(value.contains("synthetic-private-reason"));
+    }
     @Test void compatibilityTextEntryPointStillSuppressesAllMentionParsing()throws Exception {
         CGWebHookHelper.sendWebHook("https://example.invalid/synthetic-private-token","@everyone synthetic").get(2,TimeUnit.SECONDS);idle();
         assertEquals("@everyone synthetic",bodies.get(0).get("content").getAsString());assertEquals(0,bodies.get(0).getAsJsonObject("allowed_mentions").getAsJsonArray("parse").size());
