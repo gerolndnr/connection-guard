@@ -34,6 +34,12 @@ public class ConnectionGuardVelocityCommand implements SimpleCommand {
                 messages.getString("command.no-permission")
         );
 
+        if (args.length == 1 && args[0].equalsIgnoreCase("probe") && commandSender.hasPermission("connectionguard.command.probe")) {
+            com.github.gerolndnr.connectionguard.core.probe.ConnectionProbes probes = ConnectionGuardVelocityPlugin.getInstance().getConnectionProbes();
+            if (probes == null) commandSender.sendMessage(Component.text("Connection probe is off (experimental.connection-probe.enabled)."));
+            else probes.describe().forEach(line -> commandSender.sendMessage(Component.text(line)));
+            return;
+        }
         if (OperationsCommands.handle(args, commandSender::hasPermission, text -> commandSender.sendMessage(Component.text(text)),
                 commandSender instanceof com.velocitypowered.api.proxy.ConsoleCommandSource)) return;
         if (args.length == 0) {

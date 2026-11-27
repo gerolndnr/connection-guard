@@ -3,6 +3,7 @@ package com.github.gerolndnr.connectionguard.core.cloud;
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObserver;
 import com.github.gerolndnr.connectionguard.api.v1.DetectionMetadata;
+import com.github.gerolndnr.connectionguard.core.probe.ProbeCounts;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.*;
@@ -29,9 +30,12 @@ final class CloudRecorder implements DecisionObserver {
     private final NetworkSignals signals = new NetworkSignals();
     private volatile boolean contributeSignals;
 
-    /** Network signals for Intel (cloud.contribute-signals); turning them off drops the current window. */
+    /** Network signals for Intel (cloud.contribute-signals); turning them off drops the current window and the probe counts. */
     void contributeSignals(boolean contribute) {
-        synchronized (lock) { contributeSignals = contribute; if (!contribute) signals.drain(); }
+        synchronized (lock) {
+            contributeSignals = contribute;
+            if (!contribute) { signals.drain(); ProbeCounts probe = CloudSync.probeCounts(); if (probe != null) probe.clear(); }
+        }
     }
 
     void acceptEvents(boolean accept) {
@@ -75,8 +79,14 @@ final class CloudRecorder implements DecisionObserver {
         final long dropped;
         /** Null when signals are off or their window is still open. */
         final JsonObject signals;
+        /** The connection probe's counts for the same window; null without a probe or with too few logins. */
+        final JsonObject probe;
         Batch(JsonObject counters, List<JsonObject> events, int buffered, long dropped, JsonObject signals) {
+            this(counters, events, buffered, dropped, signals, null);
+        }
+        Batch(JsonObject counters, List<JsonObject> events, int buffered, long dropped, JsonObject signals, JsonObject probe) {
             this.counters = counters; this.events = events; this.buffered = buffered; this.dropped = dropped; this.signals = signals;
+            this.probe = probe;
         }
     }
 
@@ -100,7 +110,10 @@ final class CloudRecorder implements DecisionObserver {
             List<JsonObject> out = new ArrayList<>();
             Iterator<JsonObject> it = events.iterator();
             while (it.hasNext() && out.size() < maxEvents) out.add(it.next());
-            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents, contributeSignals && signals.due(now) ? signals.drain() : null);
+            boolean windowDue = contributeSignals && signals.due(now);
+            ProbeCounts probe = windowDue ? CloudSync.probeCounts() : null;
+            Batch batch = new Batch(c, out, events.size() - out.size(), droppedEvents, windowDue ? signals.drain() : null,
+                    probe == null ? null : probe.drain());
             windowStart = now;
             checks = allowed = denied = errors = vpnPositive = geoFlagged = cacheHits = lookups = 0;
             countries.clear(); reasons.clear(); latency.clear(); latencySeen = 0;
@@ -120,6 +133,8 @@ final class CloudRecorder implements DecisionObserver {
             c.getAsJsonObject("countries").entrySet().forEach(e -> countries.merge(e.getKey(), e.getValue().getAsLong(), Long::sum));
             c.getAsJsonObject("reasons").entrySet().forEach(e -> reasons.merge(e.getKey(), e.getValue().getAsLong(), Long::sum));
             if (contributeSignals && batch.signals != null) signals.restore(batch.signals);
+            ProbeCounts probe = CloudSync.probeCounts();
+            if (contributeSignals && batch.probe != null && probe != null) probe.restore(batch.probe);
             if (acceptEvents) {
                 List<JsonObject> back = new ArrayList<>(batch.events);
                 Collections.reverse(back);

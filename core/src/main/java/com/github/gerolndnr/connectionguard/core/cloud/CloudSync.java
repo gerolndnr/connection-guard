@@ -26,6 +26,8 @@ public final class CloudSync {
     static final int MAX_EVENTS_PER_SYNC = 500;
     private static final long MIN_DELAY = 5, MAX_DELAY = 3600, FIRST_DELAY = 10;
     private static volatile CloudSync current;
+    /** The connection probe's counts (Velocity), sent with the network signals; null on other platforms. */
+    private static volatile com.github.gerolndnr.connectionguard.core.probe.ProbeCounts probeCounts;
     private static ScheduledThreadPoolExecutor worker;
     private static boolean manualSyncRecorded;
     private static long lastManualSyncNanos;
@@ -76,7 +78,7 @@ public final class CloudSync {
     private volatile long lastSyncAt;
     private JsonObject pending;
     private final Object pendingLock = new Object();
-    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus, legacySignals;
+    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus, legacySignals, legacyProbe;
     private static volatile boolean errorsUnsupported;
     private volatile boolean errorReportsEnabled;
     private volatile boolean signalsEnabled;
@@ -127,7 +129,7 @@ public final class CloudSync {
                     current.recorder.contributeSignals(current.contributing());
                     synchronized (current.pendingLock) {
                         if (!current.errorReportsEnabled && current.pending != null) current.pending.remove("errors");
-                        if (!current.contributing() && current.pending != null) current.pending.remove("signals");
+                        if (!current.contributing() && current.pending != null) { current.pending.remove("signals"); current.pending.remove("probe"); }
                     }
                     current.errorReportNotice();
                     current.signalsNotice();
@@ -254,6 +256,7 @@ public final class CloudSync {
         Path marker = dir.resolve("signals-notice-v1");
         if (Files.exists(marker)) return;
         log.info("Connection Guard shares network signals with Connection Guard Intel: per IPv4 /24 or IPv6 /48 prefix, counts of logins, accounts, VPN results, refusals, bans and allowances. Never a full address, account, name or rule. They help detect shared proxy exits for every server. Set cloud.contribute-signals: false to turn them off. Privacy: https://connectionguard.net/privacy#network-signals");
+        if (probeCounts != null) log.info("On Velocity this includes connection-probe counts: how often each measured connection trait (segment size, ping gap, client brand and similar) occurred on logins judged VPN, hosting or clean. Counts only, never a single login.");
         try { Files.createDirectories(dir); Files.write(marker, new byte[0]); }
         catch (IOException unreadable) { PluginErrorReports.record(unreadable, PluginErrorReports.Context.STARTUP); }
     }
@@ -449,6 +452,13 @@ public final class CloudSync {
             lastError = "error reports disabled for an older cloud until restart";
             return MIN_DELAY; // SAME seq, events and counters; retry only once without errors.
         }
+        if (reply.status == 400 && !legacyProbe && request.has("probe")) {
+            // Older APIs reject the probe counts; keep the same batch and sequence without them.
+            legacyProbe = true;
+            synchronized (pendingLock) { pending.remove("probe"); }
+            lastError = "cloud API does not yet support connection-probe counts";
+            return MIN_DELAY;
+        }
         if (reply.status == 400 && !legacySignals && request.has("signals")) {
             // Older APIs reject the network signals; keep the same batch and sequence without them.
             legacySignals = true;
@@ -529,7 +539,7 @@ public final class CloudSync {
         if (linkChanged) {
             // Linking starts the first signal window; unlinking drops the open one and any unsent one.
             recorder.contributeSignals(contributing());
-            if (!nowClaimed) synchronized (pendingLock) { if (pending != null) pending.remove("signals"); }
+            if (!nowClaimed) synchronized (pendingLock) { if (pending != null) { pending.remove("signals"); pending.remove("probe"); } }
             signalsNotice();
         }
         if (!nowClaimed && url != null && changed) showConsoleNotice();
@@ -585,6 +595,7 @@ public final class CloudSync {
         batch.events.forEach(events::add);
         body.add("events", events);
         if (batch.signals != null && !legacySignals && claimed && batch.signals.getAsJsonArray("prefixes").size() > 0) body.add("signals", batch.signals);
+        if (batch.probe != null && !legacyProbe && claimed && batch.probe.getAsJsonArray("counts").size() > 0) body.add("probe", batch.probe);
         JsonArray results = new JsonArray();
         synchronized (commandResults) { commandResults.forEach(results::add); commandResults.clear(); }
         body.add("command_results", results);
@@ -810,6 +821,8 @@ public final class CloudSync {
                 : !sync.claimed ? "off until this server is linked"
                 : sync.signalsAutomatic && !sync.signalDefaults.enabled() ? "off (existing link; set cloud.contribute-signals: true to opt in)"
                 : sync.legacySignals ? "off until restart (older cloud API)" : "on (prefixes and counts only)"));
+        if (probeCounts != null) lines.add("Connection-probe counts " + (!sync.contributing() ? "off (with network signals)"
+                : sync.legacyProbe ? "off until restart (older cloud API)" : "on (counts per measured trait and verdict only)"));
         return lines;
     }
 
@@ -820,6 +833,14 @@ public final class CloudSync {
     public static synchronized Optional<String> linkUrl(String source) { return linkUrl().map(url -> CloudLinkNotice.sourced(url, source)); }
 
     public static synchronized boolean isRunning() { return current != null; }
+    /** Whether this server contributes to Connection Guard Intel now (linked, signals on). Lock-free: observers ask it. */
+    public static boolean contributesSignals() {
+        CloudSync sync = current;
+        return sync != null && !sync.closed && sync.contributing() && !sync.legacyProbe;
+    }
+    /** Velocity: the connection probe's counts window, sent with the network signals. */
+    public static void attachProbeCounts(com.github.gerolndnr.connectionguard.core.probe.ProbeCounts counts) { probeCounts = counts; }
+    static com.github.gerolndnr.connectionguard.core.probe.ProbeCounts probeCounts() { return probeCounts; }
     public static synchronized boolean isLinked() { return current != null && current.claimed; }
 
     /** Tests: run one loop iteration synchronously instead of waiting for the scheduler. */

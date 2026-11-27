@@ -38,8 +38,19 @@ From 0.6.2, a sync every six hours carries network signals for [Connection Guard
 - **Default:** `cloud.contribute-signals: auto` enables contribution for new links only. Already-linked upgrades remain off, including after restart; `true` explicitly opts them in. No signals are sent before linking.
 - **Off:** `cloud.contribute-signals: false` and reload, or any Cloud off switch. Existing installations get a one-time console notice once linked; `/cg cloud status` and `/cg doctor` show the state. An older Cloud API that rejects the field gets one same-batch retry without it.
 
+### Connection-probe counts (Velocity)
+
+With network signals on, Velocity servers also measure each login's connection, observe only, and send counts with the same six-hour sync. The probe never blocks, never changes a verdict and adds no request; unlinked servers and servers with `cloud.contribute-signals: false` do not run it at all.
+
+- **What is measured, on the server:** the segment size and TCP options of the player's connection, the kernel round trip against the game's ping (a gap means a proxy in between), protocol version, client brand (as one of a few known names or "other"), how the server address was typed (name or bare IP), Bedrock device (Floodgate), whether the locale's country matches the lookup's country, login timing, whether the account is new, and per network prefix: number of accounts, spread of their pings, skins shared by several accounts.
+- **What is sent:** per six-hour window, how often each value occurred on logins Connection Guard judged VPN, hosting or clean or could not judge, for example "segment size of a WireGuard tunnel: 40 on VPN logins, 2 on clean ones". Never a single login, address, prefix, account, name, skin or locale. Windows with fewer than five logins wait for the next one.
+- **Local state:** `experiments/key` (a random key) and `experiments/seen-accounts` (keyed hashes of accounts seen, at most 200,000) so new accounts can be told apart. The per-login records are held in memory for the window only.
+- **Purpose:** to measure which of these traits identify VPNs and proxies, before any of them is used for detection.
+- **Storage:** the hosted Cloud keeps the windows 90 days and only reads them as totals across servers.
+- **Local experiment:** `experimental.connection-probe.enabled: true` runs the probe on any Velocity server, logs one line per player and can keep a local journal (`ci/fixtures/connection-probe/README.md`); that journal is never sent.
+
 - **Storage:** entries are kept 30 days, hourly totals 13 months, unlinked installs without contact are deleted after 30 days. Data is stored in the EU.
-- **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard. Network signals are the exception: Connection Guard uses them for its own purpose, Intel lists for every server.
+- **Roles:** the server operator is the controller for their players' data; Connection Guard processes it only to show the dashboard. Network signals and connection-probe counts are the exception: Connection Guard uses them for its own purpose, Intel lists and detection for every server.
 
 ## Configuring the plugin from the dashboard
 
