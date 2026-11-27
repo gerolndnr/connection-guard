@@ -26,8 +26,8 @@ class KeylessProviderConfigurationTest {
         assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.ipcheck.enabled"));
         assertEquals(60, value(yaml, "provider.vpn.ipcheck.minute-budget"));
         assertNull(draft.geo); assertFalse(draft.settings.observe); assertEquals(5000, draft.settings.lookup.deadlineMillis);
-        assertEquals(1500, draft.settings.lookup.httpTimeoutMillis); assertEquals(8, draft.settings.lookup.workers);
-        assertEquals(64, draft.settings.lookup.queueCapacity); assertEquals(128, draft.settings.lookup.maxInflight); assertEquals(30000, draft.settings.lookup.circuitPauseMillis);
+        assertEquals(1500, draft.settings.lookup.httpTimeoutMillis); assertEquals(32, draft.settings.lookup.workers);
+        assertEquals(256, draft.settings.lookup.queueCapacity); assertEquals(512, draft.settings.lookup.maxInflight); assertEquals(30000, draft.settings.lookup.circuitPauseMillis);
         assertEquals(Boolean.FALSE, value(yaml, "provider.vpn.proxycheck.enabled"));
         assertEquals(Arrays.asList("zowi", "blackbox", "ipquery", "proxycheck", "ipcheck", "ip-api"), value(yaml,"provider.vpn-failover.order"));
         assertEquals(16, draft.externalAttempts);
@@ -35,6 +35,18 @@ class KeylessProviderConfigurationTest {
             String id = draft.keys.get(pos); assertEquals(id, ConnectionGuard.providerId(draft.providers.get(pos), pos));
             assertEquals(Integer.valueOf(60), draft.minuteBudgets.get(id)); assertEquals("vpn."+id, draft.healthIds.get(id));
         }
+        // zowi follows its announced limit; blackbox keeps a fixed cap.
+        assertEquals("auto", value(yaml, "provider.vpn.zowi.minute-budget"));
+        assertEquals("zowi", draft.announcedMinuteSources.get("zowi")); assertFalse(draft.announcedMinuteSources.containsKey("blackbox"));
+    }
+    @Test void aFixedZowiBudgetInAnExistingFileStaysFixed() {
+        Map<String,Object> yaml=new Yaml().load(getClass().getResourceAsStream("/config.yml"));
+        @SuppressWarnings("unchecked") Map<String,Object> zowi=(Map<String,Object>)value(yaml,"provider.vpn.zowi");
+        zowi.put("minute-budget",60);
+        ProviderConfiguration draft=new ProviderConfiguration(path->value(yaml,path),keys(yaml));
+        assertEquals(Integer.valueOf(60), draft.minuteBudgets.get("zowi")); assertTrue(draft.announcedMinuteSources.isEmpty());
+        zowi.put("minute-budget","sixty");
+        assertThrows(IllegalArgumentException.class, () -> new ProviderConfiguration(path->value(yaml,path),keys(yaml)));
     }
     @Test void optingProxyCheckBackInPlacesItAfterIpQueryAndRetainsKey() {
         Map<String,Object> yaml=new Yaml().load(getClass().getResourceAsStream("/config.yml"));

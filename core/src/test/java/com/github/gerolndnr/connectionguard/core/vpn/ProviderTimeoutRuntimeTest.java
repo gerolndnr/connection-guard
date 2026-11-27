@@ -40,6 +40,8 @@ class ProviderTimeoutRuntimeTest {
         try {
             Map<String,Object> v = new HashMap<>(); v.put("provider.geo.service", "Disabled");
             v.put("provider.vpn.blackbox.enabled", true); v.put("provider.vpn.blackbox.require-confirmation", false); v.put("lookup.circuit.pause-ms", 600);
+            // A threshold of 1 keeps the pre-0.6.2 behaviour: the first timeout pauses the host.
+            v.put("lookup.circuit.failures", 1);
             ProviderConfiguration draft = new ProviderConfiguration(v::get, Collections.singletonList("blackbox"));
             draft.providers.set(0, new BlackboxVpnProvider(false,draft.intelSnapshot,okhttp3.HttpUrl.get("http://127.0.0.1:" + server.getAddress().getPort() + "/blackbox")));
             ConnectionGuard.applyProviders(draft);

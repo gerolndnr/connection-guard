@@ -38,9 +38,9 @@ class CompetitorMigrationTest {
         assertEquals(true, MigrationFiles.get(config,"provider.local.connectionguard-intel.enabled"));
         assertEquals(5000, MigrationFiles.get(config,"lookup.deadline-ms"));
         assertEquals(1500, MigrationFiles.get(config,"lookup.http-timeout-ms"));
-        assertEquals(8, MigrationFiles.get(config,"lookup.workers"));
-        assertEquals(64, MigrationFiles.get(config,"lookup.queue-capacity"));
-        assertEquals(128, MigrationFiles.get(config,"lookup.max-inflight"));
+        assertEquals(32, MigrationFiles.get(config,"lookup.workers"));
+        assertEquals(256, MigrationFiles.get(config,"lookup.queue-capacity"));
+        assertEquals(512, MigrationFiles.get(config,"lookup.max-inflight"));
         assertEquals(30000, MigrationFiles.get(config,"lookup.circuit.pause-ms"));
         assertEquals(false, MigrationFiles.get(config,"identity.trust-forwarded-uuid"));
         assertEquals(false, MigrationFiles.get(config,"provider.vpn.ipcheck.enabled"));

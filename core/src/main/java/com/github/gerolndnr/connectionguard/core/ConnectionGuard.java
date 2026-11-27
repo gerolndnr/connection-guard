@@ -219,12 +219,14 @@ public class ConnectionGuard {
         health.keySet().retainAll(selectedHealth);
         for (String source : selectedHealth) health.computeIfAbsent(source, key -> new ProviderHealth());
         Map<String, Integer> days = new java.util.HashMap<>(), minutes = new java.util.HashMap<>();
+        Map<String, String> announced = new java.util.HashMap<>();
         for (String id : draft.dayBudgets.keySet()) {
             String shared = quotaKey(id);
             days.merge(shared, draft.dayBudgets.get(id), ConnectionGuard::stricterBudget);
             minutes.merge(shared, draft.minuteBudgets.get(id), ConnectionGuard::stricterBudget);
+            if (draft.announcedMinuteSources.containsKey(id)) announced.put(shared, draft.announcedMinuteSources.get(id));
         }
-        for (String id : days.keySet()) setProviderBudget(id, days.get(id), minutes.get(id));
+        for (String id : days.keySet()) health.computeIfAbsent(id, key -> new ProviderHealth()).budgets(days.get(id), minutes.get(id), announced.get(id));
         activeDraft = draft;
         apiPolicy = draft.apiPolicy; apiBudget.configure(draft.apiPolicy.dailyBudget);
         com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.configure(draft.observers);
@@ -280,7 +282,7 @@ public class ConnectionGuard {
     public static void setProviderBudget(String provider, int day, int minute) {
         health.computeIfAbsent(quotaKey(provider), key -> new ProviderHealth()).budgets(day, minute);
     }
-    public static synchronized void shutdown() { apiPolicy = com.github.gerolndnr.connectionguard.core.config.ApiLookupPolicy.defaults(); apiBudget.reset(); com.github.gerolndnr.connectionguard.core.commands.MigrationCommands.shutdown(); com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(null); clearProxyCheckHandoffs(); uncheckedVpnAdmissions.close(); stopPolicyShadow(); policyObservationCapture.close(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
+    public static synchronized void shutdown() { com.github.gerolndnr.connectionguard.core.http.AnnouncedLimits.clear(); apiPolicy = com.github.gerolndnr.connectionguard.core.config.ApiLookupPolicy.defaults(); apiBudget.reset(); com.github.gerolndnr.connectionguard.core.commands.MigrationCommands.shutdown(); com.github.gerolndnr.connectionguard.core.migration.MigrationDatabases.setLoader(null); clearProxyCheckHandoffs(); uncheckedVpnAdmissions.close(); stopPolicyShadow(); policyObservationCapture.close(); decisionLeases.reset(); rules = null; com.github.gerolndnr.connectionguard.core.cloud.CloudSync.shutdown(); if (tor != null) { tor.close(); tor = null; } lookupRuntime.close(); com.github.gerolndnr.connectionguard.core.commands.LocalDataCommands.shutdown(); com.github.gerolndnr.connectionguard.core.extensions.AdmissionHooks.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.ExtensionRegistry.closeAll(); com.github.gerolndnr.connectionguard.core.extensions.DecisionObservers.shutdown(); }
 
     private static ArrayList<VpnProvider> vpnProviders;
     private static GeoProvider geoProvider;

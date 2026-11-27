@@ -4,9 +4,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ProviderHealthRecoveryTest {
-    @Test void firstTimeoutPausesWithoutWaitingForFailureThresholdAndLateSuccessCannotReopen() {
+    @Test void timeoutsPauseAtTheFailureThresholdAndLateSuccessCannotReopen() {
         ProviderHealth h = new ProviderHealth(); long now = System.currentTimeMillis();
         assertEquals(FailureReason.NONE, h.reserve(now));
+        // Since 0.6.2 one slow answer no longer pauses the source; three in a row (the default) do.
+        h.record(FailureReason.TIMEOUT, new LookupException(FailureReason.TIMEOUT), LookupSettings.defaults());
+        h.record(FailureReason.TIMEOUT, new LookupException(FailureReason.TIMEOUT), LookupSettings.defaults());
+        assertEquals(FailureReason.NONE, h.reserve(now + 50));
         h.record(FailureReason.TIMEOUT, new LookupException(FailureReason.TIMEOUT), LookupSettings.defaults());
         assertEquals(FailureReason.CIRCUIT_OPEN, h.reserve(now + 100));
         h.record(FailureReason.NONE, null, LookupSettings.defaults()); // An already-running request finishes late.

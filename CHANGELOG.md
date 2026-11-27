@@ -11,8 +11,15 @@
 - New opt-in `include-player: true` on an EMBED webhook destination (`behavior.vpn.send-webhook` / `behavior.geo.send-webhook`) adds a Player field with the reported name and trusted UUID. Moderators who use manual DENY rules as bans can now see in Discord who was refused, not only that someone was. Default `false`; existing configurations send the same payload as before.
 - Same rules as `include-ip`: one combined VPN+geo message includes the player only when both destinations opt in; the footer says whether it was included. Names are shown literally (no Discord formatting or mentions). TEXT templates, Cloud sync and addon observations are unchanged. [Webhooks](docs/WEBHOOKS.md#know-who-was-refused).
 
+### Join waves
+
+- New files check a join wave instead of admitting most of it unchecked. Lookups wait on the network, not the CPU, yet new files ran 8 workers with a queue of 64 and at most 128 checks at once. In a wave of 1,000 joins within 20 seconds that admitted about 85 % of players without a check, as UNKNOWN under the OPEN failure policy. New files use 32 workers, a queue of 256 and at most 512 checks at once; missing keys use the same values. Existing files keep theirs.
+- A single slow answer no longer pauses a service for 30 seconds. Until now one HTTP timeout opened that source's circuit at once, so in a join wave one IPQuery answer over 1,500 ms left most later players unchecked. Timeouts now count toward `lookup.circuit.failures` (3 in a row by default) like other errors. Explicit rate limits (HTTP 429) and used-up quotas still pause the source at once. This applies to existing files too.
+- New: `minute-budget: auto` follows 80 % of the per-minute limit a service announces in `X-RateLimit-Limit` (at most 1,000), and the built-in cap until it has announced one. New files use it for zowi, which announced 250 a minute on 22 Nov 2026, so the local cap becomes 200 instead of 60. A number still sets a fixed cap, so existing files are unchanged.
+
 ### Provider responses
 
+- zowi is asked for its security-only answer (`feature=security`), the mode its operator introduced for detection. It carries the same VPN, proxy, Tor and hosting flags without geolocation and registry data, which Connection Guard never read. Parsing, order, budgets and deadlines are unchanged. In a check on 22 Nov 2026 (30 Tor exits, each asked in both modes), the median answer took 177 ms instead of 648 ms (90th percentile 211 ms instead of 1,201 ms; slowest 388 ms instead of 3,239 ms, above the 1,500 ms HTTP timeout), and the flags were identical for 30 of 30 addresses.
 - Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.
 - Fixed: a vpnapi.io answer without a `security` verdict crashed its parser. It now counts as an invalid response from that source.
 

@@ -16,6 +16,8 @@ public final class ProviderConfiguration {
     public final ArrayList<VpnProvider> providers = new ArrayList<>();
     public final List<String> keys = new ArrayList<>();
     public final Map<String, Integer> dayBudgets = new HashMap<>(), minuteBudgets = new HashMap<>();
+    /** Provider id -> source whose announced per-minute limit applies (minute-budget: auto). */
+    public final Map<String, String> announcedMinuteSources = new HashMap<>();
     public final Map<String, String> healthIds = new HashMap<>();
     public final GuardSettings settings;
     public final com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages;
@@ -93,6 +95,7 @@ public final class ProviderConfiguration {
                 + GuardSettings.string(value, "provider.cache.redis.username", "") + "\n" + GuardSettings.string(value, "provider.cache.redis.password", "") + "\n" + GuardSettings.bool(value, "provider.cache.redis.tls", false);
         List<String> orderedKeys = new ArrayList<>(providerKeys);
         Map<String, Integer> sourceDays = new HashMap<>(), sourceMinutes = new HashMap<>();
+        Map<String, String> sourceAuto = new HashMap<>();
         if (intelSettings.enabled) { keys.add(IntelSnapshot.ID); providers.add(new IntelVpnProvider(intelSnapshot)); }
         if (failover && local.vpnEnabled) for (LocalSnapshot snapshot : loaded) { keys.add("local." + snapshot.source.id); providers.add(new LocalVpnProvider(snapshot)); }
         for (String key : orderedKeys) {
@@ -150,8 +153,13 @@ public final class ProviderConfiguration {
             }
             keys.add(key); providers.add(provider);
             int day = GuardSettings.integer(value, base + "daily-budget", key.equals("proxycheck") ? apiKey.isEmpty() ? 100 : 1000 : key.equals("ipqualityscore") ? 30 : 0);
-            int minute = GuardSettings.integer(value, base + "minute-budget", key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5
-                    : key.equals("blackbox") || key.equals("ipcheck") || key.equals("zowi") ? 60 : 0);
+            int fallbackMinute = key.equals("ip-api") ? 45 : key.equals("ipqualityscore") ? 5
+                    : key.equals("blackbox") || key.equals("ipcheck") || key.equals("zowi") ? 60 : 0;
+            // auto: follow 80 % of the per-minute limit the service announces (X-RateLimit-Limit),
+            // the built-in local cap until it has announced one.
+            boolean autoMinute = "auto".equals(value.apply(base + "minute-budget"));
+            int minute = autoMinute ? fallbackMinute == 0 ? 60 : fallbackMinute : GuardSettings.integer(value, base + "minute-budget", fallbackMinute);
+            if (autoMinute) sourceAuto.put(key, provider.sourceName() == null ? key : provider.sourceName());
             if (day < 0 || minute < 0) throw new IllegalArgumentException("Provider budgets must be nonnegative.");
             sourceDays.put(key, day); sourceMinutes.put(key, minute);
         }
@@ -177,6 +185,7 @@ public final class ProviderConfiguration {
             String name = provider.sourceName() == null ? provider.getClass().getSimpleName() : provider.sourceName();
             String id = name + (provider.stableSourceId() ? "" : "#" + i);
             dayBudgets.put(id, sourceDays.getOrDefault(key, 0)); minuteBudgets.put(id, sourceMinutes.getOrDefault(key, 0));
+            if (sourceAuto.containsKey(key)) announcedMinuteSources.put(id, sourceAuto.get(key));
             healthIds.put(id, key.startsWith("extension.") || provider.isLocal() ? key : "vpn." + key);
         }
         extensionProviders = Collections.unmodifiableList(selected);

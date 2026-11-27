@@ -26,7 +26,7 @@ class ApiLookupBudgetTest {
         assertEquals(FailureReason.NONE,budget.reserve(quota));
         assertEquals(FailureReason.BUDGET_EXHAUSTED,budget.reserve(quota));
         ProviderHealth circuit=new ProviderHealth();
-        circuit.record(FailureReason.TIMEOUT,null,LookupSettings.defaults());
+        for(int i=0;i<3;i++)circuit.record(FailureReason.TIMEOUT,null,LookupSettings.defaults());
         assertEquals(FailureReason.CIRCUIT_OPEN,budget.reserve(circuit));
         assertEquals(1,budget.snapshot().reserved);
     }

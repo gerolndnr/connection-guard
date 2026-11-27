@@ -43,8 +43,9 @@ recipient. Geo remains Disabled on new installs. ip-check.net and IP-API remain 
 Order: `[zowi, blackbox, ipquery, proxycheck, ipcheck, ip-api]`; entries alone do not
 enable sources. Existing choices/order/keys and missing-order compatibility remain.
 
-zowi is run by the developer of FoxGate; its conservative local 60/minute cap is
-unchanged. Burst exhaustion uses the other selected providers, whose detection
+zowi is run by the developer of FoxGate. New files set `minute-budget: auto`: 80 % of
+the per-minute limit zowi announces in `X-RateLimit-Limit` (250 on 22 Nov 2026, so 200),
+and 60/minute until the first answer. Existing files keep their number. Burst exhaustion uses the other selected providers, whose detection
 coverage can differ. Review the recipient information below. The recommendation
 is an explicit operator choice; independent detection/FPR and login latency of
 this exact candidate require new measurements. [Details](PROVIDER_RESILIENCE.md).
