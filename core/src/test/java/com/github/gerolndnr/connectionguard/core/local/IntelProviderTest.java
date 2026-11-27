@@ -232,7 +232,7 @@ class IntelProviderTest {
         assertTrue(mobile.getDetails().describe().endsWith("labels=[MOBILE]"));
         assertTrue(snapshot.vpn("203.0.113.1",now).getDetails().getLabels().isEmpty()); // corrupt SHARED list left out
         assertEquals(FailureReason.NONE,snapshot.readiness(now));
-        assertTrue(snapshot.describe(now).contains("labels={BOOSTER=2, MOBILE=1, SHARED=0}"));
+        assertTrue(snapshot.describe(now).contains("labels={BOOSTER=2, MOBILE=1, SHARED=0, P2P=0}"));
         IntelSnapshot restarted=store.load(now);
         assertEquals(snapshot.loadedLabels(),restarted.loadedLabels());assertEquals(ProviderVote.Status.NEGATIVE,restarted.vpn("192.0.2.97",now).getStatus());
         Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.local.connectionguard-intel.booster","VPN");
@@ -252,6 +252,18 @@ class IntelProviderTest {
         assertTrue(blocking.describe(now).contains("hosting=BLOCK"));
         IntelSnapshot review=new IntelDataStore(directory,settings("ALLOW","REVIEW"),signer.getPublic()).load(now);
         assertEquals(ProviderVote.Status.UNKNOWN,review.vpn("192.0.2.97",now).getStatus());
+    }
+    @Test void p2pExitsCountAsVpnByDefaultAndAllowLeavesThemUnknown() throws Exception {
+        label("P2P","198.51.100.0/28\n",false);update();
+        IntelSnapshot strict=new IntelDataStore(directory,settings("ALLOW"),signer.getPublic()).load(now);
+        assertEquals(IntelSettings.P2p.VPN,strict.settings.p2p);
+        VpnResult exit=strict.vpn("198.51.100.3",now);assertTrue(exit.isVpn());
+        assertTrue(exit.getVpnProviderName().get().startsWith("Peer-to-peer VPN exit (Connection Guard Intel, "));
+        assertEquals(Collections.singleton(DetectionDetails.Label.P2P),exit.getDetails().getLabels());
+        assertTrue(strict.describe(now).contains("P2P=1"));assertTrue(strict.describe(now).contains("p2p=VPN"));
+        Map<String,Object> v=new HashMap<>();v.put("provider.local.connectionguard-intel.enabled",true);v.put("provider.local.connectionguard-intel.p2p","ALLOW");
+        assertEquals(ProviderVote.Status.UNKNOWN,new IntelDataStore(directory,new IntelSettings(v::get),signer.getPublic()).load(now).vpn("198.51.100.3",now).getStatus());
+        v.put("provider.local.connectionguard-intel.p2p","BLOCK");assertThrows(IllegalArgumentException.class,()->new IntelSettings(v::get));
     }
     @Test void manifestsWithoutLabelsStayAsBefore() throws Exception {
         IntelSnapshot snapshot=update();

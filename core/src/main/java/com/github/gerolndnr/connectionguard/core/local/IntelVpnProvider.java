@@ -10,9 +10,10 @@ public final class IntelVpnProvider implements VpnProvider {
     private final IntelSettings.Relay relay;
     private final IntelSettings.Hosting hosting;
     private final IntelSettings.Booster booster;
+    private final IntelSettings.P2p p2p;
     private final int maxAgeHours;
     private final transient IntelSnapshot snapshot;
-    public IntelVpnProvider(IntelSnapshot snapshot){this.snapshot=snapshot;generation=snapshot.generation+":"+snapshot.asOf+":"+snapshot.proxyState;relay=snapshot.settings.relay;hosting=snapshot.settings.hosting;booster=snapshot.settings.booster;maxAgeHours=snapshot.settings.maxAgeHours;}
+    public IntelVpnProvider(IntelSnapshot snapshot){this.snapshot=snapshot;generation=snapshot.generation+":"+snapshot.asOf+":"+snapshot.proxyState;relay=snapshot.settings.relay;hosting=snapshot.settings.hosting;booster=snapshot.settings.booster;p2p=snapshot.settings.p2p;maxAgeHours=snapshot.settings.maxAgeHours;}
     @Override public String sourceName(){return IntelSnapshot.ID;}
     @Override public boolean stableSourceId(){return true;}
     @Override public boolean isLocal(){return true;}

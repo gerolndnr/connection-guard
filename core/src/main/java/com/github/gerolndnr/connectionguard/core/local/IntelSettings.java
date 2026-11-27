@@ -11,11 +11,14 @@ public final class IntelSettings {
     public enum Hosting { BLOCK, REVIEW }
     /** ALLOW: a gaming booster node (Intel's BOOSTER list) is a negative verdict; VPN: it counts as a VPN. */
     public enum Booster { ALLOW, VPN }
+    /** VPN: an exit of a peer-to-peer VPN (Intel's P2P list: VPN Gate, Mysterium, Hola, Urban VPN) counts as a VPN. */
+    public enum P2p { VPN, ALLOW }
     public final boolean enabled;
     public final int updateHours, maxAgeHours;
     public final Relay relay;
     public final Hosting hosting;
     public final Booster booster;
+    public final P2p p2p;
     public IntelSettings(Function<String,Object> value) {
         String prefix="provider.local.connectionguard-intel.";
         enabled=GuardSettings.bool(value,prefix+"enabled",false);
@@ -28,5 +31,7 @@ public final class IntelSettings {
         catch(IllegalArgumentException invalid){throw new IllegalArgumentException("Intel hosting must be BLOCK or REVIEW.");}
         try {booster=Booster.valueOf(GuardSettings.string(value,prefix+"booster","ALLOW"));}
         catch(IllegalArgumentException invalid){throw new IllegalArgumentException("Intel booster must be ALLOW or VPN.");}
+        try {p2p=P2p.valueOf(GuardSettings.string(value,prefix+"p2p","VPN"));}
+        catch(IllegalArgumentException invalid){throw new IllegalArgumentException("Intel p2p must be VPN or ALLOW.");}
     }
 }

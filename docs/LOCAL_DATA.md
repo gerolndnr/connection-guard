@@ -17,6 +17,9 @@ gaming booster nodes such as Mudfish), `MOBILE` (`mobile.txt`, mobile carriers b
 validated like the proxy list; a missing or broken label list is left out and never touches the base lists.
 Labels are not list types and never vote:
 
+- `p2p: VPN` (default) counts an exit of a peer-to-peer VPN (Intel's `P2P` label: VPN Gate, Mysterium, Hola,
+  Urban VPN) as VPN. These exits are usually someone else's home connection and rotate often; Intel keeps them only
+  for a few days and leaves out mobile carrier addresses. `p2p: ALLOW` makes the label informational only.
 - `booster: ALLOW` (default) makes a booster-only hit a negative VPN verdict, like `relay: ALLOW`, so a player who
   tunnels for a better ping gets in. `booster: VPN` makes it positive ("Gaming booster node"). Explicit VPN, Tor
   and proxy hits take priority; Intel takes booster nodes out of its inferred VPN ranges.
@@ -68,6 +71,7 @@ provider:
       relay: VPN # VPN (default from 0.6.2) or ALLOW
       hosting: BLOCK # BLOCK (default, from 0.6.2) or REVIEW
       booster: ALLOW # ALLOW or VPN, from 0.6.2
+      p2p: VPN # VPN (default) or ALLOW, from 0.6.2
 ```
 
 The bundled ECDSA P-256 key authenticates the exact manifest bytes with Java8
