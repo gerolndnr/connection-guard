@@ -57,6 +57,7 @@ ops:
   intel-label-booster: 'Intel label BOOSTER: a gaming booster node (Mudfish). Players tunnel through it for a better ping; provider.local.connectionguard-intel.booster decides.'
   intel-label-mobile: 'Intel label MOBILE: a mobile carrier behind carrier-grade NAT. Many players share this address, so an IP ban or IP-based alt check hits innocent players.'
   intel-label-shared: 'Intel label SHARED: several Connection Guard servers see many accounts from this network. Review it; it may be a proxy used for alt accounts.'
+  intel-label-p2p: 'Intel label P2P: an exit of a peer-to-peer VPN (VPN Gate, Mysterium, Hola, Urban VPN), usually someone else''s home connection. provider.local.connectionguard-intel.p2p decides.'
   no-provider-attempts: No provider attempts recorded yet.
   cache-health: health requires an actual lookup. This command does not spend API quota.
   identity-authority: declared/global trust is not verified temporary-grant authority.
@@ -100,6 +101,7 @@ webhook:
     decision: Decision
     checks: Checks
     address: Connection address (explicit opt-in)
+    player: Player (explicit opt-in)
     votes: Observed voting sources
     rules: Selected / unresolved rules
     admission: External admission checks
@@ -141,7 +143,12 @@ webhook:
     Source expiry: {10}'
   address-included: included by opt-in
   address-redacted: redacted
-  footer: 'Sources shown: {0}/{1}. Address {2}; names/UUIDs/provider text omitted. Best effort; no delivery retry.'
+  player: 'Reported name: {0}
+
+    Trusted UUID: {1}'
+  player-included: included by opt-in
+  player-redacted: omitted
+  footer: 'Sources shown: {0}/{1}. Address {2}; player name/UUID {3}; provider text omitted. Best effort; no delivery retry.'
   not-supplied: not supplied
   source-label: '{0} source: {1}'
 cloud:

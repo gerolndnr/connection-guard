@@ -57,7 +57,7 @@ public final class CGWebHookHelper {
         }
         for (Notification notification : plan(event, settings)) {
             try {
-                send(notification.destination.endpoint(), CGWebHookRequest.embedded(event, notification.scopes, notification.includeIp, threshold, messages),
+                send(notification.destination.endpoint(), CGWebHookRequest.embedded(event, notification.scopes, notification.includeIp, notification.includePlayer, threshold, messages, context),
                         notification.cooldown, () -> settings == selectedSettings);
             } catch (RuntimeException | LinkageError failure) { recordInvalid(); }
         }
@@ -67,20 +67,21 @@ public final class CGWebHookHelper {
         boolean vpn = selected(event, Scope.VPN, settings.vpn), geo = selected(event, Scope.GEO, settings.geo);
         if (vpn && geo && settings.vpn.endpoint().equals(settings.geo.endpoint())) {
             return Collections.singletonList(new Notification(settings.vpn, EnumSet.of(Scope.VPN, Scope.GEO),
-                    settings.vpn.includeIp && settings.geo.includeIp, Math.max(settings.vpn.cooldownMillis, settings.geo.cooldownMillis)));
+                    settings.vpn.includeIp && settings.geo.includeIp, settings.vpn.includePlayer && settings.geo.includePlayer, Math.max(settings.vpn.cooldownMillis, settings.geo.cooldownMillis)));
         }
         List<Notification> result = new ArrayList<>();
-        if (vpn) result.add(new Notification(settings.vpn, EnumSet.of(Scope.VPN), settings.vpn.includeIp, settings.vpn.cooldownMillis));
-        if (geo) result.add(new Notification(settings.geo, EnumSet.of(Scope.GEO), settings.geo.includeIp, settings.geo.cooldownMillis));
+        if (vpn) result.add(new Notification(settings.vpn, EnumSet.of(Scope.VPN), settings.vpn.includeIp, settings.vpn.includePlayer, settings.vpn.cooldownMillis));
+        if (geo) result.add(new Notification(settings.geo, EnumSet.of(Scope.GEO), settings.geo.includeIp, settings.geo.includePlayer, settings.geo.cooldownMillis));
         return Collections.unmodifiableList(result);
     }
     static final class Notification {
         final WebhookSettings.Destination destination;
         final Set<Scope> scopes;
-        final boolean includeIp;
+        final boolean includeIp, includePlayer;
         final int cooldown;
-        private Notification(WebhookSettings.Destination destination, Set<Scope> scopes, boolean includeIp, int cooldown) {
-            this.destination = destination; this.scopes = Collections.unmodifiableSet(scopes); this.includeIp = includeIp; this.cooldown = cooldown;
+        private Notification(WebhookSettings.Destination destination, Set<Scope> scopes, boolean includeIp, boolean includePlayer, int cooldown) {
+            this.destination = destination; this.scopes = Collections.unmodifiableSet(scopes); this.includeIp = includeIp;
+            this.includePlayer = includePlayer; this.cooldown = cooldown;
         }
     }
     static boolean selected(DecisionObservation event, Scope scope, WebhookSettings.Destination destination) {

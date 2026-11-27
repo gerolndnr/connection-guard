@@ -57,6 +57,7 @@ ops:
   intel-label-booster: 'Intel-Label BOOSTER: ein Gaming-Booster-Knoten (Mudfish). Spieler tunneln darüber für einen besseren Ping; provider.local.connectionguard-intel.booster entscheidet.'
   intel-label-mobile: 'Intel-Label MOBILE: ein Mobilfunknetz hinter Carrier-Grade-NAT. Viele Spieler teilen sich diese Adresse; ein IP-Bann oder eine IP-basierte Zweitkonto-Prüfung trifft Unbeteiligte.'
   intel-label-shared: 'Intel-Label SHARED: mehrere Connection-Guard-Server sehen viele Konten aus diesem Netz. Prüfen; es kann ein Proxy für Zweitkonten sein.'
+  intel-label-p2p: 'Intel-Label P2P: ein Exit eines Peer-to-Peer-VPNs (VPN Gate, Mysterium, Hola, Urban VPN), meist der Heimanschluss eines anderen Nutzers. provider.local.connectionguard-intel.p2p entscheidet.'
   no-provider-attempts: Noch keine Anbieterabfragen aufgezeichnet.
   cache-health: Der Zustand muss mit einer tatsächlichen Abfrage geprüft werden. Dieser Befehl verbraucht kein API-Kontingent.
   identity-authority: Deklariertes/globales Vertrauen ist kein verifizierter Nachweis für temporäre Freigaben.
@@ -101,6 +102,7 @@ webhook:
     decision: Entscheidung
     checks: Prüfungen
     address: Verbindungsadresse (bewusst aktiviert)
+    player: Spieler (bewusst aktiviert)
     votes: Beobachtete abstimmende Quellen
     rules: Ausgewählte / ungeklärte Regeln
     admission: Externe Zugangsprüfungen
@@ -144,7 +146,12 @@ webhook:
     Gültig bis: {10}'
   address-included: bewusst eingeblendet
   address-redacted: ausgeblendet
-  footer: 'Quellen: {0}/{1}. Adresse {2}; Namen/UUIDs/Providertexte ausgelassen. Bestmöglicher Versand; keine Wiederholung.'
+  player: 'Gemeldeter Name: {0}
+
+    Vertrauenswürdige UUID: {1}'
+  player-included: bewusst eingeblendet
+  player-redacted: ausgeblendet
+  footer: 'Quellen: {0}/{1}. Adresse {2}; Spielername/UUID {3}; Providertexte ausgelassen. Bestmöglicher Versand; keine Wiederholung.'
   not-supplied: nicht angegeben
   source-label: '{0}-Quelle: {1}'
 cloud:

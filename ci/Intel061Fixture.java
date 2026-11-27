@@ -54,7 +54,7 @@ public final class Intel061Fixture {
         try{
             HttpUrl base=HttpUrl.get("http://127.0.0.1:"+server.getAddress().getPort()+"/");
             KeyPairGenerator generator=KeyPairGenerator.getInstance("EC");generator.initialize(new ECGenParameterSpec("secp256r1"));KeyPair signer=generator.generateKeyPair();
-            IntelSettings settings=new IntelSettings(k->k.endsWith("enabled")?true:null);IntelDataStore store=new IntelDataStore(directory,settings,signer.getPublic());
+            IntelSettings settings=new IntelSettings(k->k.endsWith("enabled")?true:k.endsWith(".hosting")?"REVIEW":k.endsWith(".relay")?"ALLOW":null);IntelDataStore store=new IntelDataStore(directory,settings,signer.getPublic());
             JsonObject manifest=new JsonObject(),lists=new JsonObject(),additional=new JsonObject();manifest.addProperty("schema",1);manifest.addProperty("evaluation_only",false);manifest.addProperty("as_of",Instant.ofEpochMilli(now-1000).toString());
             String[] names={"VPN","TOR","RELAY","HOSTING","PROXY"},networks={"192.0.2.0/28\n","192.0.2.32/28\n","192.0.2.64/28\n","203.0.113.0/28\n","192.0.2.64/28\n2001:db8:2::/48\n"};
             for(int i=0;i<names.length;i++){

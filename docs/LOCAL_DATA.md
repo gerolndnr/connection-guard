@@ -17,6 +17,9 @@ gaming booster nodes such as Mudfish), `MOBILE` (`mobile.txt`, mobile carriers b
 validated like the proxy list; a missing or broken label list is left out and never touches the base lists.
 Labels are not list types and never vote:
 
+- `p2p: VPN` (default) counts an exit of a peer-to-peer VPN (Intel's `P2P` label: VPN Gate, Mysterium, Hola,
+  Urban VPN) as VPN. These exits are usually someone else's home connection and rotate often; Intel keeps them only
+  for a few days and leaves out mobile carrier addresses. `p2p: ALLOW` makes the label informational only.
 - `booster: ALLOW` (default) makes a booster-only hit a negative VPN verdict, like `relay: ALLOW`, so a player who
   tunnels for a better ping gets in. `booster: VPN` makes it positive ("Gaming booster node"). Explicit VPN, Tor
   and proxy hits take priority; Intel takes booster nodes out of its inferred VPN ranges.
@@ -41,7 +44,8 @@ invalid contents/hash/count or a corrupt saved proxy file produce **PROXY=SKIPPE
 while validated base lists remain usable. Accepted proxy data shares their atomic
 pointer, signature revalidation, publication expiry and rollback checks. Proxy hits
 are positive with Type.PROXY and take priority over RELAY ALLOW. HOSTING alone
-remains UNKNOWN; it confirms a Blackbox Y when confirmation is enabled.
+blocks with `hosting: BLOCK` (default); with `hosting: REVIEW` it remains UNKNOWN and
+confirms a Blackbox Y when confirmation is enabled.
 
 `/cg local status`, `/cg providers` and `/cg doctor` display **PROXY=ABSENT/LOADED/SKIPPED**,
 per-list entry counts and signed `as_of`. `/cg explain <IP>` includes PROXY membership,
@@ -64,8 +68,10 @@ provider:
       enabled: true
       update-hours: 24 # 0 disables automatic fetches; manual update remains available
       max-age-hours: 72
-      relay: ALLOW # ALLOW or VPN
+      relay: VPN # VPN (default from 0.6.2) or ALLOW
+      hosting: BLOCK # BLOCK (default, from 0.6.2) or REVIEW
       booster: ALLOW # ALLOW or VPN, from 0.6.2
+      p2p: VPN # VPN (default) or ALLOW, from 0.6.2
 ```
 
 The bundled ECDSA P-256 key authenticates the exact manifest bytes with Java8
@@ -96,14 +102,18 @@ is positive and avoids subsequent VPN-provider queries. Pure RELAY membership wi
 with RELAY metadata retained; it is **not a permission/access-rule exemption**.
 Explicit Intel VPN/TOR hits take precedence over overlapping RELAY ranges.
 `relay: VPN` makes a relay-only hit positive, still classified as RELAY rather than
-inventing a VPN type. HOSTING alone remains UNKNOWN review evidence, allowing the
+inventing a VPN type. Since 0.6.2 `relay: VPN` is the default: a banned player must not
+get back in by switching Cloudflare WARP on, and a player can switch it off as easily.
+`hosting: BLOCK` (default) makes a hosting-only hit positive, classified as HOSTING;
+an allowed relay or a booster node inside a hosting range keeps its own setting.
+With `hosting: REVIEW`, HOSTING alone remains UNKNOWN review evidence, allowing the
 chain to continue. Unlisted addresses are UNKNOWN, never an assumed clean IP.
 Consensus mode retains its normal multi-source aggregation and may consult APIs.
 A separately selected external Geo source still performs its configured Geo check.
 
 Data becomes STALE/UNKNOWN after the signed `as_of` plus `max-age-hours`; stale
 classifications cannot block or enter metadata rules. Cache facts cannot outlive
-that expiry; generation, freshness setting and relay choice partition the cache.
+that expiry; generation, freshness setting and the relay, hosting and booster choices partition the cache.
 `/cg local status`, `/cg providers`, `/cg doctor` and `/cg explain <IP>` identify
 `connectionguard-intel`, observed types and manifest `as_of`. To fetch manually:
 `/cg local update connectionguard-intel`, requiring the existing local permission.
@@ -111,7 +121,7 @@ that expiry; generation, freshness setting and relay choice partition the cache.
 The coordinated Cloud settings are the Boolean `.enabled` and enum `.relay` only.
 Health/event ID: `connectionguard-intel`. Per-source optional `types` contains only
 observed true categories, at most five; `data_as_of` is the manifest epoch ms.
-Unknown fields are omitted. Hosting is review, and allowed relay remains a
+Unknown fields are omitted. `hosting` is a local setting, not managed by Cloud. Allowed relay remains a
 NEGATIVE source with RELAY metadata. The Cloud schema accepting these optional
 fields must be deployed before integration; this adds dataset provenance, no
 new personal-data category. Full comparative acceptance of the exact new candidate
@@ -124,7 +134,8 @@ remains pending; overlapping source/benchmark lists are not independent evidence
   every unlisted address is residential. Multiple sources may be correlated.
 - HOSTING membership records `HOSTING=true` for explicit metadata rules. HOSTING, GEO and ASN are enrichment
   sources, excluded from the generic positive threshold and its complete-negative count. A hosting network alone
-  does not prove VPN use. A metadata rule can deny an observed hosting type even when the generic VPN status is UNKNOWN.
+  does not prove VPN use; Connection Guard Intel's own hosting list still blocks by default (`hosting: BLOCK`),
+  because players rarely connect from rented servers. A metadata rule can deny an observed hosting type even when the generic VPN status is UNKNOWN.
 - Missing data is UNKNOWN; stale data is UNKNOWN / `STALE_DATA` with no usable stale metadata. Normal OPEN/CLOSED/
   OBSERVE failure policy applies. No list type is implicitly given additional permissions or exemptions.
 - Imports take an explicit UTC `as-of` timestamp for a list. Download age uses HTTP `Last-Modified` when present;
