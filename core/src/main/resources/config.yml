@@ -1,5 +1,5 @@
-# New installations enforce concrete VPN, proxy and Tor evidence.
-# ProxyCheck/zowi hosting alone is review; Blackbox listings also include hosting/cloud.
+# New installations enforce concrete VPN, proxy and Tor evidence, and refuse Connection Guard Intel's privacy-relay
+# and hosting networks. ProxyCheck/zowi hosting alone is review; Blackbox listings also include hosting/cloud.
 # Existing files and modes are never overwritten. Choose OBSERVE explicitly to review first.
 operation:
   mode: ENFORCE
@@ -329,13 +329,20 @@ provider:
       enabled: true
       update-hours: 24
       max-age-hours: 72
-      # ALLOW: a relay-only hit is a negative VPN verdict in failover (not an exemption).
-      # Explicit Intel VPN/Tor/Proxy hits take priority. VPN classifies relay membership positively.
-      # HOSTING alone is review only; it can confirm a Blackbox Y when require-confirmation is true.
-      relay: ALLOW
+      # Privacy relays (Cloudflare WARP, iCloud Private Relay). VPN (default): a relay hit counts as VPN, so a banned
+      # player cannot switch WARP on and come back. ALLOW: a relay-only hit is a negative VPN verdict in failover.
+      # Explicit Intel VPN/Tor/Proxy hits take priority.
+      relay: VPN
+      # Hosting and data-centre networks. BLOCK (default): a hosting hit counts as VPN; players rarely connect from a
+      # rented server, and if they do they can usually switch it off. REVIEW: hosting alone only enriches the verdict
+      # (and can still confirm a Blackbox Y when require-confirmation is true). Allowed relays and boosters keep their setting.
+      hosting: BLOCK
       # Gaming boosters (Mudfish nodes, from 0.6.2). ALLOW: a booster-only hit is a negative VPN verdict, so players
       # who tunnel for a better ping get in. VPN: booster nodes count as VPN. Explicit VPN/Tor/Proxy hits take priority.
       booster: ALLOW
+      # Peer-to-peer VPNs (VPN Gate, Mysterium, Hola, Urban VPN; from 0.6.2): their exits are other users' home
+      # connections, rotating often. VPN (default): a P2P exit counts as VPN. ALLOW: the P2P label alone decides nothing.
+      p2p: VPN
     # 0 disables automatic list downloads. Opt in to 1..168 hours; first download after that interval.
     # MMDBs are always operator-imported, with their embedded build date and your source's license.
     update-hours: 0

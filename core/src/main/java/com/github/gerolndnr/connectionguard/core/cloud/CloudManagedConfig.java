@@ -257,7 +257,7 @@ public final class CloudManagedConfig {
             if (value == null && entry.getKey().equals("provider.vpn-failover.enabled"))
                 value = !"CONSENSUS".equalsIgnoreCase(String.valueOf(effective.apply("provider.vpn-strategy")));
             if (value == null && entry.getKey().equals("provider.max-external-attempts")) value = 16;
-            if (value == null && entry.getKey().equals("provider.local.connectionguard-intel.relay")) value = "ALLOW";
+            if (value == null && entry.getKey().equals("provider.local.connectionguard-intel.relay")) value = "VPN";
             if (local) switch (entry.getKey()) {
                 case "operation.mode": value = policy.observe ? "OBSERVE" : "ENFORCE"; break;
                 case "failure-policy.vpn": value = policy.vpnFailure.name(); break;
