@@ -16,6 +16,7 @@ behavior:
       url: 'https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN'
       format: EMBED
       include-ip: false
+      include-player: false
       events: [FLAG, DENY, ERROR]
       cooldown-ms: 1000
   geo:
@@ -24,6 +25,7 @@ behavior:
       url: ''
       format: EMBED
       include-ip: false
+      include-player: false
       events: [FLAG, DENY, ERROR]
       cooldown-ms: 1000
 ```
@@ -45,9 +47,20 @@ The embed distinguishes actual ALLOW/DENY/ERROR, reason, platform/phase and capt
 
 A guard ALLOW result describes this login phase. It does not confirm independent account authentication, every other plugin's decision or a completed backend join. A flag with ALLOW is presented as allowed. Pre-authentication manual denials can have NOT_CHECKED sources. Rule IDs are reported; rule targets and private reasons are omitted. Selected/unresolved trace entries are deduplicated per rule ID and evaluated scope.
 
-Rich messages omit player names, UUIDs, raw provider text, ISP/operator strings, request endpoints and exception details. Addresses are omitted unless `include-ip: true` is explicitly chosen for that rich recipient. `allowed_mentions.parse` is empty for both formats. Messages show at most eight sources and eight relevant rule entries, with shown/total counts. Text fits Discord's field and combined-embed limits; omission is visible. These message/mention limits follow [Discord's message contract](https://docs.discord.com/developers/resources/message).
+Rich messages omit player names, UUIDs, raw provider text, ISP/operator strings, request endpoints and exception details. Addresses are omitted unless `include-ip: true` is explicitly chosen for that rich recipient. Player name and UUID are omitted unless `include-player: true` is explicitly chosen for that rich recipient. `allowed_mentions.parse` is empty for both formats. Messages show at most eight sources and eight relevant rule entries, with shown/total counts. Text fits Discord's field and combined-embed limits; omission is visible. These message/mention limits follow [Discord's message contract](https://docs.discord.com/developers/resources/message).
 
-When both VPN and geo select an EMBED for the identical URL string, one combined message is generated: both scopes appear, address inclusion requires both opt-ins, and the longer cooldown applies. Different URLs retain independent privacy settings. Mixing TEXT and EMBED retains their separate delivery paths; use EMBED for both scopes to combine them.
+When both VPN and geo select an EMBED for the identical URL string, one combined message is generated: both scopes appear, address and player inclusion each require both opt-ins, and the longer cooldown applies. Different URLs retain independent privacy settings. Mixing TEXT and EMBED retains their separate delivery paths; use EMBED for both scopes to combine them.
+
+## Know who was refused
+
+Using a manual DENY rule as a ban? Enable an EMBED webhook with `events: [DENY]` (or keep `FLAG`, which also covers selected manual DENY rules) and set `include-player: true` on that destination. The embed then gains a **Player** field right after the decision:
+
+| Line | Meaning |
+| --- | --- |
+| Reported name | The name the player reported at this login phase. It is not independent authentication proof; offline-mode names can be chosen freely. Discord formatting characters are shown literally. |
+| Trusted UUID | The captured trusted platform/forwarded UUID, as `%UUID%` in TEXT templates. `UNKNOWN` if absent, untrusted or identity proof was lost; no offline UUID is fabricated. |
+
+The footer states whether player name/UUID were included. The option has no effect on TEXT messages (choose the variables in your template instead), and the name stays internal to notifications: Cloud sync and addon observations are unchanged. Reflect the data you send in your server disclosure.
 
 ## Custom messages and variables
 

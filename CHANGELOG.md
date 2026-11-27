@@ -3,6 +3,12 @@
 ## Unreleased — 0.6.2
 
 - Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
+
+### Player in rich webhooks
+
+- New opt-in `include-player: true` on an EMBED webhook destination (`behavior.vpn.send-webhook` / `behavior.geo.send-webhook`) adds a Player field with the reported name and trusted UUID. Moderators who use manual DENY rules as bans can now see in Discord who was refused, not only that someone was. Default `false`; existing configurations send the same payload as before.
+- Same rules as `include-ip`: one combined VPN+geo message includes the player only when both destinations opt in; the footer says whether it was included. Names are shown literally (no Discord formatting or mentions). TEXT templates, Cloud sync and addon observations are unchanged. [Webhooks](docs/WEBHOOKS.md#know-who-was-refused).
+
 ### Provider responses
 
 - Fixed: an IPQuery answer for an address without an announcing network (`AS0`) was treated as a provider failure. Its VPN, proxy and Tor verdict is now used. Reserved zero ASN metadata is treated as absent across providers; malformed and out-of-range ASN values remain errors.

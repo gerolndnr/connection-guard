@@ -60,7 +60,7 @@ public final class DecisionCapture implements AutoCloseable {
     public String policyGeoSource() { return geoSource.equals("geo.none") ? null : geoSource; }
     public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages() { return messages; }
     public void playerName(String name) {
-        if(!settings.observe && settings.webhooks.hasText()) record(()->webhookContext=webhookContext.withPlayerName(name));
+        if(!settings.observe && (settings.webhooks.hasText() || settings.webhooks.hasPlayerEmbeds())) record(()->webhookContext=webhookContext.withPlayerName(name));
     }
     public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
     public void denied(Reason reason) { denied = reason; }

@@ -101,6 +101,7 @@ webhook:
     decision: Decisión
     checks: Comprobaciones
     address: Dirección de conexión (activada explícitamente)
+    player: Jugador (activado explícitamente)
     votes: Fuentes de voto observadas
     rules: Reglas seleccionadas / sin resolver
     admission: Comprobaciones externas de acceso
@@ -144,7 +145,12 @@ webhook:
     Válido hasta: {10}'
   address-included: incluida explícitamente
   address-redacted: oculta
-  footer: 'Fuentes: {0}/{1}. Dirección {2}; se omiten nombres/UUID/textos del proveedor. Mejor esfuerzo; sin reintento.'
+  player: 'Nombre informado: {0}
+
+    UUID de confianza: {1}'
+  player-included: incluidos explícitamente
+  player-redacted: omitidos
+  footer: 'Fuentes: {0}/{1}. Dirección {2}; nombre/UUID del jugador {3}; se omiten textos del proveedor. Mejor esfuerzo; sin reintento.'
   not-supplied: no indicado
   source-label: 'Fuente {0}: {1}'
 cloud:
