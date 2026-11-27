@@ -55,11 +55,16 @@ public final class DecisionObservers {
         publish(observation, captureGeneration());
     }
     public static void publish(DecisionObservation observation, long expectedGeneration) {
+        publish(observation, expectedGeneration, null);
+    }
+    /** The reported name reaches only the built-in observer, never an addon. */
+    public static void publish(DecisionObservation observation, long expectedGeneration, String reportedName) {
         ThreadPoolExecutor pool;
         List<Entry> receivers;
         long capturedGeneration;
+        Entry builtIn;
         synchronized (DecisionObservers.class) {
-            pool = workers; capturedGeneration = generation;
+            pool = workers; capturedGeneration = generation; builtIn = internal;
             if (internal == null) receivers = selected;
             else { receivers = new ArrayList<>(selected); receivers.add(internal); }
         }
@@ -68,7 +73,12 @@ public final class DecisionObservers {
             try {
                 pool.execute(() -> {
                     if (!entry.registered || capturedGeneration != generation) return;
-                    try { entry.callback.onDecision(observation); delivered.incrementAndGet(); }
+                    try {
+                        if (entry == builtIn && entry.callback instanceof NamedDecisionObserver)
+                            ((NamedDecisionObserver) entry.callback).onDecision(observation, reportedName);
+                        else entry.callback.onDecision(observation);
+                        delivered.incrementAndGet();
+                    }
                     catch (Exception | LinkageError | AssertionError invalid) { failed.incrementAndGet(); }
                 });
             } catch (RejectedExecutionException full) { dropped.incrementAndGet(); }

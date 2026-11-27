@@ -60,7 +60,7 @@ Using a manual DENY rule as a ban? Enable an EMBED webhook with `events: [DENY]`
 | Reported name | The name the player reported at this login phase. It is not independent authentication proof; offline-mode names can be chosen freely. Discord formatting characters are shown literally. |
 | Trusted UUID | The captured trusted platform/forwarded UUID, as `%UUID%` in TEXT templates. `UNKNOWN` if absent, untrusted or identity proof was lost; no offline UUID is fabricated. |
 
-The footer states whether player name/UUID were included. The option has no effect on TEXT messages (choose the variables in your template instead), and the name stays internal to notifications: Cloud sync and addon observations are unchanged. Reflect the data you send in your server disclosure.
+The footer states whether player name/UUID were included. This option affects only EMBED messages; in TEXT messages choose the variables in your template. It does not control what linked servers send to the [Cloud](CLOUD.md#what-is-sent). Reflect the data you send in your server disclosure.
 
 ## Custom messages and variables
 

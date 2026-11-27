@@ -1,15 +1,19 @@
 # Changelog
 
-## Unreleased — 0.6.2
+## 0.6.2 — 2026-11-28
 
-- Changed: Connection Guard Intel's privacy-relay and hosting networks now count as VPN by default. Cloudflare WARP is free and one click away, so `relay: ALLOW` let a banned player straight back in; a normal player switches it off as easily. `provider.local.connectionguard-intel.relay` defaults to `VPN` (new installations and files without the key; a `relay: ALLOW` already in a config file is kept). The new `provider.local.connectionguard-intel.hosting` defaults to `BLOCK`, also on existing installations with Intel enabled; `REVIEW` restores review-only hosting, including Blackbox confirmation. An allowed relay or booster node inside a hosting range keeps its own setting. Existing installations see one console notice.
+- Changed: Connection Guard Intel's privacy-relay and hosting networks now count as VPN by default. `provider.local.connectionguard-intel.relay` defaults to `VPN` in new installations and files without the key; an explicit `relay: ALLOW` is kept. The new `provider.local.connectionguard-intel.hosting` defaults to `BLOCK`, also on existing installations with Intel enabled; `REVIEW` restores review-only hosting, including Blackbox confirmation. An allowed relay or booster node inside a hosting range keeps its own setting. Existing installations see one console notice.
 - Added: Connection Guard Intel's `P2P` label (exits of peer-to-peer VPNs: VPN Gate, Mysterium, Hola, Urban VPN) and `provider.local.connectionguard-intel.p2p`, default `VPN`: such an exit counts as VPN. `ALLOW` leaves the label informational. `/cg explain` names the label.
-- Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
+
+### Player names in the dashboard
+
+- Linked servers can send the name reported at login with each decision, including offline-mode and pre-authentication decisions. The hosted dashboard stores and lets you search it only after an authorised owner or admin accepts the [updated data processing agreement](https://connectionguard.net/dpa) for the network. The dashboard marks names from unverified identities. Successfully received older decisions without a stored name are not backfilled.
+- Names go only to the built-in cloud observer: addon decision observers and the public `DecisionObservation` stay without names. Unlinked servers send none. An older cloud API that rejects the field gets the same batch again without names, and no names until restart. [Cloud](docs/CLOUD.md).
 
 ### Player in rich webhooks
 
 - New opt-in `include-player: true` on an EMBED webhook destination (`behavior.vpn.send-webhook` / `behavior.geo.send-webhook`) adds a Player field with the reported name and trusted UUID. Moderators who use manual DENY rules as bans can now see in Discord who was refused, not only that someone was. Default `false`; existing configurations send the same payload as before.
-- Same rules as `include-ip`: one combined VPN+geo message includes the player only when both destinations opt in; the footer says whether it was included. Names are shown literally (no Discord formatting or mentions). TEXT templates, Cloud sync and addon observations are unchanged. [Webhooks](docs/WEBHOOKS.md#know-who-was-refused).
+- Same rules as `include-ip`: one combined VPN+geo message includes the player only when both destinations opt in; the footer says whether it was included. Names are shown literally (no Discord formatting or mentions). This setting applies only to rich webhooks. [Webhooks](docs/WEBHOOKS.md#know-who-was-refused).
 
 ### Join waves
 

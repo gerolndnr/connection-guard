@@ -76,7 +76,7 @@ public final class CloudSync {
     private volatile long lastSyncAt;
     private JsonObject pending;
     private final Object pendingLock = new Object();
-    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus, legacySignals;
+    private boolean legacyStatus, legacyCoverageStatus, legacyHintStatus, legacySignals, legacyNames;
     private static volatile boolean errorsUnsupported;
     private volatile boolean errorReportsEnabled;
     private volatile boolean signalsEnabled;
@@ -201,6 +201,15 @@ public final class CloudSync {
     private static boolean hasHints(JsonObject status) {
         JsonObject unchecked = status.has("vpn_unchecked_allowed") ? status.getAsJsonObject("vpn_unchecked_allowed") : null;
         return status.has("local_address_logins") || unchecked != null && (unchecked.has("signals") || unchecked.has("families"));
+    }
+    private static boolean hasNames(JsonObject body) {
+        if (body == null || !body.has("events")) return false;
+        for (JsonElement e : body.getAsJsonArray("events")) if (e.getAsJsonObject().has("name")) return true;
+        return false;
+    }
+    private static void stripNames(JsonObject body) {
+        if (body == null || !body.has("events")) return;
+        for (JsonElement e : body.getAsJsonArray("events")) e.getAsJsonObject().remove("name");
     }
     private static void stripHints(JsonObject status) {
         status.remove("local_address_logins");
@@ -449,6 +458,13 @@ public final class CloudSync {
             lastError = "error reports disabled for an older cloud until restart";
             return MIN_DELAY; // SAME seq, events and counters; retry only once without errors.
         }
+        if (reply.status == 400 && !legacyNames && hasNames(pending)) {
+            // Older APIs reject the reported player name (strict event schema); keep the same batch without names.
+            legacyNames = true;
+            synchronized (pendingLock) { stripNames(pending); }
+            lastError = "cloud API does not yet support player names";
+            return MIN_DELAY;
+        }
         if (reply.status == 400 && !legacySignals && request.has("signals")) {
             // Older APIs reject the network signals; keep the same batch and sequence without them.
             legacySignals = true;
@@ -584,6 +600,7 @@ public final class CloudSync {
         JsonArray events = new JsonArray();
         batch.events.forEach(events::add);
         body.add("events", events);
+        if (legacyNames) stripNames(body);
         if (batch.signals != null && !legacySignals && claimed && batch.signals.getAsJsonArray("prefixes").size() > 0) body.add("signals", batch.signals);
         JsonArray results = new JsonArray();
         synchronized (commandResults) { commandResults.forEach(results::add); commandResults.clear(); }

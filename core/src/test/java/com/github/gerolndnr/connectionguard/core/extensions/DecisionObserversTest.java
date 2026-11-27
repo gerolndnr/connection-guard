@@ -32,6 +32,17 @@ class DecisionObserversTest {
         CompletableFuture<DecisionObservation> next = new CompletableFuture<>();
         ConnectionGuardApi.registerDecisionObserver(id, next::complete); return next;
     }
+    @Test void reportedNameReachesOnlyTheBuiltInObserverNeverAnAddon() throws Exception {
+        CompletableFuture<String> builtIn=new CompletableFuture<>(), addon=new CompletableFuture<>();
+        ConnectionGuardApi.registerDecisionObserver("fixture",(NamedDecisionObserver)(o,name)->addon.complete(String.valueOf(name)));
+        DecisionObservers.configure(settings("fixture"));
+        DecisionObservers.setInternal((NamedDecisionObserver)(o,name)->builtIn.complete(name));
+        DecisionCapture capture=DecisionCapture.begin(Platform.VELOCITY,Phase.LOGIN,"192.0.2.1",null,IdentityTrust.UNTRUSTED);
+        capture.playerName("Fixture_Player");capture.close();
+        assertEquals("Fixture_Player",builtIn.get(2,TimeUnit.SECONDS));
+        // An addon implementing the internal interface still gets the plain observation only.
+        assertEquals("null",addon.get(2,TimeUnit.SECONDS));
+    }
     @Test void observerReceivesSourceDecimalRiskAndLegacyAccessorStaysUnknown() throws Exception {
         CompletableFuture<DecisionObservation> next=observer("fixture"); DecisionObservers.configure(settings("fixture"));
         DetectionDetails details=DetectionDetails.withExactRisk(null,null,null,null,null,new java.math.BigDecimal("79.999"),null);

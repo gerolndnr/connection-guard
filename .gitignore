@@ -5,6 +5,7 @@
 build
 
 .idea
+.DS_Store
 
 # Python artifact verifier
 __pycache__/

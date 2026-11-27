@@ -1,8 +1,8 @@
 package com.github.gerolndnr.connectionguard.core.cloud;
 
 import com.github.gerolndnr.connectionguard.api.v1.DecisionObservation;
-import com.github.gerolndnr.connectionguard.api.v1.DecisionObserver;
 import com.github.gerolndnr.connectionguard.api.v1.DetectionMetadata;
+import com.github.gerolndnr.connectionguard.core.extensions.NamedDecisionObserver;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.*;
@@ -12,7 +12,7 @@ import java.util.*;
  * individual decisions only after the server confirmed the install is linked (acceptEvents).
  * Runs on the observer workers, never on a login thread.
  */
-final class CloudRecorder implements DecisionObserver {
+final class CloudRecorder implements NamedDecisionObserver {
     static final int MAX_BUFFERED_EVENTS = 5000;
     private static final int MAX_LATENCY_SAMPLES = 2048;
 
@@ -38,9 +38,9 @@ final class CloudRecorder implements DecisionObserver {
         synchronized (lock) { acceptEvents = accept; if (!accept) events.clear(); }
     }
 
-    @Override public void onDecision(DecisionObservation o) {
+    @Override public void onDecision(DecisionObservation o, String reportedName) {
         synchronized (lock) {
-            JsonObject event = acceptEvents ? event(o) : null;
+            JsonObject event = acceptEvents ? event(o, reportedName) : null;
             checks++;
             switch (o.getOutcome()) { case DENY: denied++; break; case ERROR: errors++; break; default: allowed++; }
             if (o.getVpnCheck() == DecisionObservation.Check.POSITIVE) vpnPositive++;
@@ -149,7 +149,19 @@ final class CloudRecorder implements DecisionObserver {
 
     private static String clip(String value, int max) { return value == null ? null : value.length() > max ? value.substring(0, max) : value; }
 
-    static JsonObject event(DecisionObservation o) {
+    static JsonObject event(DecisionObservation o) { return event(o, null); }
+
+    /** The reported login name as shown to staff: at most 32 characters, without control or format characters. */
+    static String name(String raw) {
+        if (raw == null) return null;
+        StringBuilder out = new StringBuilder();
+        raw.trim().codePoints().filter(c -> !Character.isISOControl(c) && Character.getType(c) != Character.FORMAT
+                && Character.getType(c) != Character.SURROGATE).forEach(c -> { if (out.length() + Character.charCount(c) <= 32) out.appendCodePoint(c); });
+        String clean = out.toString().trim();
+        return clean.isEmpty() ? null : clean;
+    }
+
+    static JsonObject event(DecisionObservation o, String reportedName) {
         JsonObject e = new JsonObject();
         e.addProperty("id", UUID.randomUUID().toString());
         e.addProperty("at", o.getObservedAt());
@@ -160,6 +172,9 @@ final class CloudRecorder implements DecisionObserver {
         e.addProperty("reason", o.getReason().name());
         e.addProperty("identity_trust", o.getIdentityTrust().name());
         e.addProperty("uuid", o.getTrustedUuid().map(UUID::toString).orElse(null));
+        // Reported at login, so staff see who it was; verified only as far as identity_trust says.
+        String name = name(reportedName);
+        if (name != null) e.addProperty("name", name);
         e.addProperty("ip", o.getIp());
         e.addProperty("vpn", o.getVpnCheck().name());
         e.addProperty("geo", o.getGeoCheck().name());
