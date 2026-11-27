@@ -22,7 +22,7 @@ The plugin works fully without it. No account is required to use Connection Guar
 | --- | --- | --- |
 | Off | Nothing | — |
 | On, not linked (default) | Anonymous install ID, platform and version, plugin and Java version, mode (OBSERVE/ENFORCE), totals per interval (checks, admitted, refused, VPN found, cache hits, latency p50/p95, counts per country and reason), provider health (attempts, answers, local daily usage; no keys); from 0.6.2 [network signals](#network-signals) (IPv4 /24 or IPv6 /48 prefixes with counts) | Player IPs, UUIDs, names, API keys, webhook URLs, console commands |
-| Linked, terms accepted | Additionally, one entry per check: time, IP, verified UUID, verdict and reason, what each provider said (country, ASN, ISP, risk), matched rules | API keys, player names, console commands |
+| Linked, terms accepted | Additionally, one entry per check: time, IP, verified UUID, the player name reported at login (from 0.6.2; the dashboard keeps it only for networks that accepted the data processing agreement of 28 Nov 2026), verdict and reason, what each provider said (country, ASN, ISP, risk), matched rules | API keys, console commands |
 
 The exact wire format is open source: `packages/protocol` in `gerolndnr/connection-guard-cloud`.
 

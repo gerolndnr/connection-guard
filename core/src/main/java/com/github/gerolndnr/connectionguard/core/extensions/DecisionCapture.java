@@ -23,6 +23,8 @@ public final class DecisionCapture implements AutoCloseable {
     private final long generation, started;
     private final boolean captureEnabled;
     private com.github.gerolndnr.connectionguard.core.webhook.WebhookContext webhookContext = com.github.gerolndnr.connectionguard.core.webhook.WebhookContext.EMPTY;
+    /** Reported login name for the built-in cloud observer only; never part of the addon observation. */
+    private String reportedName;
     private final int positiveThreshold;
     private final boolean geoDisabled;
     private final com.github.gerolndnr.connectionguard.core.policy.DecisionLeases.Lease policyLease;
@@ -60,6 +62,7 @@ public final class DecisionCapture implements AutoCloseable {
     public String policyGeoSource() { return geoSource.equals("geo.none") ? null : geoSource; }
     public com.github.gerolndnr.connectionguard.core.messages.MessageCatalog messages() { return messages; }
     public void playerName(String name) {
+        record(()->reportedName=name);
         if(!settings.observe && (settings.webhooks.hasText() || settings.webhooks.hasPlayerEmbeds())) record(()->webhookContext=webhookContext.withPlayerName(name));
     }
     public void admission(List<AdmissionObservation> values){record(()->{admissionChecks=Collections.unmodifiableList(new ArrayList<>(values)); admissionUnresolved=values.stream().anyMatch(v->v.getResponse().getStatus()==AdmissionResponse.Status.UNKNOWN);});}
@@ -152,11 +155,12 @@ public final class DecisionCapture implements AutoCloseable {
         final boolean capturedError=processingError;
         final List<AdmissionObservation> capturedAdmission=admissionChecks;
         final com.github.gerolndnr.connectionguard.core.webhook.WebhookContext capturedWebhookContext=webhookContext;
-        DecisionObservers.deferCapture(()->emit(capturedOutcome,capturedReason,capturedVpn,capturedGeo,capturedAt,duration,capturedError,capturedFlags,capturedSources,capturedRules,capturedAdmission,capturedWebhookContext));
+        final String capturedName=reportedName;
+        DecisionObservers.deferCapture(()->emit(capturedOutcome,capturedReason,capturedVpn,capturedGeo,capturedAt,duration,capturedError,capturedFlags,capturedSources,capturedRules,capturedAdmission,capturedWebhookContext,capturedName));
     }
     private void emit(Outcome outcome,Reason reason,Check vpnCheck,Check geoCheck,long observedAt,long duration,boolean processingError,
             Set<Flag> flags,List<Source> sources,List<Rule> rules,List<AdmissionObservation> admissionChecks,
-            com.github.gerolndnr.connectionguard.core.webhook.WebhookContext webhookContext){
+            com.github.gerolndnr.connectionguard.core.webhook.WebhookContext webhookContext,String reportedName){
         // Observation construction must never change admission or retain exception details.
         DecisionObservation event;
         try {
@@ -172,6 +176,6 @@ public final class DecisionCapture implements AutoCloseable {
         try { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.sendDecision(event,settings.webhooks,positiveThreshold,messages,webhookContext); }
         catch (RuntimeException | LinkageError invalid) { com.github.gerolndnr.connectionguard.core.webhook.CGWebHookHelper.recordInvalid(); }
         // A notification failure must not prevent a separately selected observer from receiving facts.
-        if (generation >= 0) DecisionObservers.publish(event,generation);
+        if (generation >= 0) DecisionObservers.publish(event,generation,reportedName);
     }
 }

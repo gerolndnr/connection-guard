@@ -715,6 +715,23 @@ class CloudSyncTest {
         assertFalse(next.getAsJsonObject("status").has("capabilities"));
     }
 
+    @Test void eventsCarryTheReportedNameAndAnOlderApiGetsTheSameBatchWithoutNames() throws Exception {
+        startSync(Collections.emptyMap()); link();
+        long before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN), DecisionObservers.captureGeneration(), "Fixture_Player");
+        awaitDelivered(before + 1);
+        syncStatus = 400; CloudSync.runOnceForTest(); JsonObject named = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(named);
+        assertEquals("Fixture_Player", named.getAsJsonArray("events").get(0).getAsJsonObject().get("name").getAsString());
+        syncStatus = 200; CloudSync.runOnceForTest(); JsonObject retried = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(retried);
+        JsonObject expected = named.deepCopy(); expected.getAsJsonArray("events").get(0).getAsJsonObject().remove("name");
+        assertEquals(expected, retried);
+        before = DecisionObservers.delivered();
+        DecisionObservers.publish(observation(Outcome.ALLOW, Reason.FLAG_ALLOWED, Flag.VPN), DecisionObservers.captureGeneration(), "Later_Player");
+        awaitDelivered(before + 1);
+        CloudSync.runOnceForTest(); JsonObject later = syncs.poll(5, TimeUnit.SECONDS); assertNotNull(later);
+        assertEquals(1, later.getAsJsonArray("events").size()); assertFalse(later.toString().contains("Later_Player"));
+    }
+
     private static JsonObject withoutHints(JsonObject body) {
         JsonObject copy = body.deepCopy(); JsonObject status = copy.getAsJsonObject("status");
         status.remove("local_address_logins");

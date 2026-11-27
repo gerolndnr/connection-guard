@@ -6,6 +6,11 @@
 - Added: Connection Guard Intel's `P2P` label (exits of peer-to-peer VPNs: VPN Gate, Mysterium, Hola, Urban VPN) and `provider.local.connectionguard-intel.p2p`, default `VPN`: such an exit counts as VPN. `ALLOW` leaves the label informational. `/cg explain` names the label.
 - Ask zowi for its security-only response (`feature=security`), retaining the explicit VPN/proxy/Tor flags and hosting-only review without unused geolocation and registry data. Parsing, source selection, budgets and deadlines are unchanged. Candidate detection/failure/performance acceptance remains pending; no plugin latency improvement is claimed from upstream timing samples.
 
+### Player names in the dashboard
+
+- Linked servers now send the player name reported at login with each decision, so the dashboard shows who was checked or refused, also for offline-mode servers, Bedrock (Floodgate) players and pre-authentication IP denials, where no verified UUID exists. Until now the dashboard had to look names up at Mojang, which refuses those requests from the cloud. The name is not authentication proof; the entry's identity trust says how far it is verified.
+- Names go only to the built-in cloud observer: addon decision observers and the public `DecisionObservation` stay without names. Unlinked servers send none. An older cloud API that rejects the field gets the same batch again without names, and no names until restart. [Cloud](docs/CLOUD.md).
+
 ### Player in rich webhooks
 
 - New opt-in `include-player: true` on an EMBED webhook destination (`behavior.vpn.send-webhook` / `behavior.geo.send-webhook`) adds a Player field with the reported name and trusted UUID. Moderators who use manual DENY rules as bans can now see in Discord who was refused, not only that someone was. Default `false`; existing configurations send the same payload as before.
