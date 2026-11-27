@@ -28,6 +28,7 @@ These bounds are not a promise that every outage login completes within 300ms.
 | `lookup.queue-capacity` | 64 | Maximum queued transport jobs |
 | `lookup.max-inflight` | 128 | Maximum distinct active VPN/geo lookup keys |
 | `lookup.circuit.failures` | 3 | Failures before temporarily pausing a source |
+| `provider.vpn-failover.hedge-ms` | 300 in new files, 0 when missing | Since 0.6.2: a service still silent after this long is joined by the next one in the order; the first answer decides. 0 asks strictly one after another |
 | `lookup.circuit.pause-ms` | 30000 | Circuit pause; 429 honors a longer numeric Retry-After/X-Ttl |
 
 The same canonical IP shares each ongoing VPN lookup and each ongoing geo lookup; cancelling one caller does not cancel everyone else. IPv4-mapped IPv6 addresses map to IPv4. No hostname resolution is offered in the new operations commands. Limits bound this plugin's work; they are not network-level DDoS protection.

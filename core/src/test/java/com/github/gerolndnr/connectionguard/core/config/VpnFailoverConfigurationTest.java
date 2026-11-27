@@ -43,6 +43,19 @@ class VpnFailoverConfigurationTest {
                 assertTrue(shipped.contains(value), "Shipped lookup defaults differ: " + value);
         }
     }
+    @Test void hedgingIsOnInNewFilesAndOffInExistingFilesWithoutTheKey() throws Exception {
+        assertEquals(0, draft(keyed(), "vpnapi", "iphub").hedgeMillis);
+        Map<String, Object> opted = keyed(); opted.put("provider.vpn-failover.hedge-ms", 300);
+        assertEquals(300, draft(opted, "vpnapi", "iphub").hedgeMillis);
+        try (java.io.InputStream input = getClass().getResourceAsStream("/config.yml")) {
+            assertNotNull(input);
+            java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[4096]; int size;
+            while ((size = input.read(buffer)) != -1) bytes.write(buffer, 0, size);
+            String shipped = new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+            assertTrue(shipped.contains("hedge-ms: " + VpnFailoverSettings.TEMPLATE_HEDGE_MILLIS));
+        }
+    }
     @Test void missingOptionEnablesFailoverWithoutProxyCheckOrFreeProviders() {
         ProviderConfiguration result = draft(keyed(), "vpnapi", "iphub");
         assertTrue(result.failover); assertEquals(1, result.threshold); assertEquals(16, result.externalAttempts);

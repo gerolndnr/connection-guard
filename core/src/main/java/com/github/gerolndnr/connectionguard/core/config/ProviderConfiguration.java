@@ -25,6 +25,7 @@ public final class ProviderConfiguration {
     public final int threshold, vpnTtl, geoTtl;
     public final boolean failover;
     public final int externalAttempts;
+    public final long hedgeMillis;
     public final Path dataPath;
     public final String cacheSignature;
     public final String cacheNamespace;
@@ -67,6 +68,7 @@ public final class ProviderConfiguration {
         dataPath = dataDirectory;
         failover = settings.vpnFailover.enabled;
         externalAttempts = settings.vpnFailover.maxExternalAttempts;
+        hedgeMillis = settings.vpnFailover.hedgeMillis;
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
