@@ -1,4 +1,10 @@
-<p align="center"><img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/connection-guard-logo-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/connection-guard-logo.png">
+    <img src="docs/connection-guard-logo.png" alt="Connection Guard" width="360">
+  </picture>
+</p>
 
 > Release **0.6.1**: confirmed Blackbox handling, reviewed competitor migrations, memory-first caches, custom webhook messages, local policy replay, API budgets and dashboard provider ordering. Existing configurations retain their provider choices, keys and mode. The exact combined competitive benchmark remains pending; no comparative accuracy or latency claim is made.
 
