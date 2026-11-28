@@ -47,6 +47,7 @@ Commands and permissions:
   `connectionguard.command.local`. See [local data setup and limits](LOCAL_DATA.md).
 - `/cg stats` — current workers/queue/inflight/shared/rejected counters; `connectionguard.command.stats`.
 - `/cg explain <IPv4/IPv6>` — active VPN votes/status/cache age and geo status, may consume API quota; `connectionguard.command.explain`.
+- `/cg account <player|UUID>|status` — [Account Intelligence](ACCOUNT_INTELLIGENCE.md) record or counters, may use the provider's minute budget; informs only; `connectionguard.command.account`.
 
 `doctor` does not prove network access without a real lookup. Check the observed client IP against a controlled test client; an apparently public IP alone cannot prove forwarding configuration.
 

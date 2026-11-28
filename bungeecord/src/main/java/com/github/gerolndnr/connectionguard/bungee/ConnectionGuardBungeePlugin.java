@@ -173,6 +173,8 @@ public class ConnectionGuardBungeePlugin extends Plugin {
         // 7. Register bungeecord listener and commands
         getProxy().getPluginManager().registerListener(this, new ConnectionGuardBungeeListener());
         getProxy().getPluginManager().registerListener(this, new com.github.gerolndnr.connectionguard.bungee.listener.CloudDashboardNoticeListener());
+        com.github.gerolndnr.connectionguard.bungee.listener.AccountIntelligenceListener.install(getProxy());
+        getProxy().getPluginManager().registerListener(this, new com.github.gerolndnr.connectionguard.bungee.listener.AccountIntelligenceListener());
 
         getProxy().getPluginManager().registerCommand(this, new ConnectionGuardBungeeCommand());
 

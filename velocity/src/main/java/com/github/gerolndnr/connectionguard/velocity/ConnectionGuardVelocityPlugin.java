@@ -151,6 +151,8 @@ public class ConnectionGuardVelocityPlugin {
         // 7. Register velocity listener and commands
         proxyServer.getEventManager().register(this, new ConnectionGuardVelocityListener());
         proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.CloudDashboardNoticeListener());
+        com.github.gerolndnr.connectionguard.velocity.listener.AccountIntelligenceListener.install(proxyServer);
+        proxyServer.getEventManager().register(this, new com.github.gerolndnr.connectionguard.velocity.listener.AccountIntelligenceListener());
 
         CommandMeta commandMeta = proxyServer.getCommandManager().metaBuilder("connectionguard")
                 .aliases("cg")

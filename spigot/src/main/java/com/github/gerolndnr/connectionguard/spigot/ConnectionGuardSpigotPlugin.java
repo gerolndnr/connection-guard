@@ -144,6 +144,8 @@ public class ConnectionGuardSpigotPlugin extends JavaPlugin {
         // 6. Register bukkit listener
         getServer().getPluginManager().registerEvents(new AsyncPlayerPreLoginListener(), this);
         getServer().getPluginManager().registerEvents(new com.github.gerolndnr.connectionguard.spigot.listener.CloudDashboardNoticeListener(), this);
+        com.github.gerolndnr.connectionguard.spigot.listener.AccountIntelligenceListener.install(platformTasks);
+        getServer().getPluginManager().registerEvents(new com.github.gerolndnr.connectionguard.spigot.listener.AccountIntelligenceListener(), this);
 
         // 7. Register commands
         getCommand("connectionguard").setExecutor(new ConnectionGuardSpigotCommand());
