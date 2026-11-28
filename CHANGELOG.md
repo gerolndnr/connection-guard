@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Account Intelligence
+
+- New module next to VPN and Geo detection: after an admitted login, the account is checked against public ban lists, and staff with `connectionguard.notify.account` are told when a ban in force matches `behavior.account.notify-categories` (default cheating, exploit, ban evasion). It only informs: no deny, kick, delay or command. [Account Intelligence](docs/ACCOUNT_INTELLIGENCE.md).
+- First provider: Mizan (`provider.account.mizan`, off by default; optional own key). When enabled, Mizan receives the UUID of each premium player who joins, no IP and no name. Offline-mode and Floodgate accounts are skipped.
+- New `/cg account <player|UUID>` and `/cg account status` (`connectionguard.command.account`); `/cg providers` shows the module's counters.
+
 ## 0.6.2 — 2026-11-28
 
 - Changed: Connection Guard Intel's privacy-relay and hosting networks now count as VPN by default. `provider.local.connectionguard-intel.relay` defaults to `VPN` in new installations and files without the key; an explicit `relay: ALLOW` is kept. The new `provider.local.connectionguard-intel.hosting` defaults to `BLOCK`, also on existing installations with Intel enabled; `REVIEW` restores review-only hosting, including Blackbox confirmation. An allowed relay or booster node inside a hosting range keeps its own setting. Existing installations see one console notice.

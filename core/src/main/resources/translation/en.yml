@@ -18,6 +18,7 @@ messages:
   vpn-webhook: '%NAME% (%IP%) tried to connect with a vpn.'
   geo-block: '&7It looks like you are connecting from &b%COUNTRY%&7, which is &bnot allowed&7 on this server.'
   geo-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) was &egeo-flagged&7 (&e%COUNTRY%&7, %CITY%).'
+  account-notify: '&bConnection Guard &7| &e%NAME% &7has a ban in force on public ban lists: &e%CATEGORIES% &7(%LISTS%). Not proof: /cg account %NAME%'
   geo-webhook: '%NAME% (%IP%, %ISP%) tried to connect from %CITY%, %COUNTRY%.'
   help:
   - '&bConnection Guard &7| &7Overview of commands'
@@ -31,6 +32,7 @@ messages:
   - ' &7- /cg &fallow &7| &fdeny &7| &fexempt &7(scoped rules with expiry)'
   - ' &7- /cg &flocal status &7(local data readiness)'
   - ' &7- /cg &fcloud &7status | link | sync | settings | reset-settings | enable | disable'
+  - ' &7- /cg &faccount &7<&fPlayer&7/&fUUID&7> | status (public ban lists, informs only)'
   info:
     text:
     - '&bConnection Guard &7| &7Query result for &b%INPUT%'
@@ -50,6 +52,17 @@ messages:
 ops:
   permission: You do not have permission for this command.
   explain-usage: 'Usage: /cg explain <literal IPv4/IPv6>'
+  account-usage: 'Usage: /cg account <player who joined since the restart | UUID> or /cg account status'
+  account-off: 'Account Intelligence is off. Enable provider.account.mizan in config.yml, then /cg reload.'
+  account-unknown: 'Unknown player: use the name of a player who joined since the last restart, or a UUID.'
+  account-uncheckable: 'Only premium Java accounts (online-mode UUID) can be checked.'
+  account-unavailable: 'Account check unavailable ({0}). Try again later.'
+  account-clean: 'No ban in force on the indexed public ban lists ({0} on record in total).'
+  account-summary: '{0} bans in force on {1} lists; categories: {2}.'
+  account-ban: '- {0} [{1}] since {2}, until {3}: {4}'
+  account-withheld: 'The provider withholds the list names for this account.'
+  account-not-proof: 'Bans and reasons are the other servers'' own claims, not proof. Decide yourself; Account Intelligence never denies a login.'
+  account-profile: 'Record: {0}'
   literal: Use a literal IPv4/IPv6 address.
   usage: 'Usage: /cg {0}'
   explain-unavailable: Explanation unavailable (details redacted).

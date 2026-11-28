@@ -22,6 +22,7 @@ Free, open-source **VPN/proxy checks and country rules** for Spigot, BungeeCord 
 
 - **VPN/proxy checks:** select supported providers or configure a custom REST API provider.
 - **Actions:** reject a flagged connection, notify staff, execute a configured console command or send a Discord webhook.
+- **Account Intelligence (optional):** after a player joins, check the account against public ban lists and warn staff about bans in force elsewhere. It informs only and never refuses a login. [Account Intelligence](docs/ACCOUNT_INTELLIGENCE.md).
 - **Country rules:** choose an allowlist or blocklist and the response to a match.
 - **Provider failover:** sequential checks are the default; explicitly disable failover to restore parallel voting and its positive threshold.
 - **Caching:** reuse lookup results to reduce repeated provider requests.
@@ -61,7 +62,7 @@ Use `/cg` or `/connectionguard` in game, and omit `/` in the console.
 | `/cg clear <IP>` | Clear VPN and geo cache entries for an IP | `connectionguard.command.clear` |
 | `/cg clear` | Clear the entire cache, temporarily increasing provider requests | `connectionguard.command.clear` |
 
-Targeted `info` and `clear` also accept an online player name or UUID. Staff notification permissions are `connectionguard.notify.vpn` and `connectionguard.notify.geo`. [Troubleshoot flagged players and exemptions](docs/TROUBLESHOOTING.md).
+Targeted `info` and `clear` also accept an online player name or UUID. Staff notification permissions are `connectionguard.notify.vpn`, `connectionguard.notify.geo` and `connectionguard.notify.account`. [Troubleshoot flagged players and exemptions](docs/TROUBLESHOOTING.md).
 
 ## Reliability and compatibility
 

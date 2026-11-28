@@ -18,6 +18,7 @@ messages:
   vpn-webhook: '%NAME% (%IP%) se ha clasificado como usuario de VPN al intentar conectarse.'
   geo-block: '&7Las conexiones desde &b%COUNTRY% &7están &bprohibidas &7en este servidor.'
   geo-notify: '&bConnection Guard &7| &e%NAME% &7(%IP%) se ha marcado por la &eregla de país &7(&e%COUNTRY%&7, %CITY%).'
+  account-notify: '&bConnection Guard &7| &e%NAME% &7tiene un baneo activo en listas públicas: &e%CATEGORIES% &7(%LISTS%). No es una prueba: /cg account %NAME%'
   geo-webhook: '%NAME% (%IP%, %ISP%) intentó conectarse desde %CITY%, %COUNTRY%.'
   info:
     is-vpn: '&bSí'
@@ -40,6 +41,7 @@ messages:
   - ' &7- /cg &fallow &7| &fdeny &7| &fexempt &7(reglas con ámbito y caducidad)'
   - ' &7- /cg &flocal status &7(estado de los datos locales)'
   - ' &7- /cg &fcloud &7status | link | sync | settings | reset-settings | enable | disable'
+  - ' &7- /cg &faccount &7<&fJugador&7/&fUUID&7> | status (listas públicas de baneos, solo aviso)'
   invalid-argument: '&bConnection Guard &7| &7Indica el nombre o UUID de un jugador conectado, o una dirección IP.'
   access-denied: Conexión rechazada por las reglas de acceso del servidor.
   external-denied: Conexión rechazada por la comprobación de acceso configurada.
@@ -50,6 +52,17 @@ messages:
 ops:
   permission: No tienes permiso para este comando.
   explain-usage: 'Uso: /cg explain <dirección IPv4/IPv6>'
+  account-usage: 'Uso: /cg account <jugador desde el reinicio | UUID> o /cg account status'
+  account-off: 'Account Intelligence está desactivado. Activa provider.account.mizan en config.yml y luego /cg reload.'
+  account-unknown: 'Jugador desconocido: usa el nombre de un jugador que haya entrado desde el último reinicio, o un UUID.'
+  account-uncheckable: 'Solo se pueden comprobar cuentas Java premium (UUID de modo online).'
+  account-unavailable: 'Comprobación de cuenta no disponible ({0}). Inténtalo más tarde.'
+  account-clean: 'Ningún baneo activo en las listas públicas indexadas ({0} registrados en total).'
+  account-summary: '{0} baneos activos en {1} listas; categorías: {2}.'
+  account-ban: '- {0} [{1}] desde {2}, hasta {3}: {4}'
+  account-withheld: 'El proveedor oculta los nombres de las listas para esta cuenta.'
+  account-not-proof: 'Los baneos y motivos son afirmaciones de otros servidores, no pruebas. Decide tú; Account Intelligence nunca rechaza un inicio de sesión.'
+  account-profile: 'Registro: {0}'
   literal: Usa una dirección IPv4/IPv6, no un nombre de host.
   usage: 'Uso: /cg {0}'
   explain-unavailable: Explicación no disponible (detalles ocultos).

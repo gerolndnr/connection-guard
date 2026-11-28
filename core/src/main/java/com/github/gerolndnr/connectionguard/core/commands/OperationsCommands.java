@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 /** Shared secret-free operations on every platform. The adapter owns response thread dispatch. */
 public final class OperationsCommands {
-    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy", "migrate", "profile");
+    public static final List<String> NAMES = Arrays.asList("doctor", "providers", "stats", "explain", "allow", "deny", "exempt", "local", "cloud", "policy", "migrate", "profile", "account");
     private OperationsCommands() { }
     public static boolean handle(String[] args, Predicate<String> permission, Consumer<String> reply) {
         return handle(args, permission, reply, false);
@@ -27,6 +27,7 @@ public final class OperationsCommands {
         if (RulesCommands.handle(args, permission, reply)) return true;
         if (PolicyCommands.handle(args, permission, reply)) return true;
         if (ProfileCommands.handle(args, permission, reply)) return true;
+        if (AccountCommands.handle(args, permission, reply)) return true;
         if (args.length == 0 || !NAMES.contains(args[0].toLowerCase(Locale.ROOT))) return false;
         String operation = args[0].toLowerCase(Locale.ROOT);
         if (!permission.test("connectionguard.command." + operation)) { reply.accept(messages.getString("ops.permission")); return true; }
@@ -71,6 +72,7 @@ public final class OperationsCommands {
             if (ConnectionGuard.getActiveDraft() != null && ConnectionGuard.getActiveDraft().intelSettings.enabled) reply.accept(ConnectionGuard.getActiveDraft().intelSnapshot.describe(System.currentTimeMillis()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().extensionProviders.forEach(provider -> reply.accept(provider.describe()));
             if (ConnectionGuard.getActiveDraft() != null) ConnectionGuard.getActiveDraft().localSnapshots.forEach(snapshot -> reply.accept(snapshot.describe(System.currentTimeMillis())));
+            reply.accept(com.github.gerolndnr.connectionguard.core.account.AccountIntelligence.describe());
             if (ConnectionGuard.providerHealth().isEmpty()) reply.accept(messages.getString("ops.no-provider-attempts"));
             ConnectionGuard.providerHealth().entrySet().stream().sorted(java.util.Map.Entry.comparingByKey())
                     .forEach(entry -> reply.accept(entry.getKey() + ": " + entry.getValue().describe()));

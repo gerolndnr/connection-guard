@@ -183,6 +183,16 @@ behavior:
     # If enabled, players with the permission connectionguard.exemption.geo will not be flagged as geo-blocked players.
     # Only available when having LuckPerms.
     use-permission-exemption: false
+  # Account Intelligence: after a player has joined, the account is checked against public ban lists of other
+  # servers (provider.account below). It only informs: it never denies, kicks or delays a login. A ban elsewhere is
+  # that server's claim, not proof; decide yourself. Only premium Java accounts are checked (online-mode UUIDs).
+  account:
+    # Players with the permission connectionguard.notify.account are told when a ban in force matches the categories
+    # below. Warnings are always written to the console. /cg account <player> shows the record.
+    notify-staff: true
+    # Ban categories that warn, as the provider names them (Mizan: cheating, exploit, evasion, hate, threat, scam, ...).
+    # '*' warns on any ban in force, also on bans without a category (chat offences, "compromised account").
+    notify-categories: [cheating, exploit, evasion]
 
 # You can use multiple services at the same time (just enable multiple at once) to minimize
 # the number of provider votes required. Provider votes are not necessarily independent. This determines how many enabled services have
@@ -366,6 +376,16 @@ provider:
     # - Local (operator-imported country/city MMDB plus optional ASN; no API)
     # - Disabled (geo stays UNKNOWN; choose an appropriate failure policy)
     service: 'Disabled'
+  account:
+    # Mizan (https://mizan.ac, KORDU LTD, UK) indexes public ban lists of Minecraft servers. Off by default.
+    # When enabled, Mizan receives the UUID of every premium player who joins (no IP, no name); include Mizan in your
+    # server privacy information. Mizan's terms: https://mizan.ac/terms . Works without a key (public view, about
+    # 120 checks per minute per server address); your own free key from mizan.ac raises the limit.
+    mizan:
+      enabled: false
+      api-key: ''
+      # Local cap on checks per minute (1..300). Checks beyond it wait in a queue; logins never wait.
+      minute-budget: 100
   cache:
     # The cache is very important to effectively use the requests you have and avoid running into the request limit.
     # Once a request to a service is made, its data is stored for the specified duration (see below) and used instead of
@@ -385,6 +405,8 @@ provider:
     expiration:
       vpn: 1440
       geo: 4320
+      # Account records are kept in memory only, never in SQLite or Redis.
+      account: 60
 
     redis:
       # Enable TLS for a remote Redis server; uses the JVM trust store.

@@ -38,6 +38,7 @@ public final class ProviderConfiguration {
     public final boolean intelBootstrapPending;
     public final List<com.github.gerolndnr.connectionguard.core.extensions.ExtensionVpnProvider> extensionProviders;
     public final com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings observers;
+    public final com.github.gerolndnr.connectionguard.core.account.AccountSettings account;
     private final transient Function<String, Object> values;
     private final transient List<String> providerKeys;
     private final transient Path dataDirectory;
@@ -70,6 +71,7 @@ public final class ProviderConfiguration {
         externalAttempts = settings.vpnFailover.maxExternalAttempts;
         hedgeMillis = settings.vpnFailover.hedgeMillis;
         observers = new com.github.gerolndnr.connectionguard.core.extensions.ObserverSettings(value);
+        account = new com.github.gerolndnr.connectionguard.core.account.AccountSettings(value);
         LocalDataSettings local = new LocalDataSettings(value);
         localUpdateHours = local.updateHours;
         intelSettings = new IntelSettings(value);
